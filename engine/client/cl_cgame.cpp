@@ -374,6 +374,7 @@ static void CL_CM_LoadMap( const char *mapname ) {
 	Hunk_AllocPreference( h_low );
 
 	buf = CM_LoadMap( mapname, (qboolean)1, &checksum );
+	CL_InitPhysicsMap();
 	if ( buf ) {
 		// we need this memory for a renderer module later
 		// Hunk_FreeTempMemory( buf );
@@ -388,6 +389,7 @@ CL_ShutdonwCGame
 ====================
 */
 void CL_ShutdownCGame( void ) {
+	CL_ShutdownPhysics();
 
 	Key_SetCatcher( Key_GetCatcher() & ~KEYCATCH_CGAME );
 	cls.cgameStarted = qfalse;

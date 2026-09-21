@@ -1425,3 +1425,47 @@ nested decals .75, post .75, post copy .20, camera motion .30, object motion .50
 temporal resolve .80, temporal copy .30. Nested decal time is already included
 in effects time. Earlier street-scene post-copy budget misses remain recorded;
 this simpler scene passing does not enable post processing by default.
+
+## Cosmetic physics dependency (#15, integration in progress)
+
+`python3 tests/physics.py` builds the pinned Jolt/joltc libraries with UBSan and
+replays `tests/assets/physics/props.txt` against 32 bodies and 16 constraints for
+600 fixed steps. It rejects Jolt allocator and C++ allocation calls during steps,
+checks FP control preservation, hashes ordered final positions/quaternions, and
+requires a changed impulse to change the result. A second independent replay
+must match exactly. Each process also repeats setup/teardown and replay, checks
+that caller allocators are preserved, rejects partial allocator registration,
+and requires zero outstanding blocks before reinitialization. A child-process
+check requires explicit failure at temporary-buffer exhaustion; its diagnostic
+is retained in `temporary-exhaustion.log`. It creates no accepted golden and needs no game content.
+
+Use `--cxx 'clang++ -stdlib=libc++' --output /tmp/physics-clang` for the second
+compiler. CMake, Ninja and the selected compiler/runtime are required. Builds
+use only vendored sources; provenance retains original hashes and explicitly
+records the local scratch/job-page changes. GPU compute, newer x86 instruction
+requirements, exceptions and RTTI are disabled. The owned boundary probe also prepares all 256 slots in caller-supplied storage,
+runs four full-capacity spawn/step/despawn cycles, excludes inactive bodies from
+queries, checks ray and convex-sweep fractions, and repeats the entire lifetime.
+A swing/twist joint resists opposing velocities; omitting it must fail the
+separation check (`missing-joint.log`). Both arena and independent C++ allocation
+counters must remain unchanged after setup, with no outstanding arena blocks at
+shutdown. Slots stay in the broadphase on an excluded, non-colliding object layer
+while unused; setup uses a bounded monotonic arena reclaimed at map teardown.
+The skeleton probe cooks the owned 16-joint animation fixture (Pillow/jsonschema
+required), prepares four ragdolls, samples their poses through three recycle
+cycles and repeats full teardown/reinitialization. Ragdolls share the 256-body
+capacity. Rigid unit-scale skeletons use authored bone boxes and small connector
+spheres; unsupported scaled skeletons retain native death presentation. The
+client pool holds up to four cosmetic deaths for fifteen seconds. The runtime driver additionally requires a replicated fall-damage death, rendered
+ragdoll capture, fixed allocation counters and retirement on map restart.
+
+`python3 tests/physics_runtime.py --binary CLIENT` requires an existing development
+client plus the cooking dependencies above. It exercises cosmetic boxes and
+inert grenades over both installed-content maps, requiring gravity, a bounce,
+fixed arena counters after setup, and zero live dependency blocks on map teardown.
+Hosted form adds `--content openarena --data PATH`. It uses private Xvfb/lavapipe,
+links installed paks into a temporary home, and retains `client.log`; it never
+changes accepted fixtures. `physics_prop box`, `physics_prop grenade` and
+`physics_prop grenade drop` are local cosmetic commands; `physics_status` reports
+motion/storage. Development builds add the Physics panel and `cg_physicsDebug`
+collision bounds. Damage-bearing trajectories remain native weapon/CM state.

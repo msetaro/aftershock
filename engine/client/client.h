@@ -589,3 +589,7 @@ void CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *hei
 // Vulkan
 #ifdef USE_VULKAN_API
 #endif
+
+// Cosmetic world storage follows the native cgame/map lifetime.
+void CL_InitPhysicsMap();
+void CL_ShutdownPhysics();

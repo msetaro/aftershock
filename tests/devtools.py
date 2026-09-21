@@ -75,7 +75,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-devtools-', dir=os.environ.g
         engine.step(60)
         assert engine.request('editor.state')['frames'] > after['frames']
         assert engine.request('cvar.get', name='devtest')['value'] == '7'
-        for panel in ('Cvars', 'Textures', 'Materials', 'Profile', 'Memory', 'Animation'):
+        for panel in ('Cvars', 'Textures', 'Materials', 'Profile', 'Memory', 'Animation', 'Physics'):
             engine.request('panel', name=panel)
             if panel == 'Animation':
                 engine.request('animation.load', path=sorted(models)[0])
@@ -84,9 +84,15 @@ with tempfile.TemporaryDirectory(prefix='aftershock-devtools-', dir=os.environ.g
                 engine.step(2)
                 assert engine.request('editor.state')['animation']['frame'] == 1
                 engine.request('animation.set', field='play', value=1)
+            if panel == 'Physics':
+                engine.request('cvar.set', name='cg_physicsDebug', value='1')
+                engine.request('exec', command='physics_prop box')
+                engine.step(10)
             engine.step(3)
             state = engine.request('editor.state')
             assert state['panel'] == panel, state
+            if panel == 'Physics':
+                assert state['lines'] >= 12, 'active cosmetic collision bounds must be visualized'
             if panel == 'Animation':
                 engine.step(20)
                 later = engine.request('editor.state')['animation']

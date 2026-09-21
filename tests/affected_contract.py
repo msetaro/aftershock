@@ -10,6 +10,8 @@ from run import ROOT
 spec = importlib.util.spec_from_file_location('affected', ROOT/'tests/affected.py')
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
+assert 'physics' in module.select(['engine/physics/physics.cpp'])[0]
+assert 'physics' in module.select(['third_party/joltc/src/joltc.cpp'])[0]
 assert 'weapons' in module.select(['engine/weapons/weapons.cpp'])[0]
 assert 'animation' in module.select(['tools/cook/animation.py'])[0]
 assert 'agent_protocol' in module.select(['engine/devtools/dev_agent.cpp'])[0]

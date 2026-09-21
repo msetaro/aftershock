@@ -18,6 +18,7 @@ set(COMMON_SOURCES
   engine/server/sv_replication.cpp
   engine/server/sv_snapshot.cpp
   engine/server/sv_world.cpp
+  engine/qcommon/cm_physics.cpp
   engine/qcommon/cm_load.cpp
   engine/qcommon/cm_patch.cpp
   engine/qcommon/cm_polylib.cpp
@@ -73,6 +74,8 @@ set(COMMON_SOURCES
 )
 
 set(CLIENT_SOURCES
+  engine/physics/physics.cpp
+  engine/client/cl_physics.cpp
   engine/client/cl_cgame.cpp
   engine/client/cl_cin.cpp
   engine/client/cl_console.cpp
@@ -261,6 +264,7 @@ set(NATIVE_GAME_SOURCES
 
 set(NATIVE_CGAME_SOURCES
   game/cgame/cg_data_weapons.cpp
+  game/cgame/cg_physics.cpp
   game/cgame/cg_animation.cpp
   game/bg/bg_misc.cpp
   game/bg/bg_animation.cpp

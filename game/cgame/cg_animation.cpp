@@ -17,8 +17,23 @@ static uint32_t adsSamples;
 static float adsError;
 static bool haveViewAngles;
 static uint32_t bodyDraws, rifleDraws;
+static struct {
+	uint32_t handle;
+	int owner, expires;
+	uint32_t serial;
+	bool active;
+} ragdolls[4];
+static uint32_t ragdollCount, ragdollNext, ragdollSpawns, ragdollDraws;
+static animPose_t lastBodyPose[MAX_CLIENTS];
+static bool haveBodyPose[MAX_CLIENTS], deadSeen[MAX_CLIENTS];
+static int deathTeleport[MAX_CLIENTS];
 
 void CG_ShutdownAnimation( void ) {
+	memset( ragdolls, 0, sizeof( ragdolls ) );
+	memset( haveBodyPose, 0, sizeof( haveBodyPose ) );
+	memset( deadSeen, 0, sizeof( deadSeen ) );
+	memset( deathTeleport, 0, sizeof( deathTeleport ) );
+	ragdollCount = ragdollNext = ragdollSpawns = ragdollDraws = 0;
 	for ( auto &rig : animationRigs ) {
 		Anim_FreeFile( rig.storage );
 		rig = {};
@@ -123,13 +138,111 @@ static bool AnimationPose( int owner, int rig, animPose_t *pose ) {
 	const uint32_t time = actor.state.lastTime + ( elapsed < 100 ? elapsed : 0 );
 	return BG_AnimationPose( &animationRigs[rig].asset, &actor.state, actor.parameters, time, rig, pose );
 }
+void CG_PrepareRagdolls() {
+	if ( !animationRigs[0].storage )
+		return;
+	for ( auto &ragdoll : ragdolls ) {
+		ragdoll.handle = Phys_PrepareRagdoll( &animationRigs[0].asset );
+		if ( ragdoll.handle == PHYS_INVALID_BODY )
+			break;
+		++ragdollCount;
+	}
+	CG_Printf( "Physics ragdolls prepared: %u\n", ragdollCount );
+}
+void CG_ClearRagdolls() {
+	for ( auto &ragdoll : ragdolls ) {
+		if ( ragdoll.active )
+			Phys_DespawnRagdoll( ragdoll.handle );
+		ragdoll.active = false;
+	}
+	memset( deadSeen, 0, sizeof( deadSeen ) );
+	memset( haveBodyPose, 0, sizeof( haveBodyPose ) );
+}
+static bool RagdollOwner( int owner ) {
+	for ( const auto &ragdoll : ragdolls )
+		if ( ragdoll.active && ragdoll.owner == owner )
+			return true;
+	return false;
+}
+static bool DeathRagdoll( centity_t *cent, int owner ) {
+	if ( !ragdollCount || !haveBodyPose[owner] )
+		return false;
+	const int teleport = cent->currentState.eFlags & EF_TELEPORT_BIT;
+	if ( deadSeen[owner] && deathTeleport[owner] == teleport )
+		return RagdollOwner( owner );
+	deadSeen[owner] = true;
+	deathTeleport[owner] = teleport;
+	auto &ragdoll = ragdolls[ragdollNext++ % ragdollCount];
+	if ( ragdoll.active )
+		Phys_DespawnRagdoll( ragdoll.handle );
+	vec3_t origin, axis[3], angles = { 0, animationActors[owner][0].angles[YAW], 0 };
+	VectorCopy( cent->lerpOrigin, origin );
+	origin[2] += MINS_Z;
+	AnglesToAxis( angles, axis );
+	ragdoll.active = Phys_SpawnRagdoll( ragdoll.handle, &lastBodyPose[owner], origin, axis, cent->currentState.pos.trDelta );
+	if ( !ragdoll.active )
+		return false;
+	ragdoll.owner = owner;
+	ragdoll.expires = cg.time + 15000;
+	ragdoll.serial = ++ragdollSpawns;
+	CG_Printf( "Physics ragdoll death: owner=%d serial=%u joints=%u\n", owner, ragdoll.serial, lastBodyPose[owner].jointCount );
+	return true;
+}
+void CG_RagdollStatus() {
+	uint32_t active = 0;
+	for ( const auto &ragdoll : ragdolls )
+		active += ragdoll.active;
+	CG_Printf( "Physics ragdoll status: prepared=%u spawned=%u active=%u draws=%u\n", ragdollCount, ragdollSpawns, active, ragdollDraws );
+}
+void CG_AddRagdolls() {
+	for ( auto &ragdoll : ragdolls ) {
+		if ( !ragdoll.active )
+			continue;
+		if ( cg.time >= ragdoll.expires ) {
+			Phys_DespawnRagdoll( ragdoll.handle );
+			ragdoll.active = false;
+			continue;
+		}
+		animPose_t pose;
+		refEntity_t entity{};
+		if ( !Phys_RagdollPose( ragdoll.handle, &pose, entity.origin ) )
+			continue;
+		entity.reType = RT_MODEL;
+		entity.hModel = animationRigs[0].model;
+		AxisClear( entity.axis );
+		VectorCopy( entity.origin, entity.oldorigin );
+		VectorCopy( entity.origin, entity.lightingOrigin );
+		entity.renderfx = RF_LIGHTING_ORIGIN;
+		memset( entity.shaderRGBA, 255, sizeof( entity.shaderRGBA ) );
+		const uint64_t identity = UINT64_C( 0xc000000000000000 ) | ( uint64_t( ragdoll.serial ) << 16 ) | ragdoll.handle;
+		if ( !CGameImport_R_AddTemporalEntityToScene( &entity, identity, nullptr, &pose, animationRigs[0].asset.header.modelHash ) )
+			CG_Error( "Cosmetic ragdoll render binding rejected" );
+		++ragdollDraws;
+#ifdef AFTERSHOCK_DEVTOOLS
+		if ( CG_PhysicsDebugEnabled() ) {
+			animBox_t boxes[ANIM_MAX_BOXES];
+			const uint32_t count = Anim_HitBoxes( &animationRigs[0].asset, &pose, entity.origin, entity.axis, boxes, ANIM_MAX_BOXES );
+			for ( uint32_t i = 0; i < count; ++i )
+				Dev_DrawBox( boxes[i].mins, boxes[i].maxs, 0xff00ffffU, 0 );
+			Dev_DrawText( entity.origin, "Cosmetic ragdoll", 0xff00ffffU, 0 );
+		}
+#endif
+	}
+}
 bool CG_AnimationPlayer( centity_t *cent ) {
 	const int owner = cent->currentState.clientNum;
+	if ( owner < 0 || owner >= MAX_CLIENTS )
+		return false;
 	if ( cent->currentState.number != owner )
-		return false; // Legacy corpse presentation.
+		return ( cent->currentState.eFlags & EF_DEAD ) && RagdollOwner( owner );
+	if ( cent->currentState.eFlags & EF_DEAD )
+		return DeathRagdoll( cent, owner );
+	deadSeen[owner] = false;
 	animPose_t pose;
 	if ( !AnimationPose( owner, 0, &pose ) )
 		return false;
+	lastBodyPose[owner] = pose;
+	haveBodyPose[owner] = true;
 	refEntity_t entity = {};
 	entity.reType = RT_MODEL;
 	entity.hModel = animationRigs[0].model;

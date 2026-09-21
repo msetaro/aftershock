@@ -1691,3 +1691,15 @@ void CG_AnimationSnapshot( const entityState_t *entity );
 bool CG_AnimationPlayer( centity_t *cent );
 bool CG_AnimationViewWeapon( const playerState_t *ps, const vec3_t origin, const vec3_t angles );
 void CG_AnimationStatus( void );
+
+void CG_InitPhysics();
+void CG_PhysicsProp();
+void CG_PhysicsStatus();
+void CG_AddPhysics();
+void CG_ClearPhysics();
+
+void CG_PrepareRagdolls();
+void CG_ClearRagdolls();
+void CG_RagdollStatus();
+void CG_AddRagdolls();
+bool CG_PhysicsDebugEnabled();

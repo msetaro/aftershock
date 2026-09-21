@@ -100,6 +100,7 @@ jobs:
           CC='${{ matrix.cc }}' CXX='${{ matrix.cxx }}' ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/materials.py
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/iqm_scale.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/physics.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/post.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
@@ -348,6 +349,16 @@ jobs:
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-level-validation
       - name: Development overlay input and renderer restart
         run: python3 tests/devtools.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-devtools-tests --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Cosmetic props and grenade contacts
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/physics_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Cosmetic physics evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cosmetic-physics
+          path: |
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-physics-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-physics-runtime/ragdoll.png
       - name: Optional renderer module replay
         run: python3 tests/demo.py --modules --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-demo-modules
       - name: Owned animation replay through renderer module

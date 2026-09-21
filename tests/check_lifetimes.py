@@ -11,7 +11,7 @@ import subprocess
 from run import configure, compilation_commands
 
 ROOT = Path(__file__).resolve().parents[1]
-CORE = ('animation', 'weapons', 'effects', 'qcommon', 'client', 'server', 'botlib', 'renderercommon',
+CORE = ('physics', 'animation', 'weapons', 'effects', 'qcommon', 'client', 'server', 'botlib', 'renderercommon',
         'render', 'renderervk', 'rhi', 'devtools', 'sound', 'public')
 LOCATION = 'isExpansionInFileMatching("(^|/)(engine/(' + '|'.join(CORE) + ')/|game/|third_party/(minizip|zlib)/)")'
 # clang-query's AST dump marks VarDecl/ParmVarDecl with needsDestruction as
@@ -79,7 +79,10 @@ def main():
         configure(directory, ['CC=clang', 'CXX=clang++',
                               f'USE_RENDERER_DLOPEN={int(modules)}', f'AFTERSHOCK_DEVTOOLS={int(devtools)}'])
         for row in compilation_commands(directory):
-            source = Path(row['file']).relative_to(ROOT)
+            source = Path(row['file'])
+            if not source.is_relative_to(ROOT):
+                continue  # Generated dependency translation units are not engine code.
+            source = source.relative_to(ROOT)
             if source.suffix != '.cpp' or not (source.parts[0] == 'game' or
                     source.parts[0] == 'engine' and source.parts[1] in CORE or
                     source.parts[0] == 'third_party' and source.parts[1] in ('minizip', 'zlib')):

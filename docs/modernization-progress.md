@@ -20,63 +20,429 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#164 is merged: PR167 -> main 81e40b0cfabdcd63b14964e4a1bee0f4decd7195.
-Final head 5a9b98a1 passed build 35584845138 (all 16 compiler legs) and regression
-35584845147 (all 10 active jobs). Main/base was rechecked immediately before the
-merge. Tested and merged tree both equal e615033d2dcd39b966d8ba51bb38c59ec8e4358e.
-Known-good remains 8bc8c94c -> 81a0f9dc. Merged-tree build/publication 35589995081 passed (all 16 legs and publication);
-regression 35589995016 passed all 10 active jobs. #164 is accepted and checked
-in #25. No source changes remain in its sketch-tree branch.
+#161 PR169 merged into main as 0928be35e47616d17bf8a36475f86952c11f0bbb.
+Final head b9ec426c passed all 16 compiler legs (35631254291) and all ten active
+regression jobs (35631254305). Main/base 07304b32 and the exact PR head were
+rechecked immediately before the merge. Tested and merged trees both equal
+f21454591ae494c1f7d023b6fd5d063c005a4b29. Known-good remains object 8bc8c94c
+pointing to 81a0f9dc, verified against origin after the merge.
 
-Continue #161 in /home/matt/.cache/aftershock-modernization/fidelity-tree,
-issue/161-visual-fidelity. Main 07304b32 is merged forward. Draft PR169 targets main.
-Effects, reference art, material-hit dispatch, light hooks, soft depth, projected
-normal-mapped decals/editor, native LOD selection and initial filmic/LUT/lens
-post controls pass component checks. Post resources preserve HUD composition,
-MSAA and the fixed OpenArena replay hash. All 101 shaders reproduce; existing
-accepted fixtures/shader arrays remain unchanged. Detailed failures and evidence
-are below; these checks do not constitute final #161 acceptance.
+Merged-tree build/publication 35638549208 and all ten active regression jobs in
+35638548512 passed, including runtime 106461943478. #161 is accepted and checked
+in #25. The merged tree is identical to the tested head.
 
-PR168 merged as 07304b324c75085a2403994030aceec73d4de8e1 after exact head
-dd4feacb passed all 16 compiler and ten active regression jobs (35607504307 /
-35607504311). Main/base remained 81e40b0c immediately before merge. Both tested
-and merged trees equal 009ac819f03747310f6af24a162b7d38fd0c31c5; known-good is
-unchanged. Main is merged forward here. Build/publication 35613793896 passed;
-regression 35613793817 passed all ten active jobs. #31 is accepted again.
+Continue #15 on issue/15-jolt-physics in
+/home/matt/.cache/aftershock-modernization/physics-tree, branched from main 0928be35.
+Preserve existing movement, traces, triggers, movers, hit registration and
+all authoritative weapon trajectories. Jolt is for cosmetic props/grenade bodies
+and skeleton-driven death presentation. The pinned dependency and scoped offline
+CMake helper are imported. Permanent GCC and Clang/libc++ UBSan checks now pass
+recorded replay, changed-input comparison, zero step allocations, caller allocator
+ownership, complete teardown/reinitialization, FP control and fixed temporary
+buffer exhaustion. Each change followed its recorded failing test.
 
-Next: finish the final PR169 hosted gates and require all 16 compiler legs and ten active regression jobs on a head
-containing current main. Combined software references and serial hardware budgets
-now pass. Optional resolution upscaling is deliberately omitted from this issue;
-the existing render-scale hook remains, and a quality upscaler can follow a measured
-need. All existing accepted fixtures/shader arrays are unchanged. The bounded
-compressed-source cache ceiling is documented; no frame-time filesystem reads.
-Post remains default off because the earlier street-scene copy-back budget miss
-is retained. Do not reinterpret this simpler combined scene as erasing that miss.
-Draft PR169 head 8213e810 contains main 07304b32; no maintainer input is needed.
+The owned POD boundary passes caller-owned storage, 256 prepared slots, four
+spawn/recycle cycles, inactive filtering, ray/convex queries and reusable swing/
+twist joints on both compilers. The client owns map allocation/teardown and
+cgame prop presentation. All four Q3/OpenArena runtime maps now pass cosmetic
+motion/bounce, fixed counters and zero-block teardown. A real runtime failure
+found reversed CM-to-Jolt triangle winding; the failing orientation test and
+fixed export are recorded below. No native trace arithmetic changed.
 
-Initial post budgets before measurement: 0.75 ms for filmic controls and 0.20 ms
-for copy-back at 1440p on the reference GPU. Advanced lens effects remain default
-off; enabling the whole HDR path by default waits for full visual/performance
-acceptance. Hardware timing uses a private owned street scene and both CPU/GPU
-clocks, separately from software frame controls.
+#15 draft PR170 is open into main at c29ed440. Skeleton-driven cosmetic deaths,
+restart cleanup, both content runtime sets, Physics panel, unchanged Q3/OpenArena
+fixed demos and native animation hit-box parity pass. Both compiler component
+probes pass. Full local lifetime analysis (1,268 commands) and tidy policy (1,326
+configurations), format/types/boundaries, affected/suite contracts and workflow
+syntax pass. No accepted fixtures were regenerated.
 
-Reference hardware: RTX 3080 Ti, 12288 MiB, driver 595.91.07. Use a real 1440p
-offscreen target with small Xvfb presentation for measured budgets; report CPU
-and GPU separately. Software-renderer captures remain separate visual controls.
+Initial hosted build 35649848657 exposed MSVC umbrella-header and MinGW diagnostic
+format failures; the fixes below are ready for hosted confirmation. Next monitor
+the latest PR170 runs, complete the recorded self-review, and merge only with
+all required checks green against current main. Recheck main immediately before
+merge; it was still 0928be35 when the PR was opened. No maintainer input is needed.
+Private evidence logs are under /home/matt/.cache/aftershock-modernization:
+physics-ragdoll-after.log, physics-ragdoll-clang.log, physics-death-q3.log,
+physics-death-oa.log, physics-demo.log, physics-demo-oa.log, physics-lifetimes.log
+and physics-tidy.log. Issue checkpoint comment 5766814918 records earlier results.
+
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Build: /home/matt/.cache/aftershock-modernization/fidelity-build (Release DEVTOOLS).
-All evidence is under /home/matt/.cache/aftershock-modernization; no local packages.
+Reference hardware: RTX 3080 Ti / 595.91.07; run hardware benchmarks serially.
+Fidelity build/evidence remains under the same cache root. No local packages
+were installed. Never copy game paks, overwrite accepted fixtures, change
+known-good tags, or publish outside msetaro/aftershock.
 
-#164 retained evidence: compiled per-class IoU 1.0, safe spawns, resting-start
-5.2-second route, 6000 bot frames, 17 kills/53 pickups; edited building-7 variant
-16 kills/49 pickups, default-command Quake 3 run 18 kills/51 pickups, no observed
-stuck bots. Each has two named/eighteen fly-through captures. Provided retarget
-preserves bind matrices/root motion/licenses. Final self-review is below.
+#161 retained limitations: post/TAA and texture streaming are opt-in. The earlier
+street-scene post-copy budget miss remains despite the smaller combined scene
+passing. Optional upscaling is deferred. Compressed-source residency has an
+explicit capacity limit; there are no frame-time filesystem reads. All prior
+accepted frame fixtures and shader arrays are unchanged.
 
-Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
-All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
-known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
+After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
+#29 and #30. No maintainer input is currently needed.
+
+## #15 hosted MSVC header failure
+
+Initial hosted build 35649848657 failed both Windows ARM64 configurations. Debug
+job 106499263710 reports C4530 promoted to C2220: including Jolt/Jolt.h from the
+owned adapter instantiates Vec4's ostream formatter under /EHs-c-. The adapter
+needs only allocator declarations, so replace the umbrella include with
+Jolt/Core/Core.h plus the existing Memory.h; do not enable exceptions or suppress
+the warning. Local client rebuild and both compiler probes precede the next push;
+hosted MSVC builds remain required evidence. Log: physics-msvc-arm64.log.
+Release Windows-MinGW job 106499262967 also rejects %zu in the new Com_Printf
+world diagnostic. Both new world/status diagnostics now use unsigned values
+within the fixed 128-MiB client arena limit; no engine-wide formatter change.
+Log: physics-mingw-release.log. All MSVC configurations report the same umbrella
+header problem. Client rebuild and both compiler component probes pass with the
+narrow allocator include; hosted confirmation follows.
+
+Draft PR170 is still unmerged. The documentation-only head 1f4a66d9 queued runs
+35650061544/35650061617 before this failure was diagnosed.
+
+## #15 death/runtime and unchanged replay checkpoint
+
+Both complete content runtime commands now pass: four prop/contact map lifetimes
+plus normal fall-damage deaths on q3dm1 and oa_dm7, rendered ragdoll captures,
+fixed allocation/live-block counters through activation and map_restart, and
+zero live blocks on disconnect. The failing restart assertion now passes after
+CG_ClearPhysics resets props/ragdolls on both map restart and time discontinuity.
+Quake 3 uses a 256-unit drop and OpenArena 320 units, below/within their respective
+map geometry. Captures were reviewed; the owned articulated body renders.
+
+Both accepted fixed-demo sets are unchanged: Q3 digest 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4,
+OpenArena 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+Format, affected/suite contracts and workflow syntax pass. Tidy source selection
+had the same generated dependency PCH failure as lifetimes (physics-tidy-before.log);
+apply the same owned-source filter and rerun. Full hosted gates remain pending.
+Issue checkpoint: comment 5766814918. Next finish local analysis, open #15 PR into
+main and require all hosted checks green before merge.
+
+## #15 replicated death and restart test first
+
+A normal fall-damage death activates/renders the 16-joint skeleton on q3dm1 and
+OpenArena oa_dm7. The permanent runtime driver now requires this path and capture;
+its Quake 3 restart assertion fails because map_restart leaves cosmetic deaths
+active (physics-death-q3.log). Fix cosmetic reset centrally and reuse it for map
+restart and time discontinuities. The OpenArena fall setup uses oa_dm7 and 320
+units of height; oa_dm1's roof/low ceiling did not produce the required fall.
+Unchanged Quake 3 fixed-demo replay passes frames-mesa-26.0.8.json, digest
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+
+## #15 skeleton ragdoll implementation checkpoint
+
+The owned ragdoll gate now passes GCC and Clang/libc++ UBSan: four 16-joint
+ragdolls, three activation/pose/recycle cycles, two full lifetimes, no allocations
+after setup and complete cleanup. Logs: physics-ragdoll-after.log and
+physics-ragdoll-clang.log in the private modernization cache. The client and
+server build succeeds; format, types and boundaries pass. Existing animation
+runtime still passes server/client hit-box equality and rendered body/rifle poses.
+
+Cgame now prepares a four-ragdoll pool at map load and samples cosmetic death
+poses separately from authoritative animation hit boxes. Real death/runtime
+acceptance is still pending; do not treat the component gate as that evidence.
+Unsupported non-rigid/scaled skeletons retain native death presentation. The
+lifetime check initially rejected an out-of-tree generated Jolt PCH source before
+analysis; source selection now excludes generated dependency translation units,
+with the full gate rerunning. No accepted fixture was regenerated.
+
+## #15 skeleton ragdoll test first
+
+The permanent physics driver now requires four prepared ragdolls from the owned
+16-joint body animation asset, three activation/pose/recycle cycles, two complete
+lifetimes and unchanged allocation counters after setup. It fails at the absent
+ragdoll API (physics-ragdoll-before.log). Use the pinned binding's existing
+Skeleton/Ragdoll APIs behind POD records, with load-time preparation and excluded
+inactive layers; do not recreate a foreign RAII implementation in engine code.
+Cgame death/corpse presentation and runtime death evidence follow the owned gate.
+
+## #15 Physics panel and gate wiring
+
+The shared developer test now opens Physics, throws a box, verifies twelve
+projected collision edges, and captures the panel. It passes together with idle
+allocation, input-release and renderer-restart checks (physics-devtools.log,
+physics-devtools/runtime/physics.png). The original dropped-at-camera fixture
+counted only visible/projected lines, so it was replaced by a thrown-in-view box
+without weakening the twelve-edge assertion. The checkbox now reads the cvar
+before drawing, so external console/agent changes remain visible in the UI.
+
+Both unit compiler variants run physics.py; hosted runtime runs physics_runtime.py
+against OpenArena and preserves its client log. The local suite derives these
+steps from the workflow. Affected-path coverage includes physics source, binding,
+CMake, probes and fixtures; the contract, suite shell catalog and actionlint pass.
+AGENTS and tests/README document the commands. Skeleton deaths and all final
+acceptance gates remain. Nothing is merged for #15 yet.
+
+## #15 outward winding passes all four runtime maps
+
+The fan export now swaps its second/third vertices, leaving the original CM
+winding and trace code untouched. The outward-normal check fails before the fix
+and passes after it. GCC and Clang/libc++ UBSan pass all component checks
+(physics-winding-after.log / physics-winding-clang.log). Both Quake 3 maps and
+both OpenArena maps pass real client prop/grenade motion, floor bounce, unchanged
+allocation/high-water/live counters and zero live blocks at every map teardown
+(physics-runtime-q3.log / physics-runtime-oa.log, adjacent client.log artifacts).
+Continuous collision detection remains enabled for small dynamic cosmetics;
+it alone was insufficient to fix the reversed faces. The ImGui Physics tab is
+built and its shared panel/collision-bound visualization test is running.
+Skeleton deaths, fixture/demo gates and hosted acceptance remain.
+
+## #15 runtime found reversed exported triangle winding
+
+OpenArena passed with continuous collision detection, but a subsequent Quake 3
+map settled the grenade below the native floor instead of bouncing. The isolated
+flat-mesh drop passes, isolating map export. Source inspection found the cause:
+BaseWindingForPlane emits clockwise faces; Jolt MeshShape requires counter-clockwise
+faces. The synthetic geometry test now checks outward normals as well as count
+and area, and fails on the current export (physics-winding-before.log). Reverse
+fan indices in this new export, then rerun both content sets before acceptance.
+The existing CM winding/trace code is unchanged. This is #15 integration code,
+not a previously merged engine defect.
+
+The uncommitted client runtime/panel work is otherwise built: an ImGui Physics
+tab queues prop/drop actions after vendor calls and toggles collision bounds.
+It still needs runtime panel verification, skeleton deaths and full gates.
+
+## #15 first client prop runtime passes
+
+The client now owns a 128 MiB map-lifetime arena, exports the loaded solid world,
+and retires Jolt before freeing its storage. Foreign exhaustion uses process-fatal
+handling with reentrant physics cleanup disabled, never a Com_Error unwind.
+Cgame prepares 32 cosmetic box/grenade slots and steps at 60 Hz with bounded
+catch-up; seek/stall retires cosmetic props. physics_prop and physics_status expose
+local presentation only. No live weapon trajectory or damage path changed.
+
+The runtime driver passes both installed Quake 3 maps: props move, dropped inert
+grenades fall and bounce, frame/spawn allocator/high-water/live counters remain
+fixed, and map replacement works. First world: 5,436 triangles, 30,173,824 arena
+bytes before prop preparation. Evidence: physics-runtime-q3/client.log and
+physics-runtime-q3.log. The earlier resize/hidden-window lifecycle check also
+passed with world loading (physics-window.log). Explicit zero-block teardown
+logging, OpenArena, full demo gates, ragdolls and tooling remain next.
+
+## #15 static map geometry foundation passes
+
+The owned world accepts bounded static triangle meshes. GCC and Clang/libc++
+UBSan pass the full contacts/ray/sweep/recycle suite using a two-triangle floor.
+CM_PhysicsTriangles is a separate load-time export: solid world brushes/patches,
+deduplicated leaf references, inline models excluded, callback capacity stop with
+all temporary storage freed. Its synthetic cube/patch fixture checks 14 triangles,
+area 28 and inline exclusion, without loading game content. Both compilers pass
+(physics-collision-test.log / physics-collision-clang.log). Client/server rebuild
+passes (physics-map-build.log). No native trace expressions changed.
+Next connect map allocation/teardown and cosmetic client presentation; no runtime
+caller or #15 acceptance claim yet.
+
+## #15 static mesh test first
+
+The owned boundary test now uses two static floor triangles rather than a box.
+The first run fails at the missing mesh API (physics-mesh-before.log); the same
+full-capacity contact, ray, sweep and recycle checks will exercise the mesh.
+No game content or accepted fixture is involved.
+
+## #15 client target builds with the owned module
+
+CMake links Jolt/joltc and engine/physics only into the client. Strict FP options
+apply to the owned module; MSVC runtime selection matches engine static runtime.
+The development client and dedicated server build successfully in
+physics-client-build. Format, type and subsystem gates pass. clang-query-21 with
+the real client compilation command finds no owned non-trivial stack/global or
+temporary destructors (physics-lifetimes.log). The lifetime core list now includes
+physics. No runtime entry point calls the module yet; map loading/presentation
+and full required hosted gates remain.
+
+## #15 owned boundary and query allocator checks pass
+
+GCC and Clang/libc++ UBSan pass the full owned-boundary driver, including missing-
+joint control and zero independent C++ allocation calls during setup/steps.
+Managed object-layer/body filter wrappers now use Jolt's registered allocation
+operators; provenance retains the original hash and current adapted hash.
+Evidence: physics-filter-after.log / physics-filter-clang.log. The recorded
+foreign prop scene hash remains unchanged. Client linking/integration is next.
+
+## #15 prepared joint test first
+
+The full-capacity boundary scene now requires a swing/twist joint between two
+prepared body slots, including invalid-slot rejection. Its existing four-cycle
+and shutdown checks cover activation, reuse and lifetime. Initial compilation
+failed at the absent joint API (physics-joint-before.log). The implementation
+passes full-capacity recycle with opposing velocities; omitting the joint fails
+the separation assertion (physics-joint-negative.log). A weak initial negative
+control did not fail, so the fixture now pulls the pair apart with opposite
+10 m/s velocities. The driver retains and requires this negative control.
+
+Independent C++ allocation counting then exposed two setup allocations outside
+the supplied arena, in JPH_ObjectLayerFilter_Create and JPH_BodyFilter_Create.
+Debugger stacks and physics-joint-final.log identify the managed filter wrappers.
+The test currently fails on that ownership violation; adapt their allocation
+operators before claiming the owned boundary passes.
+
+## #15 shape sweep test first
+
+The boundary probe now requires a prepared sphere sweep against the floor,
+checking its contact fraction separately from the ray and rejecting an invalid
+slot. This first run fails to compile because Phys_Sweep is not implemented
+(physics-sweep-before.log). GCC and Clang/libc++ UBSan now pass the implemented convex sweep with zero
+post-setup allocation (physics-sweep-after.log / physics-sweep-clang.log).
+The query reuses a prepared shape and excludes its body and inactive slots;
+it does not allocate a query shape or collector container. Boundary checks pass.
+
+## #15 prepared slots use collision-layer activation
+
+The initial owned POD module caught a real recycle allocation: AddBody allocates
+BroadPhaseQuadTree LayerState after a RemoveBody. Evidence is
+physics-boundary-after.log and a debugger stack through AddBodiesPrepare.
+The module now retains prepared bodies in the broadphase, deactivating them on
+an object layer with no collision pairs and excluding that layer from queries.
+No additional vendor patch is needed. GCC UBSan passes all 256 prepared slots,
+four complete recycle cycles, ray queries and two arena-owned lifetimes with no
+post-setup allocation. Inactive-query coverage caught a callback-table lifetime error during development;
+the table now has static POD storage, as required by the C binding's retained
+pointer. GCC and Clang/libc++ UBSan both pass the active/inactive query checks
+and repeat lifetimes (physics-boundary-final.log / physics-boundary-clang.log).
+The module remains standalone, not linked to client targets; constraints, shape
+queries, map collision and presentation integration still remain.
+
+## #15 owned-boundary failing test
+
+The permanent driver now requires the owned physics module. Its probe prepares
+all 256 slots, exercises four full spawn/step/despawn cycles, casts a ray, compares
+allocation/high-water counters after setup, and tears down/reinitializes twice.
+The first run fails at the absent engine/physics/physics.cpp, retained in
+physics-boundary-before.log. Implementation follows this test; no runtime claim.
+
+## #15 standard temporary storage is bounded
+
+The C binding's standard explicit buffer and legacy default now use fixed
+TempAllocatorImpl storage. The 1 KiB child-process case reports explicit exhaustion
+instead of allocating; GCC and Clang/libc++ UBSan both pass the normal/restart,
+changed-impulse and exhausted-buffer checks. The scene hash remains be15e66a...
+(the complete hash is recorded below). Evidence: physics-temp-after.log /
+physics-temp-clang.log; the driver retains temporary-exhaustion.log.
+
+Next implement/test the owned POD physics boundary, using caller-owned arena
+storage and prepared body/shape pools. Prove full capacity, spawn/recycle and
+queries before connecting client props, skeleton death presentation and tooling.
+The dependency is still not linked into engine targets. #15 has no PR yet.
+
+## #15 temporary-buffer negative control fails before fallback removal
+
+The permanent probe now runs a 1 KiB temporary-buffer case in a child process.
+It requires an explicit TempAllocator exhaustion diagnostic and rejects a heap
+fallback. The baseline instead reports five allocation calls on step 0 and fails
+(physics-temp-before.log). Normal-size runs still pass. Next replace standard
+and legacy-default fallback buffers with fixed-capacity TempAllocatorImpl and
+verify the negative control on both compilers.
+
+## #15 caller ownership and full restart pass
+
+JPH_Init now preserves a complete caller allocator configuration and rejects a
+partial one before allocation. The opaque world wrapper uses Jolt's allocation
+operators. Destroying the final world clears the lookup table's backing storage.
+The intermediate test caught exactly one retained block before that cleanup
+(physics-ownership-reset-before.log); initialization callback replacement is
+retained separately in physics-ownership-before.log.
+
+GCC and Clang/libc++ UBSan tests now pass full setup/600-step/teardown twice per
+process for each replay variant. Setup makes no C++ allocation outside registered
+callbacks, stepping makes no allocation, shutdown has zero outstanding blocks,
+and reinitialization produces identical results. Partial allocator configuration
+is rejected. The recorded-scene hash is unchanged. Evidence:
+physics-ownership-after.log / physics-ownership-clang.log.
+
+Next: prove temporary-buffer exhaustion cannot fall back to allocation, then
+implement the owned POD physics boundary and fixed-capacity lifecycle. No engine
+target links physics yet, and #15 acceptance remains open.
+
+## #15 allocator ownership test fails before initialization changes
+
+The permanent probe now installs all five allocation/free callbacks before
+initialization, requires all dependency storage to use them, counts outstanding
+blocks at shutdown, and repeats the scene twice in the same process. It fails
+because JPH_Init overwrites the supplied callbacks (physics-ownership-before.log).
+This is the next test-first integration change. Full reset must release the
+world lookup table before the caller retires its arena. No engine physics code
+has been introduced yet.
+
+## #15 allocation regression passes on both compilers
+
+The reviewed adaptation reserves NodeID and center scratch per broadphase layer
+at initialization; only serialized UpdatePrepare uses that storage, and concurrent
+body insertion retains separate storage. The callback job pool prepares its one
+fixed page before stepping. Original file hashes remain in provenance alongside
+explicit hashes for changed files. No simulation arithmetic was changed.
+
+The permanent test passes with GCC and Clang/libc++, both under UBSan. It checks
+Jolt allocator calls and independent C++ new/new[] calls (including aligned forms),
+FP control, 600 steps of recorded impulses on 32 bodies/16 constraints, replay
+agreement and a changed-impulse negative control. Both produce SHA256
+be15e66ae62c57bcd803c017095f9b5f7e4e30466b6d6bdb2a849bd06b78c438 for this scene.
+This is measured agreement, not a claim about every platform/scene. Evidence:
+physics-reserved-allocation-test.log / physics-clang-test.log. Format passes.
+
+Next: allocator ownership, no-fallback temporary storage and teardown must be
+proven before engine integration. The upstream wrapper's world lookup table
+retains capacity and its small wrapper allocation uses global new; inspect and
+cover complete reset/reinitialization with a counted allocator. Full body/node
+capacity, recycle, queries, ragdolls, tools and unchanged movement remain open.
+
+## #15 pinned original dependency and concrete failing gate
+
+Imported 561 Jolt files from 5.6.0/e77f175595e64cb44218cc9d9d56fc365ad0e36a and
+six joltc files from 886e088675bae3a086f8318c7803f8ee962c2f2c. MIT licenses and
+archive/per-file SHA256 provenance are retained. Sources are still original.
+cmake/Physics.cmake scopes conservative static-library options, disables GPU
+compute/newer x86 instructions/exceptions/RTTI and refuses absent local Jolt
+sources. It is not yet linked into engine targets.
+
+The permanent probe builds with GCC/UBSan, then reports `physics step 0: 1
+allocation calls` and fails its zero-allocation assertion. Evidence is
+physics-original-test.log; this is the real baseline failure before vendor
+adaptation. The probe's mutable impulse argument was corrected to match the C
+API. Format passes (479 owned files). No engine behavior or accepted fixture changed.
+
+## #15 first permanent test
+
+Added tests/physics.py, its native probe and a four-command recorded prop scene.
+The probe drives 32 bodies with 16 constraints over 600 fixed steps, checks Jolt
+allocator calls and FP control state, and writes ordered final transforms. The
+driver compares independent replays and changes the final impulse as a negative
+control. No accepted golden is created or overwritten. The initial command fails
+at the absent CMake integration, as expected; physics-test-before.log retains it.
+Dependency import and actual allocation failure/fix are next; this is not acceptance.
+
+## #161 merge verification
+
+PR169 was marked ready and merged only after all 26 required checks succeeded.
+The exact head and current main/base were rechecked immediately before the merge.
+The tested/merged tree identity and unchanged remote known-good tag were then
+verified. Issue comment 5765472685 records final measurements and self-review.
+Presentation artifact 10656828055 retains the final-head frames and metrics.
+Merged-tree workflow runs are recorded above; acceptance is pending those runs.
+
+## #161 final-head hosted acceptance (completed before merge)
+
+Final head b9ec426c passed build 35631254291 (all 16 compiler legs) and
+regression 35631254305 (all ten active jobs). Runtime completed all presentation,
+animation, weapon, network, level, module and UBSan controls. Prior-head results
+were supporting evidence only and were not substituted for final-head gates.
+
+Preliminary reading for #15 is retained privately in physics-research.md beside
+the evidence. No physics implementation, branch, vendoring or integration decision has started.
+A private pinned Jolt/joltc static-build and link smoke passes; it is dependency
+research only. Allocator fallback and steady-state allocation controls still need
+implementation and verification in #15. Sources/builds remain outside the repo. A private 600-step allocation probe
+first reports 90 allocating steps (lazy job page and recurring broadphase scratch);
+reserving scratch and warming the job page reduces this limited scene to zero
+with identical final transforms. A 32-body expansion exposed another recurring
+center-array allocation; reserving update-only center scratch also removes that
+allocation with the same reported final transform. Full capacity, allocator and ragdoll coverage
+remain #15 work; this experiment does not accept or implement that issue.
+The 32-body/16-distance-constraint probe also has zero calls over 600 steps.
+Preliminary evidence and limitations are recorded on #15 in comment 5765263819.
+The private dependency also passes MinGW compilation/static linking (not Windows
+execution); experimental-allocations.patch preserves the four-file scratch changes.
 
 ## #161 hosted/reference agreement and local content repeat
 

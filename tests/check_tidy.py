@@ -59,7 +59,10 @@ def main():
         configure(directory, ['CC=clang', 'CXX=clang++',
                               f'USE_RENDERER_DLOPEN={int(modules)}', f'AFTERSHOCK_DEVTOOLS={int(devtools)}'])
         for row in compilation_commands(directory):
-            source = Path(row['file']).relative_to(ROOT)
+            source = Path(row['file'])
+            if not source.is_relative_to(ROOT):
+                continue  # Generated dependency translation units are not engine code.
+            source = source.relative_to(ROOT)
             if source.suffix == '.cpp' and source.parts[0] in ('engine', 'game') and \
                     str(source) != 'engine/renderervk/shaders/spirv/shader_data.cpp':
                 commands.append(row)
