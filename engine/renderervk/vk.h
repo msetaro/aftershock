@@ -38,7 +38,7 @@
 #define USE_DEDICATED_ALLOCATION
 #endif
 //#define MIN_IMAGE_ALIGN (128*1024)
-#define MAX_ATTACHMENTS_IN_POOL (10+VK_NUM_BLOOM_PASSES*2) // depth + msaa + msaa-resolve + depth-resolve + screenmap.msaa + screenmap.resolve + screenmap.depth + bloom_extract + blur pairs
+#define MAX_ATTACHMENTS_IN_POOL (12+VK_NUM_BLOOM_PASSES*2) // depth + msaa + msaa-resolve + depth-resolve + screenmap.msaa + screenmap.resolve + screenmap.depth + bloom_extract + blur pairs
 
 
 typedef struct {
@@ -164,6 +164,7 @@ typedef struct {
 	uint32_t image_memory_count;
 
 	struct {
+		VkRenderPass occlusion[3];
 		VkRenderPass shadow[2];
 		VkRenderPass resume[2];
 		VkRenderPass main;
@@ -227,6 +228,7 @@ typedef struct {
 		VkFramebuffer gamma[MAX_SWAPCHAIN_IMAGES];
 		VkFramebuffer screenmap;
 		VkFramebuffer capture;
+		VkFramebuffer occlusion[2];
 		VkFramebuffer shadow[2];
 	} framebuffers;
 
@@ -293,6 +295,7 @@ typedef struct {
 		VkShaderModule pbr_vs, pbr_fs;
 		VkShaderModule direct_vs, direct_fs;
 		VkShaderModule reflection_fs;
+		VkShaderModule occlusion_fs[2][2], occlusion_apply_fs;
 		VkShaderModule pbr_baked_vs, pbr_baked_fs;
 		VkShaderModule shadow_vs, shadow_fs;
 
@@ -323,6 +326,7 @@ typedef struct {
 
 	VkPipeline gamma_pipeline;
 	VkPipeline capture_pipeline;
+	VkPipeline occlusion_pipeline[3];
 	VkPipeline bloom_extract_pipeline;
 	VkPipeline blur_pipeline[VK_NUM_BLOOM_PASSES * 2]; // horizontal & vertical pairs
 	VkPipeline bloom_blend_pipeline;
@@ -344,6 +348,11 @@ typedef struct {
 	VkFormat depth_format;
 	VkFormat bloom_format;
 
+	VkImage occlusion_image[2];
+	VkImageView occlusion_image_view[2];
+	VkDescriptorSet occlusion_descriptor[2];
+	VkImageView depth_sample_view;
+	VkDescriptorSet depth_descriptor;
 	VkImage shadow_image[2];
 	VkImageView shadow_image_view[2];
 	VkDescriptorSet shadow_descriptor[2];

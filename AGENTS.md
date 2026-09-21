@@ -162,6 +162,7 @@ python3 tests/render_graph.py
 python3 tests/shadow_views.py
 python3 tests/probes.py
 python3 tests/probes_runtime.py --binary CLIENT
+python3 tests/ssao_runtime.py --binary CLIENT
 python3 tests/cook.py
 python3 tests/materials.py
 python3 tests/materials_runtime.py --binary CLIENT

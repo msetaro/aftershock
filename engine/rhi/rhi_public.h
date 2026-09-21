@@ -413,6 +413,8 @@ void RHI_ClearDepth( bool stencil, const rhiRect_t *rect );
 // Exact 4x4 shader transform bytes; matrix generation belongs to the frontend.
 void RHI_PushTransform( const float *matrix );
 void RHI_Bloom( const float *restoreTransform );
+// Projection is the frontend perspective matrix; viewport is in render pixels.
+void RHI_Occlusion( const float *projection, const rhiRect_t *viewport, float radius, float strength );
 // Existing one-frame delayed, coherent visibility storage; no additional wait.
 bool RHI_ReadVisibility( uint32_t index );
 void RHI_DrawVisibility( uint32_t index, uint32_t vertexCount, const rhiRasterState_t *raster );
@@ -480,6 +482,7 @@ struct rhiDeviceConfig_t {
 	rhiFilter_t textureMin, textureMag;
 	bool textureFilterValid;
 	uint32_t shadowMapSize;
+	uint32_t occlusionScale;
 };
 struct rhiDeviceInfo_t {
 	char renderer[1024], vendor[1024], version[1024], extensions[8192];
@@ -530,6 +533,8 @@ enum class rhiGraphTarget_t : uint32_t {
 	Present,
 	LocalShadow,
 	SunShadow,
+	Occlusion,
+	OcclusionBlur,
 	Count
 };
 enum class rhiGraphPass_t : uint32_t {
@@ -551,6 +556,9 @@ enum class rhiGraphPass_t : uint32_t {
 	SunShadow,
 	MainResume,
 	ScreenResume,
+	Occlusion,
+	OcclusionBlur,
+	OcclusionApply,
 	Count
 };
 enum class rhiGraphFormat_t : uint32_t { Color,
@@ -558,7 +566,8 @@ enum class rhiGraphFormat_t : uint32_t { Color,
 	Bloom,
 	Capture,
 	Present,
-	ShadowDepth };
+	ShadowDepth,
+	Occlusion };
 enum class rhiGraphLayout_t : uint32_t { Undefined,
 	Sampled,
 	Color,
@@ -592,6 +601,7 @@ struct rhiGraphConfig_t {
 	uint32_t samples, screenSamples;
 	bool offscreen, bloom, capture, stencil;
 	uint32_t shadowSize; // Zero disables both depth atlases.
+	uint32_t occlusionScale; // 0 off, 1 full resolution, 2 half resolution; requires offscreen.
 };
 struct rhiGraphTargetDesc_t {
 	uint32_t width, height, samples, usage;

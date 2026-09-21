@@ -759,12 +759,14 @@ static_assert( RHI_GRAPH_BLOOM_PASSES == VK_NUM_BLOOM_PASSES );
 static_assert( ARRAY_LEN( vk_graph.targetOrder ) == MAX_ATTACHMENTS_IN_POOL );
 static const char *const vk_graph_names[] = {
 	"screenmap", "main", "bloom_extract", "blur 0", "blur 1", "blur 2", "blur 3",
-	"blur 4", "blur 5", "blur 6", "blur 7", "post_bloom", "capture", "gamma", "local shadow", "sun shadow", "main resumed", "screenmap resumed"
+	"blur 4", "blur 5", "blur 6", "blur 7", "post_bloom", "capture", "gamma", "local shadow", "sun shadow", "main resumed", "screenmap resumed", "ssao", "ssao blur", "ssao apply"
 };
 static_assert( ARRAY_LEN( vk_graph_names ) == (uint32_t)rhiGraphPass_t::Count );
 
 static VkFormat vk_graph_format( rhiGraphFormat_t format ) {
 	switch ( format ) {
+	case rhiGraphFormat_t::Occlusion:
+		return VK_FORMAT_R8_UNORM;
 	case rhiGraphFormat_t::Color:
 		return vk.color_format;
 	case rhiGraphFormat_t::Depth:
@@ -804,6 +806,10 @@ static VkImageLayout vk_graph_layout( rhiGraphLayout_t layout ) {
 static VkRenderPass *vk_graph_pass( rhiGraphPass_t pass ) {
 	using P = rhiGraphPass_t;
 	switch ( pass ) {
+	case P::Occlusion:
+	case P::OcclusionBlur:
+	case P::OcclusionApply:
+		return &vk.render_pass.occlusion[(uint32_t)pass - (uint32_t)P::Occlusion];
 	case P::Main:
 		return &vk.render_pass.main;
 	case P::LocalShadow:
@@ -1279,7 +1285,8 @@ static VkFormat get_depth_format( VkPhysicalDevice physical_device ) {
 
 	for ( i = 0; (size_t)i < ARRAY_LEN( formats ); i++ ) {
 		qvkGetPhysicalDeviceFormatProperties( physical_device, formats[i], &props );
-		if ( ( props.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT ) != 0 ) {
+		const VkFormatFeatureFlags needed = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT | ( vk_config.occlusionScale ? VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT : 0 );
+		if ( ( props.optimalTilingFeatures & needed ) == needed ) {
 			return formats[i];
 		}
 	}
@@ -2371,6 +2378,28 @@ void vk_update_attachment_descriptors( void ) {
 		write.pImageInfo = &image;
 		qvkUpdateDescriptorSets( vk.device, 1, &write, 0, NULL );
 	}
+	if ( vk.depth_sample_view && vk.depth_descriptor ) {
+		Vk_Sampler_Def sampler = {};
+		sampler.gl_mag_filter = sampler.gl_min_filter = FILTER_NEAREST;
+		sampler.address_mode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		sampler.noAnisotropy = qtrue;
+		VkDescriptorImageInfo image = { vk_find_sampler( &sampler ), vk.depth_sample_view, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL };
+		VkWriteDescriptorSet write = {};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.dstSet = vk.depth_descriptor;
+		write.descriptorCount = 1;
+		write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		write.pImageInfo = &image;
+		qvkUpdateDescriptorSets( vk.device, 1, &write, 0, NULL );
+		sampler.gl_mag_filter = sampler.gl_min_filter = FILTER_LINEAR;
+		image.sampler = vk_find_sampler( &sampler );
+		image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		for ( uint32_t i = 0; i < 2; ++i ) {
+			image.imageView = vk.occlusion_image_view[i];
+			write.dstSet = vk.occlusion_descriptor[i];
+			qvkUpdateDescriptorSets( vk.device, 1, &write, 0, NULL );
+		}
+	}
 }
 
 
@@ -2481,6 +2510,11 @@ void vk_impl_InitDescriptors( void ) {
 	for ( i = 0; i < 2; ++i ) {
 		if ( vk.shadow_image_view[i] )
 			VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.shadow_descriptor[i] ) );
+	}
+	if ( vk.depth_sample_view ) {
+		VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.depth_descriptor ) );
+		for ( i = 0; i < 2; ++i )
+			VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.occlusion_descriptor[i] ) );
 	}
 	vk_update_attachment_descriptors();
 }
@@ -2686,6 +2720,11 @@ const char *RHI_GetShaderPackageHash( void ) {
 static void vk_create_shader_modules( void ) {
 	int i, j, k, l;
 	vk.modules.reflection_fs = SHADER_MODULE( reflection_frag_spv );
+	vk.modules.occlusion_fs[0][0] = SHADER_MODULE( occlusion_frag_spv );
+	vk.modules.occlusion_fs[0][1] = SHADER_MODULE( occlusion_ms_frag_spv );
+	vk.modules.occlusion_fs[1][0] = SHADER_MODULE( occlusion_blur_frag_spv );
+	vk.modules.occlusion_fs[1][1] = SHADER_MODULE( occlusion_blur_ms_frag_spv );
+	vk.modules.occlusion_apply_fs = SHADER_MODULE( occlusion_apply_frag_spv );
 	vk.modules.direct_vs = SHADER_MODULE( direct_vert_spv );
 	vk.modules.direct_fs = SHADER_MODULE( direct_frag_spv );
 	vk.modules.pbr_vs = SHADER_MODULE( pbr_vert_spv );
@@ -2904,6 +2943,12 @@ void vk_impl_UpdatePostProcess( int32_t overbrightBits ) {
 
 void vk_update_post_process_pipelines( void ) {
 	if ( vk.fboActive ) {
+		if ( vk_config.occlusionScale ) {
+			for ( uint32_t i = 0; i < 3; ++i ) {
+				const auto &pass = vk_graph.passes[(uint32_t)rhiGraphPass_t::Occlusion + i];
+				vk_create_post_process_pipeline( 4 + (int)i, pass.width, pass.height );
+			}
+		}
 		// update gamma shader
 		vk_create_post_process_pipeline( 0, 0, 0 );
 		if ( vk.capture.image ) {
@@ -3145,7 +3190,7 @@ static void create_color_attachment( uint32_t width, uint32_t height, VkSampleCo
 }
 
 
-static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCountFlagBits samples, VkImage *image, VkImageView *image_view, qboolean allowTransient, bool shadow = false ) {
+static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCountFlagBits samples, VkImage *image, VkImageView *image_view, qboolean allowTransient, bool shadow = false, bool sampled = false ) {
 	VkImageCreateInfo create_desc;
 	VkMemoryRequirements memory_requirements;
 	VkImageAspectFlags image_aspect_flags;
@@ -3164,9 +3209,9 @@ static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCo
 	create_desc.samples = samples;
 	create_desc.tiling = VK_IMAGE_TILING_OPTIMAL;
 	create_desc.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-	if ( shadow )
+	if ( shadow || sampled )
 		create_desc.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
-	if ( allowTransient && !shadow ) {
+	if ( allowTransient && !shadow && !sampled ) {
 		create_desc.usage |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 	}
 	create_desc.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -3182,7 +3227,7 @@ static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCo
 
 	vk_get_image_memory_erquirements( *image, &memory_requirements );
 
-	vk_add_attachment_desc( *image, image_view, create_desc.usage, &memory_requirements, create_desc.format, image_aspect_flags, shadow ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL );
+	vk_add_attachment_desc( *image, image_view, create_desc.usage, &memory_requirements, create_desc.format, image_aspect_flags, shadow || sampled ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL );
 }
 
 
@@ -3190,6 +3235,13 @@ static void create_depth_attachment( uint32_t width, uint32_t height, VkSampleCo
 static void vk_graph_target( rhiGraphTarget_t target, VkImage **image, VkImageView **view ) {
 	using T = rhiGraphTarget_t;
 	switch ( target ) {
+	case T::Occlusion:
+	case T::OcclusionBlur: {
+		const uint32_t index = (uint32_t)target - (uint32_t)T::Occlusion;
+		*image = &vk.occlusion_image[index];
+		*view = &vk.occlusion_image_view[index];
+		break;
+	}
 	case T::LocalShadow:
 	case T::SunShadow: {
 		const uint32_t index = (uint32_t)target - (uint32_t)T::LocalShadow;
@@ -3241,7 +3293,7 @@ static void vk_create_attachments( void ) {
 		(uint32_t)vk.screenMapWidth, (uint32_t)vk.screenMapHeight,
 		(uint32_t)vkSamples, (uint32_t)vk.screenMapSamples,
 		vk.fboActive != qfalse, vk_config.bloom != 0, vk_config.supersample != 0, vk_config.stencilBits != 0,
-		vk_config.shadowMapSize
+		vk_config.shadowMapSize, vk_config.occlusionScale
 	};
 	if ( !RHI_CompileGraph( &config, &vk_graph ) )
 		vk_fail( ERR_FATAL, rhiStatus_t::Error, "Vulkan: invalid render graph dimensions" );
@@ -3255,7 +3307,7 @@ static void vk_create_attachments( void ) {
 		vk_graph_target( id, &image, &view );
 		if ( target.usage & RHI_GRAPH_DEPTH ) {
 			create_depth_attachment( target.width, target.height, (VkSampleCountFlagBits)target.samples,
-				image, view, target.transient ? qtrue : qfalse, target.format == rhiGraphFormat_t::ShadowDepth );
+				image, view, target.transient ? qtrue : qfalse, target.format == rhiGraphFormat_t::ShadowDepth, ( target.usage & RHI_GRAPH_SAMPLED ) != 0 );
 		} else {
 			const VkImageUsageFlags usage = ( target.usage & RHI_GRAPH_COLOR ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT : 0 ) |
 											( target.usage & RHI_GRAPH_SAMPLED ? VK_IMAGE_USAGE_SAMPLED_BIT : 0 ) |
@@ -3266,6 +3318,16 @@ static void vk_create_attachments( void ) {
 	}
 
 	vk_alloc_attachments();
+	if ( vk_config.occlusionScale ) {
+		VkImageViewCreateInfo view = {};
+		view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		view.image = vk.depth_image;
+		view.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		view.format = vk.depth_format;
+		view.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, 1 };
+		VK_CHECK( qvkCreateImageView( vk.device, &view, NULL, &vk.depth_sample_view ) );
+	}
+
 
 	for ( i = 0; i < vk.image_memory_count; i++ ) {
 		SET_OBJECT_NAME( vk.image_memory[i], va( "framebuffer memory chunk %i", i ), VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT );
@@ -3317,6 +3379,11 @@ static void vk_graph_framebuffer( rhiGraphPass_t id, uint32_t swapchainIndex, Vk
 
 static void vk_create_framebuffers( void ) {
 	using P = rhiGraphPass_t;
+	for ( uint32_t i = 0; i < 2; ++i ) {
+		const P id = (P)( (uint32_t)P::Occlusion + i );
+		if ( vk_graph.passes[(uint32_t)id].enabled )
+			vk_graph_framebuffer( id, 0, &vk.framebuffers.occlusion[i] );
+	}
 	for ( uint32_t i = 0; i < 2; ++i ) {
 		const P id = (P)( (uint32_t)P::LocalShadow + i );
 		if ( vk_graph.passes[(uint32_t)id].enabled )
@@ -3504,6 +3571,9 @@ static void vk_destroy_sync_primitives( void ) {
 
 static void vk_destroy_framebuffers( void ) {
 	for ( uint32_t i = 0; i < 2; ++i ) {
+		if ( vk.framebuffers.occlusion[i] )
+			qvkDestroyFramebuffer( vk.device, vk.framebuffers.occlusion[i], NULL );
+		vk.framebuffers.occlusion[i] = VK_NULL_HANDLE;
 		if ( vk.framebuffers.shadow[i] )
 			qvkDestroyFramebuffer( vk.device, vk.framebuffers.shadow[i], NULL );
 		vk.framebuffers.shadow[i] = VK_NULL_HANDLE;
@@ -3924,6 +3994,8 @@ rhiStatus_t vk_impl_Initialize( void ) {
 
 		pool_size[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		pool_size[0].descriptorCount = vk_config.maxImages + 1 + 1 + 1 + VK_NUM_BLOOM_PASSES * 2; // color, screenmap, bloom descriptors
+		if ( vk_config.occlusionScale )
+			pool_size[0].descriptorCount += 3;
 		if ( vk_config.shadowMapSize )
 			pool_size[0].descriptorCount += 2;
 
@@ -4071,6 +4143,18 @@ void RHI_MarkWorldPipelines( void ) {
 
 
 static void vk_destroy_attachments( void ) {
+	if ( vk.depth_sample_view ) {
+		qvkDestroyImageView( vk.device, vk.depth_sample_view, NULL );
+		vk.depth_sample_view = VK_NULL_HANDLE;
+	}
+	for ( uint32_t i = 0; i < 2; ++i ) {
+		if ( vk.occlusion_image[i] ) {
+			qvkDestroyImageView( vk.device, vk.occlusion_image_view[i], NULL );
+			qvkDestroyImage( vk.device, vk.occlusion_image[i], NULL );
+			vk.occlusion_image_view[i] = VK_NULL_HANDLE;
+			vk.occlusion_image[i] = VK_NULL_HANDLE;
+		}
+	}
 	for ( uint32_t index = 0; index < 2; ++index ) {
 		if ( vk.shadow_image[index] ) {
 			qvkDestroyImage( vk.device, vk.shadow_image[index], NULL );
@@ -4146,7 +4230,14 @@ static void vk_destroy_attachments( void ) {
 
 
 static void vk_destroy_render_passes( void ) {
+	if ( vk.render_pass.occlusion[2] )
+		qvkDestroyRenderPass( vk.device, vk.render_pass.occlusion[2], NULL );
+	vk.render_pass.occlusion[2] = VK_NULL_HANDLE;
+
 	for ( uint32_t index = 0; index < 2; ++index ) {
+		if ( vk.render_pass.occlusion[index] )
+			qvkDestroyRenderPass( vk.device, vk.render_pass.occlusion[index], NULL );
+		vk.render_pass.occlusion[index] = VK_NULL_HANDLE;
 		if ( vk.render_pass.shadow[index] )
 			qvkDestroyRenderPass( vk.device, vk.render_pass.shadow[index], NULL );
 		vk.render_pass.shadow[index] = VK_NULL_HANDLE;
@@ -4196,6 +4287,11 @@ static void vk_destroy_render_passes( void ) {
 
 
 static void vk_destroy_pipelines( qboolean resetCounter ) {
+	for ( uint32_t i = 0; i < 3; ++i ) {
+		if ( vk.occlusion_pipeline[i] )
+			qvkDestroyPipeline( vk.device, vk.occlusion_pipeline[i], NULL );
+		vk.occlusion_pipeline[i] = VK_NULL_HANDLE;
+	}
 	uint32_t i, j;
 
 	for ( i = 0; i < vk.pipelines_count; i++ ) {
@@ -4361,6 +4457,10 @@ void vk_impl_Shutdown( void ) {
 	qvkDestroyShaderModule( vk.device, vk.modules.color_fs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.color_vs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.reflection_fs, NULL );
+	for ( uint32_t filter = 0; filter < 2; ++filter )
+		for ( uint32_t multisample = 0; multisample < 2; ++multisample )
+			qvkDestroyShaderModule( vk.device, vk.modules.occlusion_fs[filter][multisample], NULL );
+	qvkDestroyShaderModule( vk.device, vk.modules.occlusion_apply_fs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.direct_vs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.direct_fs, NULL );
 	qvkDestroyShaderModule( vk.device, vk.modules.pbr_vs, NULL );
@@ -4965,6 +5065,17 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 	} frag_spec_data;
 
 	switch ( program_index ) {
+	case 4:
+	case 5:
+	case 6:
+		pipeline = &vk.occlusion_pipeline[program_index - 4];
+		fsmodule = program_index == 6 ? vk.modules.occlusion_apply_fs : vk.modules.occlusion_fs[program_index - 4][vkSamples > VK_SAMPLE_COUNT_1_BIT];
+		renderpass = vk.render_pass.occlusion[program_index - 4];
+		layout = vk.pipeline_layout;
+		samples = program_index == 6 ? (VkSampleCountFlagBits)vkSamples : VK_SAMPLE_COUNT_1_BIT;
+		pipeline_name = "occlusion pipeline";
+		blend = program_index == 6 ? qtrue : qfalse;
+		break;
 	case 1: // bloom extraction
 		pipeline = &vk.bloom_extract_pipeline;
 		fsmodule = vk.modules.bloom_fs;
@@ -5082,7 +5193,7 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 	frag_spec_info.dataSize = sizeof( frag_spec_data );
 	frag_spec_info.pData = &frag_spec_data;
 
-	shader_stages[1].pSpecializationInfo = &frag_spec_info;
+	shader_stages[1].pSpecializationInfo = program_index >= 4 ? NULL : &frag_spec_info;
 
 	//
 	// Primitive assembly.
@@ -5162,6 +5273,12 @@ void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_
 		attachment_blend_state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
 	} else {
 		attachment_blend_state.blendEnable = VK_FALSE;
+	}
+
+	if ( program_index == 6 ) {
+		attachment_blend_state.srcColorBlendFactor = VK_BLEND_FACTOR_DST_COLOR;
+		attachment_blend_state.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+		attachment_blend_state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
 	}
 
 	blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -6820,6 +6937,9 @@ static void vk_begin_render_pass( VkRenderPass renderPass, VkFramebuffer frameBu
 	}
 
 	const char *name = "blur";
+	for ( uint32_t i = 0; i < 3; ++i )
+		if ( renderPass == vk.render_pass.occlusion[i] )
+			name = vk_graph_names[(uint32_t)rhiGraphPass_t::Occlusion + i];
 	if ( renderPass == vk.render_pass.main )
 		name = "main";
 	else if ( renderPass == vk.render_pass.screenmap )
@@ -7543,6 +7663,57 @@ void vk_impl_ReadPixels( byte *buffer, uint32_t width, uint32_t height ) {
 
 		end_command_buffer( command_buffer, "restore layout" );
 	}
+}
+
+
+void RHI_Occlusion( const float *projection, const rhiRect_t *viewport, float radius, float strength ) {
+	if ( !vk_config.occlusionScale || !vk.cmd || strength <= 0 || radius <= 0 || vk.renderPassIndex != RENDER_PASS_MAIN )
+		return;
+	struct Uniform {
+		float projection[4], viewport[4], settings[4], texel[4];
+	} uniform = {};
+	static_assert( sizeof( Uniform ) == 64 && offsetof( Uniform, texel ) == 48 );
+	uniform.projection[0] = projection[0];
+	uniform.projection[1] = -projection[5];
+	uniform.projection[2] = projection[10];
+	uniform.projection[3] = projection[14];
+	uniform.viewport[0] = (float)viewport->offset.x / (float)vk_config.renderWidth;
+	uniform.viewport[1] = (float)viewport->offset.y / (float)vk_config.renderHeight;
+	uniform.viewport[2] = (float)viewport->extent.width / (float)vk_config.renderWidth;
+	uniform.viewport[3] = (float)viewport->extent.height / (float)vk_config.renderHeight;
+	uniform.settings[0] = radius;
+	uniform.settings[1] = strength;
+	uniform.settings[2] = radius * 0.02f;
+	uniform.texel[0] = 1.0f / (float)vk_config.renderWidth;
+	uniform.texel[1] = 1.0f / (float)vk_config.renderHeight;
+	uniform.texel[2] = uniform.texel[0] * (float)vk_config.occlusionScale;
+	uniform.texel[3] = uniform.texel[1] * (float)vk_config.occlusionScale;
+	const auto descriptors = vk.cmd->descriptor_set;
+	const uint32_t previousUniform = vk.cmd->uniform_read_offset;
+	const uint32_t offset = RHI_UploadUniform( &uniform, sizeof( uniform ) );
+	if ( offset == RHI_INVALID_OFFSET ) {
+		vk.cmd->descriptor_set = descriptors;
+		vk.cmd->uniform_read_offset = previousUniform;
+		return;
+	}
+	RHI_EndPass();
+	for ( uint32_t i = 0; i < 3; ++i ) {
+		const auto &pass = vk_graph.passes[(uint32_t)rhiGraphPass_t::Occlusion + i];
+		const VkFramebuffer framebuffer = i == 2 ? vk.framebuffers.main[vk.cmd->swapchain_image_index] : vk.framebuffers.occlusion[i];
+		vk_begin_render_pass( vk.render_pass.occlusion[i], framebuffer, qfalse, pass.width, pass.height );
+		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.occlusion_pipeline[i] );
+		VkDescriptorSet sets[] = { vk.cmd->uniform_descriptor, i == 2 ? vk.occlusion_descriptor[1] : vk.depth_descriptor, vk.occlusion_descriptor[0] };
+		qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout, 0, i == 1 ? 3 : 2, sets, 1, &offset );
+		vk_draw( 4 );
+		if ( i != 2 )
+			RHI_EndPass();
+	}
+	vk.cmd->descriptor_set = descriptors;
+	vk.cmd->uniform_read_offset = previousUniform;
+	vk.cmd->descriptor_set.start = 0;
+	vk.cmd->descriptor_set.end = vk.maxBoundDescriptorSets - 1;
+	vk.cmd->last_pipeline = VK_NULL_HANDLE;
+	vk.cmd->depth_range = DEPTH_RANGE_COUNT;
 }
 
 

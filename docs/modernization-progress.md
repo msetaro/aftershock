@@ -51,6 +51,24 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #14 SSAO rendered checkpoint
+
+Owned OA scene checks pass: half resolution changes 197438 channel bytes, full
+resolution 176117, half resolution with 4x MSAA+bloom 197208. Every strength toggle
+and renderer restart restores its expected image exactly. Full-resolution output
+was reviewed (lighting-ssao-runtime.log). GCC/Clang native graph checks cover 32
+SSAO configurations; existing 36 disabled and 36 shadow configurations retain their
+contracts. Fresh pinned compilation matches 88 cached programs, package
+4518cf5bca779b8ddd83778b7d3e8d9feacc926c0d1a2452c2bc5900c694af71. Prior 83 arrays
+are unchanged. Static and module runtime coverage is wired into hosted CI.
+
+Local module/RHI checks now pass: Q3 module SSAO has the same channel counts and
+exact restart behavior; OA module probes match smooth/rough static results.
+Remaining: measure the complete reference-GPU lighting path, rerun current-main
+hosted gates and self-review. SSAO currently
+attenuates forward-composed scene color; HDR ambient/direct separation is #161.
+No accepted classic fixture, simulation expression or external repository changes.
+
 ## #14 SSAO native work in progress
 
 Test-first 6a40804e fails on absent graph declarations. The implementation now

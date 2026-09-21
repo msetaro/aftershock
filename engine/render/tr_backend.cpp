@@ -1577,6 +1577,13 @@ static const void *RB_DrawSurfs( const void *data ) {
 	}
 #endif
 
+	if ( r_ssao->integer && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) &&
+		 backEnd.viewParms.portalView == PV_NONE && !cmd->refdef.switchRenderPass ) {
+		rhiRect_t viewport;
+		RB_GetViewportRect( &viewport );
+		RHI_Occlusion( backEnd.viewParms.projectionMatrix, &viewport, r_ssaoRadius->value, r_ssaoStrength->value );
+	}
+
 	// draw main system development information (surface outlines, etc)
 	RB_DebugGraphics();
 

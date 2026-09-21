@@ -37,4 +37,7 @@ for name in ('native', 'contract'):
         shadows = run([binary, '--shadows'], capture_output=True, timeout=10)
         (output / 'native-shadows.txt').write_bytes(shadows.stdout)
         print('PASS: 36 shadow-enabled native configurations retain sampled depth and synchronization', flush=True)
+        occlusion = run([binary, '--ssao'], capture_output=True, timeout=10)
+        (output / 'native-ssao.txt').write_bytes(occlusion.stdout)
+        print('PASS: 32 SSAO native configurations retain sampled MSAA/stencil depth and compatible scene loads', flush=True)
 print('PASS: graph dependencies, retained/exported resources, lifetimes and fixed capacities')

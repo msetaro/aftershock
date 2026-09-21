@@ -1019,7 +1019,24 @@ weights blend; existing q3map2 light-grid probes still supply diffuse irradiance
 Atlas allocation/pipeline creation happens at map load, with no frame allocations.
 The five roughness levels contain linear 8-bit radiance from LDR captures. This
 approximation has no box parallax correction; HDR capture/composition is #161.
-SSAO and final reference-GPU budget acceptance remain before #14 can close.
+`python3 tests/ssao_runtime.py --binary CLIENT` measures contact attenuation on
+an owned level at half/full resolution, then with 4x MSAA and bloom. Disabling
+strength restores the baseline exactly; renderer restart restores the enabled
+image. Both static and optional renderer modules run in hosted CI. No accepted
+classic fixture changes. `r_ssao` is latched: 0 off (default), 1 half resolution,
+2 full resolution; requires `r_fbo 1`. `r_ssaoRadius` is a live 1..128 world-unit
+radius (default 32), and `r_ssaoStrength` is live 0..4 (default 1, 0 bypasses).
+
+The fixed 16-sample kernel uses retained scene depth and a depth-aware filter in
+separate graph passes before bloom/HUD. MSAA reads the nearest reversed-depth
+sample; sky and near depth-hacked geometry are excluded. Two single-channel R8
+targets use two bytes per AO pixel; the sampled main depth/MSAA attachments must
+also remain resident across these passes. GPU profiler names are `ssao`,
+`ssao blur`, and `ssao apply` (the last also includes subsequent HUD draws).
+The current forward composition attenuates the composed scene; #161's HDR
+transition owns separation of ambient and direct terms. This is a screen-space
+approximation: offscreen occluders are unavailable and no temporal history is
+kept. Final reference-GPU budget acceptance remains before #14 can close.
 
 ## Declarative level authoring (#26)
 

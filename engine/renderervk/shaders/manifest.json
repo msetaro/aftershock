@@ -1575,6 +1575,276 @@
           }
         ]
       }
+    },
+    {
+      "name": "occlusion_frag_spv",
+      "source": "occlusion.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "5d82e4f97f94367d513d784a7a19ae7ada4f9d5504e9c4cd90fb61067d1cfd48",
+      "includes": {},
+      "recipe_sha256": "33656ac954e4ac5f8d96c77c69945e169dbcc816fe69539a5416f9a8fca24494",
+      "spirv_sha256": "b1278002919a53bc21bdcacb3a37ccb37fe4c3d9ac70edbcb9242cfec96d7caf",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "25": {
+            "binding": 0,
+            "set": 1
+          },
+          "56": {
+            "binding": 0,
+            "set": 0
+          },
+          "102": {
+            "location": 0
+          },
+          "144": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 54,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 54,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 54,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 54,
+            "member": 3,
+            "offset": 48
+          }
+        ]
+      }
+    },
+    {
+      "name": "occlusion_ms_frag_spv",
+      "source": "occlusion.frag",
+      "stage": "frag",
+      "defines": [
+        "MULTISAMPLE"
+      ],
+      "source_sha256": "5d82e4f97f94367d513d784a7a19ae7ada4f9d5504e9c4cd90fb61067d1cfd48",
+      "includes": {},
+      "recipe_sha256": "f2c4b4e6a9d2efac48cc75db0cd8ac2a233cc3bca6cf4e0c74b0ed8f5baa3aa3",
+      "spirv_sha256": "0d1755798cea412bbe173530c5cfea20f1bc20adea1675d28a5af97349ffad1c",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "25": {
+            "binding": 0,
+            "set": 1
+          },
+          "77": {
+            "binding": 0,
+            "set": 0
+          },
+          "123": {
+            "location": 0
+          },
+          "163": {
+            "location": 0
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 75,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 75,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 75,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 75,
+            "member": 3,
+            "offset": 48
+          }
+        ]
+      }
+    },
+    {
+      "name": "occlusion_blur_frag_spv",
+      "source": "occlusion.frag",
+      "stage": "frag",
+      "defines": [
+        "FILTER"
+      ],
+      "source_sha256": "5d82e4f97f94367d513d784a7a19ae7ada4f9d5504e9c4cd90fb61067d1cfd48",
+      "includes": {},
+      "recipe_sha256": "4f7f330af79aa386d37caf1c83760e92a13477d035db21b136e3262276afe09d",
+      "spirv_sha256": "596443d28ee824b023d2300a36c6674c3d73f532702a0c61c8cbf6c883f1f72c",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "25": {
+            "binding": 0,
+            "set": 1
+          },
+          "56": {
+            "binding": 0,
+            "set": 0
+          },
+          "102": {
+            "location": 0
+          },
+          "144": {
+            "location": 0
+          },
+          "213": {
+            "binding": 0,
+            "set": 2
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 54,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 54,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 54,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 54,
+            "member": 3,
+            "offset": 48
+          }
+        ]
+      }
+    },
+    {
+      "name": "occlusion_blur_ms_frag_spv",
+      "source": "occlusion.frag",
+      "stage": "frag",
+      "defines": [
+        "FILTER",
+        "MULTISAMPLE"
+      ],
+      "source_sha256": "5d82e4f97f94367d513d784a7a19ae7ada4f9d5504e9c4cd90fb61067d1cfd48",
+      "includes": {},
+      "recipe_sha256": "c7f3e2b37d54b53c1f1416ae0d77bc9f375a5ec28c395981f89ff7b42395e109",
+      "spirv_sha256": "7f67fe4267c17f6c89eb29c46f72fce245aa3eeb986fdb680ffa6947e9b91aa7",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "25": {
+            "binding": 0,
+            "set": 1
+          },
+          "77": {
+            "binding": 0,
+            "set": 0
+          },
+          "123": {
+            "location": 0
+          },
+          "163": {
+            "location": 0
+          },
+          "234": {
+            "binding": 0,
+            "set": 2
+          }
+        },
+        "member_offsets": [
+          {
+            "type": 75,
+            "member": 0,
+            "offset": 0
+          },
+          {
+            "type": 75,
+            "member": 1,
+            "offset": 16
+          },
+          {
+            "type": 75,
+            "member": 2,
+            "offset": 32
+          },
+          {
+            "type": 75,
+            "member": 3,
+            "offset": 48
+          }
+        ]
+      }
+    },
+    {
+      "name": "occlusion_apply_frag_spv",
+      "source": "occlusion_apply.frag",
+      "stage": "frag",
+      "defines": [],
+      "source_sha256": "05dfb2667c42299f8c14d3e56328c188d352cae3ff3a819c082e8fff8a55607b",
+      "includes": {},
+      "recipe_sha256": "0bab89024d93ecc554ceabd232e3425586dad0974d76e7fc01751c9f036dc399",
+      "spirv_sha256": "4fbdeefa55d751dfb727b610e31591fd12c4d3b477654f5275a4cb98d04898a7",
+      "layout": {
+        "entry_points": [
+          {
+            "stage": "frag",
+            "entry": "main"
+          }
+        ],
+        "decorations": {
+          "12": {
+            "binding": 0,
+            "set": 1
+          },
+          "16": {
+            "location": 0
+          },
+          "24": {
+            "location": 0
+          }
+        },
+        "member_offsets": []
+      }
     }
   ]
 }

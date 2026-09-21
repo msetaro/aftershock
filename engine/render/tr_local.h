@@ -1444,6 +1444,7 @@ extern cvar_t *r_dynamiclight; // dynamic lights enabled/disabled
 extern cvar_t *r_mergeLightmaps;
 extern cvar_t *r_directionalLightmaps;
 extern cvar_t *r_reflectionProbes;
+extern cvar_t *r_ssao, *r_ssaoRadius, *r_ssaoStrength;
 extern cvar_t *r_shadowQuality, *r_shadowSun, *r_shadowDistance, *r_shadowSplitWeight, *r_shadowOcclusion, *r_shadowBias;
 #ifdef USE_PMLIGHT
 extern cvar_t *r_dlightMode; // 0 - vq3, 1 - pmlight

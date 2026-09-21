@@ -57,6 +57,12 @@ static VkResult VKAPI_CALL createImage( VkDevice, const VkImageCreateInfo *p, co
 	row( "image", imageCount++, p->flags, p->imageType, p->format, p->extent.width, p->extent.height, p->extent.depth, p->mipLevels, p->arrayLayers, p->samples, p->tiling, p->usage, p->sharingMode, p->queueFamilyIndexCount, p->initialLayout );
 	if ( ( p->usage & ( VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT ) ) ==
 		 ( VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT ) ) {
+		if ( p->format != VK_FORMAT_D32_SFLOAT ) {
+			assert( vk_config.occlusionScale && p->extent.width == 640 && p->extent.height == 480 );
+			assert( p->samples == vkSamples && !( p->usage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT ) );
+			*out = (VkImage)(uintptr_t)imageCount;
+			return VK_SUCCESS;
+		}
 		++shadowImageCount;
 		assert( p->format == VK_FORMAT_D32_SFLOAT && p->extent.width == 1024 && p->extent.height == 1024 );
 		assert( p->samples == VK_SAMPLE_COUNT_1_BIT && !( p->usage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT ) );
@@ -99,7 +105,7 @@ static void VKAPI_CALL beginPass( VkCommandBuffer, const VkRenderPassBeginInfo *
 		++depthBegun;
 		assert( p->clearValueCount == 1 && p->pClearValues[0].depthStencil.depth == 0 );
 		assert( p->renderArea.extent.width == 1024 && p->renderArea.extent.height == 1024 );
-	} else if ( p->clearValueCount == 0 ) {
+	} else if ( p->clearValueCount == 0 && p->renderPass != vk.render_pass.occlusion[0] && p->renderPass != vk.render_pass.occlusion[1] && p->renderPass != vk.render_pass.occlusion[2] ) {
 		++resumed;
 		assert( p->renderPass == vk.render_pass.resume[0] || p->renderPass == vk.render_pass.resume[1] );
 	}
@@ -156,6 +162,10 @@ static void VKAPI_CALL updateDescriptors( VkDevice, uint32_t count, const VkWrit
 		if ( write.descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER || write.pImageInfo->imageLayout != VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL )
 			continue;
 		assert( write.descriptorCount == 1 && write.pImageInfo->sampler == nearestSampler );
+		if ( write.dstSet == vk.depth_descriptor ) {
+			assert( write.pImageInfo->imageView == vk.depth_sample_view );
+			continue;
+		}
 		const uint32_t index = depthWrites++ % 2;
 		assert( write.pImageInfo->imageView == vk.shadow_image_view[index] );
 		assert( write.dstSet == vk.shadow_descriptor[index] );
@@ -201,7 +211,65 @@ static VkResult VKAPI_CALL createDepthPipeline( VkDevice, VkPipelineCache, uint3
 	*out = (VkPipeline)(uintptr_t)1;
 	return VK_SUCCESS;
 }
-int main( int argc, char ** ) {
+static VkResult VKAPI_CALL createOcclusionPipeline( VkDevice, VkPipelineCache, uint32_t count, const VkGraphicsPipelineCreateInfo *p, const VkAllocationCallbacks *, VkPipeline *out ) {
+	assert( count == 1 && p->layout == vk.pipeline_layout );
+	const bool apply = p->renderPass == vk.render_pass.occlusion[2];
+	assert( p->pMultisampleState->rasterizationSamples == ( apply ? vkSamples : VK_SAMPLE_COUNT_1_BIT ) );
+	assert( !p->pDepthStencilState->depthTestEnable && !p->pDepthStencilState->depthWriteEnable );
+	const auto &blend = p->pColorBlendState->pAttachments[0];
+	assert( bool( blend.blendEnable ) == apply );
+	if ( apply ) {
+		assert( blend.srcColorBlendFactor == VK_BLEND_FACTOR_DST_COLOR && blend.dstColorBlendFactor == VK_BLEND_FACTOR_ZERO );
+		assert( !( blend.colorWriteMask & VK_COLOR_COMPONENT_A_BIT ) );
+	}
+	assert( !p->pStages[1].pSpecializationInfo );
+	*out = (VkPipeline)(uintptr_t)1;
+	return VK_SUCCESS;
+}
+static uint32_t occlusionDraws;
+static void VKAPI_CALL bindPostPipeline( VkCommandBuffer, VkPipelineBindPoint, VkPipeline pipeline ) {
+	assert( pipeline );
+}
+static void VKAPI_CALL bindPostDescriptors( VkCommandBuffer, VkPipelineBindPoint, VkPipelineLayout, uint32_t first, uint32_t count, const VkDescriptorSet *sets, uint32_t offsets, const uint32_t * ) {
+	assert( first == 0 && ( count == 2 || count == 3 ) && offsets == 1 );
+	for ( uint32_t i = 0; i < count; ++i ) assert( sets[i] );
+}
+static void VKAPI_CALL drawPost( VkCommandBuffer, uint32_t vertices, uint32_t instances, uint32_t first, uint32_t instance ) {
+	assert( vertices == 4 && instances == 1 && first == 0 && instance == 0 );
+	++occlusionDraws;
+}
+static void occlusionCommands() {
+	qvkCreateGraphicsPipelines = createOcclusionPipeline;
+	for ( uint32_t i = 0; i < 3; ++i ) {
+		const auto &node = vk_graph.passes[(uint32_t)rhiGraphPass_t::Occlusion + i];
+		vk_create_post_process_pipeline( 4 + (int)i, node.width, node.height );
+	}
+	qvkCmdBindPipeline = bindPostPipeline;
+	qvkCmdBindDescriptorSets = bindPostDescriptors;
+	qvkCmdDraw = drawPost;
+	uint8_t upload[256] = {};
+	vk.cmd->vertex_buffer_ptr = upload;
+	vk.cmd->vertex_buffer_offset = 0;
+	vk.cmd->uniform_read_offset = 32;
+	vk_config.uniformBytes = 64;
+	vk.uniform_alignment = vk.uniform_item_size = 64;
+	vk.geometry_buffer_size = sizeof( upload );
+	const auto descriptors = vk.cmd->descriptor_set;
+	RHI_BeginMainPass();
+	const float projection[16] = { 1,0,0,0, 0,1,0,0, 0,0,0.001f,-1, 0,0,4,0 };
+	const rhiRect_t viewport = { { 0, 0 }, { 640, 480 } };
+	occlusionDraws = 0;
+	RHI_Occlusion( projection, &viewport, 32, 0 );
+	assert( occlusionDraws == 0 && vk.cmd->vertex_buffer_offset == 0 );
+	RHI_Occlusion( projection, &viewport, 32, 1 );
+	assert( occlusionDraws == 3 && vk.cmd->uniform_read_offset == 32 );
+	assert( !memcmp( descriptors.current, vk.cmd->descriptor_set.current, sizeof( descriptors.current ) ) );
+	assert( vk.cmd->descriptor_set.start == 0 && vk.cmd->descriptor_set.end == 4 );
+	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
+	RHI_EndPass();
+}
+int main( int argc, char **argv ) {
+	const bool occlusion = argc > 1 && !strcmp( argv[1], "--ssao" );
 	qvkCreateRenderPass = createPass;
 	qvkCreateFramebuffer = createFramebuffer;
 	qvkCreateImage = createImage;
@@ -214,13 +282,15 @@ int main( int argc, char ** ) {
 	qvkCreateSampler = createSampler;
 	qvkUpdateDescriptorSets = updateDescriptors;
 	qvkCreateGraphicsPipelines = createDepthPipeline;
-	for ( uint32_t mode = 0; mode < 36; ++mode ) {
+	for ( uint32_t mode = occlusion ? 4 : 0; mode < 36; ++mode ) {
+		qvkCreateGraphicsPipelines = createDepthPipeline;
 		vk = {};
 		vk_config = {};
 		passCount = imageCount = framebufferCount = shadowPassCount = shadowImageCount = 0;
 		vk_config.shadowMapSize = argc > 1 ? 1024 : 0;
 		const bool offscreen = mode >= 4;
 		const uint32_t options = offscreen ? mode - 4 : mode;
+		vk_config.occlusionScale = occlusion ? 1 + mode % 2 : 0;
 		vk_config.fbo = offscreen;
 		vk_config.bloom = options & 1;
 		vk_config.stencilBits = options & 2 ? 8 : 0;
@@ -251,12 +321,22 @@ int main( int argc, char ** ) {
 		captureImages();
 		vk_create_render_passes();
 		vk_create_framebuffers();
-		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?(offscreen?4u:3u):0u));
+		assert(passCount==(offscreen?3u+(vk_config.bloom?10u:0u)+(vk.capture.image?1u:0u):1u)+(argc>1?(offscreen?4u:3u):0u)+(occlusion?3u:0u));
 		assert( shadowPassCount == ( argc > 1 ? 2u : 0u ) && shadowImageCount == shadowPassCount );
 		if ( argc > 1 ) {
 			shadowCommands( false );
 			if ( offscreen )
 				shadowCommands( true );
+			if ( occlusion ) {
+				vk.depth_sample_view = (VkImageView)(uintptr_t)500;
+				for ( uint32_t i = 0; i < 3; ++i ) {
+					const auto &node = vk_graph.passes[(uint32_t)rhiGraphPass_t::Occlusion + i];
+					assert( node.enabled && *vk_graph_pass( (rhiGraphPass_t)( (uint32_t)rhiGraphPass_t::Occlusion + i ) ) );
+				}
+				assert( vk.framebuffers.occlusion[0] && vk.framebuffers.occlusion[1] );
+				const auto &depth = vk_graph.targets[(uint32_t)rhiGraphTarget_t::MainDepth];
+				assert( depth.usage & RHI_GRAPH_SAMPLED && !depth.transient );
+			}
 			shadowDescriptors();
 			vk.modules.shadow_vs = (VkShaderModule)(uintptr_t)11;
 			vk.modules.shadow_fs = (VkShaderModule)(uintptr_t)12;
@@ -280,6 +360,7 @@ int main( int argc, char ** ) {
 			vk.modules.reflection_fs = (VkShaderModule)(uintptr_t)16;
 			direct.shader_type = TYPE_REFLECTION;
 			assert( create_pipeline( &direct, RENDER_PASS_MAIN, 0 ) != VK_NULL_HANDLE );
+			if ( occlusion ) occlusionCommands();
 		}
 	}
 }

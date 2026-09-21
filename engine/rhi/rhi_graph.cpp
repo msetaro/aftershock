@@ -63,6 +63,8 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 		return false;
 	if ( c.shadowSize && ( c.shadowSize < 128 || c.shadowSize > 8192 || ( c.shadowSize & ( c.shadowSize - 1 ) ) ) )
 		return false;
+	if ( c.occlusionScale && ( !c.offscreen || c.occlusionScale > 2 ) )
+		return false;
 	using T = rhiGraphTarget_t;
 	using P = rhiGraphPass_t;
 	using F = rhiGraphFormat_t;
@@ -99,6 +101,15 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 	if ( c.shadowSize ) {
 		for ( uint32_t index = 0; index < 2; ++index )
 			Target( graph, (T)( (uint32_t)T::LocalShadow + index ), c.shadowSize, c.shadowSize, 1, F::ShadowDepth, RHI_GRAPH_DEPTH | RHI_GRAPH_SAMPLED, L::DepthSampled );
+	}
+	if ( c.occlusionScale ) {
+		for ( uint32_t i = 0; i < 2; ++i )
+			Target( graph, (T)( (uint32_t)T::Occlusion + i ), c.renderWidth / c.occlusionScale,
+				c.renderHeight / c.occlusionScale, 1, F::Occlusion, sampledColor, L::Sampled );
+		auto &depth = graph->targets[(uint32_t)T::MainDepth];
+		depth.usage |= RHI_GRAPH_SAMPLED;
+		depth.initialLayout = L::DepthSampled;
+		depth.transient = false;
 	}
 	for ( const rhiGraphTargetDesc_t &target : graph->targets ) {
 		if ( target.enabled && ( !target.width || !target.height ) )
@@ -213,12 +224,57 @@ bool RHI_CompileGraph( const rhiGraphConfig_t *config, rhiGraph_t *graph ) {
 			}
 		}
 	}
+	if ( c.occlusionScale ) {
+		// Depth must survive every scene interlude, including shadow resumption.
+		for ( uint32_t p = 0; p < (uint32_t)P::Count; ++p ) {
+			auto &scene = graph->passes[p];
+			if ( !scene.enabled || scene.depth == RHI_INVALID_OFFSET || scene.attachments[scene.depth].target != T::MainDepth )
+				continue;
+			for ( uint32_t i = 0; i < scene.attachmentCount; ++i ) {
+				auto &attachment = scene.attachments[i];
+				attachment.store = Store::Store;
+				graph->targets[(uint32_t)attachment.target].transient = false;
+				if ( i == scene.depth ) {
+					attachment.initialLayout = attachment.finalLayout = L::DepthSampled;
+					if ( c.stencil )
+						attachment.stencilStore = Store::Store;
+				}
+			}
+			scene.dependencies[1] = { rhiGraphStage_t::SceneAttachments, rhiGraphStage_t::Fragment,
+				RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_WRITE, RHI_GRAPH_SHADER_READ, false, false };
+		}
+		for ( uint32_t i = 0; i < 2; ++i ) {
+			const T target = (T)( (uint32_t)T::Occlusion + i );
+			const auto &image = graph->targets[(uint32_t)target];
+			auto &node = Pass( graph, (P)( (uint32_t)P::Occlusion + i ), image.width, image.height,
+				TargetBit( T::MainDepth ) | ( i ? TargetBit( T::Occlusion ) : 0 ) );
+			Attachment( node, target, Load::Discard, Store::Store, L::Sampled, L::Sampled );
+		}
+		const auto &scene = graph->passes[(uint32_t)P::Main];
+		auto &apply = Pass( graph, P::OcclusionApply, scene.width, scene.height, scene.readMask | TargetBit( T::OcclusionBlur ) );
+		apply.color = scene.color;
+		apply.depth = scene.depth;
+		apply.resolve = scene.resolve;
+		apply.dependencies[0] = { rhiGraphStage_t::Fragment, rhiGraphStage_t::SceneAttachments,
+			RHI_GRAPH_SHADER_READ, RHI_GRAPH_COLOR_READ | RHI_GRAPH_COLOR_WRITE | RHI_GRAPH_DEPTH_READ | RHI_GRAPH_DEPTH_WRITE, true, false };
+		apply.dependencies[1] = scene.dependencies[1];
+		for ( uint32_t i = 0; i < scene.attachmentCount; ++i ) {
+			const auto &a = scene.attachments[i];
+			Attachment( apply, a.target, Load::Load, Store::Store, a.initialLayout, a.finalLayout,
+				c.stencil && i == scene.depth ? Load::Load : Load::Discard, a.stencilStore );
+		}
+	}
 	// Preserve the legacy IDs/possible-pass intervals when lighting is disabled.
 	// Creation order is independent of this dependency/lifetime order.
 	for ( uint32_t p = 0; p < (uint32_t)P::LocalShadow; ++p ) {
 		graph->executionOrder[graph->executionCount++] = (P)p;
 		if ( c.shadowSize && p == (uint32_t)P::Main )
 			graph->executionOrder[graph->executionCount++] = P::MainResume;
+		if ( c.occlusionScale && p == (uint32_t)P::Main ) {
+			graph->executionOrder[graph->executionCount++] = P::Occlusion;
+			graph->executionOrder[graph->executionCount++] = P::OcclusionBlur;
+			graph->executionOrder[graph->executionCount++] = P::OcclusionApply;
+		}
 		if ( c.shadowSize && c.offscreen && p == (uint32_t)P::ScreenMap )
 			graph->executionOrder[graph->executionCount++] = P::ScreenResume;
 	}
