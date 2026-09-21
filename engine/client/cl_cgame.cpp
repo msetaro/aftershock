@@ -673,6 +673,9 @@ void CGameImport_R_AddLightToScene( const float *org, float intensity, float r, 
 	re.AddLightToScene( (const vec_t *)org, intensity, r, g, b );
 	return;
 }
+bool CGameImport_R_AddSceneLight( const void *light ) {
+	return re.AddSceneLight( (const sceneLight_t *)light );
+}
 void CGameImport_R_AddAdditiveLightToScene( const float *org, float intensity, float r, float g, float b ) {
 
 	re.AddAdditiveLightToScene( (const vec_t *)org, intensity, r, g, b );

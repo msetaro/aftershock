@@ -601,6 +601,13 @@ typedef struct shader_s {
 
 // trRefdef_t holds everything that comes in refdef_t,
 // as well as the locally generated scene information
+constexpr int MAX_SCENE_LIGHTS = 16;
+constexpr uint32_t MAX_LOCAL_SHADOW_VIEWS = 16;
+struct shadowLight_t {
+	sceneLight_t light;
+	float matrices[6][16];
+	uint32_t firstTile, numViews;
+};
 typedef struct {
 	int x, y, width, height;
 	float fov_x, fov_y;
@@ -626,6 +633,8 @@ typedef struct {
 
 	unsigned int num_dlights;
 	struct dlight_s *dlights;
+	int numSceneLights;
+	shadowLight_t *sceneLights;
 
 	int numPolys;
 	struct srfPoly_s *polys;
@@ -1827,6 +1836,7 @@ bool RE_AddSkeletalEntityToScene( const refEntity_t *ent, const animPose_t *pose
 bool RE_AddMaterialEntityToScene( const refEntity_t *ent, const materialOverride_t *instance, const animPose_t *pose, const uint8_t modelHash[32], qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int num );
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
+bool RE_AddSceneLight( const sceneLight_t *light );
 void RE_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b );
 void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float intensity, float r, float g, float b );
 
@@ -2029,6 +2039,7 @@ typedef struct {
 #endif
 
 	trRefEntity_t entities[MAX_REFENTITIES];
+	shadowLight_t sceneLights[MAX_SCENE_LIGHTS];
 	skeletalPose_t skeletalPoses[MAX_SKELETAL_POSES];
 	srfPoly_t *polys; //[MAX_POLYS];
 	polyVert_t *polyVerts; //[MAX_POLYVERTS];

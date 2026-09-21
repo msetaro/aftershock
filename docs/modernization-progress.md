@@ -54,6 +54,17 @@ all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
+## #14 native light submission implementation checkpoint
+
+Test-first 368269f5 precedes the 56-byte trivial sceneLight_t API and native client/
+cgame forwarding. Renderer versions advance to 15 shipping/19 development. The
+existing scene/frame storage owns copies and rejects invalid point/spot values or
+exhausted 16-light/16-local-tile capacities; point lights consume six tiles, spots
+one. Valid spot directions normalize once. Legacy lights/wire structs are unchanged.
+GCC/Clang UBSan shadow-view/submission probes, unchanged 33-line native ABI and
+native CMake build pass (lighting-scene-lights-{gcc,clang,abi,build}.log). These are
+submission contracts only; actual caster/receiver recording remains next.
+
 ## #14 native light submission test-first checkpoint
 
 The same shadow-view driver now compiles a submission probe before implementation:

@@ -974,7 +974,13 @@ cover six point faces, spot cone, reversed depth, culling planes and all four su
 cascades with rotated cameras and linear/logarithmic split mixtures. Sun extents
 use rotation-independent receiver spheres and snap to shadow texels. Caster
 extrusion is bounded by the configured shadow distance. This validates view math;
-it does not claim native shadow rendering or its performance budget.
+it does not claim native shadow rendering or its performance budget. The same
+driver checks copied native `sceneLight_t` point/spot submission, cone validation,
+per-frame capacity (16 lights) and per-scene atlas admission (16 tiles; point lights
+use six, spots one). `trap_R_AddSceneLight` returns false when those bounds are
+exhausted. The new POD service uses world coordinates and linear RGB/intensity,
+without changing legacy dynamic-light calls or any network state. Renderer module
+API versions are 15 shipping / 19 development for the new function pointer.
 
 Dynamic shadow maps, sun cascades, reflection baking and SSAO still require their
 separate #14 implementation/acceptance before the issue can close.
