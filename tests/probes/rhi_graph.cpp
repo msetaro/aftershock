@@ -197,6 +197,34 @@ int main( void ) {
 			}
 		}
 	}
+	// Filmic output is separate from its sampled input; copy back before HUD.
+	config.postProcess = true;
+	for ( const uint32_t samples : { 1u, 4u } ) {
+		config.samples = samples;
+		assert( RHI_CompileGraph( &config, &graph ) );
+		const auto &image = graph.targets[target( rhiGraphTarget_t::PostColor )];
+		const auto &film = graph.passes[pass( rhiGraphPass_t::Post )];
+		const auto &apply = graph.passes[pass( rhiGraphPass_t::PostApply )];
+		assert( image.enabled && image.samples == 1 && image.width == config.renderWidth );
+		assert( film.readMask == ( bit( rhiGraphTarget_t::MainColor ) | bit( rhiGraphTarget_t::MainDepth ) ) );
+		assert( film.writeMask == bit( rhiGraphTarget_t::PostColor ) );
+		assert( film.depth == RHI_INVALID_OFFSET && apply.depth == RHI_INVALID_OFFSET );
+		assert( apply.readMask == bit( rhiGraphTarget_t::PostColor ) );
+		assert( apply.writeMask & bit( rhiGraphTarget_t::MainColor ) );
+		assert( apply.dependencyMask & ( 1u << pass( rhiGraphPass_t::Post ) ) );
+		assert( apply.attachmentCount == ( samples > 1 ? 2u : 1u ) );
+		assert( graph.passes[pass( rhiGraphPass_t::Gamma )].dependencyMask & ( 1u << pass( rhiGraphPass_t::PostApply ) ) );
+		uint32_t seen = 0;
+		for ( uint32_t i = 0; i < graph.executionCount; ++i ) {
+			const auto id = graph.executionOrder[i];
+			const auto &node = graph.passes[pass( id )];
+			if ( !node.enabled )
+				continue;
+			assert( !( node.dependencyMask & ~seen ) );
+			seen |= 1u << pass( id );
+		}
+	}
+	config.postProcess = false;
 	config.offscreen = false;
 	assert( !RHI_CompileGraph( &config, &graph ) );
 	config.offscreen = true;

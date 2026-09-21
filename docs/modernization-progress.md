@@ -64,6 +64,15 @@ Continue #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All GitHub writes stay explicitly scoped to msetaro/aftershock. Never alter
 known-good, accepted goldens, or completed evidence; no unrelated engine fixes.
 
+## #161 post graph contract first
+
+The graph test now requires a separate sampled post-color target, a scene/depth
+read pass, and a copy-back pass compatible with single-sample and MSAA color.
+Post output precedes gamma/capture; HUD can be composed after the copy-back.
+The first run fails on the absent graph IDs/config field
+(fidelity-post-graph-before.log). Implement these declarations/native resources
+before shaders; legacy disabled descriptor hashes remain mandatory.
+
 ## #161 post profile data passes
 
 The cooker and existing native cooked-data reader now agree on the version-1
