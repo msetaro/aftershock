@@ -77,6 +77,24 @@ with tempfile.TemporaryDirectory(prefix='aftershock-polygons-') as temporary:
     closed = brushes(compile(changed,'closed')['map'].decode())
     assert solid(closed,[0,-160,48]), 'door opening did not affect collision'
     changed = copy.deepcopy(level)
+    changed['shapes'].extend([
+        {'id':'terrace','kind':'platform','shape':{'rectangle':{'center':[0,-352],'size':[192,128]}},'base':0,'height':48},
+        {'id':'steps','kind':'transition','shape':{'path':{'points':[[-288,-352],[-96,-352]],'thickness':96}},
+         'base':0,'height':48,'transition':'stairs'},
+        {'id':'ramp','kind':'transition','shape':{'path':{'points':[[96,-352],[288,-352]],'thickness':96}},
+         'base':0,'height':48,'transition':'ramp','descending':True},
+        {'id':'fence','kind':'wall','shape':{'path':{'points':[[384,-416],[512,-288]],'thickness':8}},
+         'base':0,'height':96,'bullet_solid':False},
+        {'id':'canopy','kind':'overhead','shape':{'rectangle':{'center':[-320,-352],'size':[256,192]}},'base':128,'height':16}])
+    changed['spawns'][0]['origin'] = [0,-352,72]
+    elevated = compile(changed,'elevated',full=args.compile)
+    raised = brushes(elevated['map'].decode())
+    for point in ([0,-352,24],[-112,-352,40],[112,-352,40],[-320,-352,136]):
+        assert solid(raised,point),('missing raised surface',point)
+    for point in ([-256,-352,40],[256,-352,40],[-320,-352,64]):
+        assert not solid(raised,point),('blocked stair/ramp/overhead',point)
+    assert b'level/fence' in elevated['map'], 'bullet-transparent fence needs its own collision material'
+    changed = copy.deepcopy(level)
     changed['shapes'][1]['id'] = 'building_7'
     compile(changed,'duplicate',fail='duplicate')
     changed = copy.deepcopy(level)

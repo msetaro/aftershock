@@ -56,6 +56,14 @@ compiled overhead comparison and the one-command agent playtest. Follow #164
 with #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Known-good tags remain unchanged.
 
+## #164 elevation contract
+
+The next contract adds a terrace reached by stairs/ramp, bullet-transparent fence
+material, and an overhead canopy. It currently fails on disconnected navigation,
+as expected before transition generation. The failing log is
+/home/matt/.cache/aftershock-modernization/sketch-elevation-before.log. Implement
+physical steps/slopes and clearance traversal before treating this slice as done.
+
 ## #164 initial polygon compiler
 
 Pinned Shapely performs boundary-hole triangulation and shell/opening subtraction.
