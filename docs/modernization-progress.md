@@ -52,6 +52,19 @@ module contract also passes. All payloads stay in user cache; no local system pa
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 initial themed native run passes
+
+Real pinned material and Blender kits assemble repeatably with complete source
+license manifests. Door/lane/spawn keep-clear checks and native PBR staging pass
+(sketch-theme.log). Actual native compilation, 6000 bot frames and fixed-camera
+captures pass: 13 kills, 240 samples, no observed stuck bots, no warnings
+(sketch-theme-native.log; retained sketch-theme-native/report.json and images).
+Visual review found the brush material tiling too large. Add an explicit per-role
+texture scale and useful facade viewpoints before accepting the reference scene.
+This is still component acceptance, not the completed one-command sketch pipeline.
+Hosted build 35575309830 and regression 35575309836 passed the prior 5e65ed2a
+checkpoint; all final-head checks remain required for PR167.
+
 ## #164 theme assembly contract
 
 The next test requires the real pinned material/module kits to assemble seeded

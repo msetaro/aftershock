@@ -18,6 +18,9 @@ from shapely import Point,LineString
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--library',type=Path)
 parser.add_argument('--modules',type=Path)
+parser.add_argument('--client',type=Path)
+parser.add_argument('--server',type=Path)
+parser.add_argument('--output',type=Path)
 args=parser.parse_args()
 with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
     root=Path(temporary)
@@ -43,6 +46,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
                spawns=[dict(team='ffa',origin=[-640,-512,24],angle=0),dict(team='ffa',origin=[640,-512,24],angle=180)],
                props=[],pickups=[],lighting=dict(ambient=32,lights=[]),
                intents=[dict(id='main_lane',kind='route',points=[[-900,-256],[900,-256]],width=128)])
+    level['viewpoints']=[dict(id='facades',origin=[0,-128,72],angles=[0,90,0]),
+                         dict(id='street',origin=[-768,-64,72],angles=[0,20,0])]
     a=assemble(level,theme,library,modules,root/'a',seed=164)
     b=assemble(level,theme,library,modules,root/'b',seed=164)
     assert a==b and a['props'], 'theme placement must be seeded and repeatable'
@@ -60,9 +65,19 @@ with tempfile.TemporaryDirectory(prefix='aftershock-theme-level-') as temporary:
     assert (root/'a/assets/textures/theme/ground.asmat').is_file()
     report=run(['tools/level',root/'a/level.json','--output',root/'compiled','--map-only'])
     assert report['report']['reachable_spawns']==2
+    assert ' 0 0 0 0.0625 0.0625 ' in (root/'compiled/maps/theme_test.map').read_text(), 'theme texture scale ignored'
     assert (root/'compiled/textures/theme/ground.asmat').is_file(), 'PBR material lost during map staging'
     aliases=list((root/'compiled/textures/s').rglob('*.asmat'))
     assert aliases, 'source-labeled brush materials lost their PBR bindings'
     runtime_shaders=(root/'compiled/scripts/level.shader').read_text()
     assert 'textures/s/' not in runtime_shaders, 'compiler-only shader aliases shadow native PBR at runtime'
+    if args.client or args.server:
+        assert args.client and args.server and args.output, 'native acceptance requires client, server and retained output'
+        native=run(['tools/level','validate',root/'a/level.json','--output',args.output,
+                    '--client',args.client,'--server',args.server])
+        assert native['status']=='passed' and native['bots']['samples']>=100,native
+        assert native['views'] or native['flythrough'], 'native theme captures absent'
+        log=(args.output/'client.log').read_text(errors='replace')
+        assert 'Invalid or unavailable cooked material' not in log and 'Failed to load model' not in log
+
 print('PASS: licensed seeded theme assembly, unchanged shapes, door/lane/spawn clearance and native PBR staging')
