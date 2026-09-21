@@ -54,6 +54,19 @@ all three containers with one idle player; this is not saturated capacity. All
 private clusters were removed. The older implementation record below preserves
 its self-review and previous measurements.
 
+## #14 native light submission test-first checkpoint
+
+The same shadow-view driver now compiles a submission probe before implementation:
+it requires copied point/spot data, normalized spot direction, bounded per-frame
+storage and per-scene 16-tile admission (six faces per point, one per spot), valid
+cones and clean frame/scene reset. It fails on the absent scene-light contract
+(lighting-scene-lights-before.log). Existing legacy lights and wire structs stay
+unchanged. This prepares the native caster/receiver path, not feature acceptance.
+
+Roadmap #25 now places #161 visual fidelity immediately after #14; follow it before
+#15. #160/PR #162 repairs the independent publication YAML collision on main while
+this branch continues. Do not merge #14 before its final current-main gates.
+
 ## #14 shadow sampling implementation checkpoint
 
 Test-first b5e7d5ef precedes allocation of two atlas sampler descriptors from the

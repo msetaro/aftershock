@@ -19,3 +19,10 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      *([source] if source.is_file() else []), 'engine/qcommon/q_math.cpp',
      '-Wl,--gc-sections', '-o', binary])
 run([binary])
+scene = args.output.resolve() / 'scene'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-Wall', '-Wextra', '-Werror', '-DUSE_VULKAN_API', '-ffp-contract=off',
+     '-ffunction-sections', '-fdata-sections', '-fsanitize=undefined',
+     '-fno-sanitize-recover=all', 'tests/probes/scene_lights.cpp',
+     'engine/qcommon/q_math.cpp', '-Wl,--gc-sections', '-o', scene])
+run([scene])
