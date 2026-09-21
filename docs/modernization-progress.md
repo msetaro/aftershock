@@ -76,6 +76,19 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #163 concurrent runs and shared critical-event review
+
+Two clean detached worktrees agent-suite-a and agent-suite-b are running the full
+ten-variant suite concurrently at 2626372d, with separate roots ending
+agent-suite-{a,b}-2626372d. Both format jobs pass; static analysis is running.
+No accepted golden diff exists and known-good tag object/target remain unchanged.
+
+Review of every critical-event caller found the same full-queue loss for engine
+errors. The new error control fails first (agent-error-queue-before.log). Move
+queue flushing into the shared error/assert path rather than treating assertions
+specially. Fresh final-head concurrency acceptance remains required after this
+correction; current runs are useful prerequisite/coverage evidence only.
+
 ## #163 pre-concurrency review checkpoint
 
 Fatal assertions now flush the pending event queue before their own report. GCC

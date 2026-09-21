@@ -142,7 +142,7 @@ bool Sys_AgentWrite( const char *text, uint32_t length ) {
 	fflush( stdout );
 	return written;
 }
-int main( int argc, char ** ) {
+int main( int argc, char **argv ) {
 	if ( argc > 1 ) {
 		DevTools_AgentEnable();
 		char response[1024];
@@ -151,6 +151,11 @@ int main( int argc, char ** ) {
 		if ( argc > 2 )
 			for ( int i = 0; i < 257; ++i )
 				Dev_AgentEvent( "warning", -1, -1, 0, "queued before assert" );
+		if ( !strcmp( argv[1], "--error" ) ) {
+			Dev_AgentEvent( "error", -1, -1, 0, "agent error contract" );
+			DevTools_AgentFlushEvents();
+			return 0;
+		}
 		Q_ASSERT( false && "agent assertion contract" );
 		return 2;
 	}
