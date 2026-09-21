@@ -49,6 +49,15 @@ library APIs are reachable; no assets imported yet and no local system packages.
 Continue #164 -> #161 -> #15 and the remainder of #25. No maintainer input is needed.
 All writes remain in msetaro/aftershock. Never alter known-good or accepted goldens.
 
+## #164 provider adapter contract
+
+A new offline API-shape test requires tag search, explicit provider/license filters,
+normalization of Poly Haven and ambientCG PBR channels, author/license URLs, asset
+revision identifiers and exact downloaded SHA256 pins. It fails because the
+provider module is absent (sketch-providers-before.log). Primary provider license
+and API docs were checked; include Poly Haven's API service credit in CREDITS.
+The two requested libraries are the only enabled network providers.
+
 ## #164 pinned fetch/cook passes; Blender verified
 
 The offline pin/cache contract passes (sketch-fetch.log): complete PBR source
