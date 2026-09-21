@@ -20,37 +20,39 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Active implementation: issue/14-lighting in
-/home/matt/.cache/aftershock-modernization/level-tree. Native receiver shading and
-the shadow-only atlas scissor correction now pass rendered point/spot/sun checks.
-Main 782c0dbc is merged forward. Mask/animated-caster/module-restart
-checks now pass. Reflection baking/application now passes smooth/rough/toggle/restart checks.
-SSAO graph, rendered, module and restart checks pass; reference-GPU acceptance is
-recorded below. Next validate the hosted module configuration correction, finish
-current-main hosted gates and self-review, then ready/merge PR #165. Fresh #25 now orders #163, then #164, then #161
-after #14; follow that updated sequence. Do not claim full #14 acceptance or regenerate accepted references.
+#163 draft PR166 is awaiting the last exact-head hosted gates at 9db00c0c.
+Its active worktree is /home/matt/.cache/aftershock-modernization/agent-tree.
+Build 35569450314 is green; regression 35569450324 has runtime/lifetimes running.
+Do not merge until every required check passes, then recheck current main/base,
+mark ready and merge with a merge commit. Both concurrent full local suites at
+functional head c56bde87 passed all ten variants / 96 steps; the final head only
+adds its acceptance checkpoint. Main currently remains 4ade5c3a.
 
-#160 repair PR #162 merged into main as
-782c0dbc51e4acf119ccce49a69301408dac1ae7 after exact f04e87c3 passed build
-35548379300 and regression 35548379306. Main's base 567cc664 was rechecked
-immediately before merge. Head and merge trees match
-2fd24fa811a286079aa8945b1b9cfd66cf3f788e. Merged build/publication 35549415371
-and regression 35549415277 now both PASS: all 16 compiler legs, all 10 required
-regression legs and actual create-testing publication. Repository prerelease
-build-782c0dbc51e4acf119ccce49a69301408dac1ae7 contains six platform archives.
-Issues #160, #158 and #13 are closed; #13 is checked in #25. This branch includes
-accepted main 782c0dbc; recheck current main before final gates/merge. Draft #14 PR #165 targets main and remains unmerged.
+While those gates run, #164 starts test-first in a separate branch from main:
+issue/164-sketch-level, worktree /home/matt/.cache/aftershock-modernization/sketch-tree.
+The first polygon contract fails on unsupported v2 fields, as intended; log:
+/home/matt/.cache/aftershock-modernization/sketch-polygons-before.log. It checks
+physical brush occupancy for a shell doorway, concavity, rotation and curved
+footprints, validation failures, deterministic compilation and unchanged v1
+fixtures. No compiler implementation is added yet. Merge accepted #163 main
+forward into this branch before implementing its schema/agent integration.
 
-#159's earlier merge 567cc664 had a duplicate permissions collision with concurrent
-main commits 06d15a8d/8dbb4461, despite passing exact-head gates. Merged regression
-35548259084 passed but build workflow 35548258547 could not load. #162 removed
-only the duplicates and documented the current-base recheck in AGENTS. #13 PR
-#157 at a4358019 had already passed merged regression 35546603116 and compiler
-jobs; repaired main publication now clears its last integration blocker.
+#164 decisions from its three maintainer comments: the drawing's own key is
+authoritative; interpretation separates geometry, annotation and gameplay intent.
+Use original owned test drawings. Keep v1 generation unchanged; use pinned
+Shapely 2.1.2 constrained triangulation/CSG for v2, OpenCV 4.12.0.88 for image
+measurements, and the existing pinned MAP/BSP/AAS compiler. Do not hand-roll a
+polygon boolean engine. Tool dependencies are in a private user-cache venv;
+no system packages were installed. Blender 5.0.1 is downloading from its official
+RWTH mirror into the user cache, with pinned archive SHA256 verification.
+Both CC0 library APIs are reachable; downloaded metadata is cached outside the
+repository. No assets have been imported and no existing golden has changed.
 
-Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4,
-target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
-in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
+Next after #163 integration: implement and validate polygon geometry, then
+interpretation/tracing, licensed theme assets/Blender, shooter intent checks,
+compiled overhead comparison and the one-command agent playtest. Follow #164
+with #161 -> #15 and the remainder of #25. No maintainer input is needed.
+All writes remain in msetaro/aftershock. Known-good tags remain unchanged.
 
 ## #14 final local self-review / hosted gates pending
 
