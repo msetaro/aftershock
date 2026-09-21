@@ -50,6 +50,16 @@ Known-good-2026-09-20 is unchanged: tag object 8bc8c94c75e7c9ae59ee3fe1277e08494
 target 81a0f9dc05c340f30182c34134bde67290c21774. All PRs target main, all writes stay
 in msetaro/aftershock, required checks cannot be red/skipped, no history rewriting.
 
+## #14 reflection bake test-first checkpoint
+
+The new offline producer contract (tests/probes.py) currently fails because
+tools/level/probes.py is absent (lighting-probes-before.log). It requires all
+six engine camera directions, deterministic GGX roughness filtering in linear
+radiance and a fixed versioned atlas format. This is new feature coverage; no
+accepted fixture or legacy shader changes. Implement the baker, then native
+probe loading/material sampling and actual owned-scene acceptance. Existing
+q3map2 light-grid probes remain the dynamic-object diffuse source.
+
 ## #14 caster/lifecycle and initial GPU checkpoint
 
 The extended owned-level runtime compares opaque, checker-cutout and empty
