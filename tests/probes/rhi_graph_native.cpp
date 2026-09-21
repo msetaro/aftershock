@@ -240,7 +240,7 @@ static void VKAPI_CALL bindPostPipeline( VkCommandBuffer, VkPipelineBindPoint, V
 	assert( pipeline );
 }
 static void VKAPI_CALL bindPostDescriptors( VkCommandBuffer, VkPipelineBindPoint, VkPipelineLayout, uint32_t first, uint32_t count, const VkDescriptorSet *sets, uint32_t offsets, const uint32_t *dynamicOffsets ) {
-	if ( occlusionDraws == 3 ) {
+	if ( count == 1 && first < RHI_BINDING_COUNT && sets == &vk.cmd->descriptor_set.current[first] ) {
 		assert( count == 1 && first < RHI_BINDING_COUNT );
 		assert( sets[0] && sets[0] == vk.cmd->descriptor_set.current[first] );
 		assert( offsets == ( first == RHI_BINDING_UNIFORM ? 1U : 0U ) );
@@ -333,6 +333,13 @@ static void particleCommands() {
 	vk.uniform_alignment = 64;
 	vk.uniform_item_size = 192;
 	vk.geometry_buffer_size = sizeof( upload );
+	vk.maxBoundDescriptorSets = 32;
+	vk.cmd->descriptor_set = {};
+	vk.cmd->descriptor_set.current[0] = vk.cmd->uniform_descriptor;
+	vk.cmd->descriptor_set.current[1] = (VkDescriptorSet)(uintptr_t)123;
+	vk.cmd->descriptor_set.current[3] = (VkDescriptorSet)(uintptr_t)456;
+	vk.cmd->descriptor_set.offset[0] = 32;
+	restoredSets = 0;
 	const auto descriptors = vk.cmd->descriptor_set;
 	const rhiRect_t viewport = { { 0, 0 }, { 640, 480 } };
 	RHI_BeginMainPass();
@@ -364,6 +371,8 @@ static void particleCommands() {
 	assert( observedScissor.offset.x == 0 && observedScissor.offset.y == 0 );
 	assert( observedScissor.extent.width == 640 && observedScissor.extent.height == 480 );
 	assert( !memcmp( descriptors.current, vk.cmd->descriptor_set.current, sizeof( descriptors.current ) ) );
+	assert( restoredSets == 0x0b );
+	assert( vk.cmd->descriptor_set.start == ~0U && vk.cmd->descriptor_set.end == 0 );
 	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_NORMAL );
 	RHI_EndPass();
 }
@@ -389,6 +398,13 @@ static void filmCommands() {
 	vk_config.uniformBytes = sizeof( rhiPostDraw_t );
 	vk.uniform_item_size = sizeof( upload );
 	vk.geometry_buffer_size = sizeof( upload );
+	vk.maxBoundDescriptorSets = 32;
+	vk.cmd->descriptor_set = {};
+	vk.cmd->descriptor_set.current[0] = vk.cmd->uniform_descriptor;
+	vk.cmd->descriptor_set.current[1] = (VkDescriptorSet)(uintptr_t)123;
+	vk.cmd->descriptor_set.current[3] = (VkDescriptorSet)(uintptr_t)456;
+	vk.cmd->descriptor_set.offset[0] = 32;
+	restoredSets = 0;
 	const auto descriptors = vk.cmd->descriptor_set;
 	RHI_BeginMainPass();
 	rhiPostDraw_t post{};
@@ -399,6 +415,8 @@ static void filmCommands() {
 	assert( !RHI_DrawPost( &post, &lut ) );
 	assert( occlusionDraws == 2 && vk.cmd->uniform_read_offset == 32 );
 	assert( !memcmp( descriptors.current, vk.cmd->descriptor_set.current, sizeof( descriptors.current ) ) );
+	assert( restoredSets == 0x0b );
+	assert( vk.cmd->descriptor_set.start == ~0U && vk.cmd->descriptor_set.end == 0 );
 	assert( vk.cmd->last_pipeline == VK_NULL_HANDLE && vk.cmd->depth_range == DEPTH_RANGE_COUNT );
 	RHI_EndPass();
 }
