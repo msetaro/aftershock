@@ -1620,3 +1620,11 @@ preferences and up to 4095 bytes of ImGui window layout. Version-1 files migrate
 with explicit workspace defaults; the frozen original file and provenance are in
 `tests/assets/state`. Runtime evidence contains logs only. Full game checkpoints
 are still pending; these tests alone do not complete #19.
+
+State storage routes profile and game records through the bounded platform save
+provider (`engine/platform/save_public.h`). The PC backend reads loose files only
+from the active game's user directory and exclusively creates numbered revisions.
+Provider failures never fall back to PC storage. `tests/state.py` exercises provider
+routing and failure handling; `tests/profile_runtime.py --binary CLIENT` covers real
+PC revisions, fresh-process reload and the frozen v1 migration. Console SDK adapters
+remain part of #24 and are not claimed as tested by the provider probe.

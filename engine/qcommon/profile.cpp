@@ -1,6 +1,7 @@
 #include "q_shared.h"
 #include "qcommon_public.h"
 #include "keys_public.h"
+#include "../platform/save_public.h"
 #include "../public/state_public.h"
 #include "../public/dev_public.h"
 #include <cmath>
@@ -111,29 +112,13 @@ static bool ValidProfile( const profile_t &profile ) {
 	return true;
 }
 static bool SaveProfile( const char *name, profile_t *profile ) {
-	if ( !*name || strlen( name ) > 31 )
-		return false;
-	for ( const char *p = name; *p; ++p )
-		if ( !( *p >= 'a' && *p <= 'z' ) && !( *p >= '0' && *p <= '9' ) && *p != '_' && *p != '-' )
-			return false;
 	if ( !CaptureProfile( profile ) || !ValidProfile( *profile ) )
 		return false;
 	char path[MAX_QPATH];
-	int revision;
-	for ( revision = 0; revision < 1000; ++revision ) {
-		Com_sprintf( path, sizeof( path ), "profiles/%s.%03d.asstate", name, revision );
-		if ( !FS_FileExists( path ) )
-			break;
-	}
-	if ( revision == 1000 )
-		return false;
 	const size_t capacity = sizeof( profile_t ) + 1024;
 	void *data = Z_Malloc( capacity );
 	const size_t size = State_Write( profileSchema, profile, data, capacity );
-	const fileHandle_t file = size ? FS_FOpenFileWrite( path ) : 0;
-	const bool success = file && FS_Write( data, int( size ), file ) == int( size );
-	if ( file )
-		FS_FCloseFile( file );
+	const bool success = size && Sys_SaveRevision( saveKind_t::Profile, name, data, int( size ), path, sizeof( path ) );
 	Z_Free( data );
 	if ( success )
 		Com_Printf( "Profile saved: %s\n", path );
@@ -142,17 +127,11 @@ static bool SaveProfile( const char *name, profile_t *profile ) {
 static bool LoadProfile( const char *path, profile_t *profile ) {
 	if ( strncmp( path, "profiles/", 9 ) || strlen( path ) >= MAX_QPATH || strstr( path, ".." ) || strchr( path, '\\' ) )
 		return false;
-	fileHandle_t file;
-	const int length = FS_FOpenFileRead( path, &file, qtrue );
-	if ( !file )
+	const int length = Sys_ReadSave( path, nullptr, 0 );
+	if ( length <= 0 || size_t( length ) > sizeof( profile_t ) + 1024 )
 		return false;
-	if ( length <= 0 || size_t( length ) > sizeof( profile_t ) + 1024 ) {
-		FS_FCloseFile( file );
-		return false;
-	}
 	void *data = Z_Malloc( size_t( length ) );
-	const bool complete = FS_Read( data, length, file ) == length;
-	FS_FCloseFile( file );
+	const bool complete = Sys_ReadSave( path, data, length ) == length;
 	uint32_t version;
 	bool valid = complete && State_Read( profileSchema, data, size_t( length ), profile, &version );
 	// Version 1 had no workspace; give the new fields explicit, stable defaults.

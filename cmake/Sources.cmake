@@ -30,6 +30,7 @@ set(COMMON_SOURCES
   engine/qcommon/common.cpp
   engine/platform/sys_runtime.cpp
   engine/platform/sys_services.cpp
+  engine/platform/sys_save.cpp
   engine/qcommon/cvar.cpp
   engine/qcommon/files.cpp
   engine/qcommon/history.cpp

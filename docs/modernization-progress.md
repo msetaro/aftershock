@@ -67,6 +67,25 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 platform save routing
+
+Profiles and full-game captures now route through Sys_SaveRevision/Sys_ReadSave.
+The bounded main-thread provider installs before first IO; console SDK integration
+can supply its active-user/title storage callbacks without portable code using OS
+APIs. No SDK implementation or console acceptance is claimed. Provider errors
+never fall back to PC storage. PC reads only loose active-game user-directory
+files; exclusive creation tries numbered revisions without replacing existing
+bytes, and failed writes/close errors remove the newly created partial file.
+
+GCC/Clang libc++ UBSan provider probes cover routing, collision retries, invalid
+paths, size bounds, immutable installation and failure without fallback. Real
+OpenArena profile save/reload, fresh-process reload and frozen-v1 migration pass;
+full paused game capture still validates at 17,314,861 bytes. Client/server build,
+focused tidy and format/type/boundary gates pass (state-storage-*). The first
+build exposed a missing cerrno include, corrected before these successful gates.
+No accepted fixture changed. Full live load coordination and its runtime and
+N-to-N+1 game fixture acceptance remain unfinished.
+
 ## #19 platform storage test first
 
 The new state_storage probe requires a platform save provider, immutable numbered

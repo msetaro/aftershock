@@ -318,6 +318,12 @@ print('PASS: literal native cvar reads/registrations have explicit saved or runt
 
 
 run([sys.executable, 'tools/replication.py', '--check'])
+storage=args.output/'storage'
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-Wall','-Wextra','-Werror','-fsanitize=undefined','-fno-sanitize-recover=all',
+     'tests/probes/state_storage.cpp','engine/platform/sys_save.cpp','-o',storage])
+run([storage])
+run([storage,'provider'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'
 shared=args.output/'shared.o'

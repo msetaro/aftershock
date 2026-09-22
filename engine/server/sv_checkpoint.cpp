@@ -1,4 +1,5 @@
 #include "server.h"
+#include "../platform/save_public.h"
 #include "../botlib/botlib_public.h"
 #include "../public/g_native_public.h"
 #include "../public/state_replication_public.h"
@@ -142,20 +143,7 @@ static bool ValidateCheckpointCvars( const stateReader_t &reader ) {
 	return Game_ReadCheckpointCvars( &reader, 0 ) != 0;
 }
 static bool SaveCheckpoint( const char *name ) {
-	if ( !name[0] || strlen( name ) > 31 )
-		return false;
-	for ( const char *p = name; *p; ++p )
-		if ( !( *p >= 'a' && *p <= 'z' ) && !( *p >= '0' && *p <= '9' ) && *p != '_' && *p != '-' )
-			return false;
 	char path[MAX_QPATH];
-	int revision;
-	for ( revision = 0; revision < 1000; ++revision ) {
-		Com_sprintf( path, sizeof( path ), "saves/%s.%03d.asstate", name, revision );
-		if ( !FS_FileExists( path ) )
-			break;
-	}
-	if ( revision == 1000 )
-		return false;
 	void *data = Z_Malloc( CHECKPOINT_CAPACITY );
 	stateWriter_t writer{ data, CHECKPOINT_CAPACITY };
 	const bool server = WriteServerCheckpoint( &writer );
@@ -166,10 +154,7 @@ static bool SaveCheckpoint( const char *name ) {
 	stateReader_t reader;
 	const bool readable = size && State_Open( data, size, &reader ) && Cvar_CheckStateCapacity( reader, ValidateCheckpointCvars ) && Game_ReadCheckpoint( &reader, 0 ) &&
 						  BotLib_ReadState( reader, now, false ) && CM_ReadPortalState( reader, false );
-	const fileHandle_t file = readable ? FS_FOpenFileWrite( path ) : 0;
-	const bool success = file && FS_Write( data, int( size ), file ) == int( size );
-	if ( file )
-		FS_FCloseFile( file );
+	const bool success = readable && Sys_SaveRevision( saveKind_t::Game, name, data, int( size ), path, sizeof( path ) );
 	Z_Free( data );
 	if ( success )
 		Com_Printf( "Game saved: %s (%zu bytes)\n", path, size );
