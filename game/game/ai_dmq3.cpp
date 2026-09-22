@@ -5797,3 +5797,20 @@ bool G_ReadBotNavigationState( const stateReader_t &reader, bool apply ) {
 	return true;
 }
 #endif
+
+static const gCachedCvar_t savedBotNavigationCvars[] = {
+	{ "bot_grapple", &bot_grapple },
+	{ "bot_rocketjump", &bot_rocketjump },
+	{ "bot_fastchat", &bot_fastchat },
+	{ "bot_nochat", &bot_nochat },
+	{ "bot_testrchat", &bot_testrchat },
+	{ "bot_challenge", &bot_challenge },
+	{ "bot_predictobstacles", &bot_predictobstacles },
+	{ "g_spSkill", &g_spSkill },
+};
+bool G_WriteBotNavigationCvarState( stateWriter_t *writer ) {
+	return G_WriteCachedCvars( writer, "game.cvars.BotNavigation", savedBotNavigationCvars, sizeof( savedBotNavigationCvars ) / sizeof( savedBotNavigationCvars[0] ) );
+}
+bool G_ReadBotNavigationCvarState( const stateReader_t &reader, bool apply ) {
+	return G_ReadCachedCvars( reader, "game.cvars.BotNavigation", savedBotNavigationCvars, sizeof( savedBotNavigationCvars ) / sizeof( savedBotNavigationCvars[0] ), apply );
+}

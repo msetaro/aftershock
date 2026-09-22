@@ -1840,3 +1840,39 @@ void G_RunFrame( int levelTime ) {
 		trap_Cvar_Set( "g_listEntity", "0" );
 	}
 }
+
+static constexpr uint32_t SAVED_GAME_CVARS = sizeof( gameCvarTable ) / sizeof( gameCvarTable[0] );
+static_assert( SAVED_GAME_CVARS <= 128 );
+struct gameCvarTracking_t {
+	int32_t password, modifications[SAVED_GAME_CVARS];
+};
+static constexpr stateField_t gameCvarTrackingFields[] = {
+	{ "password", offsetof( gameCvarTracking_t, password ), 1, stateType_t::Int32 },
+	{ "modifications", offsetof( gameCvarTracking_t, modifications ), SAVED_GAME_CVARS, stateType_t::Int32 }
+};
+static constexpr stateSchema_t gameCvarTrackingSchema = { "game.cvarTracking", 1, 1, sizeof( gameCvarTracking_t ), gameCvarTrackingFields, 2 };
+bool G_WriteMainCvarState( stateWriter_t *writer ) {
+	gCachedCvar_t bindings[SAVED_GAME_CVARS];
+	gameCvarTracking_t tracking{};
+	tracking.password = passwordLastMod;
+	for ( uint32_t i = 0; i < SAVED_GAME_CVARS; ++i ) {
+		bindings[i] = { gameCvarTable[i].cvarName, gameCvarTable[i].vmCvar };
+		tracking.modifications[i] = gameCvarTable[i].modificationCount;
+	}
+	return G_WriteCachedCvars( writer, "game.cvars.main", bindings, SAVED_GAME_CVARS ) && State_Append( writer, gameCvarTrackingSchema, 0, &tracking );
+}
+bool G_ReadMainCvarState( const stateReader_t &reader, bool apply ) {
+	gCachedCvar_t bindings[SAVED_GAME_CVARS];
+	for ( uint32_t i = 0; i < SAVED_GAME_CVARS; ++i )
+		bindings[i] = { gameCvarTable[i].cvarName, gameCvarTable[i].vmCvar };
+	gameCvarTracking_t tracking;
+	uint32_t version;
+	if ( !State_Find( reader, gameCvarTrackingSchema, 0, &tracking, &version ) || !G_ReadCachedCvars( reader, "game.cvars.main", bindings, SAVED_GAME_CVARS, apply ) )
+		return false;
+	if ( apply ) {
+		passwordLastMod = tracking.password;
+		for ( uint32_t i = 0; i < SAVED_GAME_CVARS; ++i )
+			gameCvarTable[i].modificationCount = tracking.modifications[i];
+	}
+	return true;
+}

@@ -133,4 +133,24 @@ bool G_WriteIPFilterState( stateWriter_t *writer );
 bool G_ReadIPFilterState( const stateReader_t &reader, bool apply );
 bool G_WriteBotInfoState( stateWriter_t *writer );
 bool G_ReadBotInfoState( const stateReader_t &reader );
+struct gCachedCvar_t {
+	const char *name;
+	vmCvar_t *value;
+};
+bool G_WriteCachedCvars( stateWriter_t *writer, const char *group, const gCachedCvar_t *bindings, uint32_t count );
+bool G_ReadCachedCvars( const stateReader_t &reader, const char *group, const gCachedCvar_t *bindings, uint32_t count, bool apply );
+bool G_WriteMainCvarState( stateWriter_t *writer );
+bool G_ReadMainCvarState( const stateReader_t &reader, bool apply );
+bool G_WriteBotCvarState( stateWriter_t *writer );
+bool G_ReadBotCvarState( const stateReader_t &reader, bool apply );
+bool G_WriteBotNavigationCvarState( stateWriter_t *writer );
+bool G_ReadBotNavigationCvarState( const stateReader_t &reader, bool apply );
+bool G_WriteBotQueueCvarState( stateWriter_t *writer );
+bool G_ReadBotQueueCvarState( const stateReader_t &reader, bool apply );
+bool G_WriteAnimationCvarState( stateWriter_t *writer );
+bool G_ReadAnimationCvarState( const stateReader_t &reader, bool apply );
+bool G_WriteWeaponCvarState( stateWriter_t *writer );
+bool G_ReadWeaponCvarState( const stateReader_t &reader, bool apply );
+bool G_WriteRewindCvarState( stateWriter_t *writer );
+bool G_ReadRewindCvarState( const stateReader_t &reader, bool apply );
 #endif

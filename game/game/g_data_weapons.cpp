@@ -601,3 +601,13 @@ bool G_ReadWeaponState( const stateReader_t &reader, const gStatePools_t &pools,
 	}
 	return true;
 }
+
+static const gCachedCvar_t savedWeaponCvars[] = {
+	{ "g_weaponTrace", &weaponTrace },
+};
+bool G_WriteWeaponCvarState( stateWriter_t *writer ) {
+	return G_WriteCachedCvars( writer, "game.cvars.Weapon", savedWeaponCvars, sizeof( savedWeaponCvars ) / sizeof( savedWeaponCvars[0] ) );
+}
+bool G_ReadWeaponCvarState( const stateReader_t &reader, bool apply ) {
+	return G_ReadCachedCvars( reader, "game.cvars.Weapon", savedWeaponCvars, sizeof( savedWeaponCvars ) / sizeof( savedWeaponCvars[0] ), apply );
+}

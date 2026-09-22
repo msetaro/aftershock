@@ -291,6 +291,15 @@ print('PASS: BSP text and parsed entity-pair ownership is immutable and verified
 
 
 
+for file in ('g_main','ai_main','ai_dmq3','g_bot','g_animation','g_data_weapons','g_rewind'):
+    source=(ROOT/f'game/game/{file}.cpp').read_text()
+    cvars=set()
+    for declarations in re.findall(r'^(?:static )?vmCvar_t ([^;]+);',source,re.M):
+        cvars.update(name.strip() for name in declarations.split(','))
+    owner=source.split('static cvarTable_t gameCvarTable[]',1)[1].split('};',1)[0] if file=='g_main' else source.split('static const gCachedCvar_t saved',1)[1].split('};',1)[0]
+    assert cvars <= set(re.findall(r'&([a-zA-Z_]\w*)',owner)), f'{file}: cached cvar lacks checkpoint ownership'
+print('PASS: every persistent native-game cvar has named checkpoint ownership; handles remain process-local')
+
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'
@@ -317,7 +326,7 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-ffunction-sections','-fdata-sections','-fsanitize=undefined','-fno-sanitize-recover=all',
      '-DNATIVE_NAMESPACE=game','-DNATIVE_SOURCE="game/g_callbacks.cpp"',
      '-c','game/module.cpp','-o',callbacks])
-for component in ('callbacks','references','composed','utilities'):
+for component in ('callbacks','references','composed','utilities','cached_cvars'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',
@@ -355,6 +364,13 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-ffunction-sections','-fdata-sections','-fsanitize=undefined','-fno-sanitize-recover=all',
      'tests/probes/state_rewind.cpp','engine/qcommon/net_history.cpp',
      'engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
+run([probe])
+
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+     '-fsanitize=undefined','-fno-sanitize-recover=all',
+     'tests/probes/state_main_cvars.cpp','engine/qcommon/state.cpp',sha,native,
+     '-Wl,--gc-sections','-o',probe])
 run([probe])
 
 for component in ('ITEMS','FILTERS','MEMORY'):

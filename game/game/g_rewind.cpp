@@ -330,3 +330,15 @@ bool G_ReadRewindState( const stateReader_t &reader, bool apply ) {
 	}
 	return true;
 }
+
+static const gCachedCvar_t savedRewindCvars[] = {
+	{ "g_rewind", &rewindEnabled },
+	{ "g_maxRewind", &maximumRewind },
+	{ "g_rewindTrace", &rewindTrace },
+};
+bool G_WriteRewindCvarState( stateWriter_t *writer ) {
+	return G_WriteCachedCvars( writer, "game.cvars.Rewind", savedRewindCvars, sizeof( savedRewindCvars ) / sizeof( savedRewindCvars[0] ) );
+}
+bool G_ReadRewindCvarState( const stateReader_t &reader, bool apply ) {
+	return G_ReadCachedCvars( reader, "game.cvars.Rewind", savedRewindCvars, sizeof( savedRewindCvars ) / sizeof( savedRewindCvars[0] ), apply );
+}

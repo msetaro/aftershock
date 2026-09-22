@@ -447,3 +447,13 @@ bool G_ReadAnimationState( const stateReader_t &reader, const gStatePools_t &poo
 		}
 	return true;
 }
+
+static const gCachedCvar_t savedAnimationCvars[] = {
+	{ "g_animationTrace", &animationTrace },
+};
+bool G_WriteAnimationCvarState( stateWriter_t *writer ) {
+	return G_WriteCachedCvars( writer, "game.cvars.Animation", savedAnimationCvars, sizeof( savedAnimationCvars ) / sizeof( savedAnimationCvars[0] ) );
+}
+bool G_ReadAnimationCvarState( const stateReader_t &reader, bool apply ) {
+	return G_ReadCachedCvars( reader, "game.cvars.Animation", savedAnimationCvars, sizeof( savedAnimationCvars ) / sizeof( savedAnimationCvars[0] ), apply );
+}

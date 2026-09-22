@@ -46,7 +46,7 @@ boundary are verified. Game-side bot actor/navigation/waypoint/scheduler/queue/t
 records are also complete. Character, movement, weight, goal, weapon and chat
 preparation rebuild saved slots locally. Native bot reconstruction, item/filter
 tables, arena accounting and bot/arena content identity are covered. Remaining
-work: cached cvars/change counters and semantic validation; coordinate live
+work: engine cvar preparation and semantic validation; coordinate live
 server/client restore and both RNG streams; add the platform save-provider seam
 and frozen full-game N-to-N+1 OpenArena fixture. No partial checkpoint acceptance.
 After #19, take the newly reproduced chat-shutdown boundary bug in a separate
@@ -65,6 +65,28 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 cached native cvars and change counters
+
+All persistent native-game cvars now have named owner records, including the
+main table, bot scheduling/navigation/minimum players, animation, weapons and
+rewind. Restore retains current registration handles while applying cached
+values, strings and modification counters. Main-table tracking and password
+change detection also restore. The source ownership check covers every persistent
+vmCvar declaration in those owners. GCC/Clang libc++ UBSan pass fresh-handle
+rebinding, complete-group validation before mutation and missing tracking-record
+rejection (state-cached-cvars-{gcc,clang}.log). Build, focused tidy and policy
+checks pass. Combined state suites pass on both compilers after native-owner and
+cvar additions (state-native-complete-{gcc,clang}.log).
+
+Next: engine cvar values must be prepared before map initialization and restored
+with native caches afterward. Use explicit owner-selected names, preserving
+runtime registration handles and current platform/filesystem context. The native
+cvar call inventory is state-native-cvar-callers.txt in the private cache. Include
+uncached map-authoring paths, bot setup settings, session strings and per-item
+disable flags when coordinating owner selection. Then semantic validation and
+live server/client/RNG restoration, save-provider routing, frozen OpenArena full-
+game migration and final local/hosted gates. No accepted fixture changed.
 
 ## #19 native bot slots and remaining native owners
 

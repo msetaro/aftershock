@@ -1103,3 +1103,13 @@ bool G_ReadBotInfoState( const stateReader_t &reader ) {
 	uint32_t version;
 	return BotInfoIdentity( &loaded ) && State_Find( reader, botInfoSchema, 0, &saved, &version ) && !memcmp( &saved, &loaded, sizeof( saved ) );
 }
+
+static const gCachedCvar_t savedBotQueueCvars[] = {
+	{ "bot_minplayers", &bot_minplayers },
+};
+bool G_WriteBotQueueCvarState( stateWriter_t *writer ) {
+	return G_WriteCachedCvars( writer, "game.cvars.BotQueue", savedBotQueueCvars, sizeof( savedBotQueueCvars ) / sizeof( savedBotQueueCvars[0] ) );
+}
+bool G_ReadBotQueueCvarState( const stateReader_t &reader, bool apply ) {
+	return G_ReadCachedCvars( reader, "game.cvars.BotQueue", savedBotQueueCvars, sizeof( savedBotQueueCvars ) / sizeof( savedBotQueueCvars[0] ), apply );
+}

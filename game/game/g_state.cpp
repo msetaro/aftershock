@@ -533,3 +533,62 @@ bool G_ReadLevelState( const stateReader_t &reader, const gStatePools_t &pools, 
 	*strings = text;
 	return true;
 }
+
+struct cachedCvarSave_t {
+	char name[64];
+	uint32_t count, present;
+	vmCvar_t value;
+};
+static_assert( sizeof( cachedCvarSave_t ) == 344 && offsetof( cachedCvarSave_t, value ) == 72 );
+static constexpr stateField_t cachedCvarFields[] = {
+	{ "name", offsetof( cachedCvarSave_t, name ), 64, stateType_t::String },
+	{ "count", offsetof( cachedCvarSave_t, count ), 1, stateType_t::UInt32 },
+	{ "present", offsetof( cachedCvarSave_t, present ), 1, stateType_t::UInt32 },
+	{ "modificationCount", offsetof( cachedCvarSave_t, value.modificationCount ), 1, stateType_t::Int32 },
+	{ "value", offsetof( cachedCvarSave_t, value.value ), 1, stateType_t::Float32 },
+	{ "integer", offsetof( cachedCvarSave_t, value.integer ), 1, stateType_t::Int32 },
+	{ "string", offsetof( cachedCvarSave_t, value.string ), MAX_CVAR_VALUE_STRING, stateType_t::String }
+};
+bool G_WriteCachedCvars( stateWriter_t *writer, const char *group, const gCachedCvar_t *bindings, uint32_t count ) {
+	if ( !writer )
+		return false;
+	if ( !bindings || !count || count > 128 ) {
+		writer->failed = true;
+		return false;
+	}
+	const stateSchema_t schema = { group, 1, 1, sizeof( cachedCvarSave_t ), cachedCvarFields, 7 };
+	for ( uint32_t i = 0; i < count; ++i ) {
+		const auto &binding = bindings[i];
+		if ( !binding.name || !binding.name[0] || strlen( binding.name ) >= 64 || ( binding.value && !std::isfinite( binding.value->value ) ) ) {
+			writer->failed = true;
+			return false;
+		}
+		cachedCvarSave_t saved{};
+		strcpy( saved.name, binding.name );
+		saved.count = count;
+		saved.present = binding.value != nullptr;
+		if ( binding.value )
+			saved.value = *binding.value;
+		if ( !State_Append( writer, schema, i, &saved ) )
+			return false;
+	}
+	return true;
+}
+bool G_ReadCachedCvars( const stateReader_t &reader, const char *group, const gCachedCvar_t *bindings, uint32_t count, bool apply ) {
+	if ( !bindings || !count || count > 128 )
+		return false;
+	const stateSchema_t schema = { group, 1, 1, sizeof( cachedCvarSave_t ), cachedCvarFields, 7 };
+	cachedCvarSave_t saved[128];
+	uint32_t version;
+	for ( uint32_t i = 0; i < count; ++i )
+		if ( !bindings[i].name || !State_Find( reader, schema, i, &saved[i], &version ) || saved[i].count != count ||
+			 saved[i].present != uint32_t( bindings[i].value != nullptr ) || strcmp( saved[i].name, bindings[i].name ) || !std::isfinite( saved[i].value.value ) )
+			return false;
+	if ( apply )
+		for ( uint32_t i = 0; i < count; ++i )
+			if ( bindings[i].value ) {
+				saved[i].value.handle = bindings[i].value->handle;
+				*bindings[i].value = saved[i].value;
+			}
+	return true;
+}

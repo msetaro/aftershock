@@ -2174,3 +2174,24 @@ bool G_ReadBotPoolState( const stateReader_t &reader, bool apply ) {
 	return true;
 }
 #endif
+
+static const gCachedCvar_t savedBotCvars[] = {
+	{ "bot_thinktime", &bot_thinktime },
+	{ "bot_memorydump", &bot_memorydump },
+	{ "bot_saveroutingcache", &bot_saveroutingcache },
+	{ "bot_pause", &bot_pause },
+	{ "bot_report", &bot_report },
+	{ "bot_testsolid", &bot_testsolid },
+	{ "bot_testclusters", &bot_testclusters },
+	{ "bot_developer", &bot_developer },
+	{ "bot_interbreedchar", &bot_interbreedchar },
+	{ "bot_interbreedbots", &bot_interbreedbots },
+	{ "bot_interbreedcycle", &bot_interbreedcycle },
+	{ "bot_interbreedwrite", &bot_interbreedwrite },
+};
+bool G_WriteBotCvarState( stateWriter_t *writer ) {
+	return G_WriteCachedCvars( writer, "game.cvars.Bot", savedBotCvars, sizeof( savedBotCvars ) / sizeof( savedBotCvars[0] ) );
+}
+bool G_ReadBotCvarState( const stateReader_t &reader, bool apply ) {
+	return G_ReadCachedCvars( reader, "game.cvars.Bot", savedBotCvars, sizeof( savedBotCvars ) / sizeof( savedBotCvars[0] ), apply );
+}
