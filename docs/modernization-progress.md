@@ -82,6 +82,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 backend deployment contract, test first
+
+The manifest contract requires two replicas behind a ClusterIP service, bounded
+resources, TLS health probes, HPA/PDB, read-only non-root containers, namespaced
+Agones allocation permissions and references to separately provisioned secrets.
+It fails because the backend manifest generator is absent (backend-deployment-before.log).
+No credentials, AppID or externally published deployment is created by this test.
+Actual kind scheduling/health/scaling acceptance remains separate and mandatory.
+
 ## #29 native client action wiring preview
 
 The authored menu now calls bounded client login/queue/profile/results/logout actions.
