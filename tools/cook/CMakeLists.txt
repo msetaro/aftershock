@@ -30,3 +30,19 @@ if(MSVC)
 else()
   target_compile_options(aftershock-cook-lod PRIVATE -ffp-contract=off -fno-fast-math)
 endif()
+
+list(TRANSFORM RECAST_SOURCES PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/../../")
+list(TRANSFORM DETOUR_SOURCES PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/../../")
+add_executable(aftershock-cook-navigation navigation.cpp ${RECAST_SOURCES} ${DETOUR_SOURCES}
+  ../../engine/qcommon/cm_load.cpp ../../engine/qcommon/cm_patch.cpp
+  ../../engine/qcommon/cm_polylib.cpp ../../engine/qcommon/cm_physics.cpp
+  ../../engine/qcommon/cm_test.cpp ../../engine/qcommon/q_math.cpp
+  ../../engine/qcommon/q_shared.cpp ../../engine/qcommon/md4.cpp)
+target_include_directories(aftershock-cook-navigation PRIVATE
+  ../../third_party/recast/Recast/Include ../../third_party/recast/Detour/Include)
+target_compile_features(aftershock-cook-navigation PRIVATE cxx_std_20)
+if(MSVC)
+  target_compile_options(aftershock-cook-navigation PRIVATE /fp:strict /GR- /EHs-c-)
+else()
+  target_compile_options(aftershock-cook-navigation PRIVATE -ffp-contract=off -fno-fast-math -fno-exceptions -fno-rtti)
+endif()

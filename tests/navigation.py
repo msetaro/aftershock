@@ -22,7 +22,7 @@ with (args.output/'level.log').open('w') as log:
 # render triangles. Recast generates walkable polygons offline.
 definition = dict(version=1, collision='maps/two_lane.bsp', agent=dict(
     radius=15, height=56, climb=18, slope=46), cell_size=4, cell_height=2,
-    links=[dict(id=1, start=[-160,-160,48], end=[160,160,48], radius=24,
+    links=[dict(id=1, start=[-160,-160,0], end=[160,160,0], radius=24,
                 bidirectional=True, kind='jump')])
 (source/'navigation.json').write_text(json.dumps(definition))
 project = source/'navigation-assets.json'

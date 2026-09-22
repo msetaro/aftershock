@@ -56,6 +56,25 @@ and integration runs. The runtime-only rerun preserved all tests after the first
 attempt's advancing-gameplay timeout. No suppression or accepted golden changes.
 PR175 is still running; do not substitute predecessor gates for its own runtime.
 
+## #21 first collision-navmesh cooker
+
+The initial cook contract now passes (navigation-first-after.log). The offline
+helper links the actual CM loader, uses the explicit solid/player-clip exporter,
+rotates engine Z-up coordinates into Detour Y-up, then runs Recast voxelization,
+clearance/regions/contours/detail generation and Detour tile creation. Source JSON
+has bounded agent settings and named off-mesh link IDs/kinds; the existing agent
+schema/diagnostic API exposes it. The cooker records both source and collision
+BSP hashes and skips/recooks reproducibly. Owned map outputs only; no accepted
+fixture or proprietary archive is copied into the repository.
+
+The .asnav envelope retains the shared 48-byte version/hash header, followed by
+64 bytes of BSP SHA256, six agent/cell floats, tile length and CM checksum, then
+the pinned Detour tile. Native inputs have explicit sizes/offset assertions.
+The cooker development index reserves kind 15; runtime loading/reload handling
+is not implemented yet. Existing tests remain the acceptance boundary, not the
+mere presence of a cooked file. Next add native query/crowd/off-mesh tests before
+runtime owners, then gameplay/perception/behavior/tooling on accepted #19/#20 main.
+
 ## #21 collision export mask implementation
 
 After 83a9fdd4's failing compile, add the explicit-mask overload and preserve the
