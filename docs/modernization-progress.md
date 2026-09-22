@@ -44,7 +44,11 @@ Read docs/design/ui.md for the selected scope and tests. The first real cooker
 test failed on absent ui asset kind (ui-cook-before.log, 510fe1cc). The cooker
 now passes its hashed document/atlas and localized source-reload check
 (ui-cook-first.log). It reuses FreeType/RAQM and BC7/KTX2, bounds records/atlases,
-and records the source font dependency. Implement native POD layout/navigation next, then real controller/rebinding/HUD acceptance
+and records the source font dependency. Schema checks also pass after supplying
+the documented private Go PATH (the initial invocation lacked Go). The next
+native probe fails on the missing engine/ui module (ui-native-before.log):
+localized records, focus skipping/wrap, slider bounds, safe-area containment and
+proportional 1080p/4K geometry, plus 1440p/ultrawide/4:3. Implement that POD core next, then real controller/rebinding/HUD acceptance
 at 1080p, 1440p and 4K. No maintainer input is currently needed.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.

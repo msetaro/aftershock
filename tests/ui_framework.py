@@ -5,16 +5,20 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
+import shlex
 import struct
 import tempfile
 from PIL import features
 from cook import cook
-from run import ROOT, SCRATCH
+from run import ROOT, SCRATCH, run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--font',type=Path,default=Path('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
 parser.add_argument('--output',type=Path,default=SCRATCH/'aftershock-ui-framework')
+parser.add_argument('--cc',default='gcc')
+parser.add_argument('--cxx',default='g++')
 args=parser.parse_args()
+args.output=args.output.resolve()
 assert args.font.is_file() and features.check('raqm'), 'a source font and Pillow FreeType/RAQM are required'
 with tempfile.TemporaryDirectory(prefix='aftershock-ui-') as temporary:
     source=Path(temporary)
@@ -29,6 +33,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-ui-') as temporary:
     magic,version,size=struct.unpack_from('<8sII',record)
     assert magic==b'ASUI\0\0\0\0' and version==1 and size==len(record)-48
     assert hashlib.sha256(record[48:]).digest()==record[16:48]
+    sha,probe=args.output/'sha.o',args.output/'probe'
+    run([*shlex.split(args.cc),'-std=c99','-O2','-c','third_party/sha256/sha-256.c','-o',sha])
+    run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror','-fsanitize=undefined','-fno-sanitize-recover=all',
+         'tests/probes/ui_framework.cpp','engine/ui/ui.cpp',sha,'-o',probe])
+    run([probe,args.output/'ui/shell.asui'])
     atlas=(args.output/'ui/shell-font.ktx2').read_bytes()
     assert atlas.startswith(b'\xabKTX 20\xbb\r\n\x1a\n')
     assert cook(project,args.output)['built']==[]
