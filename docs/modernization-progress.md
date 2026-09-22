@@ -41,14 +41,30 @@ and Clang/libc++ UBSan. Focused tidy, MinGW/aarch64 compile and format/types/
 boundaries pass for the initial module. Settings/bindings and editor workspace
 profiles now pass real clients on both content sets, including a frozen version-1
 profile migration. Shared replication-derived state descriptions also pass GCC/Clang, with
-unchanged network bytes. Continue full-checkpoint test preparation while #18 gates
-run; merge accepted #18 main before game checkpoint integration.
+unchanged network bytes. The first real checkpoint test now fails at the missing save file after loading
+a live bot and pausing through the existing menu. Continue source inventory while
+#18 gates run; merge accepted #18 main before game checkpoint integration.
 Private state-preflight.md records the full-state source inventory. No native
 pointer dumps or partial checkpoint acceptance.
 
 Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
+
+## #19 real checkpoint test before implementation
+
+New tests/checkpoint_runtime.py starts a real local game with a live bot, pauses
+through the existing menu, and requires numbered savegame files. It then requires
+exact paused-world restoration, identical resumed simulation and the same results
+in a fresh process with a different initial seed. The pre-implementation run fails
+at the missing save file (checkpoint-before.log). The first draft tried to set the
+readonly pause cvar; the test was corrected to use actual Escape input before
+recording the missing-feature failure. No engine change was needed for that.
+
+This is an initial acceptance test, still to be extended for authored state and
+version migration. Implement only after accepted #18 main is merged forward.
+Bot/game/server clocks, RNG and callback/reference restoration belong in scope;
+restoring only player fields cannot pass the continuation requirement.
 
 ## #19 shared replication descriptions
 
