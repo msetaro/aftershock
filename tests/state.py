@@ -351,7 +351,7 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-ffunction-sections','-fdata-sections','-fsanitize=undefined','-fno-sanitize-recover=all',
      '-DNATIVE_NAMESPACE=game','-DNATIVE_SOURCE="game/g_callbacks.cpp"',
      '-c','game/module.cpp','-o',callbacks])
-for component in ('callbacks','references','composed','utilities','cached_cvars'):
+for component in ('callbacks','references','composed','utilities','cached_cvars','semantics'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',

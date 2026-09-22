@@ -49,8 +49,9 @@ tables, arena accounting and bot/arena content identity are covered. Remaining
 work: semantic validation; coordinate prepared engine cvars and live
 server/client restore and both RNG streams; add the platform save-provider seam
 and frozen full-game N-to-N+1 OpenArena fixture. No partial checkpoint acceptance.
-After #19, take the newly reproduced chat-shutdown boundary bug in a separate
-#31 PR before continuing #20. See the issue31 entry below.
+Take the reproduced chat-shutdown boundary bug in a separate #31 PR before
+#19 live coordination: full reload relies on complete library shutdown. Continue
+independent #19 work while its gates run. See the issue31 entry below.
 
 Completed local #19 support: named/versioned fields with bounded strings and
 schema/slot archives; shared entity/player/usercmd descriptions; profiles restoring
@@ -65,6 +66,24 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 gameplay draft validation; #31 cleanup prerequisite
+
+Draft validators now check finite scalar/vector fields, raw enum representations,
+trajectory kinds, active entity/client slot identity, bounding-box order, player
+movement/weapon/team states and level client counts/sorted-client uniqueness.
+They inspect legacy enum representations with memcpy before evaluating enum
+values, so invalid serialized enums reject without undefined behavior. Existing
+user-command handling still owns raw input validation. Auxiliary animation/weapon
+state retains its separate owner validation. GCC/Clang libc++ UBSan, client/server
+build, focused tidy and policy checks pass (state-semantics-{gcc,clang,build,tidy,policy}.log).
+The coordinator still must call these validators before publishing decoded drafts.
+
+Ordering refinement: take the recorded last-chat-handle shutdown bug in its own
+#31 PR now, before #19 live coordination. Full checkpoint reload uses normal
+library shutdown, which must release every handle including MAX_CLIENTS. This
+turns the recorded bug into a prerequisite; do not work around or fix it inside
+#19. Continue independent #19 coordination work while that PR's gates run.
 
 ## #19 engine/native cvar restore boundary
 

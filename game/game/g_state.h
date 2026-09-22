@@ -156,4 +156,8 @@ bool G_WriteRewindCvarState( stateWriter_t *writer );
 bool G_ReadRewindCvarState( const stateReader_t &reader, int apply );
 bool G_WriteExtraCvarState( stateWriter_t *writer );
 bool G_ReadExtraCvarState( const stateReader_t &reader, int apply );
+// Called on decoded drafts before the coordinator publishes a live world.
+bool G_ValidateEntityState( uint32_t slot, const gentity_t &entity, const gStatePools_t &pools );
+bool G_ValidateClientState( uint32_t slot, const gclient_t &client, const gStatePools_t &pools );
+bool G_ValidateLevelState( const level_locals_t &saved, const gStatePools_t &pools );
 #endif

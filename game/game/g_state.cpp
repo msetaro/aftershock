@@ -654,3 +654,108 @@ bool G_WriteExtraCvarState( stateWriter_t *writer ) {
 bool G_ReadExtraCvarState( const stateReader_t &reader, int apply ) {
 	return apply >= 0 && apply <= 2 && ExtraCvarRecords( nullptr, &reader, 0 ) && ( !apply || ExtraCvarRecords( nullptr, &reader, apply ) );
 }
+
+// Draft validation never evaluates an out-of-range C enum before checking its
+// representation. Some imported game enums deliberately retain the legacy ABI.
+template <typename T>
+static uint32_t StateEnum( const T &value ) {
+	static_assert( sizeof( T ) == sizeof( uint32_t ) );
+	uint32_t bits;
+	memcpy( &bits, &value, sizeof( bits ) );
+	return bits;
+}
+static bool StateFloatsFinite( const stateSchema_t &schema, const void *object ) {
+	for ( uint32_t i = 0; i < schema.fieldCount; ++i ) {
+		const auto &field = schema.fields[i];
+		if ( field.type != stateType_t::Float32 )
+			continue;
+		for ( uint32_t j = 0; j < field.count; ++j ) {
+			float value;
+			memcpy( &value, (const uint8_t *)object + field.offset + j * sizeof( value ), sizeof( value ) );
+			if ( !std::isfinite( value ) )
+				return false;
+		}
+	}
+	return true;
+}
+static bool ValidStateTrajectory( const trajectory_t &trajectory ) {
+	return StateEnum( trajectory.trType ) <= TR_GRAVITY &&
+		   ( StateEnum( trajectory.trType ) != TR_SINE || trajectory.trDuration > 0 );
+}
+static bool ValidNetworkEntityState( const entityState_t &entity ) {
+	const bool kind = ( entity.eType >= ET_GENERAL && entity.eType <= int( ET_EVENTS ) + int( EV_WEAPON_NOTIFY ) ) ||
+					  entity.eType == ET_ANIMATION || entity.eType == ET_WEAPON_STATE || entity.eType == ET_WEAPON_ANIMATION;
+	return kind && entity.number >= 0 && entity.number < MAX_GENTITIES &&
+		   ValidStateTrajectory( entity.pos ) && ValidStateTrajectory( entity.apos ) && StateFloatsFinite( entityStateSchema, &entity );
+}
+bool G_ValidateEntityState( uint32_t slot, const gentity_t &entity, const gStatePools_t &pools ) {
+	if ( !G_StatePoolsValid( pools ) || slot >= uint32_t( pools.entityCount ) )
+		return false;
+	const uint32_t flags[] = { StateEnum( entity.inuse ), StateEnum( entity.neverFree ), StateEnum( entity.freeAfterEvent ),
+		StateEnum( entity.unlinkAfterEvent ), StateEnum( entity.physicsObject ), StateEnum( entity.takedamage ), StateEnum( entity.r.linked ), StateEnum( entity.r.bmodel ) };
+	for ( uint32_t flag : flags )
+		if ( flag > 1 )
+			return false;
+	if ( StateEnum( entity.moverState ) > MOVER_2TO1 || !StateFloatsFinite( gameEntitySchema, &entity ) ||
+		 !StateFloatsFinite( entitySharedSchema, &entity.r ) || !ValidNetworkEntityState( entity.s ) || !ValidNetworkEntityState( entity.r.s ) ||
+		 ( entity.inuse && entity.s.number != int( slot ) ) || entity.r.ownerNum < -1 || entity.r.ownerNum >= MAX_GENTITIES ||
+		 entity.waterlevel < 0 || entity.waterlevel > 3 || entity.methodOfDeath < MOD_UNKNOWN || entity.methodOfDeath > MOD_GRAPPLE ||
+		 entity.splashMethodOfDeath < MOD_UNKNOWN || entity.splashMethodOfDeath > MOD_GRAPPLE )
+		return false;
+	if ( entity.client && ( slot >= uint32_t( pools.clientCount ) || entity.client != &pools.clients[slot] ) )
+		return false;
+	if ( ( entity.r.svFlags & ( SVF_SINGLECLIENT | SVF_NOTSINGLECLIENT ) ) && !( entity.r.svFlags & SVF_CLIENTMASK ) &&
+		 ( entity.r.singleClient < 0 || entity.r.singleClient >= pools.clientCount ) )
+		return false;
+	for ( int i = 0; i < 3; ++i )
+		if ( entity.r.mins[i] > entity.r.maxs[i] || ( entity.r.linked && entity.r.absmin[i] > entity.r.absmax[i] ) )
+			return false;
+	return true;
+}
+bool G_ValidateClientState( uint32_t slot, const gclient_t &client, const gStatePools_t &pools ) {
+	if ( !G_StatePoolsValid( pools ) || slot >= uint32_t( pools.clientCount ) || StateEnum( client.pers.connected ) > CON_CONNECTED ||
+		 StateEnum( client.pers.teamState.state ) > TEAM_ACTIVE || StateEnum( client.sess.sessionTeam ) >= TEAM_NUM_TEAMS ||
+		 StateEnum( client.sess.spectatorState ) > SPECTATOR_SCOREBOARD || !StateFloatsFinite( gameClientSchema, &client ) || !StateFloatsFinite( playerStateSchema, &client.ps ) )
+		return false;
+	const uint32_t flags[] = { StateEnum( client.pers.localClient ), StateEnum( client.pers.initialSpawn ), StateEnum( client.pers.predictItemPickup ),
+		StateEnum( client.pers.pmoveFixed ), StateEnum( client.pers.teamInfo ), StateEnum( client.sess.teamLeader ), StateEnum( client.readyToExit ),
+		StateEnum( client.noclip ), StateEnum( client.damage_fromWorld ), StateEnum( client.inactivityWarning ), StateEnum( client.fireHeld ) };
+	for ( uint32_t flag : flags )
+		if ( flag > 1 )
+			return false;
+	return client.sess.spectatorClient >= -2 && client.sess.spectatorClient < MAX_CLIENTS &&
+		   client.ps.pm_type >= PM_NORMAL && client.ps.pm_type <= PM_SPINTERMISSION &&
+		   client.ps.weaponstate >= WEAPON_READY && client.ps.weaponstate <= WEAPON_FIRING &&
+		   client.ps.weapon >= WP_NONE && client.ps.weapon < WP_NUM_WEAPONS &&
+		   client.ps.groundEntityNum >= -1 && client.ps.groundEntityNum < MAX_GENTITIES &&
+		   client.ps.jumppad_ent >= -1 && client.ps.jumppad_ent < MAX_GENTITIES &&
+		   client.ps.clientNum >= 0 && client.ps.clientNum < MAX_CLIENTS &&
+		   ( client.pers.connected != CON_CONNECTED || client.ps.clientNum == int( slot ) ) &&
+		   client.ps.persistant[PERS_TEAM] >= TEAM_FREE && client.ps.persistant[PERS_TEAM] < TEAM_NUM_TEAMS;
+}
+bool G_ValidateLevelState( const level_locals_t &saved, const gStatePools_t &pools ) {
+	if ( !G_StatePoolsValid( pools ) || saved.maxclients < 1 || saved.maxclients > pools.clientCount ||
+		 saved.num_entities < MAX_CLIENTS || saved.num_entities > pools.entityCount || !StateFloatsFinite( gameLevelSchema, &saved ) ||
+		 saved.numConnectedClients < 0 || saved.numConnectedClients > saved.maxclients || saved.numNonSpectatorClients < 0 ||
+		 saved.numNonSpectatorClients > saved.numConnectedClients || saved.numPlayingClients < 0 || saved.numPlayingClients > saved.numNonSpectatorClients ||
+		 saved.follow1 < -1 || saved.follow1 >= saved.maxclients || saved.follow2 < -1 || saved.follow2 >= saved.maxclients ||
+		 saved.bodyQueIndex < 0 || saved.bodyQueIndex >= BODY_QUEUE_SIZE )
+		return false;
+	const uint32_t flags[] = { StateEnum( saved.newSession ), StateEnum( saved.restarted ), StateEnum( saved.readyToExit ), StateEnum( saved.locationLinked ) };
+	for ( uint32_t flag : flags )
+		if ( flag > 1 )
+			return false;
+	bool seen[MAX_CLIENTS] = {};
+	for ( int i = 0; i < saved.numConnectedClients; ++i ) {
+		const int client = saved.sortedClients[i];
+		if ( client < 0 || client >= saved.maxclients || seen[client] )
+			return false;
+		seen[client] = true;
+	}
+	const int votes[] = { saved.voteYes, saved.voteNo, saved.numVotingClients, saved.teamVoteYes[0], saved.teamVoteYes[1],
+		saved.teamVoteNo[0], saved.teamVoteNo[1], saved.numteamVotingClients[0], saved.numteamVotingClients[1] };
+	for ( int count : votes )
+		if ( count < 0 || count > MAX_CLIENTS )
+			return false;
+	return true;
+}
