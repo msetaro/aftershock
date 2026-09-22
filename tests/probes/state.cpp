@@ -80,5 +80,27 @@ int main() {
 	assert( State_Read( currentSchema, bytes, currentSize, &restored, &version ) && version == 2 );
 	assert( restored.health == 73 && restored.armor == 25 && restored.identity == previous.identity );
 	assert( !memcmp( restored.position, previous.position, sizeof( restored.position ) ) && !strcmp( restored.name, previous.name ) );
+	// A checkpoint contains many independently versioned records, keyed by slot.
+	unsigned char archive[65536];
+	stateWriter_t writer = { archive, sizeof( archive ) };
+	assert( State_Append( &writer, previousSchema, 7, &previous ) );
+	assert( State_Append( &writer, previousSchema, 19, &previous ) );
+	playerState_t player = {};
+	player.stats[0] = 81;
+	player.ping = 27; // Local-only data is part of a checkpoint.
+	assert( State_Append( &writer, playerStateSchema, 0, &player ) );
+	const size_t archiveSize = State_Finish( &writer );
+	assert( archiveSize );
+	stateReader_t reader;
+	assert( State_Open( archive, archiveSize, &reader ) );
+	playerState_t savedPlayer = {};
+	assert( State_Find( reader, playerStateSchema, 0, &savedPlayer, &version ) );
+	assert( savedPlayer.stats[0] == 81 && savedPlayer.ping == 27 );
+	current_t savedCurrent = {};
+	assert( State_Find( reader, currentSchema, 19, &savedCurrent, &version ) && version == 1 );
+	if ( version == 1 )
+		savedCurrent.armor = 25;
+	assert( savedCurrent.health == 73 && savedCurrent.armor == 25 && savedCurrent.identity == previous.identity );
+	assert( !State_Find( reader, currentSchema, 20, &savedCurrent, &version ) );
 	puts( "PASS: named POD fields preserve bits across reordering and explicit added/removed-field migration" );
 }

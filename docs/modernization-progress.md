@@ -51,6 +51,15 @@ Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
 
+## #19 checkpoint record grouping test before implementation
+
+The existing state probe now requires multiple independently versioned records
+in one caller-owned buffer, addressed by schema name and slot, and reads them in a
+different order. It fails on the missing archive API (state-archive-before.log).
+This is the minimal grouping needed for all entity/client/subsystem records in a
+single checkpoint; reuse the existing field format rather than add another field
+serializer. No game integration or acceptance is claimed.
+
 ## #19 real checkpoint test before implementation
 
 New tests/checkpoint_runtime.py starts a real local game with a live bot, pauses
