@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "name": "composed_definitions",
+  "definitions": [
+    {
+      "id": "signal_crate",
+      "native": "composed",
+      "components": {
+        "transform": {"origin": [128, 0, 32], "angles": [0, 90, 0]},
+        "hooks": {"target": "door_signal", "targetname": "signal_crate"},
+        "replication": {"priority": 2, "radius": 2048},
+        "model": {"resource": "models/character.iqm"},
+        "animation": {"first_frame": 0, "frames": 31, "frame_ms": 40, "loop": true},
+        "collision": {"mins": [-16, -16, -16], "maxs": [16, 16, 16], "solid": true},
+        "trigger": {"wait_ms": 250, "once": false},
+        "damage": {"amount": 7, "health": 20, "splash": 12, "radius": 96},
+        "audio": {"sound": "sound/entities/hum.wav", "loop": true}
+      }
+    }
+  ]
+}

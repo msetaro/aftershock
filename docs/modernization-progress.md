@@ -27,7 +27,9 @@ build 35678588496 and regression 35678588538; not all have completed yet.
 
 #17 is draft PR172 into main, branch issue/17-ui-framework at 522f9904, worktree
 /home/matt/.cache/aftershock-modernization/ui-tree. It includes d2411083. Current
-hosted runs: build 35678890598 and regression 35678890675. Superseded aa5cd964
+head is fcfd6507 after fixing Windows min/max macro expansion; hosted build
+35679134924 has all four MSVC legs green and regression 35679134926 has no active
+failure so far. Old 522f9904 build failed MSVC and its regression was cancelled. Superseded aa5cd964
 runs 35678751260/35678751264 were cancelled to free runners; not merge evidence.
 Local full UI/runtime/style/type/boundary/lifetime/tidy/cross checks pass; focused
 checks after merging audio also pass. Require every one of 26 current active
@@ -64,8 +66,13 @@ amount 20 (entities-runtime-second.log); accepted old callbacks/arithmetic are
 unchanged. The first runtime fixture assigned targetname, correctly leaving a
 legacy pickup dormant until triggered; removed that hook from this collection
 fixture, not engine behavior. First link needed entities_public.h included before
-the game namespace in game/module.cpp. No partial acceptance of remaining #18
-scope is claimed. Schema, format/types/boundaries and affected contract pass.
+the game namespace in game/module.cpp. Both-content pickup collection now passes, and unchanged Quake 3 bot goldens
+pass q3dm17 and q3dm7 (entities-runtime-q3.log, entities-classic-runtime.log).
+The next component fixture requires model/animation/collision/trigger/damage/audio
+metadata and fails on the missing schema fields (entities-components-before.log).
+Reuse cooked IQM frame animation through the existing general-entity renderer;
+no new model format is needed. Generic definition preview/edit still remains.
+No partial acceptance of remaining #18 scope is claimed. Schema, format/types/boundaries and affected contract pass.
 
 ## #17 local verification before integrating accepted audio
 

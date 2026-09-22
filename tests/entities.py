@@ -51,5 +51,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-') as temporary:
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-Wconversion','-Wshadow','-fsanitize=undefined','-fno-sanitize-recover=all',
          'tests/probes/entities.cpp','engine/entities/entities.cpp',sha,'-o',probe])
-    run([probe,args.output/'entities/pickups.asent'])
+    shutil.copyfile(ROOT/'tests/assets/entities/composed.json',source/'composed.json')
+    project.write_text(json.dumps(dict(version=1,assets=[dict(name='entities/composed',kind='entities',source='composed.json')])))
+    assert cook(project,args.output)['built'] in ([],['entities/composed'])
+    run([probe,args.output/'entities/pickups.asent',args.output/'entities/composed.asent'])
 print('PASS: inherited pickup definitions, component metadata and derived replication policy')
