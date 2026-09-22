@@ -20,41 +20,43 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#18 accepted in PR173, merge 2010b07737dcf98a87b37f3b6092d7ecee167c18.
-All 26 active gates passed exact head e0c6a57d (build 35683155301,
-regression 35683155256). Merged-tree build 35687912038 and regression
-35687912012 both pass. #17 and #16 are also accepted; no CI wait remains.
+#16/#17/#18 are accepted. PR174's #31 chat fix merged at 5caa2c1c after
+all 26 exact-head gates passed; its merged-tree runtime rerun (35715942143
+attempt 2) is still running after an earlier advancing-gameplay timeout.
 
-Fix the chat shutdown last-handle defect in the separate #31 branch
-issue/31-bot-chat-shutdown, worktree
-/home/matt/.cache/aftershock-modernization/bot-chat-shutdown-tree.
-Test-first commit 4fd1ae34 reproduces the defect under GCC and Clang/libc++
-ASan/UBSan: shutdown retains chat handle 64. The allocation/free API uses handles
-1..MAX_CLIENTS; the shutdown loop incorrectly visits 0..MAX_CLIENTS-1. This must
-land before #19's full checkpoint reload uses normal botlib shutdown.
-The one-line loop correction now passes both ASan/UBSan compilers, including
-three full allocation/shutdown cycles and repeated empty shutdown. CI unit jobs
-and the local suite catalog include the regression; affected-path selection,
-format/type/boundary checks and workflow syntax all pass locally. Self-review:
-only the handle bounds change in production, no OS calls, lifetime/allocation or
-FP changes; no golden or suppression changes. Push the branch and require all
-26 active hosted gates with current main before self-merging.
+#19 is draft PR175, branch issue/19-state-serialization in the sibling state-tree.
+Its full save/load and both frozen migrations work, local unit command sets and
+both-content bot/replay goldens pass. Current hosted head db9a51db exposed a final
+MSVC profile-output initialization warning; that branch is correcting it and
+rerunning profile migration before another push. Require all 26 exact-head checks
+and current main/base before merge, then merged-tree gates. The state-tree progress
+file is authoritative for the complete #19 evidence; do not redo its owners.
 
-#19 remains isolated in /home/matt/.cache/aftershock-modernization/state-tree,
-issue/19-state-serialization, local head af8fb76c including main 2010b077.
-Named-field archive, profile migration, both RNG streams, native and botlib owner
-serialization/reconstruction, cvar preparation and gameplay draft validators are
-implemented and locally checked. Full GCC/Clang owner suites pass at b9baccf4;
-latest semantic validators pass both UBSan compilers, client/server build and
-focused tidy/policy. Aggregate live checkpoint coordination, save/load commands,
-fullgame migration fixture and runtime acceptance remain unfinished. Continue
-those after this #31 prerequisite; do not claim partial checkpoint acceptance.
-Detailed owner evidence and remaining work are on that branch's progress file.
+This branch is issue/20-content-packages, created from main 5caa2c1c for bounded
+preparation while #19 CI runs. Its first tool acceptance test is now written before
+implementation: owned sources cook, but package creation fails at the absent
+tools/package.py (content-first-before.log). The test requires reproducible full
+packaging, per-asset hashes, a small one-texture delta, exact base/patch extraction
+and an explicit removed-file entry. No accepted source, golden or fixture changes.
+Record the initial failing check, then implement the offline package writer;
+read/mount integration and final runtime acceptance must follow on top of accepted
+#19 main. Do not merge #20 before #19.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
 is currently needed. Do not end at a checkpoint or CI wait.
+
+## #20 first packaging acceptance test
+
+Reuse tests/cook.py's owned source generator and the actual cooker. Patch a
+separate texture source so exactly one cooked texture and its index/revision
+change. The delta must omit unchanged model/audio payloads and stay below half
+the full package size. Applying base plus patch must reproduce every cooked file
+hash; a following deletion patch must hide the removed configuration file.
+The first run fails on the missing packaging CLI after cooking succeeds.
+This is tool-side preparation only; platform streams, native mounts, precedence,
+directory separation and legacy compatibility remain required by #20.
 
 ## #18 hosted standard-library compatibility
 
