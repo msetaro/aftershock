@@ -56,6 +56,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 authoritative route-following test first
+
+Extend the native allocation-counted probe with authoritative foot positions and
+POD route cursor continuation. Ground corners advance normally; a pad source
+must wait for a real airborne transition, then its landing; ordinary jump/drop/
+door actions keep distinct output. A partial route must never report arrival.
+The contract is deliberately independent of Pmove: it selects a steering target,
+while existing native user commands retain movement authority. Compilation fails at the absent navFollowState_t/Nav_Follow API
+(navigation-follow-before.log). Commit this contract before implementation.
+
 ## #21 checkpoint-enabled main forward merge
 
 Merge main b92b6ef5 after the isolated core preparation. Source lists and the

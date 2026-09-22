@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <type_traits>
+#include <initializer_list>
 
 static uint32_t allocations, liveBlocks;
 void *Z_Malloc( size_t size ) {
@@ -66,6 +67,48 @@ int main( int argc, char **argv ) {
 			std::fprintf( stderr, "corner %u: %g %g %g link %u\n", i, path.points[i].position[0], path.points[i].position[1], path.points[i].position[2], path.points[i].link );
 	}
 	assert(path.complete && sawLink);
+	// Follow the fixed route from authoritative feet positions. An existing pad
+	// must launch naturally; reaching its source is not permission to skip it.
+	navPath_t route{};
+	route.count = 3;
+	route.complete = true;
+	route.points[0] = { { 0, 0, 0 }, 0, NAV_LINK_NONE };
+	route.points[1] = { { 100, 0, 0 }, 5, NAV_LINK_LAUNCH };
+	route.points[2] = { { 200, 0, 100 }, 0, NAV_LINK_NONE };
+	navFollowState_t cursor{};
+	navFollowOutput_t follow{};
+	const float origin[3] = { 0, 0, 0 }, pad[3] = { 100, 0, 0 },
+		flight[3] = { 150, 0, 150 }, landed[3] = { 200, 0, 100 };
+	assert(Nav_Follow(route,origin,true,12,&cursor,&follow));
+	assert(cursor.point == 1 && follow.position[0] == 100 && !follow.arrived);
+	assert(Nav_Follow(route,pad,true,12,&cursor,&follow));
+	assert(follow.kind == NAV_LINK_LAUNCH && follow.link == 5 && follow.position[0] == 100);
+	assert(Nav_Follow(route,pad,true,12,&cursor,&follow) && cursor.point == 1);
+	assert(Nav_Follow(route,flight,false,12,&cursor,&follow) && follow.position[0] == 200);
+	auto restored = cursor;
+	assert(Nav_Follow(route,landed,false,12,&cursor,&follow) && !follow.arrived);
+	assert(Nav_Follow(route,landed,true,12,&cursor,&follow) && follow.arrived);
+	navFollowOutput_t continued{};
+	assert(Nav_Follow(route,landed,true,12,&restored,&continued));
+	assert(continued.arrived && restored.point == cursor.point && restored.phase == cursor.phase);
+	// Jump requests stop once airborne. Doors and drops steer through their
+	// endpoint without waiting for a launch impulse. Partial routes never arrive.
+	for ( auto kind : { NAV_LINK_JUMP, NAV_LINK_DROP, NAV_LINK_DOOR } ) {
+		route.points[1].kind = kind;
+		cursor = {};
+		cursor.point = 1;
+		assert(Nav_Follow(route,pad,true,12,&cursor,&follow));
+		assert(follow.kind == kind && follow.position[0] == 200);
+		if ( kind != NAV_LINK_DOOR )
+			assert(Nav_Follow(route,flight,false,12,&cursor,&follow) && follow.kind == NAV_LINK_NONE);
+		assert(Nav_Follow(route,landed,true,12,&cursor,&follow) && follow.arrived);
+	}
+	route.complete = false;
+	cursor = {};
+	cursor.point = 2;
+	assert(Nav_Follow(route,landed,true,12,&cursor,&follow) && !follow.arrived);
+	assert(!Nav_Follow(route,landed,true,0,&cursor,&follow));
+	static_assert( std::is_trivially_copyable_v<navFollowState_t> );
 	// Boundary candidates come from the navmesh's collision-derived polygons.
 	// The owned low cover spans x [-32,32], y [-64,-32], z [0,48].
 	navCoverQuery_t covers{};
