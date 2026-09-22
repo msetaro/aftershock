@@ -51,6 +51,16 @@ int AINode_Battle_NBG( bot_state_t * ) {
 } // namespace game
 static game::bot_state_t restoredActors[2];
 static int levelAllocations;
+static bool handlesExist = true;
+int GameImport_ValidateBotHandles( int character, int move, int goal, int weapon, int chat ) {
+	if ( !handlesExist || character != 17 )
+		return 0;
+	const int handles[] = { move, goal, weapon, chat };
+	for ( int handle : handles )
+		if ( handle != 17 && handle != 18 )
+			return 0;
+	return 1;
+}
 void *GameImport_AllocLevelMemory( uint32_t bytes ) {
 	assert(bytes==sizeof(restoredActors));
 	++levelAllocations;
@@ -97,7 +107,7 @@ int main() {
 	original.activategoalheap[2].areas[1] = 31;
 	original.activategoalheap[5].inuse = 1;
 	original.activategoalheap[5].target[2] = 200;
-	static unsigned char bytes[65536];
+	static unsigned char bytes[131072];
 	for ( const auto &node : botNodes ) {
 		waypoints = originalWaypoints;
 		original.ainode = node.node;
@@ -144,6 +154,38 @@ int main() {
 	writer = { bytes, sizeof( bytes ) };
 	assert(G_WriteBotPoolState(&writer));
 	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	static gentity_t entities[MAX_GENTITIES];
+	static gclient_t clients[MAX_CLIENTS];
+	entities[3].r.svFlags = SVF_BOT;
+	clients[3].pers.connected = CON_CONNECTED;
+	assert(G_ValidateBotReferences(reader,entities,clients));
+	handlesExist = false;
+	assert(!G_ValidateBotReferences(reader,entities,clients));
+	handlesExist = true;
+	entities[3].r.svFlags = 0;
+	assert(!G_ValidateBotReferences(reader,entities,clients));
+	entities[3].r.svFlags = SVF_BOT;
+	clients[3].pers.connected = CON_DISCONNECTED;
+	assert(!G_ValidateBotReferences(reader,entities,clients));
+	clients[3].pers.connected = CON_CONNECTED;
+	auto second = original;
+	second.client = second.entitynum = 4;
+	second.activatestack = &second.activategoalheap[2];
+	second.activategoalheap[2].next = &second.activategoalheap[5];
+	botstates[4] = &second;
+	entities[4].r.svFlags = SVF_BOT;
+	clients[4].pers.connected = CON_CONNECTED;
+	writer = { bytes, sizeof( bytes ) };
+	assert(G_WriteBotPoolState(&writer) && State_Open(bytes,State_Finish(&writer),&reader));
+	assert(!G_ValidateBotReferences(reader,entities,clients)); // Actor-local handles cannot be shared.
+	second.ms = second.gs = second.ws = second.cs = 18;
+	writer = { bytes, sizeof( bytes ) };
+	assert(G_WriteBotPoolState(&writer) && State_Open(bytes,State_Finish(&writer),&reader));
+	assert(G_ValidateBotReferences(reader,entities,clients)); // Character caches can be shared.
+	botstates[4] = nullptr;
+	clients[4].pers.connected = CON_DISCONNECTED;
+	writer = { bytes, sizeof( bytes ) };
+	assert(G_WriteBotPoolState(&writer) && State_Open(bytes,State_Finish(&writer),&reader));
 	assert(G_ReadBotPoolState(reader,false) && !G_ReadBotPoolState(reader,true) && !levelAllocations);
 	botstates[3] = botstates[7] = nullptr;
 	assert(G_ReadBotPoolState(reader,true) && levelAllocations==1);

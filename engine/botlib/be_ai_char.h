@@ -54,3 +54,5 @@ bool Bot_ReadCharacterState( const stateReader_t &reader, uint32_t now, bool app
 
 // Requires an empty character pool; copies resolved values into owned storage.
 bool Bot_PrepareCharacterState( const stateReader_t &reader, uint32_t now );
+
+bool Bot_HasCharacterState( int handle );

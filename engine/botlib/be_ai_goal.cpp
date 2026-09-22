@@ -2200,3 +2200,7 @@ bool Bot_PrepareGoalState( const stateReader_t &reader ) {
 	memcpy( botgoalstates, draft, sizeof( draft ) );
 	return true;
 }
+
+bool Bot_HasGoalState( int handle ) {
+	return handle > 0 && handle <= MAX_CLIENTS && botgoalstates[handle] != nullptr;
+}

@@ -67,6 +67,17 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 bot ownership validation
+
+Native checkpoint validation now cross-checks every active bot against its saved
+player/entity slot and the reconstructed live character/movement/goal/weapon/chat
+pools. Actor-local handles cannot be shared; cached characters may be shared.
+Missing handles, mismatched bot flags/connection state and duplicate ownership
+reject before native publication. GCC/Clang UBSan cover those cases and sharing,
+and the real paused OpenArena capture still passes full read validation at the
+same 17,314,861-byte size. Build, native ABI, focused tidy and policy checks pass
+(state-bot-bindings-*). No normal simulation path or accepted fixture changed.
+
 ## #19 live capture integration in progress
 
 Native checkpoint orchestration and the server savegame command now build with

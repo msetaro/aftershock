@@ -107,3 +107,5 @@ bool Bot_ReadWeaponState( const stateReader_t &reader, bool apply );
 
 // Prepare exact saved handles into an empty pool after shared weights.
 bool Bot_PrepareWeaponState( const stateReader_t &reader );
+
+bool Bot_HasWeaponState( int handle );

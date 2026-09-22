@@ -143,3 +143,5 @@ bool Bot_ReadMoveState( const stateReader_t &reader, bool apply );
 
 // Reconstruct exact saved handle slots in an empty pool.
 bool Bot_PrepareMoveState( const stateReader_t &reader );
+
+bool Bot_HasMoveState( int handle );

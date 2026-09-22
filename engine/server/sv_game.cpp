@@ -1166,3 +1166,7 @@ qboolean SV_GameCommand( void ) {
 int GameImport_GetPlayerIdentity( int clientNum, uint64_t *id ) {
 	return SV_PlayerIdentity( clientNum, id );
 }
+
+int GameImport_ValidateBotHandles( int character, int move, int goal, int weapon, int chat ) {
+	return BotLib_HasActorState( character, move, goal, weapon, chat );
+}

@@ -128,3 +128,5 @@ bool Bot_ReadGoalMapState( const stateReader_t &reader );
 
 // Prepare exact saved handles into an empty pool after shared weights.
 bool Bot_PrepareGoalState( const stateReader_t &reader );
+
+bool Bot_HasGoalState( int handle );

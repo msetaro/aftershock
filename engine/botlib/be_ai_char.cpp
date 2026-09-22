@@ -1053,3 +1053,7 @@ bool Bot_PrepareCharacterState( const stateReader_t &reader, uint32_t now ) {
 		}
 	return true;
 }
+
+bool Bot_HasCharacterState( int handle ) {
+	return handle > 0 && handle <= MAX_HANDLES && botcharacters[handle] != nullptr;
+}

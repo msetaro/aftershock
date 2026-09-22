@@ -3751,3 +3751,7 @@ bool Bot_PrepareMoveState( const stateReader_t &reader ) {
 	memcpy( modeltypes, pool.models, sizeof( modeltypes ) );
 	return true;
 }
+
+bool Bot_HasMoveState( int handle ) {
+	return handle > 0 && handle <= MAX_CLIENTS && botmovestates[handle] != nullptr;
+}

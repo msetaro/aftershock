@@ -2195,3 +2195,30 @@ bool G_WriteBotCvarState( stateWriter_t *writer ) {
 bool G_ReadBotCvarState( const stateReader_t &reader, int apply ) {
 	return G_ReadCachedCvars( reader, "game.cvars.Bot", savedBotCvars, sizeof( savedBotCvars ) / sizeof( savedBotCvars[0] ), apply );
 }
+
+bool G_ValidateBotReferences( const stateReader_t &reader, const gentity_t *entities, const gclient_t *clients ) {
+	botPoolSave_t pool;
+	uint32_t version;
+	if ( !entities || !clients || !State_Find( reader, botPoolSchema, 0, &pool, &version ) )
+		return false;
+	bool used[4][MAX_CLIENTS + 1]{};
+	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i ) {
+		const bool active = clients[i].pers.connected != CON_DISCONNECTED && ( entities[i].r.svFlags & SVF_BOT );
+		if ( pool.allocated[i] > 1 || pool.active[i] > pool.allocated[i] || pool.active[i] != uint32_t( active ) )
+			return false;
+		if ( !active )
+			continue;
+		bot_state_t actor{};
+		if ( !G_ReadBotActorState( reader, i, &actor, true ) ||
+			 !GameImport_ValidateBotHandles( actor.character, actor.ms, actor.gs, actor.ws, actor.cs ) )
+			return false;
+		const int handles[] = { actor.ms, actor.gs, actor.ws, actor.cs };
+		for ( int kind = 0; kind < 4; ++kind ) {
+			const int handle = handles[kind];
+			if ( handle < 1 || handle > MAX_CLIENTS || used[kind][handle] )
+				return false;
+			used[kind][handle] = true;
+		}
+	}
+	return true;
+}

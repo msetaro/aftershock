@@ -523,3 +523,5 @@ bool BotLib_WriteState( stateWriter_t *writer, uint32_t now );
 bool BotLib_PrepareSettings( const stateReader_t &reader );
 bool BotLib_PrepareState( const stateReader_t &reader, uint32_t now );
 bool BotLib_ReadState( const stateReader_t &reader, uint32_t now, bool apply );
+
+bool BotLib_HasActorState( int character, int move, int goal, int weapon, int chat );

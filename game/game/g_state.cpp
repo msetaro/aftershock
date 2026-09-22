@@ -858,7 +858,7 @@ bool G_ReadCheckpoint( const stateReader_t &reader, bool apply ) {
 	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i )
 		if ( !G_ReadClientState( reader, i, pools, &clients[i] ) || !G_ValidateClientState( i, clients[i], pools ) )
 			return false;
-	if ( !ReadCheckpointOwners( reader, pools, false ) )
+	if ( !ReadCheckpointOwners( reader, pools, false ) || !G_ValidateBotReferences( reader, entities, clients ) )
 		return false;
 	if ( !apply )
 		return true;

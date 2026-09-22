@@ -992,3 +992,8 @@ bool BotLib_ReadState( const stateReader_t &reader, uint32_t now, bool apply ) {
 	// Content preparation uses the parser and libvars: restore those records last.
 	return BotLib_ReadGlobalState( reader, true ) && LibVar_ReadState( reader, true ) && PC_ReadState( reader, true );
 }
+
+bool BotLib_HasActorState( int character, int move, int goal, int weapon, int chat ) {
+	return Bot_HasCharacterState( character ) && Bot_HasMoveState( move ) && Bot_HasGoalState( goal ) &&
+		   Bot_HasWeaponState( weapon ) && Bot_HasChatState( chat );
+}

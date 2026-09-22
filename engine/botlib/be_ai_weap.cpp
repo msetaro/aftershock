@@ -625,3 +625,7 @@ bool Bot_PrepareWeaponState( const stateReader_t &reader ) {
 	memcpy( botweaponstates, draft, sizeof( draft ) );
 	return true;
 }
+
+bool Bot_HasWeaponState( int handle ) {
+	return handle > 0 && handle <= MAX_CLIENTS && botweaponstates[handle] != nullptr;
+}

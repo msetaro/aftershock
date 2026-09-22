@@ -3495,3 +3495,7 @@ bool Bot_PrepareChatContentState( const stateReader_t &reader ) {
 			botchatstates[i]->chat = pool.owner[i] >= 0 ? caches[pool.owner[i]]->chat : privateChats[i];
 	return ChatContentRecord( nullptr, &reader, 2 * MAX_CLIENTS + 1, nullptr, nullptr, true, true );
 }
+
+bool Bot_HasChatState( int handle ) {
+	return handle > 0 && handle <= MAX_CLIENTS && botchatstates[handle] != nullptr;
+}

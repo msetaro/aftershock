@@ -169,3 +169,5 @@ bool G_ReadCheckpointCvars( const stateReader_t &reader, int apply );
 bool G_ReadCheckpoint( const stateReader_t &reader, bool apply );
 void G_LinkCheckpointEntities();
 bool G_RestoreCheckpointRandom( const stateReader_t &reader );
+
+bool G_ValidateBotReferences( const stateReader_t &reader, const gentity_t *entities, const gclient_t *clients );

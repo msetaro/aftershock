@@ -128,3 +128,5 @@ bool Bot_ReadChatContentState( const stateReader_t &reader, bool apply );
 // Empty actor/content pools; the normally initialized console-message heap remains.
 bool Bot_PrepareChatQueueState( const stateReader_t &reader );
 bool Bot_PrepareChatContentState( const stateReader_t &reader );
+
+bool Bot_HasChatState( int handle );
