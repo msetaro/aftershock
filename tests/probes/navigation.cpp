@@ -37,7 +37,8 @@ int main( int argc, char **argv ) {
 	uint32_t checksum;
 	std::memcpy( &checksum, static_cast<const uint8_t *>( data ) + 108, sizeof( checksum ) );
 	navWorld_t *world = Nav_Open( data, size, checksum, 4 );
-	assert(world);
+	navWorld_t *fresh = Nav_Open( data, size, checksum, 4 );
+	assert(world && fresh);
 	std::free( data ); // The owner must retain its own mutable Detour storage.
 	const uint32_t startupAllocations = allocations;
 	static_assert( std::is_trivially_copyable_v<navPath_t> );
@@ -82,6 +83,18 @@ int main( int argc, char **argv ) {
 		assert(covers.points[i].identity == repeated.points[i].identity);
 		assert(Distance(covers.points[i].position,repeated.points[i].position) == 0);
 	}
+	// Gameplay steering must depend only on authoritative positions/velocities,
+	// so checkpoint reload need not serialize a third-party asynchronous path queue.
+	const float position[3] = { -80, -180, 2 }, velocity[3] = { 160, 0, 0 };
+	const navObstacle_t obstacle = { { 0, -180, 2 }, { -160, 0, 0 }, 15 };
+	float avoided[3], again[3];
+	assert(Nav_Avoid(world,position,velocity,velocity,160,&obstacle,1,avoided));
+	assert(std::fabs(avoided[1]) > 1 || avoided[0] < 159);
+	assert(Nav_Avoid(fresh,position,velocity,velocity,160,&obstacle,1,again));
+	assert(!std::memcmp(avoided,again,sizeof(again)));
+	assert(Nav_Avoid(world,position,velocity,velocity,160,nullptr,0,again));
+	assert(Nav_Avoid(world,position,velocity,velocity,160,&obstacle,1,again));
+	assert(!std::memcmp(avoided,again,sizeof(again)));
 	// Two opposing agents in open floor must reach their goals without passing
 	// through each other. Positions are steering results, not Pmove authority.
 	const float left[3] = { -180, -180, 0 }, right[3] = { 180, -180, 0 };
@@ -101,6 +114,7 @@ int main( int argc, char **argv ) {
 	assert(!Nav_Agent(world, a, &one));
 	assert(Nav_AddAgent(world, left, 160) == a);
 	assert(allocations == startupAllocations);
+	Nav_Close( fresh );
 	Nav_Close( world );
 	assert(liveBlocks == 0);
 	std::puts( "PASS: collision navmesh routes, authored off-mesh links, crowd avoidance and allocation-free ticks" );

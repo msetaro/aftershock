@@ -52,6 +52,20 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 checkpoint-compatible steering decision and test
+
+Gameplay will use Detour local obstacle avoidance from current authoritative
+positions/velocities, alongside bounded explicit paths and POD behavior/perception
+state. Do not introduce hidden asynchronous crowd/path-queue state into full-game
+checkpoint continuation. The existing persistent crowd API remains available and
+tested; gameplay movement still goes through native usercmd/Pmove.
+
+The new probe requires avoidance of an oncoming actor, bit-identical output in a
+fresh nav world, and identical output after an unrelated intervening query. Both
+worlds initialize before the allocation counter; no tick allocation is allowed.
+Compilation fails at missing navObstacle_t/Nav_Avoid
+(navigation-avoid-before.log). Commit before the direct avoidance implementation.
+
 ## #21 navmesh cover candidates and real-map offline cook
 
 After 209a8623's failing query contract, nearby ground polygons expose inward
