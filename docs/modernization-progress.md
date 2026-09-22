@@ -78,6 +78,14 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 HTTPS process contract, test first
+
+Extend the real-database gate to start the actual service entry point with private
+TLS material, a trusted local HTTPS identity endpoint and an explicit weapon catalog.
+Require database-backed health, a real HTTPS login, bounded service metrics without
+tokens, and graceful shutdown. The test fails on missing serveBackend before wiring
+(backend-https-before.log). Live Steam application/account setup remains deferred.
+
 ## #29 persistent authentication and profiles
 
 The bounded HTTP handler verifies identity using Steam's documented publisher-side

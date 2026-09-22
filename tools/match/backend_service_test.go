@@ -5,14 +5,20 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 // The driver supplies a private, disposable real PostgreSQL instance. No mock SQL.
@@ -145,4 +151,91 @@ func TestBackendAuthProfile(t *testing.T) {
 		t.Fatal(err)
 	}
 	call("GET", "/v1/profile", other, "", 401)
+}
+
+func TestBackendHTTPS(t *testing.T) {
+	steam := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("ticket") != "dd01" || r.URL.Query().Get("identity") != "aftershock" {
+			http.Error(w, "rejected", 403)
+			return
+		}
+		fmt.Fprint(w, `{"response":{"params":{"result":"OK","steamid":"789"}}}`)
+	}))
+	defer steam.Close()
+	root := t.TempDir()
+	cert := filepath.Join(root, "cert.pem")
+	key := filepath.Join(root, "key.pem")
+	private, err := x509.MarshalPKCS8PrivateKey(steam.TLS.Certificates[0].PrivateKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cert, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: steam.Certificate().Raw}), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(key, pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: private}), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "steam-key"), []byte("private-test-key"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeJSON(filepath.Join(root, "catalog.json"), []string{"weapons/range_rifle.asweapon"}); err != nil {
+		t.Fatal(err)
+	}
+	reservation, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	address := reservation.Addr().String()
+	reservation.Close()
+	for name, value := range map[string]string{
+		"BACKEND_DATABASE": os.Getenv("BACKEND_TEST_DATABASE"), "BACKEND_LISTEN": address,
+		"BACKEND_TLS_CERT": cert, "BACKEND_TLS_KEY": key, "BACKEND_CA_FILE": cert,
+		"BACKEND_STEAM_URL": steam.URL, "BACKEND_STEAM_KEY_FILE": filepath.Join(root, "steam-key"),
+		"BACKEND_APP_ID": "12345", "BACKEND_CATALOG": filepath.Join(root, "catalog.json"),
+	} {
+		t.Setenv(name, value)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() { done <- serveBackend(ctx) }()
+	defer func() {
+		cancel()
+		if err := <-done; err != nil {
+			t.Error(err)
+		}
+	}()
+	client := steam.Client()
+	client.Timeout = 3 * time.Second
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		response, err := client.Get("https://" + address + "/healthz")
+		if err == nil {
+			response.Body.Close()
+			if response.StatusCode == 200 {
+				break
+			}
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("HTTPS service never became ready")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	response, err := client.Post("https://"+address+"/v1/login", "application/json", strings.NewReader(`{"ticket":"dd01"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	var login map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&login); err != nil || response.StatusCode != 200 || login["player_id"] != "789" {
+		t.Fatal("HTTPS login failed", err, response.StatusCode)
+	}
+	metrics, err := client.Get("https://" + address + "/metrics")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer metrics.Body.Close()
+	data, err := io.ReadAll(metrics.Body)
+	if err != nil || !bytes.Contains(data, []byte(`aftershock_backend_requests_total{service="auth"} 1`)) || bytes.Contains(data, []byte(login["token"].(string))) {
+		t.Fatal("missing bounded service metrics", err)
+	}
 }
