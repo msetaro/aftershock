@@ -56,6 +56,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 interrupted-load lifecycle test first
+
+The runtime now interrupts a pending local reconnect with sv_killserver, requires
+shutdown, and loads again; it also requires a map command to replace a pending
+load normally. The first case fails before correction: the new checkpoint early
+return in SV_Frame runs before the existing shutdown request
+(state-interrupt-before.log). Move only that new load gate behind shutdown priority
+and clear pending archive ownership before a normal explicit map change. This is
+a lifecycle gap in new #19 code, not a normal engine bug fix.
+
 ## #19 full-game N-to-N+1 migration passes
 
 The v2 checkpoint header removes redundant pure mode (owned by server cvars) and

@@ -113,6 +113,24 @@ with tempfile.TemporaryDirectory(prefix='aftershock-checkpoint-') as temporary:
             engine.step(25)
             assert_entities(engine,continued,'same-process-continuation')
             print('PASS: full paused world restore, live bot continuation and preserved previous revision')
+            engine.request('exec',command='loadgame saves/acceptance.000.asstate')
+            engine.step(1)
+            engine.request('cvar.set',name='sv_killserver',value='1')
+            engine.step(2)
+            assert engine.request('cvar.get',name='sv_running')['value']=='0', 'server shutdown must interrupt a pending checkpoint handshake'
+            load(engine,'saves/acceptance.000.asstate')
+            assert_entities(engine,before,'restore-after-interrupted-load')
+            print('PASS: interrupted reconnect releases checkpoint state and permits another load')
+            engine.request('exec',command='loadgame saves/acceptance.000.asstate')
+            engine.step(1)
+            engine.request('map',name=content_maps(args.content)[0])
+            engine.step(50)
+            assert engine.request('cvar.get',name='sv_running')['value']=='1'
+            assert engine.request('cvar.get',name='cl_paused')['value']=='0'
+            assert any(row['entity']==0 for row in entities(engine)), 'map command must replace a pending checkpoint normally'
+            print('PASS: map change replaces an unfinished checkpoint handshake')
+
+
         finally:
             shutil.copyfile(engine.log_path,args.output/'checkpoint.log')
     with Engine(args.binary,args.data,args.content,home=home) as engine:
