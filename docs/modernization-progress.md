@@ -63,6 +63,10 @@ The probe preserves common bits through reordering/removal/addition and v2 reloa
 Storage is caller-owned and core state is trivial; no IO or allocation occurs.
 Production CMake and affected-test selection include the module. This is only the
 common format, not checkpoint/settings/editor/replication integration or acceptance.
+Focused tidy and MinGW/aarch64 compilation also pass. Source review finds 64-bit
+generation identities in existing rewind state, so the next probe requires their
+exact preservation; it fails on the missing UInt64 field kind
+(state-identity-before.log).
 
 ## #19 initial migration test
 
