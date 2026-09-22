@@ -27,8 +27,8 @@ chat shutdown fix is now accepted in PR174, merge
 required checks passed exact head ec396fb4: build 35708802501 and regression
 35708802542. Fresh main/base, clean head, self-review and immutable known-good tag
 were checked before ready/merge. Merge tree equals the tested tree
-596db4b2d7eed779f988a59752b69522cc0e1f1b. Merged-tree build 35715942160 passed; regression 35715942143 is running.
-Track the remaining integration gate to completion.
+596db4b2d7eed779f988a59752b69522cc0e1f1b. Merged-tree build 35715942160 passed; regression 35715942143 failed on the existing netcode runtime timeout.
+Inspect retained diagnostics and resolve/rerun that gate before closing #31.
 
 #19 remains local in /home/matt/.cache/aftershock-modernization/state-tree,
 issue/19-state-serialization. Main including PR174 is merged forward at this
@@ -43,8 +43,11 @@ save/load passes exact entity restoration and identical player/bot continuation 
 both the same process and a fresh process seeded differently
 (state-client-clock-runtime.log). Quake 3 same/fresh-process continuation also passes (state-client-clock-q3.log). The frozen full-game v1 fixture now migrates into v2 and continues identically.
 Final runtime CI and command documentation are registered. Both full compiler
-owner suites, interrupted-load lifecycle and full tidy pass. Finish lifetime,
-hosted checks before merge. Quake 3 fixed replay and both bot-smoke hashes
+owner suites, interrupted-load lifecycle and full tidy pass. Lifetime passed all 1,344 compilation commands/150 paths. Draft PR175
+head cb46c7dd is running build 35717968746 and regression 35717968784;
+MSVC reports C4459 for three new level parameters shadowing the global. Rename
+those parameters, rerun local owner checks, then push and require all 26 checks.
+Finish hosted checks before merge. Quake 3 fixed replay and both bot-smoke hashes
 remain identical; final Quake 3 checkpoint and OpenArena profile migration pass.
 No partial checkpoint acceptance.
 
@@ -58,6 +61,19 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 hosted portability correction
+
+Draft PR175 targets main at cb46c7dd. Hosted MSVC x64/ARM64 Debug/Release
+reject three new level-state helper parameters named level because they shadow
+the native game's global (C4459). Rename only those parameters to savedLevel;
+the reported compiler failure is the failing check. No layout/data behavior or
+fixture changes. Local lifetime analysis passed all 1,344 compilation commands,
+150 paths, shipping/development and static/module controls.
+
+PR174's merged-tree runtime reached the existing delayed hitscan test, then timed
+out waiting for netcode_done (35715942143). Inspect its runtime diagnostics before
+rerunning; the exact-head run passed. Keep #31 open until integration is green.
 
 ## #19 final lifecycle and CI registration
 

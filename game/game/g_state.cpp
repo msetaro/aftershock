@@ -473,40 +473,40 @@ static constexpr stateSchema_t levelStringsSchema = { "game.levelStrings", 1, 1,
 size_t G_LevelStringBytes( const gLevelStrings_t &strings ) {
 	return strings.present > 1 ? SIZE_MAX : StringBytes( strings.changemap, strings.present != 0 );
 }
-bool G_RestoreLevelStrings( const gLevelStrings_t &strings, char *storage, size_t capacity, level_locals_t *level ) {
+bool G_RestoreLevelStrings( const gLevelStrings_t &strings, char *storage, size_t capacity, level_locals_t *savedLevel ) {
 	const size_t bytes = G_LevelStringBytes( strings );
-	if ( !level || bytes == SIZE_MAX || bytes > capacity || ( bytes && !storage ) )
+	if ( !savedLevel || bytes == SIZE_MAX || bytes > capacity || ( bytes && !storage ) )
 		return false;
-	level->changemap = RestoreString( strings.changemap, strings.present != 0, &storage );
+	savedLevel->changemap = RestoreString( strings.changemap, strings.present != 0, &storage );
 	return true;
 }
-bool G_WriteLevelState( stateWriter_t *writer, const level_locals_t &level, const gStatePools_t &pools ) {
+bool G_WriteLevelState( stateWriter_t *writer, const level_locals_t &savedLevel, const gStatePools_t &pools ) {
 	if ( !writer )
 		return false;
-	if ( !G_StatePoolsValid( pools ) || level.spawning || level.gentities != pools.entities || level.clients != pools.clients ||
-		 ( level.gentitySize && level.gentitySize != sizeof( gentity_t ) ) || level.num_entities < 0 || level.num_entities > pools.entityCount ||
-		 level.maxclients < 0 || level.maxclients > pools.clientCount ) {
+	if ( !G_StatePoolsValid( pools ) || savedLevel.spawning || savedLevel.gentities != pools.entities || savedLevel.clients != pools.clients ||
+		 ( savedLevel.gentitySize && savedLevel.gentitySize != sizeof( gentity_t ) ) || savedLevel.num_entities < 0 || savedLevel.num_entities > pools.entityCount ||
+		 savedLevel.maxclients < 0 || savedLevel.maxclients > pools.clientCount ) {
 		writer->failed = true;
 		return false;
 	}
 	gLevelRefs_t refs{};
 	gLevelStrings_t strings{};
-	refs.locationHead = Slot( level.locationHead, pools.entities, pools.entityCount );
-	if ( refs.locationHead == -2 || !CaptureString( level.changemap, strings.changemap, 0, &strings.present ) ) {
+	refs.locationHead = Slot( savedLevel.locationHead, pools.entities, pools.entityCount );
+	if ( refs.locationHead == -2 || !CaptureString( savedLevel.changemap, strings.changemap, 0, &strings.present ) ) {
 		writer->failed = true;
 		return false;
 	}
 	for ( int i = 0; i < BODY_QUEUE_SIZE; ++i ) {
-		refs.bodyQue[i] = Slot( level.bodyQue[i], pools.entities, pools.entityCount );
+		refs.bodyQue[i] = Slot( savedLevel.bodyQue[i], pools.entities, pools.entityCount );
 		if ( refs.bodyQue[i] == -2 ) {
 			writer->failed = true;
 			return false;
 		}
 	}
-	return State_Append( writer, gameLevelSchema, 0, &level ) && State_Append( writer, levelRefsSchema, 0, &refs ) && State_Append( writer, levelStringsSchema, 0, &strings );
+	return State_Append( writer, gameLevelSchema, 0, &savedLevel ) && State_Append( writer, levelRefsSchema, 0, &refs ) && State_Append( writer, levelStringsSchema, 0, &strings );
 }
-bool G_ReadLevelState( const stateReader_t &reader, const gStatePools_t &pools, level_locals_t *level, gLevelStrings_t *strings ) {
-	if ( !level || !strings || !G_StatePoolsValid( pools ) )
+bool G_ReadLevelState( const stateReader_t &reader, const gStatePools_t &pools, level_locals_t *savedLevel, gLevelStrings_t *strings ) {
+	if ( !savedLevel || !strings || !G_StatePoolsValid( pools ) )
 		return false;
 	level_locals_t restored{};
 	gLevelRefs_t refs;
@@ -526,10 +526,10 @@ bool G_ReadLevelState( const stateReader_t &reader, const gStatePools_t &pools, 
 	restored.locationHead = refs.locationHead == -1 ? nullptr : &pools.entities[refs.locationHead];
 	restored.clients = pools.clients;
 	restored.gentities = pools.entities;
-	restored.gentitySize = level->gentitySize; // Unused by native gameplay; map setup leaves zero.
-	restored.logFile = level->logFile;
+	restored.gentitySize = savedLevel->gentitySize; // Unused by native gameplay; map setup leaves zero.
+	restored.logFile = savedLevel->logFile;
 	// Spawn parsing is frame-local scratch; file handles and pool addresses come from map setup.
-	*level = restored;
+	*savedLevel = restored;
 	*strings = text;
 	return true;
 }
