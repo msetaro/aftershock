@@ -1,6 +1,10 @@
 # Explicit production source lists migrated from the verified Make build.
 
 set(COMMON_SOURCES
+  engine/navigation/navigation.cpp
+  engine/navigation/navigation_assets.cpp
+  engine/navigation/behavior.cpp
+  engine/navigation/perception.cpp
   engine/entities/entities.cpp
   engine/weapons/weapons_assets.cpp
   engine/weapons/weapons.cpp
@@ -236,6 +240,7 @@ set(VULKAN_SOURCES
 )
 
 set(NATIVE_GAME_SOURCES
+  game/game/g_navigation.cpp
   game/game/g_state.cpp
   game/game/g_callbacks.cpp
   game/game/g_rewind.cpp
@@ -358,4 +363,37 @@ set(NATIVE_UI_SOURCES
   game/bg/q_math.cpp
   game/bg/q_shared.cpp
   game/bg/bg_lib.cpp
+)
+
+set(RECAST_SOURCES
+  third_party/recast/Recast/Source/Recast.cpp
+  third_party/recast/Recast/Source/RecastAlloc.cpp
+  third_party/recast/Recast/Source/RecastArea.cpp
+  third_party/recast/Recast/Source/RecastAssert.cpp
+  third_party/recast/Recast/Source/RecastContour.cpp
+  third_party/recast/Recast/Source/RecastFilter.cpp
+  third_party/recast/Recast/Source/RecastLayers.cpp
+  third_party/recast/Recast/Source/RecastMesh.cpp
+  third_party/recast/Recast/Source/RecastMeshDetail.cpp
+  third_party/recast/Recast/Source/RecastRasterization.cpp
+  third_party/recast/Recast/Source/RecastRegion.cpp
+)
+
+set(DETOUR_SOURCES
+  third_party/recast/Detour/Source/DetourAlloc.cpp
+  third_party/recast/Detour/Source/DetourAssert.cpp
+  third_party/recast/Detour/Source/DetourCommon.cpp
+  third_party/recast/Detour/Source/DetourNavMesh.cpp
+  third_party/recast/Detour/Source/DetourNavMeshBuilder.cpp
+  third_party/recast/Detour/Source/DetourNavMeshQuery.cpp
+  third_party/recast/Detour/Source/DetourNode.cpp
+)
+
+set(DETOUR_CROWD_SOURCES
+  third_party/recast/DetourCrowd/Source/DetourCrowd.cpp
+  third_party/recast/DetourCrowd/Source/DetourLocalBoundary.cpp
+  third_party/recast/DetourCrowd/Source/DetourObstacleAvoidance.cpp
+  third_party/recast/DetourCrowd/Source/DetourPathCorridor.cpp
+  third_party/recast/DetourCrowd/Source/DetourPathQueue.cpp
+  third_party/recast/DetourCrowd/Source/DetourProximityGrid.cpp
 )

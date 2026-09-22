@@ -189,7 +189,7 @@ void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, i
 			voice.occlusionSmooth += ( voice.occlusion - voice.occlusionSmooth ) / ( rate * 0.03f );
 			const float alpha = 1.0f - voice.occlusionSmooth * ( 1.0f - closedAlpha );
 			voice.filtered += alpha * ( sample - voice.filtered );
-			sample = voice.filtered * ( 1.0f - 0.65f * voice.occlusionSmooth );
+			sample = voice.filtered * S_OcclusionGain( voice.occlusionSmooth );
 			float ears[2];
 			if ( voice.binaural ) {
 				S_HrtfSample( voice.hrtf, &voice.history, sample, ears );

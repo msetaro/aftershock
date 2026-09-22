@@ -99,6 +99,15 @@ int main() {
 	cm.cmodels = models;
 	assert(CM_PhysicsTriangles(Triangle,nullptr));
 	assert(triangles == 14 && std::fabs(area-28) < .001 && blocks == 0);
+	brushes[0].contents = CONTENTS_PLAYERCLIP;
+	triangles = 0;
+	area = 0;
+	assert(CM_PhysicsTriangles(Triangle,nullptr));
+	assert(triangles == 2 && std::fabs(area-4) < .001 && blocks == 0);
+	triangles = 0;
+	area = 0;
+	assert(CM_PhysicsTriangles(Triangle,nullptr,CONTENTS_SOLID | CONTENTS_PLAYERCLIP));
+	assert(triangles == 14 && std::fabs(area-28) < .001 && blocks == 0);
 	reject = true;
 	triangles = 0;
 	assert(!CM_PhysicsTriangles(Triangle,nullptr));

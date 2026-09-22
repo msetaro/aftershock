@@ -1125,7 +1125,44 @@ static void Agent_Actor( agentReply_t &reply, int owner ) {
 		else
 			Agent_AnimationState( reply, animation.state, animation.name );
 	}
-	reply.Text( "]}}" );
+	reply.Text( "],\"ai\":" );
+	devAIState_t ai;
+	if ( !game || !game->ReadAI || !game->ReadAI( owner, &ai ) ) {
+		reply.Text( "null" );
+	} else {
+		reply.Text( "{\"state\":" );
+		reply.String( ai.name );
+		reply.Text( ",\"action\":" );
+		reply.Number( ai.action );
+		reply.Text( ",\"target\":" );
+		reply.Number( ai.observation.target );
+		reply.Text( ",\"visible\":" );
+		reply.Text( ai.observation.visible ? "true" : "false" );
+		reply.Text( ",\"heard\":" );
+		reply.Text( ai.observation.heard ? "true" : "false" );
+		reply.Text( ",\"gain\":" );
+		reply.Number( ai.observation.gain );
+		reply.Text( ",\"covered\":" );
+		reply.Text( ai.covered ? "true" : "false" );
+		reply.Text( ",\"elapsed\":" );
+		reply.Number( ai.behavior.elapsed );
+		reply.Text( ",\"transitions\":" );
+		reply.Number( ai.behavior.transitions );
+		reply.Text( ",\"position\":" );
+		reply.Vector( ai.position );
+		reply.Text( ",\"goal\":" );
+		reply.Vector( ai.goal );
+		reply.Text( ",\"pathCount\":" );
+		reply.Number( ai.path.count );
+		reply.Text( ",\"point\":" );
+		reply.Number( ai.cursor.point );
+		reply.Text( ",\"phase\":" );
+		reply.Number( ai.cursor.phase );
+		reply.Text( ",\"complete\":" );
+		reply.Text( ai.path.complete ? "true" : "false" );
+		reply.Text( "}" );
+	}
+	reply.Text( "}}" );
 }
 
 static bool Agent_Entity( const char *op, const char *request, const char *end, agentReply_t &reply ) {

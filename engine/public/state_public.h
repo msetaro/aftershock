@@ -44,5 +44,7 @@ size_t State_Finish( stateWriter_t *writer );
 // A reader is published only after the complete archive validates. Its buffer
 // must remain alive and unchanged until the last Find call.
 bool State_Open( const void *data, size_t size, stateReader_t *reader );
-bool State_Find( const stateReader_t &reader, const stateSchema_t &schema, uint32_t slot, void *object, uint32_t *sourceVersion );
+// Optional presence reports an existing named slot even if its schema fails.
+// Migrations may default absent owners, but must reject present invalid records.
+bool State_Find( const stateReader_t &reader, const stateSchema_t &schema, uint32_t slot, void *object, uint32_t *sourceVersion, bool *present = nullptr );
 #endif
