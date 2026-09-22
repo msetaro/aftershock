@@ -1044,7 +1044,9 @@ merged publication are pending. #158 stays open until that publication succeeds.
 
 ## #31: bot chat shutdown skips the final handle
 
-Fixed on issue/31-bot-chat-shutdown; hosted acceptance pending. Discovered during #19 checkpoint reconstruction. BotAllocChatState and
+Accepted in PR #174, merged as 5caa2c1c. Exact-head build 35708802501/regression
+35708802542 and merged build 35715942160/regression 35715942143 (runtime attempt 2)
+pass all 26 required jobs. Discovered during #19 checkpoint reconstruction. BotAllocChatState and
 BotFreeChatState use 1..MAX_CLIENTS inclusive, but BotShutdownChatAI scans
 0..MAX_CLIENTS-1. A fully allocated pool retains handle 64 after shutdown, so
 next setup cannot allocate the complete pool and the retained actor can refer

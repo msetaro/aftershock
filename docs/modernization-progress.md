@@ -21,8 +21,8 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Resume the active predecessor gates before any later issue can merge:
-- #31 PR174 merged main 5caa2c1c. Merged build 35715942160 passed; regression
-  35715942143 attempt 2 is in its final renderer checks. Close #31 only after green.
+- #31 PR174 is fully accepted on main 5caa2c1c. Merged build 35715942160 and
+  regression 35715942143 attempt 2 pass all 26 jobs; #31 is closed again.
 - #19 draft PR175 head 312048f0: all 16 builds and nine active regression jobs
   passed; regression 35720181577 runtime is still in level authoring. Require all
   26 checks, fresh main/base and self-review before ready/merge, then merged gates.
@@ -46,6 +46,15 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
+
+## PR174 merged-tree acceptance complete
+
+Fresh job evidence confirms main 5caa2c1c passes all 16 compiler builds in
+35715942160 and all ten active regressions in 35715942143 attempt 2. #31 is closed
+again after its acceptance comment; docs/bugs.md records PR174 and both exact-head
+and integration runs. The runtime-only rerun preserved all tests after the first
+attempt's advancing-gameplay timeout. No suppression or accepted golden changes.
+PR175 is still running; do not substitute predecessor gates for its own runtime.
 
 ## #21 collision export mask implementation
 
