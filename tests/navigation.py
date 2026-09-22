@@ -97,3 +97,7 @@ behavior['states'][2]['transitions'][0]['value'] = 0.3
 assert cook(project, cooked)['built'] == ['behaviors/guard']
 assert hashlib.sha256(asset.read_bytes()).hexdigest() != original
 print('PASS: authored hierarchical behavior and isolated incremental source edit')
+behavior_probe = args.output/'behavior-probe'
+run([*shlex.split(args.cxx), *flags, '-Wall', '-Wextra', '-Werror',
+     'tests/probes/behavior.cpp', 'engine/navigation/behavior.cpp', sha, '-o', behavior_probe])
+run([behavior_probe, asset])

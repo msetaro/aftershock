@@ -50,6 +50,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 native behavior contract, test first
+
+The cooked hierarchy now has a native probe requiring leaf-before-parent
+transition priority, inherited loss-of-sight behavior, minimum dwell times,
+exact timeout boundaries and identical continuation from a copied POD state.
+The initial compile fails on missing behavior_public.h/behavior.cpp after all
+existing cook/navmesh/crowd assertions pass (navigation-behavior-native-before.log).
+Commit those assertions before the runtime state-machine implementation.
+
 ## #21 behavior cooker
 
 After 078aebcd's missing-kind failure, the behavior cooker emits the existing
