@@ -294,3 +294,26 @@ int BotAI_GetClientState( int clientNum, playerState_t *state );
 int BotAI_GetEntityState( int entityNum, entityState_t *state );
 int BotAI_GetSnapshotEntity( int clientNum, int sequence, entityState_t *state );
 int BotTeamLeader( bot_state_t *bs );
+
+#ifdef __cplusplus
+// Goal slots: waypoints 0..127, map/team goals 128..133, actor goals from 1024.
+inline constexpr stateField_t botGoalFields[] = {
+	{ "origin", offsetof( bot_goal_t, origin ), 3, stateType_t::Float32 },
+	{ "areanum", offsetof( bot_goal_t, areanum ), 1, stateType_t::Int32 },
+	{ "mins", offsetof( bot_goal_t, mins ), 3, stateType_t::Float32 },
+	{ "maxs", offsetof( bot_goal_t, maxs ), 3, stateType_t::Float32 },
+	{ "entitynum", offsetof( bot_goal_t, entitynum ), 1, stateType_t::Int32 },
+	{ "number", offsetof( bot_goal_t, number ), 1, stateType_t::Int32 },
+	{ "flags", offsetof( bot_goal_t, flags ), 1, stateType_t::Int32 },
+	{ "iteminfo", offsetof( bot_goal_t, iteminfo ), 1, stateType_t::Int32 }
+};
+inline constexpr stateSchema_t botGoalSchema = { "game.botGoal", 1, 1, sizeof( bot_goal_t ), botGoalFields, 8 };
+inline bool G_ValidBotGoal( const bot_goal_t &goal ) {
+	if ( goal.areanum < 0 || goal.entitynum < -1 || goal.entitynum >= MAX_GENTITIES )
+		return false;
+	for ( int i = 0; i < 3; ++i )
+		if ( !std::isfinite( goal.origin[i] ) || !std::isfinite( goal.mins[i] ) || !std::isfinite( goal.maxs[i] ) || goal.mins[i] > goal.maxs[i] )
+			return false;
+	return true;
+}
+#endif

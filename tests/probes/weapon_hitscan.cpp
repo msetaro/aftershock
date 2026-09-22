@@ -3,6 +3,7 @@
 #include "../../engine/qcommon/net_history_public.h"
 #include "../../engine/public/g_native_public.h"
 #include "../../engine/public/dev_public.h"
+#include <cmath>
 #define COM_TRAP_GETVALUE 700
 #include "../../game/game/g_data_weapons.cpp"
 #include <assert.h>

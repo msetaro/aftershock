@@ -1593,3 +1593,23 @@ void SP_func_pendulum( gentity_t *ent ) {
 	ent->s.apos.trType = TR_SINE;
 	ent->s.apos.trDelta[2] = speed;
 }
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_mover[] = {
+	{ .name = "Blocked_Door", .blocked = Blocked_Door },
+	{ .name = "Reached_BinaryMover", .reached = Reached_BinaryMover },
+	{ .name = "Reached_Train", .reached = Reached_Train },
+	{ .name = "ReturnToPos1", .think = ReturnToPos1 },
+	{ .name = "Think_BeginMoving", .think = Think_BeginMoving },
+	{ .name = "Think_MatchTeam", .think = Think_MatchTeam },
+	{ .name = "Think_SetupTrainTargets", .think = Think_SetupTrainTargets },
+	{ .name = "Think_SpawnNewDoorTrigger", .think = Think_SpawnNewDoorTrigger },
+	{ .name = "Touch_Button", .touch = Touch_Button },
+	{ .name = "Touch_DoorTrigger", .touch = Touch_DoorTrigger },
+	{ .name = "Touch_Plat", .touch = Touch_Plat },
+	{ .name = "Touch_PlatCenterTrigger", .touch = Touch_PlatCenterTrigger },
+	{ .name = "Use_BinaryMover", .use = Use_BinaryMover },
+	{ nullptr }
+};
+#endif

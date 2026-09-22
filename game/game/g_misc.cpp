@@ -475,3 +475,22 @@ void DropPortalSource( gentity_t *player ) {
 	}
 }
 #endif
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_misc[] = {
+	{ .name = "InitShooter_Finish", .think = InitShooter_Finish },
+#ifdef MISSIONPACK
+	{ .name = "PortalDie", .die = PortalDie },
+#endif
+#ifdef MISSIONPACK
+	{ .name = "PortalEnable", .think = PortalEnable },
+#endif
+#ifdef MISSIONPACK
+	{ .name = "PortalTouch", .touch = PortalTouch },
+#endif
+	{ .name = "Use_Shooter", .use = Use_Shooter },
+	{ .name = "locateCamera", .think = locateCamera },
+	{ nullptr }
+};
+#endif

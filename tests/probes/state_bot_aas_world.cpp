@@ -1,0 +1,68 @@
+#include "../../engine/botlib/be_aas_main.cpp"
+#include <assert.h>
+int main() {
+	aasworld.loaded = aasworld.initialized = 1;
+	aasworld.time = 62.25f;
+	aasworld.numframes = 401;
+	aasworld.maxentities = 1024;
+	aasworld.maxclients = 4;
+	aasworld.numareas = aasworld.numareasettings = 2;
+	aasworld.numreachabilityareas = 4;
+	aasworld.frameroutingupdates = 3;
+	strcpy( aasworld.filename, "maps/checkpoint.aas" );
+	strcpy( aasworld.mapname, "checkpoint" );
+	aas_area_t areas[2]{};
+	aasworld.areas = areas;
+	areas[1].center[0] = 32;
+	aas_areasettings_t settings[2]{};
+	aasworld.areasettings = settings;
+	settings[1].areaflags = AREA_DISABLED | AREA_GROUNDED;
+	aas_reachability_t reach{};
+	aasworld.reachability = &reach;
+	aasworld.reachabilitysize = 1;
+	reach.traveltime = 37;
+	static unsigned char bytes[16384];
+	stateWriter_t writer{ bytes, sizeof( bytes ) };
+	assert(AAS_WriteWorldState(&writer));
+	stateReader_t reader;
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	aas_area_t loaded[2];
+	memcpy( loaded, areas, sizeof( loaded ) );
+	aasworld.areas = loaded;
+	aas_areasettings_t loadedSettings[2];
+	memcpy( loadedSettings, settings, sizeof( loadedSettings ) );
+	aasworld.areasettings = loadedSettings;
+	aas_reachability_t loadedReach = reach;
+	aasworld.reachability = &loadedReach;
+	// Tail padding is not geometry content and may differ in a new allocation.
+	auto *padding = reinterpret_cast<unsigned char *>( &loadedReach ) + 42;
+	padding[0] = 0xA5;
+	padding[1] = 0x5A;
+	loadedSettings[1].areaflags &= ~AREA_DISABLED;
+	aasworld.time = 0;
+	aasworld.numframes = 0;
+	assert(AAS_ReadWorldState(reader,false) && aasworld.time==0);
+	assert(AAS_ReadWorldState(reader,true) && AAS_Time()==62.25f && aasworld.numframes==401 && aasworld.frameroutingupdates==3);
+	assert(loadedSettings[1].areaflags==settings[1].areaflags);
+	aasworld.time = 77;
+	loadedSettings[1].areaflags ^= AREA_GROUNDED;
+	assert(!AAS_ReadWorldState(reader,true) && aasworld.time==77);
+	loadedSettings[1].areaflags ^= AREA_GROUNDED;
+	loadedReach.traveltime = 38;
+	assert(!AAS_ReadWorldState(reader,true) && aasworld.time==77);
+	loadedReach.traveltime = 37;
+	loaded[1].center[0] = 33;
+	assert(!AAS_ReadWorldState(reader,true) && aasworld.time==77);
+	loaded[1].center[0] = 32;
+	aasWorldSave_t saved;
+	uint32_t version;
+	assert(State_Find(reader,aasWorldSchema,0,&saved,&version));
+	writer = { bytes, sizeof( bytes ) };
+	assert(State_Append(&writer,aasWorldSchema,0,&saved));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	assert(!AAS_ReadWorldState(reader,true) && aasworld.time==77);
+	aasworld.initialized = 0;
+	writer = { bytes, sizeof( bytes ) };
+	assert(!AAS_WriteWorldState(&writer) && !State_Finish(&writer));
+	puts( "PASS: AAS clocks and disabled areas restore only against matching geometry, excluding reachability padding" );
+}

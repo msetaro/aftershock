@@ -1004,3 +1004,7 @@ const animBox_t *G_AnimationHitBoxes( int owner, uint32_t *count );
 #ifdef AFTERSHOCK_DEVTOOLS
 void G_RewindTargetCommand( void );
 #endif
+
+#ifdef __cplusplus
+#include "g_state.h"
+#endif

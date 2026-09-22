@@ -287,3 +287,173 @@ const animBox_t *G_AnimationHitBoxes( int owner, uint32_t *count ) {
 	*count = actor.boxCount;
 	return actor.boxes;
 }
+
+struct animationRigSave_t {
+	uint32_t enabled;
+	uint8_t hashes[2][32];
+	float footHeight[2][2], rootYaw[2];
+};
+struct animationActorSave_t {
+	uint32_t active, manual[2], clock, boxCount;
+	int32_t spawn, entity[2];
+	float facing, turnSign, parameters[2][ANIM_MAX_PARAMETERS];
+	animBox_t boxes[ANIM_MAX_BOXES];
+	animState_t state[2];
+};
+static constexpr stateField_t animationRigFields[] = {
+	{ "enabled", offsetof( animationRigSave_t, enabled ), 1, stateType_t::UInt32 },
+	{ "hashes", offsetof( animationRigSave_t, hashes ), 64, stateType_t::Bytes },
+	{ "footHeight", offsetof( animationRigSave_t, footHeight ), 4, stateType_t::Float32 },
+	{ "rootYaw", offsetof( animationRigSave_t, rootYaw ), 2, stateType_t::Float32 },
+};
+static constexpr stateSchema_t animationRigSchema = { "game.animationRigs", 1, 1, sizeof( animationRigSave_t ), animationRigFields, 4 };
+static constexpr stateField_t animationActorFields[] = {
+	{ "active", offsetof( animationActorSave_t, active ), 1, stateType_t::UInt32 },
+	{ "manual", offsetof( animationActorSave_t, manual ), 2, stateType_t::UInt32 },
+	{ "clock", offsetof( animationActorSave_t, clock ), 1, stateType_t::UInt32 },
+	{ "boxCount", offsetof( animationActorSave_t, boxCount ), 1, stateType_t::UInt32 },
+	{ "spawn", offsetof( animationActorSave_t, spawn ), 1, stateType_t::Int32 },
+	{ "entity", offsetof( animationActorSave_t, entity ), 2, stateType_t::Int32 },
+	{ "facing", offsetof( animationActorSave_t, facing ), 1, stateType_t::Float32 },
+	{ "turnSign", offsetof( animationActorSave_t, turnSign ), 1, stateType_t::Float32 },
+	{ "parameters", offsetof( animationActorSave_t, parameters ), 2 * ANIM_MAX_PARAMETERS, stateType_t::Float32 },
+	{ "boxes", offsetof( animationActorSave_t, boxes ), 6 * ANIM_MAX_BOXES, stateType_t::Float32 },
+};
+static constexpr stateSchema_t animationActorSchema = { "game.animationActor", 1, 1, sizeof( animationActorSave_t ), animationActorFields, 10 };
+static bool ValidAnimationRigs( const animationRigSave_t &rigs ) {
+	if ( rigs.enabled != uint32_t( animationEnabled ) )
+		return false;
+	for ( int rig = 0; rig < 2; ++rig ) {
+		if ( memcmp( rigs.hashes[rig], animationRigs[rig].asset.hash, 32 ) || !std::isfinite( rigs.rootYaw[rig] ) )
+			return false;
+		for ( float value : rigs.footHeight[rig] )
+			if ( !std::isfinite( value ) )
+				return false;
+	}
+	return true;
+}
+static bool ValidAnimationActor( const animationActorSave_t &saved, const gStatePools_t &pools ) {
+	if ( saved.active > 1 || ( saved.active && !animationEnabled ) || saved.boxCount > ANIM_MAX_BOXES || !std::isfinite( saved.facing ) || !std::isfinite( saved.turnSign ) )
+		return false;
+	for ( int rig = 0; rig < 2; ++rig ) {
+		if ( saved.entity[rig] < -1 || saved.entity[rig] >= pools.entityCount || saved.state[rig].initialized > 1 )
+			return false;
+		for ( float value : saved.parameters[rig] )
+			if ( !std::isfinite( value ) )
+				return false;
+		if ( saved.active ) {
+			const auto *asset = &animationRigs[rig].asset;
+			const uint32_t count = asset->header.sections[ANIM_PARAMETERS].count;
+			animPose_t pose;
+			if ( saved.entity[rig] < 0 || saved.manual[rig] >> count || !Anim_Evaluate( asset, &saved.state[rig], saved.parameters[rig], saved.clock, &pose ) )
+				return false;
+		}
+	}
+	for ( uint32_t box = 0; box < ANIM_MAX_BOXES; ++box )
+		for ( int axis = 0; axis < 3; ++axis )
+			if ( !std::isfinite( saved.boxes[box].mins[axis] ) || !std::isfinite( saved.boxes[box].maxs[axis] ) ||
+				 ( box < saved.boxCount && saved.boxes[box].mins[axis] > saved.boxes[box].maxs[axis] ) )
+				return false;
+	return true;
+}
+bool G_WriteAnimationState( stateWriter_t *writer, const gStatePools_t &pools ) {
+	if ( !writer )
+		return false;
+	if ( !G_StatePoolsValid( pools ) ) {
+		writer->failed = true;
+		return false;
+	}
+	animationRigSave_t rigs{};
+	rigs.enabled = uint32_t( animationEnabled );
+	for ( int rig = 0; rig < 2; ++rig ) {
+		memcpy( rigs.hashes[rig], animationRigs[rig].asset.hash, 32 );
+		memcpy( rigs.footHeight[rig], animationRigs[rig].footHeight, sizeof( rigs.footHeight[rig] ) );
+		rigs.rootYaw[rig] = animationRigs[rig].rootYaw;
+	}
+	if ( !ValidAnimationRigs( rigs ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, animationRigSchema, 0, &rigs ) )
+		return false;
+	for ( uint32_t owner = 0; owner < MAX_CLIENTS; ++owner ) {
+		const auto &actor = animationActors[owner];
+		animationActorSave_t saved{};
+		saved.active = uint32_t( actor.active );
+		saved.clock = actor.clock;
+		saved.spawn = actor.spawn;
+		saved.facing = actor.facing;
+		saved.turnSign = actor.turnSign;
+		saved.boxCount = actor.boxCount;
+		memcpy( saved.boxes, actor.boxes, sizeof( saved.boxes ) );
+		for ( int rig = 0; rig < 2; ++rig ) {
+			saved.manual[rig] = actor.manual[rig];
+			saved.entity[rig] = G_StateEntitySlot( actor.entity[rig], pools );
+			saved.state[rig] = actor.state[rig];
+			memcpy( saved.parameters[rig], actor.parameters[rig], sizeof( saved.parameters[rig] ) );
+		}
+		if ( !ValidAnimationActor( saved, pools ) ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( !State_Append( writer, animationActorSchema, owner, &saved ) )
+			return false;
+		for ( uint32_t rig = 0; rig < 2; ++rig )
+			if ( !State_Append( writer, animationStateSchema, owner * 2 + rig, &saved.state[rig] ) )
+				return false;
+	}
+	return true;
+}
+bool G_ReadAnimationState( const stateReader_t &reader, const gStatePools_t &pools, bool apply ) {
+	if ( !G_StatePoolsValid( pools ) )
+		return false;
+	animationRigSave_t rigs;
+	uint32_t version;
+	if ( !State_Find( reader, animationRigSchema, 0, &rigs, &version ) || !ValidAnimationRigs( rigs ) )
+		return false;
+	// The archive stays immutable. Validate all actors before a second pass publishes any.
+	for ( int pass = 0; pass < ( apply ? 2 : 1 ); ++pass ) {
+		for ( uint32_t owner = 0; owner < MAX_CLIENTS; ++owner ) {
+			animationActorSave_t saved{};
+			if ( !State_Find( reader, animationActorSchema, owner, &saved, &version ) )
+				return false;
+			for ( uint32_t rig = 0; rig < 2; ++rig )
+				if ( !State_Find( reader, animationStateSchema, owner * 2 + rig, &saved.state[rig], &version ) )
+					return false;
+			if ( !ValidAnimationActor( saved, pools ) )
+				return false;
+			if ( !pass )
+				continue;
+			auto &actor = animationActors[owner];
+			actor.active = saved.active != 0;
+			actor.clock = saved.clock;
+			actor.spawn = saved.spawn;
+			actor.facing = saved.facing;
+			actor.turnSign = saved.turnSign;
+			actor.boxCount = saved.boxCount;
+			memcpy( actor.boxes, saved.boxes, sizeof( actor.boxes ) );
+			for ( int rig = 0; rig < 2; ++rig ) {
+				actor.manual[rig] = saved.manual[rig];
+				actor.entity[rig] = saved.entity[rig] == -1 ? nullptr : &pools.entities[saved.entity[rig]];
+				actor.state[rig] = saved.state[rig];
+				memcpy( actor.parameters[rig], saved.parameters[rig], sizeof( actor.parameters[rig] ) );
+			}
+		}
+	}
+	if ( apply )
+		for ( int rig = 0; rig < 2; ++rig ) {
+			memcpy( animationRigs[rig].footHeight, rigs.footHeight[rig], sizeof( rigs.footHeight[rig] ) );
+			animationRigs[rig].rootYaw = rigs.rootYaw[rig];
+		}
+	return true;
+}
+
+static const gCachedCvar_t savedAnimationCvars[] = {
+	{ "g_animationTrace", &animationTrace },
+};
+bool G_WriteAnimationCvarState( stateWriter_t *writer ) {
+	return G_WriteCachedCvars( writer, "game.cvars.Animation", savedAnimationCvars, sizeof( savedAnimationCvars ) / sizeof( savedAnimationCvars[0] ) );
+}
+bool G_ReadAnimationCvarState( const stateReader_t &reader, int apply ) {
+	return G_ReadCachedCvars( reader, "game.cvars.Animation", savedAnimationCvars, sizeof( savedAnimationCvars ) / sizeof( savedAnimationCvars[0] ), apply );
+}

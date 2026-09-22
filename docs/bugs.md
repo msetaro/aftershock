@@ -1063,4 +1063,4 @@ The first shutdown loop now visits 1..MAX_CLIENTS, matching the allocation/free
 contract; the distinct zero-based chat-cache loop is unchanged. Both compiler
 ASan/UBSan probes pass after the fix. No simulation or frame golden is affected,
 so no accepted golden is regenerated. No suppression or expected-failure entry
-needs removal. Full hosted builds/regression remain the merge gate.
+needs removal. Merged-tree build/regression are running at this checkpoint.

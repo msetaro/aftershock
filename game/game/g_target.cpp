@@ -455,3 +455,24 @@ void SP_target_location( gentity_t *self ) {
 
 	G_SetOrigin( self, self->s.origin );
 }
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_target[] = {
+	{ .name = "Think_Target_Delay", .think = Think_Target_Delay },
+	{ .name = "Use_Target_Delay", .use = Use_Target_Delay },
+	{ .name = "Use_Target_Give", .use = Use_Target_Give },
+	{ .name = "Use_Target_Print", .use = Use_Target_Print },
+	{ .name = "Use_Target_Score", .use = Use_Target_Score },
+	{ .name = "Use_Target_Speaker", .use = Use_Target_Speaker },
+	{ .name = "Use_target_remove_powerups", .use = Use_target_remove_powerups },
+	{ .name = "target_kill_use", .use = target_kill_use },
+	{ .name = "target_laser_start", .think = target_laser_start },
+	{ .name = "target_laser_think", .think = target_laser_think },
+	{ .name = "target_laser_use", .use = target_laser_use },
+	{ .name = "target_location_linkup", .think = target_location_linkup },
+	{ .name = "target_relay_use", .use = target_relay_use },
+	{ .name = "target_teleporter_use", .use = target_teleporter_use },
+	{ nullptr }
+};
+#endif

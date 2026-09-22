@@ -42,6 +42,7 @@ static_assert( sizeof( netHistoryEntity_t ) == 16 && std::is_trivially_copyable_
 static_assert( std::is_trivially_destructible_v<netHistory_t> && sizeof( netHistory_t ) < 5 * 1024 * 1024 );
 
 void NET_HistoryReset( netHistory_t *history );
+bool NET_HistoryFrameValid( const netHistoryFrame_t *frame );
 bool NET_HistoryStore( netHistory_t *history, const netHistoryFrame_t *frame );
 bool NET_HistoryQuery( const netHistory_t *history, uint32_t now, uint32_t viewTime, uint32_t maximumRewind, netHistoryQuery_t *query );
 uint32_t NET_HistoryEntity( const netHistoryQuery_t *query, uint32_t entity, uint64_t generation, netBox_t *boxes, uint32_t capacity );

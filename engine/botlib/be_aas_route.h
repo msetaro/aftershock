@@ -63,3 +63,7 @@ int AAS_AreaTravelTimeToGoalArea( int areanum, vec3_t origin, int goalareanum, i
 int AAS_PredictRoute( struct aas_predictroute_s *route, int areanum, vec3_t origin,
 	int goalareanum, int travelflags, int maxareas, int maxtime,
 	int stopevent, int stopcontents, int stoptfl, int stopareanum );
+
+#include "../public/state_public.h"
+bool AAS_WriteRoutingState( stateWriter_t *writer );
+bool AAS_ReadRoutingState( const stateReader_t &reader, bool apply );

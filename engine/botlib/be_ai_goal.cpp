@@ -45,6 +45,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_ai_weight.h"
 #include "be_ai_goal.h"
 #include "be_ai_move.h"
+#include "../../third_party/sha256/sha-256.h"
+#include <cmath>
 
 //#define DEBUG_AI_GOAL
 #ifdef RANDOMIZE
@@ -176,6 +178,7 @@ static levelitem_t *levelitemheap = NULL;
 static levelitem_t *freelevelitems = NULL;
 static levelitem_t *levelitems = NULL;
 static int numlevelitems = 0;
+static int allocatedLevelItems;
 //map locations
 static maplocation_t *maplocations = NULL;
 //camp spots
@@ -353,6 +356,7 @@ static void InitLevelItemHeap( void ) {
 
 	max_levelitems = LibVarInteger( "max_levelitems", "256", 1, 4096 );
 	levelitemheap = (levelitem_t *)GetClearedMemory(max_levelitems * sizeof(levelitem_t));
+	allocatedLevelItems = max_levelitems;
 
 	for ( i = 0; i < max_levelitems - 1; i++ ) {
 		levelitemheap[i].next = &levelitemheap[i + 1];
@@ -1721,6 +1725,7 @@ void BotShutdownGoalAI( void ) {
 	if ( levelitemheap )
 		FreeMemory( levelitemheap );
 	levelitemheap = NULL;
+	allocatedLevelItems = 0;
 	freelevelitems = NULL;
 	levelitems = NULL;
 	numlevelitems = 0;
@@ -1733,3 +1738,469 @@ void BotShutdownGoalAI( void ) {
 		} //end if
 	} //end for
 } //end of the function BotShutdownGoalAI
+
+static constexpr stateField_t goalStateFields[] = {
+	{ "client", offsetof( bot_goalstate_t, client ), 1, stateType_t::Int32 },
+	{ "lastreachabilityarea", offsetof( bot_goalstate_t, lastreachabilityarea ), 1, stateType_t::Int32 },
+	{ "goalstacktop", offsetof( bot_goalstate_t, goalstacktop ), 1, stateType_t::Int32 },
+	{ "avoidgoals", offsetof( bot_goalstate_t, avoidgoals ), MAX_AVOIDGOALS, stateType_t::Int32 },
+	{ "avoidgoaltimes", offsetof( bot_goalstate_t, avoidgoaltimes ), MAX_AVOIDGOALS, stateType_t::Float32 },
+	{ "goalstack[0].origin", offsetof( bot_goalstate_t, goalstack[0].origin ), 3, stateType_t::Float32 },
+	{ "goalstack[0].areanum", offsetof( bot_goalstate_t, goalstack[0].areanum ), 1, stateType_t::Int32 },
+	{ "goalstack[0].mins", offsetof( bot_goalstate_t, goalstack[0].mins ), 3, stateType_t::Float32 },
+	{ "goalstack[0].maxs", offsetof( bot_goalstate_t, goalstack[0].maxs ), 3, stateType_t::Float32 },
+	{ "goalstack[0].entitynum", offsetof( bot_goalstate_t, goalstack[0].entitynum ), 1, stateType_t::Int32 },
+	{ "goalstack[0].number", offsetof( bot_goalstate_t, goalstack[0].number ), 1, stateType_t::Int32 },
+	{ "goalstack[0].flags", offsetof( bot_goalstate_t, goalstack[0].flags ), 1, stateType_t::Int32 },
+	{ "goalstack[0].iteminfo", offsetof( bot_goalstate_t, goalstack[0].iteminfo ), 1, stateType_t::Int32 },
+	{ "goalstack[1].origin", offsetof( bot_goalstate_t, goalstack[1].origin ), 3, stateType_t::Float32 },
+	{ "goalstack[1].areanum", offsetof( bot_goalstate_t, goalstack[1].areanum ), 1, stateType_t::Int32 },
+	{ "goalstack[1].mins", offsetof( bot_goalstate_t, goalstack[1].mins ), 3, stateType_t::Float32 },
+	{ "goalstack[1].maxs", offsetof( bot_goalstate_t, goalstack[1].maxs ), 3, stateType_t::Float32 },
+	{ "goalstack[1].entitynum", offsetof( bot_goalstate_t, goalstack[1].entitynum ), 1, stateType_t::Int32 },
+	{ "goalstack[1].number", offsetof( bot_goalstate_t, goalstack[1].number ), 1, stateType_t::Int32 },
+	{ "goalstack[1].flags", offsetof( bot_goalstate_t, goalstack[1].flags ), 1, stateType_t::Int32 },
+	{ "goalstack[1].iteminfo", offsetof( bot_goalstate_t, goalstack[1].iteminfo ), 1, stateType_t::Int32 },
+	{ "goalstack[2].origin", offsetof( bot_goalstate_t, goalstack[2].origin ), 3, stateType_t::Float32 },
+	{ "goalstack[2].areanum", offsetof( bot_goalstate_t, goalstack[2].areanum ), 1, stateType_t::Int32 },
+	{ "goalstack[2].mins", offsetof( bot_goalstate_t, goalstack[2].mins ), 3, stateType_t::Float32 },
+	{ "goalstack[2].maxs", offsetof( bot_goalstate_t, goalstack[2].maxs ), 3, stateType_t::Float32 },
+	{ "goalstack[2].entitynum", offsetof( bot_goalstate_t, goalstack[2].entitynum ), 1, stateType_t::Int32 },
+	{ "goalstack[2].number", offsetof( bot_goalstate_t, goalstack[2].number ), 1, stateType_t::Int32 },
+	{ "goalstack[2].flags", offsetof( bot_goalstate_t, goalstack[2].flags ), 1, stateType_t::Int32 },
+	{ "goalstack[2].iteminfo", offsetof( bot_goalstate_t, goalstack[2].iteminfo ), 1, stateType_t::Int32 },
+	{ "goalstack[3].origin", offsetof( bot_goalstate_t, goalstack[3].origin ), 3, stateType_t::Float32 },
+	{ "goalstack[3].areanum", offsetof( bot_goalstate_t, goalstack[3].areanum ), 1, stateType_t::Int32 },
+	{ "goalstack[3].mins", offsetof( bot_goalstate_t, goalstack[3].mins ), 3, stateType_t::Float32 },
+	{ "goalstack[3].maxs", offsetof( bot_goalstate_t, goalstack[3].maxs ), 3, stateType_t::Float32 },
+	{ "goalstack[3].entitynum", offsetof( bot_goalstate_t, goalstack[3].entitynum ), 1, stateType_t::Int32 },
+	{ "goalstack[3].number", offsetof( bot_goalstate_t, goalstack[3].number ), 1, stateType_t::Int32 },
+	{ "goalstack[3].flags", offsetof( bot_goalstate_t, goalstack[3].flags ), 1, stateType_t::Int32 },
+	{ "goalstack[3].iteminfo", offsetof( bot_goalstate_t, goalstack[3].iteminfo ), 1, stateType_t::Int32 },
+	{ "goalstack[4].origin", offsetof( bot_goalstate_t, goalstack[4].origin ), 3, stateType_t::Float32 },
+	{ "goalstack[4].areanum", offsetof( bot_goalstate_t, goalstack[4].areanum ), 1, stateType_t::Int32 },
+	{ "goalstack[4].mins", offsetof( bot_goalstate_t, goalstack[4].mins ), 3, stateType_t::Float32 },
+	{ "goalstack[4].maxs", offsetof( bot_goalstate_t, goalstack[4].maxs ), 3, stateType_t::Float32 },
+	{ "goalstack[4].entitynum", offsetof( bot_goalstate_t, goalstack[4].entitynum ), 1, stateType_t::Int32 },
+	{ "goalstack[4].number", offsetof( bot_goalstate_t, goalstack[4].number ), 1, stateType_t::Int32 },
+	{ "goalstack[4].flags", offsetof( bot_goalstate_t, goalstack[4].flags ), 1, stateType_t::Int32 },
+	{ "goalstack[4].iteminfo", offsetof( bot_goalstate_t, goalstack[4].iteminfo ), 1, stateType_t::Int32 },
+	{ "goalstack[5].origin", offsetof( bot_goalstate_t, goalstack[5].origin ), 3, stateType_t::Float32 },
+	{ "goalstack[5].areanum", offsetof( bot_goalstate_t, goalstack[5].areanum ), 1, stateType_t::Int32 },
+	{ "goalstack[5].mins", offsetof( bot_goalstate_t, goalstack[5].mins ), 3, stateType_t::Float32 },
+	{ "goalstack[5].maxs", offsetof( bot_goalstate_t, goalstack[5].maxs ), 3, stateType_t::Float32 },
+	{ "goalstack[5].entitynum", offsetof( bot_goalstate_t, goalstack[5].entitynum ), 1, stateType_t::Int32 },
+	{ "goalstack[5].number", offsetof( bot_goalstate_t, goalstack[5].number ), 1, stateType_t::Int32 },
+	{ "goalstack[5].flags", offsetof( bot_goalstate_t, goalstack[5].flags ), 1, stateType_t::Int32 },
+	{ "goalstack[5].iteminfo", offsetof( bot_goalstate_t, goalstack[5].iteminfo ), 1, stateType_t::Int32 },
+	{ "goalstack[6].origin", offsetof( bot_goalstate_t, goalstack[6].origin ), 3, stateType_t::Float32 },
+	{ "goalstack[6].areanum", offsetof( bot_goalstate_t, goalstack[6].areanum ), 1, stateType_t::Int32 },
+	{ "goalstack[6].mins", offsetof( bot_goalstate_t, goalstack[6].mins ), 3, stateType_t::Float32 },
+	{ "goalstack[6].maxs", offsetof( bot_goalstate_t, goalstack[6].maxs ), 3, stateType_t::Float32 },
+	{ "goalstack[6].entitynum", offsetof( bot_goalstate_t, goalstack[6].entitynum ), 1, stateType_t::Int32 },
+	{ "goalstack[6].number", offsetof( bot_goalstate_t, goalstack[6].number ), 1, stateType_t::Int32 },
+	{ "goalstack[6].flags", offsetof( bot_goalstate_t, goalstack[6].flags ), 1, stateType_t::Int32 },
+	{ "goalstack[6].iteminfo", offsetof( bot_goalstate_t, goalstack[6].iteminfo ), 1, stateType_t::Int32 },
+	{ "goalstack[7].origin", offsetof( bot_goalstate_t, goalstack[7].origin ), 3, stateType_t::Float32 },
+	{ "goalstack[7].areanum", offsetof( bot_goalstate_t, goalstack[7].areanum ), 1, stateType_t::Int32 },
+	{ "goalstack[7].mins", offsetof( bot_goalstate_t, goalstack[7].mins ), 3, stateType_t::Float32 },
+	{ "goalstack[7].maxs", offsetof( bot_goalstate_t, goalstack[7].maxs ), 3, stateType_t::Float32 },
+	{ "goalstack[7].entitynum", offsetof( bot_goalstate_t, goalstack[7].entitynum ), 1, stateType_t::Int32 },
+	{ "goalstack[7].number", offsetof( bot_goalstate_t, goalstack[7].number ), 1, stateType_t::Int32 },
+	{ "goalstack[7].flags", offsetof( bot_goalstate_t, goalstack[7].flags ), 1, stateType_t::Int32 },
+	{ "goalstack[7].iteminfo", offsetof( bot_goalstate_t, goalstack[7].iteminfo ), 1, stateType_t::Int32 },
+};
+static constexpr stateSchema_t goalStateSchema = { "botlib.goal", 1, 1, sizeof( bot_goalstate_t ), goalStateFields, sizeof( goalStateFields ) / sizeof( goalStateFields[0] ) };
+struct goalPoolSave_t {
+	uint32_t present[MAX_CLIENTS + 1], indices[MAX_CLIENTS + 1], itemConfig;
+	int32_t cachedWeights[MAX_CLIENTS + 1], items;
+	uint8_t itemHash[32], indexHash[MAX_CLIENTS + 1][32];
+};
+static_assert( sizeof( goalPoolSave_t ) == 2900 );
+static constexpr stateField_t goalPoolFields[] = {
+	{ "present", offsetof( goalPoolSave_t, present ), MAX_CLIENTS + 1, stateType_t::UInt32 },
+	{ "indices", offsetof( goalPoolSave_t, indices ), MAX_CLIENTS + 1, stateType_t::UInt32 },
+	{ "itemConfig", offsetof( goalPoolSave_t, itemConfig ), 1, stateType_t::UInt32 },
+	{ "cachedWeights", offsetof( goalPoolSave_t, cachedWeights ), MAX_CLIENTS + 1, stateType_t::Int32 },
+	{ "items", offsetof( goalPoolSave_t, items ), 1, stateType_t::Int32 },
+	{ "itemHash", offsetof( goalPoolSave_t, itemHash ), 32, stateType_t::Bytes },
+	{ "indexHash", offsetof( goalPoolSave_t, indexHash ), ( MAX_CLIENTS + 1 ) * 32, stateType_t::Bytes }
+};
+static constexpr stateSchema_t goalPoolSchema = { "botlib.goalPool", 1, 1, sizeof( goalPoolSave_t ), goalPoolFields, 7 };
+static bool GoalPoolIdentity( goalPoolSave_t *saved, bot_goalstate_t *const *states = botgoalstates ) {
+	*saved = {};
+	for ( auto &index : saved->cachedWeights )
+		index = -1;
+	if ( states[0] )
+		return false;
+	saved->itemConfig = itemconfig != nullptr;
+	if ( itemconfig ) {
+		// The loaded descriptor is pointer-free and has no padding on supported ABIs.
+		static_assert( sizeof( iteminfo_t ) == 32 + 2 * MAX_STRINGFIELD + 11 * 4 );
+		saved->items = itemconfig->numiteminfo;
+		if ( saved->items < 0 || saved->items > 4096 || ( saved->items && !itemconfig->iteminfo ) )
+			return false;
+		calc_sha_256( saved->itemHash, saved->items ? (const void *)itemconfig->iteminfo : "", size_t( saved->items ) * sizeof( iteminfo_t ) );
+	}
+	for ( int i = 1; i <= MAX_CLIENTS; ++i ) {
+		const auto *goal = states[i];
+		if ( !goal )
+			continue;
+		saved->present[i] = 1;
+		saved->cachedWeights[i] = Bot_WeightCacheIndex( goal->itemweightconfig );
+		if ( saved->cachedWeights[i] == -2 )
+			for ( int j = 1; j < i; ++j )
+				if ( states[j] && states[j]->itemweightconfig == goal->itemweightconfig )
+					return false;
+		saved->indices[i] = goal->itemweightindex != nullptr;
+		if ( goal->itemweightindex ) {
+			if ( !itemconfig || !goal->itemweightconfig )
+				return false;
+			for ( int j = 0; j < saved->items; ++j )
+				if ( goal->itemweightindex[j] < -1 || goal->itemweightindex[j] >= goal->itemweightconfig->numweights )
+					return false;
+			calc_sha_256( saved->indexHash[i], goal->itemweightindex, size_t( saved->items ) * sizeof( int32_t ) );
+		}
+	}
+	return true;
+}
+static bool ValidGoalState( const bot_goalstate_t &saved ) {
+	if ( saved.client < 0 || saved.client >= MAX_CLIENTS || saved.goalstacktop < 0 || saved.goalstacktop >= MAX_GOALSTACK )
+		return false;
+	for ( float time : saved.avoidgoaltimes )
+		if ( !std::isfinite( time ) )
+			return false;
+	for ( const auto &goal : saved.goalstack ) {
+		if ( goal.areanum < 0 || goal.entitynum < -1 || goal.entitynum >= MAX_GENTITIES )
+			return false;
+		for ( int i = 0; i < 3; ++i )
+			if ( !std::isfinite( goal.origin[i] ) || !std::isfinite( goal.mins[i] ) || !std::isfinite( goal.maxs[i] ) || goal.mins[i] > goal.maxs[i] )
+				return false;
+	}
+	return true;
+}
+bool Bot_WriteGoalState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	goalPoolSave_t pool;
+	if ( !GoalPoolIdentity( &pool ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, goalPoolSchema, 0, &pool ) )
+		return false;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+		if ( pool.present[i] ) {
+			if ( !ValidGoalState( *botgoalstates[i] ) ) {
+				writer->failed = true;
+				return false;
+			}
+			if ( !State_Append( writer, goalStateSchema, i, botgoalstates[i] ) )
+				return false;
+			if ( pool.cachedWeights[i] == -2 && !Bot_WriteWeightState( writer, 128 + i, botgoalstates[i]->itemweightconfig ) )
+				return false;
+		}
+	return true;
+}
+bool Bot_ReadGoalState( const stateReader_t &reader, bool apply ) {
+	goalPoolSave_t pool, current;
+	uint32_t version;
+	if ( !State_Find( reader, goalPoolSchema, 0, &pool, &version ) || !GoalPoolIdentity( &current ) || memcmp( &pool, &current, sizeof( pool ) ) )
+		return false;
+	static bot_goalstate_t saved[MAX_CLIENTS + 1];
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+		if ( pool.present[i] ) {
+			if ( !State_Find( reader, goalStateSchema, i, &saved[i], &version ) || !ValidGoalState( saved[i] ) )
+				return false;
+			if ( pool.cachedWeights[i] == -2 && !Bot_ReadWeightState( reader, 128 + i, botgoalstates[i]->itemweightconfig, false ) )
+				return false;
+		}
+	if ( apply )
+		for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+			if ( pool.present[i] ) {
+				if ( pool.cachedWeights[i] == -2 && !Bot_ReadWeightState( reader, 128 + i, botgoalstates[i]->itemweightconfig, true ) )
+					return false;
+				saved[i].itemweightconfig = botgoalstates[i]->itemweightconfig;
+				saved[i].itemweightindex = botgoalstates[i]->itemweightindex;
+				*botgoalstates[i] = saved[i];
+			}
+	return true;
+}
+
+static constexpr int MAX_SAVED_LEVEL_ITEMS = 4096;
+struct levelItemsHeaderSave_t {
+	int32_t count, number, gametype, live, free;
+};
+struct levelItemsSave_t {
+	int32_t number[MAX_SAVED_LEVEL_ITEMS], iteminfo[MAX_SAVED_LEVEL_ITEMS], flags[MAX_SAVED_LEVEL_ITEMS],
+		goalareanum[MAX_SAVED_LEVEL_ITEMS], entitynum[MAX_SAVED_LEVEL_ITEMS], next[MAX_SAVED_LEVEL_ITEMS], prev[MAX_SAVED_LEVEL_ITEMS];
+	float weight[MAX_SAVED_LEVEL_ITEMS], timeout[MAX_SAVED_LEVEL_ITEMS], origin[MAX_SAVED_LEVEL_ITEMS][3], goalorigin[MAX_SAVED_LEVEL_ITEMS][3];
+};
+static_assert( sizeof( levelItemsHeaderSave_t ) == 20 && sizeof( levelItemsSave_t ) == 245760 );
+static levelItemsSave_t savedLevelItems;
+static constexpr stateField_t levelItemsHeaderFields[] = {
+	{ "count", offsetof( levelItemsHeaderSave_t, count ), 1, stateType_t::Int32 },
+	{ "number", offsetof( levelItemsHeaderSave_t, number ), 1, stateType_t::Int32 },
+	{ "gametype", offsetof( levelItemsHeaderSave_t, gametype ), 1, stateType_t::Int32 },
+	{ "live", offsetof( levelItemsHeaderSave_t, live ), 1, stateType_t::Int32 },
+	{ "free", offsetof( levelItemsHeaderSave_t, free ), 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t levelItemsHeaderSchema = { "botlib.levelItemsHeader", 1, 1, sizeof( levelItemsHeaderSave_t ), levelItemsHeaderFields, 5 };
+static int LevelItemSlot( const levelitem_t *item ) {
+	if ( !item )
+		return -1;
+	for ( int i = 0; i < allocatedLevelItems; ++i )
+		if ( item == &levelitemheap[i] )
+			return i;
+	return -2;
+}
+static bool ValidLevelItems( const levelItemsHeaderSave_t &header, bool *live ) {
+	if ( header.count < 0 || header.count > MAX_SAVED_LEVEL_ITEMS || header.count != allocatedLevelItems ||
+		 ( bool( header.count ) != bool( levelitemheap ) ) || header.number < 0 || header.number > header.count || header.gametype != g_gametype ||
+		 header.live < -1 || header.live >= header.count || header.free < -1 || header.free >= header.count )
+		return false;
+	uint8_t visited[MAX_SAVED_LEVEL_ITEMS]{};
+	for ( int i = 0; i < header.count; ++i ) {
+		live[i] = false;
+		if ( savedLevelItems.next[i] < -1 || savedLevelItems.next[i] >= header.count )
+			return false;
+	}
+	for ( int list = 0; list < 2; ++list ) {
+		int previous = -1;
+		for ( int slot = list ? header.free : header.live; slot >= 0; slot = savedLevelItems.next[slot] ) {
+			if ( visited[slot] )
+				return false;
+			visited[slot] = 1;
+			if ( !list ) {
+				live[slot] = true;
+				if ( savedLevelItems.prev[slot] != previous || !itemconfig || savedLevelItems.iteminfo[slot] < 0 ||
+					 savedLevelItems.iteminfo[slot] >= itemconfig->numiteminfo || savedLevelItems.entitynum[slot] < 0 ||
+					 savedLevelItems.entitynum[slot] >= MAX_GENTITIES || savedLevelItems.goalareanum[slot] < 0 ||
+					 !std::isfinite( savedLevelItems.weight[slot] ) || !std::isfinite( savedLevelItems.timeout[slot] ) )
+					return false;
+				for ( int axis = 0; axis < 3; ++axis )
+					if ( !std::isfinite( savedLevelItems.origin[slot][axis] ) || !std::isfinite( savedLevelItems.goalorigin[slot][axis] ) )
+						return false;
+			}
+			previous = slot;
+		}
+	}
+	for ( int i = 0; i < header.count; ++i )
+		if ( !visited[i] )
+			return false;
+	return true;
+}
+static bool LevelItemRecords( stateWriter_t *writer, const stateReader_t *reader, uint32_t count ) {
+	if ( !count )
+		return true;
+	const stateField_t fields[] = {
+		{ "number", offsetof( levelItemsSave_t, number ), count, stateType_t::Int32 },
+		{ "iteminfo", offsetof( levelItemsSave_t, iteminfo ), count, stateType_t::Int32 },
+		{ "flags", offsetof( levelItemsSave_t, flags ), count, stateType_t::Int32 },
+		{ "goalareanum", offsetof( levelItemsSave_t, goalareanum ), count, stateType_t::Int32 },
+		{ "entitynum", offsetof( levelItemsSave_t, entitynum ), count, stateType_t::Int32 },
+		{ "next", offsetof( levelItemsSave_t, next ), count, stateType_t::Int32 },
+		{ "prev", offsetof( levelItemsSave_t, prev ), count, stateType_t::Int32 },
+		{ "weight", offsetof( levelItemsSave_t, weight ), count, stateType_t::Float32 },
+		{ "timeout", offsetof( levelItemsSave_t, timeout ), count, stateType_t::Float32 },
+		{ "origin", offsetof( levelItemsSave_t, origin ), count * 3, stateType_t::Float32 },
+		{ "goalorigin", offsetof( levelItemsSave_t, goalorigin ), count * 3, stateType_t::Float32 },
+	};
+	const stateSchema_t schema = { "botlib.levelItems", 1, 1, sizeof( levelItemsSave_t ), fields, 11 };
+	uint32_t version;
+	return writer ? State_Append( writer, schema, 0, &savedLevelItems ) : State_Find( *reader, schema, 0, &savedLevelItems, &version );
+}
+bool Bot_WriteLevelItemState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	if ( allocatedLevelItems < 0 || allocatedLevelItems > MAX_SAVED_LEVEL_ITEMS || ( allocatedLevelItems && !levelitemheap ) ) {
+		writer->failed = true;
+		return false;
+	}
+	const levelItemsHeaderSave_t header{ allocatedLevelItems, numlevelitems, g_gametype, LevelItemSlot( levelitems ), LevelItemSlot( freelevelitems ) };
+	savedLevelItems = {};
+	for ( int i = 0; i < allocatedLevelItems; ++i ) {
+		savedLevelItems.next[i] = LevelItemSlot( levelitemheap[i].next );
+		savedLevelItems.prev[i] = -1;
+	}
+	bool live[MAX_SAVED_LEVEL_ITEMS]{};
+	for ( int slot = header.live; slot != -1; ) {
+		if ( slot < 0 || slot >= allocatedLevelItems || live[slot] ) {
+			writer->failed = true;
+			return false;
+		}
+		live[slot] = true;
+		const auto &item = levelitemheap[slot];
+		savedLevelItems.number[slot] = item.number;
+		savedLevelItems.iteminfo[slot] = item.iteminfo;
+		savedLevelItems.flags[slot] = item.flags;
+		savedLevelItems.goalareanum[slot] = item.goalareanum;
+		savedLevelItems.entitynum[slot] = item.entitynum;
+		savedLevelItems.weight[slot] = item.weight;
+		savedLevelItems.timeout[slot] = item.timeout;
+		memcpy( savedLevelItems.origin[slot], item.origin, sizeof( item.origin ) );
+		memcpy( savedLevelItems.goalorigin[slot], item.goalorigin, sizeof( item.goalorigin ) );
+		savedLevelItems.prev[slot] = LevelItemSlot( item.prev );
+		slot = savedLevelItems.next[slot];
+	}
+	if ( !ValidLevelItems( header, live ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, levelItemsHeaderSchema, 0, &header ) && LevelItemRecords( writer, nullptr, uint32_t( header.count ) );
+}
+bool Bot_ReadLevelItemState( const stateReader_t &reader, bool apply ) {
+	levelItemsHeaderSave_t header;
+	uint32_t version;
+	if ( !State_Find( reader, levelItemsHeaderSchema, 0, &header, &version ) || header.count < 0 || header.count > MAX_SAVED_LEVEL_ITEMS ||
+		 !LevelItemRecords( nullptr, &reader, uint32_t( header.count ) ) )
+		return false;
+	bool live[MAX_SAVED_LEVEL_ITEMS];
+	if ( !ValidLevelItems( header, live ) )
+		return false;
+	if ( apply ) {
+		for ( int i = 0; i < header.count; ++i ) {
+			auto &item = levelitemheap[i];
+			memset( &item, 0, sizeof( item ) );
+			item.next = savedLevelItems.next[i] < 0 ? nullptr : &levelitemheap[savedLevelItems.next[i]];
+			if ( !live[i] )
+				continue; // Allocation clears free-node payload before its next use.
+			item.prev = savedLevelItems.prev[i] < 0 ? nullptr : &levelitemheap[savedLevelItems.prev[i]];
+			item.number = savedLevelItems.number[i];
+			item.iteminfo = savedLevelItems.iteminfo[i];
+			item.flags = savedLevelItems.flags[i];
+			item.goalareanum = savedLevelItems.goalareanum[i];
+			item.entitynum = savedLevelItems.entitynum[i];
+			item.weight = savedLevelItems.weight[i];
+			item.timeout = savedLevelItems.timeout[i];
+			memcpy( item.origin, savedLevelItems.origin[i], sizeof( item.origin ) );
+			memcpy( item.goalorigin, savedLevelItems.goalorigin[i], sizeof( item.goalorigin ) );
+		}
+		levelitems = header.live < 0 ? nullptr : &levelitemheap[header.live];
+		freelevelitems = header.free < 0 ? nullptr : &levelitemheap[header.free];
+		numlevelitems = header.number;
+	}
+	return true;
+}
+
+static constexpr stateField_t mapLocationFields[] = {
+	{ "origin", offsetof( maplocation_t, origin ), 3, stateType_t::Float32 },
+	{ "areanum", offsetof( maplocation_t, areanum ), 1, stateType_t::Int32 },
+	{ "name", offsetof( maplocation_t, name ), MAX_EPAIRKEY, stateType_t::String }
+};
+static constexpr stateSchema_t mapLocationSchema = { "botlib.mapLocation", 1, 1, sizeof( maplocation_t ), mapLocationFields, 3 };
+static constexpr stateField_t campSpotFields[] = {
+	{ "origin", offsetof( campspot_t, origin ), 3, stateType_t::Float32 },
+	{ "areanum", offsetof( campspot_t, areanum ), 1, stateType_t::Int32 },
+	{ "name", offsetof( campspot_t, name ), MAX_EPAIRKEY, stateType_t::String },
+	{ "range", offsetof( campspot_t, range ), 1, stateType_t::Float32 },
+	{ "weight", offsetof( campspot_t, weight ), 1, stateType_t::Float32 },
+	{ "wait", offsetof( campspot_t, wait ), 1, stateType_t::Float32 },
+	{ "random", offsetof( campspot_t, random ), 1, stateType_t::Float32 }
+};
+static constexpr stateSchema_t campSpotSchema = { "botlib.campSpot", 1, 1, sizeof( campspot_t ), campSpotFields, 7 };
+static constexpr stateField_t goalMapHashField = { "hash", 0, 32, stateType_t::Bytes };
+static constexpr stateSchema_t goalMapHashSchema = { "botlib.goalMap", 1, 1, 32, &goalMapHashField, 1 };
+static bool GoalMapHash( uint8_t *digest ) {
+	Sha_256 hash;
+	sha_256_init( &hash, digest );
+	unsigned char bytes[2048];
+	uint32_t count = 0;
+	for ( auto *location = maplocations; location; location = location->next ) {
+		if ( ++count > MAX_SAVED_LEVEL_ITEMS || location->areanum < 0 )
+			return false;
+		for ( float value : location->origin )
+			if ( !std::isfinite( value ) )
+				return false;
+		const size_t size = State_Write( mapLocationSchema, location, bytes, sizeof( bytes ) );
+		if ( !size )
+			return false;
+		sha_256_write( &hash, bytes, size );
+	}
+	sha_256_write( &hash, &count, sizeof( count ) );
+	count = 0;
+	for ( auto *camp = campspots; camp; camp = camp->next ) {
+		if ( ++count > MAX_SAVED_LEVEL_ITEMS || camp->areanum <= 0 || !std::isfinite( camp->range ) || !std::isfinite( camp->weight ) ||
+			 !std::isfinite( camp->wait ) || !std::isfinite( camp->random ) )
+			return false;
+		for ( float value : camp->origin )
+			if ( !std::isfinite( value ) )
+				return false;
+		const size_t size = State_Write( campSpotSchema, camp, bytes, sizeof( bytes ) );
+		if ( !size )
+			return false;
+		sha_256_write( &hash, bytes, size );
+	}
+	sha_256_write( &hash, &count, sizeof( count ) );
+	sha_256_close( &hash );
+	return true;
+}
+bool Bot_WriteGoalMapState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	uint8_t digest[32];
+	if ( !GoalMapHash( digest ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, goalMapHashSchema, 0, digest );
+}
+bool Bot_ReadGoalMapState( const stateReader_t &reader ) {
+	uint8_t saved[32], loaded[32];
+	uint32_t version;
+	return State_Find( reader, goalMapHashSchema, 0, saved, &version ) && GoalMapHash( loaded ) && !memcmp( saved, loaded, sizeof( saved ) );
+}
+
+bool Bot_PrepareGoalState( const stateReader_t &reader ) {
+	for ( const auto *state : botgoalstates )
+		if ( state )
+			return false;
+	goalPoolSave_t pool, loaded;
+	uint32_t version;
+	if ( !State_Find( reader, goalPoolSchema, 0, &pool, &version ) || pool.present[0] )
+		return false;
+	bot_goalstate_t *draft[MAX_CLIENTS + 1] = {};
+	bool valid = true;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS && valid; ++i ) {
+		if ( pool.present[i] > 1 || pool.indices[i] > 1 || pool.cachedWeights[i] < -2 || pool.cachedWeights[i] >= 128 ) {
+			valid = false;
+			break;
+		}
+		if ( !pool.present[i] )
+			continue;
+		auto *state = (bot_goalstate_t *)GetClearedMemory( sizeof( bot_goalstate_t ) );
+		draft[i] = state;
+		if ( !State_Find( reader, goalStateSchema, i, state, &version ) || !ValidGoalState( *state ) ) {
+			valid = false;
+			break;
+		}
+		if ( pool.cachedWeights[i] == -2 )
+			valid = Bot_CreateWeightState( reader, 128 + i, &state->itemweightconfig );
+		else if ( pool.cachedWeights[i] >= 0 ) {
+			state->itemweightconfig = Bot_WeightCacheAt( pool.cachedWeights[i] );
+			valid = state->itemweightconfig != nullptr;
+		}
+		if ( valid && pool.indices[i] ) {
+			valid = itemconfig && state->itemweightconfig;
+			if ( valid )
+				state->itemweightindex = ItemWeightIndex( state->itemweightconfig, itemconfig );
+		}
+	}
+	valid = valid && GoalPoolIdentity( &loaded, draft ) && !memcmp( &pool, &loaded, sizeof( pool ) );
+	if ( !valid ) {
+		for ( auto *state : draft )
+			if ( state ) {
+				Bot_FreePrivateWeightState( state->itemweightconfig );
+				if ( state->itemweightindex )
+					FreeMemory( state->itemweightindex );
+				FreeMemory( state );
+			}
+		return false;
+	}
+	memcpy( botgoalstates, draft, sizeof( draft ) );
+	return true;
+}
+
+bool Bot_HasGoalState( int handle ) {
+	return handle > 0 && handle <= MAX_CLIENTS && botgoalstates[handle] != nullptr;
+}

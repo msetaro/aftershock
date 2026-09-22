@@ -594,6 +594,7 @@ int Q_log2( int val );
 
 float Q_acos( float c );
 
+uint32_t Q_GetRandomSeed( void );
 int Q_rand( int *seed );
 float Q_random( int *seed );
 float Q_crandom( int *seed );

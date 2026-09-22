@@ -1330,3 +1330,11 @@ void ClientDisconnect( int clientNum ) {
 		BotAIShutdownClient( clientNum, qfalse );
 	}
 }
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_client[] = {
+	{ .name = "BodySink", .think = BodySink },
+	{ nullptr }
+};
+#endif

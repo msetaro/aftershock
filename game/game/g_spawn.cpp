@@ -1006,3 +1006,184 @@ static void G_DevReset( void ) {
 	Dev_RegisterGameTools( &tools );
 }
 #endif
+
+#ifdef __cplusplus
+// Command-only staging: definition tables are too large for the game stack.
+static entityDefinitions_t savedDefinitions;
+static uint8_t savedDefinitionBytes[sizeof( entityDefinitions_t ) + 48];
+static bool ValidSavedDefinitions( entityDefinitions_t *definitions ) {
+	if ( !definitions->header.count )
+		return !definitions->header.fieldCount && !definitions->header.name[0];
+	const size_t size = Entity_WriteDefinitions( *definitions, savedDefinitionBytes, sizeof( savedDefinitionBytes ) );
+	return size && Entity_ReadDefinitions( savedDefinitionBytes, size, definitions );
+}
+bool G_WriteDefinitionState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	savedDefinitions = authoredDefinitions;
+	if ( !ValidSavedDefinitions( &savedDefinitions ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, entityDefinitionHeaderSchema, 0, &savedDefinitions.header ) )
+		return false;
+	for ( uint32_t i = 0; i < savedDefinitions.header.count; ++i )
+		if ( !State_Append( writer, entityDefinitionSchema, i, &savedDefinitions.definitions[i] ) )
+			return false;
+	for ( uint32_t i = 0; i < savedDefinitions.header.fieldCount; ++i )
+		if ( !State_Append( writer, entityDefinitionFieldSchema, i, &savedDefinitions.fields[i] ) )
+			return false;
+	return true;
+}
+bool G_ReadDefinitionState( const stateReader_t &reader, bool apply ) {
+	savedDefinitions = {};
+	uint32_t version;
+	if ( !State_Find( reader, entityDefinitionHeaderSchema, 0, &savedDefinitions.header, &version ) ||
+		 savedDefinitions.header.count > 256 || savedDefinitions.header.fieldCount > 2048 )
+		return false;
+	for ( uint32_t i = 0; i < savedDefinitions.header.count; ++i )
+		if ( !State_Find( reader, entityDefinitionSchema, i, &savedDefinitions.definitions[i], &version ) )
+			return false;
+	for ( uint32_t i = 0; i < savedDefinitions.header.fieldCount; ++i )
+		if ( !State_Find( reader, entityDefinitionFieldSchema, i, &savedDefinitions.fields[i], &version ) )
+			return false;
+	if ( !ValidSavedDefinitions( &savedDefinitions ) )
+		return false;
+	// Map setup reloads the registry. Editor values may differ, but its topology
+	// must match before saved definitions can replace any native entries.
+	const auto &header = savedDefinitions.header;
+	if ( header.count != authoredDefinitions.header.count || header.fieldCount != authoredDefinitions.header.fieldCount ||
+		 strcmp( header.name, authoredDefinitions.header.name ) )
+		return false;
+	uint32_t indices[256];
+	for ( uint32_t i = 0; i < header.count; ++i ) {
+		const auto &saved = savedDefinitions.definitions[i], &loaded = authoredDefinitions.definitions[i];
+		if ( strcmp( saved.name, loaded.name ) || strcmp( saved.native, loaded.native ) || saved.firstField != loaded.firstField ||
+			 saved.fieldCount != loaded.fieldCount || saved.components != loaded.components )
+			return false;
+		const auto *combined = Entity_FindDefinition( entityDefinitions, saved.name );
+		if ( !combined || strcmp( combined->native, saved.native ) )
+			return false;
+		indices[i] = uint32_t( combined - entityDefinitions.definitions );
+	}
+	for ( uint32_t i = 0; i < header.fieldCount; ++i ) {
+		const auto &saved = savedDefinitions.fields[i], &loaded = authoredDefinitions.fields[i];
+		if ( strcmp( saved.component, loaded.component ) || strcmp( saved.key, loaded.key ) )
+			return false;
+	}
+	if ( apply ) {
+		authoredDefinitions = savedDefinitions;
+		for ( uint32_t i = 0; i < header.count; ++i )
+			entityDefinitions.definitions[indices[i]] = savedDefinitions.definitions[i];
+		memcpy( entityDefinitions.fields, savedDefinitions.fields, header.fieldCount * sizeof( entityDefinitionField_t ) );
+	}
+	return true;
+}
+#endif
+
+#ifdef __cplusplus
+struct editorSave_t {
+	uint32_t enabled, complete;
+	int32_t count, sources[MAX_GENTITIES];
+};
+static_assert( sizeof( editorSave_t ) == 4108 );
+static constexpr stateField_t editorSaveFields[] = {
+	{ "enabled", offsetof( editorSave_t, enabled ), 1, stateType_t::UInt32 },
+	{ "complete", offsetof( editorSave_t, complete ), 1, stateType_t::UInt32 },
+	{ "count", offsetof( editorSave_t, count ), 1, stateType_t::Int32 },
+	{ "sources", offsetof( editorSave_t, sources ), MAX_GENTITIES, stateType_t::Int32 }
+};
+static constexpr stateSchema_t editorSaveSchema = { "game.editor", 1, 1, sizeof( editorSave_t ), editorSaveFields, 4 };
+static constexpr stateField_t editorDocumentFields[] = { { "text", 0, 8192, stateType_t::String } };
+static constexpr stateSchema_t editorDocumentSchema = { "game.editorDocument", 1, 1, 8192, editorDocumentFields, 1 };
+static bool ValidEditorDocument( const char *text ) {
+	if ( !memchr( text, 0, 8192 ) )
+		return false;
+	if ( !text[0] )
+		return true; // Deleted entities retain an empty document slot.
+	if ( strncmp( text, "{\n", 2 ) )
+		return false;
+	text += 2;
+	int pairs = 0;
+	while ( *text == '"' ) {
+		if ( ++pairs > MAX_SPAWN_VARS )
+			return false;
+		const char *end = strchr( text + 1, '"' );
+		if ( !end || strncmp( end, "\" \"", 3 ) )
+			return false;
+		end = strchr( end + 3, '"' );
+		if ( !end || end[1] != '\n' )
+			return false;
+		text = end + 2;
+	}
+	return !strcmp( text, "}\n" );
+}
+static bool ValidEditorState( const editorSave_t &saved ) {
+	if ( saved.enabled > 1 || saved.complete > 1 || saved.count < 0 || saved.count > MAX_GENTITIES ||
+		 ( !saved.enabled && ( saved.count || saved.complete ) ) )
+		return false;
+	for ( int source : saved.sources )
+		if ( source < -1 || source >= saved.count )
+			return false;
+	return true;
+}
+bool G_WriteEditorState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	editorSave_t saved{};
+	for ( auto &source : saved.sources )
+		source = -1;
+#ifdef AFTERSHOCK_DEVTOOLS
+	saved.enabled = 1;
+	saved.complete = uint32_t( devComplete );
+	saved.count = devDocumentCount;
+	memcpy( saved.sources, devSource, sizeof( saved.sources ) );
+#endif
+	if ( !ValidEditorState( saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, editorSaveSchema, 0, &saved ) )
+		return false;
+#ifdef AFTERSHOCK_DEVTOOLS
+	for ( int i = 0; i < saved.count; ++i ) {
+		if ( !ValidEditorDocument( devDocuments[i] ) ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( !State_Append( writer, editorDocumentSchema, uint32_t( i ), devDocuments[i] ) )
+			return false;
+	}
+#endif
+	return true;
+}
+bool G_ReadEditorState( const stateReader_t &reader, bool apply ) {
+	editorSave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, editorSaveSchema, 0, &saved, &version ) || !ValidEditorState( saved ) )
+		return false;
+	char document[8192];
+	// Validate every document before publishing any source mapping or text.
+	for ( int i = 0; i < saved.count; ++i )
+		if ( !State_Find( reader, editorDocumentSchema, uint32_t( i ), document, &version ) || !ValidEditorDocument( document ) )
+			return false;
+#ifdef AFTERSHOCK_DEVTOOLS
+	if ( apply ) {
+		for ( int i = 0; i < saved.count; ++i ) {
+			if ( !State_Find( reader, editorDocumentSchema, uint32_t( i ), document, &version ) )
+				return false;
+			memcpy( devDocuments[i], document, sizeof( document ) );
+		}
+		memcpy( devSource, saved.sources, sizeof( devSource ) );
+		devDocumentCount = saved.count;
+		devComplete = saved.complete != 0;
+		// These two values exist only between capture and spawn in one command.
+		devCurrentSource = -1;
+		devSpawned = 0;
+	}
+#else
+	(void)apply; // Shipping builds validate and ignore development-only documents.
+#endif
+	return true;
+}
+#endif

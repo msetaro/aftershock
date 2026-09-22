@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define FILESYSTEM_PUBLIC_H
 
 #include "q_shared.h"
+#include "../platform/save_public.h"
 
 // Raw OS-path streams used by the existing filter and bot developer tools.
 // Keep stdio return values and encoding; qpaths continue to use FS_Read/FS_Write.
@@ -37,5 +38,9 @@ fsStdioOffset_t FS_OSTell( FILE *file );
 int FS_OSFlush( FILE *file );
 int FS_OSVPrintf( FILE *file, const char *format, va_list args );
 int QDECL FS_OSPrintf( FILE *file, const char *format, ... ) __attribute__( ( format( printf, 2, 3 ) ) );
+
+// Platform save backend: loose files in the active game's user directory only.
+int FS_ReadSave( const char *path, void *data, int capacity );
+saveWriteResult_t FS_CreateSave( const char *path, const void *data, int size );
 
 #endif

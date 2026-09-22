@@ -172,3 +172,7 @@ int PC_FreeSourceHandle( int handle );
 int PC_ReadTokenHandle( int handle, pc_token_t *pc_token );
 int PC_SourceFileAndLine( int handle, char *filename, int *line );
 void PC_CheckOpenSourceHandles( void );
+
+#include "../public/state_public.h"
+bool PC_WriteState( stateWriter_t *writer );
+bool PC_ReadState( const stateReader_t &reader, bool apply );

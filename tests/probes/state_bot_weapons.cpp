@@ -1,0 +1,57 @@
+#include "../../engine/botlib/be_ai_weap.cpp"
+#include <assert.h>
+botlib_import_t botimport;
+int main() {
+	weaponinfo_t infos[3]{};
+	infos[1].valid = infos[2].valid = 1;
+	infos[1].number = 1;
+	infos[2].number = 2;
+	strcpy( infos[1].name, "first" );
+	strcpy( infos[2].name, "second" );
+	weaponconfig_t content{ 3, 0, nullptr, infos };
+	weaponconfig = &content;
+	fuzzyseperator_t nodes[2] = { { 0, 10, WT_BALANCE, 5.25f, 1, 10, nullptr, nullptr }, { 0, 10, WT_BALANCE, 8.5f, 1, 10, nullptr, nullptr } };
+	fuzzyseperator_t copied[2];
+	memcpy( copied, nodes, sizeof( nodes ) );
+	char first[] = "first", second[] = "second";
+	weightconfig_t weights{};
+	weights.numweights = 2;
+	weights.weights[0] = { first, &nodes[0] };
+	weights.weights[1] = { second, &nodes[1] };
+	strcpy( weights.filename, "bots/checkpoint_w.c" );
+	auto newWeights = weights;
+	newWeights.weights[0].firstseperator = &copied[0];
+	newWeights.weights[1].firstseperator = &copied[1];
+	int indices[3] = { -1, 0, 1 }, newIndices[3] = { -1, 0, 1 };
+	bot_weaponstate_t original{ &weights, indices }, restored{ &newWeights, newIndices };
+	botweaponstates[7] = &original;
+	int inventory[1] = { 3 };
+	const int expected = BotChooseBestFightWeapon( 7, inventory );
+	assert(expected==2);
+	static unsigned char bytes[16384];
+	stateWriter_t writer{ bytes, sizeof( bytes ) };
+	assert(Bot_WriteWeaponState(&writer));
+	stateReader_t reader;
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	botweaponstates[7] = &restored;
+	copied[1].weight = 1;
+	assert(BotChooseBestFightWeapon(7,inventory)==1);
+	assert(Bot_ReadWeaponState(reader,false) && copied[1].weight==1);
+	assert(Bot_ReadWeaponState(reader,true));
+	assert(BotChooseBestFightWeapon(7,inventory)==expected);
+	infos[2].ammoamount = 3;
+	assert(!Bot_ReadWeaponState(reader,true));
+	infos[2].ammoamount = 0;
+	newIndices[2] = 0;
+	assert(!Bot_ReadWeaponState(reader,true));
+	newIndices[2] = 1;
+	weaponPoolSave_t pool;
+	uint32_t version;
+	assert(State_Find(reader,weaponPoolSchema,0,&pool,&version));
+	writer = { bytes, sizeof( bytes ) };
+	assert(State_Append(&writer,weaponPoolSchema,0,&pool));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	copied[1].weight = 123;
+	assert(!Bot_ReadWeaponState(reader,true) && copied[1].weight==123);
+	puts( "PASS: bot weapon bindings restore private weights against exact weapon/projectile and index identity" );
+}

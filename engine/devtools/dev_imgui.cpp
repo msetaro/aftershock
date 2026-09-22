@@ -1121,6 +1121,40 @@ bool DevTools_SetWorld( bool collision, bool navigation, bool entitiesVisible, f
 	return true;
 }
 
+bool DevTools_CaptureWorkspace( devWorkspace_t *workspace ) {
+	Q_strncpyz( workspace->panel, activePanel[0] ? activePanel : "Console", sizeof( workspace->panel ) );
+	Q_strncpyz( workspace->cvar, selectedCvar, sizeof( workspace->cvar ) );
+	memcpy( workspace->filters, filters, sizeof( filters ) );
+	workspace->enabled = enabled && enabled->integer ? 1U : 0U;
+	workspace->collision = worldDebug.collision ? 1U : 0U;
+	workspace->navigation = worldDebug.navigation ? 1U : 0U;
+	workspace->entities = worldDebug.entities ? 1U : 0U;
+	workspace->radius = worldDebug.radius;
+	if ( context ) {
+		ImGui::SetCurrentContext( context );
+		size_t size;
+		const char *layout = ImGui::SaveIniSettingsToMemory( &size );
+		if ( size >= sizeof( workspace->layout ) )
+			return false;
+		memcpy( workspace->layout, layout, size + 1 );
+	}
+	return true;
+}
+void DevTools_RestoreWorkspace( const devWorkspace_t &workspace ) {
+	if ( !DevTools_SelectPanel( workspace.panel ) )
+		DevTools_SelectPanel( "Console" );
+	selectedCvar[0] = cvarValue[0] = 0;
+	if ( workspace.cvar[0] )
+		DevTools_SelectCvar( workspace.cvar );
+	memcpy( filters, workspace.filters, sizeof( filters ) );
+	DevTools_SetWorld( workspace.collision != 0, workspace.navigation != 0, workspace.entities != 0, workspace.radius );
+	Cvar_Set( "dev_tools", workspace.enabled ? "1" : "0" );
+	if ( context && workspace.layout[0] ) {
+		ImGui::SetCurrentContext( context );
+		ImGui::LoadIniSettingsFromMemory( workspace.layout );
+	}
+}
+
 void DevTools_EditorState( devEditorState_t *state ) {
 	*state = {};
 	Q_strncpyz( state->panel, activePanel, sizeof( state->panel ) );

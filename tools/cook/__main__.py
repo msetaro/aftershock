@@ -46,7 +46,8 @@ def tool_hash():
     paths.extend(p for p in (ROOT / 'third_party/meshoptimizer').rglob('*') if p.is_file())
     paths.extend(ROOT / path for path in ('cmake/Sources.cmake', 'tools/shaders/build.py', 'engine/renderervk/shaders/manifest.json', 'tools/agent/formats.py'))
     paths.extend(p for p in (ROOT / 'third_party/recast').rglob('*') if p.is_file())
-    paths.extend(ROOT / 'engine/qcommon' / name for name in ('cm_load.cpp','cm_patch.cpp','cm_physics.cpp','cm_polylib.cpp','cm_test.cpp','q_math.cpp','q_shared.cpp','md4.cpp'))
+    paths.extend(ROOT / 'engine/qcommon' / name for name in ('cm_load.cpp','cm_patch.cpp','cm_physics.cpp','cm_polylib.cpp','cm_test.cpp','q_math.cpp','q_shared.cpp','md4.cpp','state.cpp'))
+    paths.extend(ROOT / path for path in ('engine/public/state_public.h','third_party/sha256/sha-256.c','third_party/sha256/sha-256.h'))
     for codec in ('libogg', 'libvorbis'):
         paths.extend(p for p in (ROOT / 'third_party' / codec).rglob('*') if p.suffix in ('.c', '.h'))
     return digest(b''.join(str(p.relative_to(ROOT)).encode() + b'\0' + p.read_bytes() for p in sorted(paths)))

@@ -42,6 +42,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_aas_def.h"
+#include <cmath>
 
 #define MASK_SOLID		CONTENTS_PLAYERCLIP
 
@@ -422,3 +423,89 @@ int AAS_NextEntity( int entnum ) {
 	} //end while
 	return 0;
 } //end of the function AAS_NextEntity
+
+static constexpr stateField_t aasEntityFields[] = {
+	{ "valid", offsetof( aas_entityinfo_t, valid ), 1, stateType_t::Int32 },
+	{ "type", offsetof( aas_entityinfo_t, type ), 1, stateType_t::Int32 },
+	{ "flags", offsetof( aas_entityinfo_t, flags ), 1, stateType_t::Int32 },
+	{ "ltime", offsetof( aas_entityinfo_t, ltime ), 1, stateType_t::Float32 },
+	{ "update_time", offsetof( aas_entityinfo_t, update_time ), 1, stateType_t::Float32 },
+	{ "number", offsetof( aas_entityinfo_t, number ), 1, stateType_t::Int32 },
+	{ "origin", offsetof( aas_entityinfo_t, origin ), 3, stateType_t::Float32 },
+	{ "angles", offsetof( aas_entityinfo_t, angles ), 3, stateType_t::Float32 },
+	{ "old_origin", offsetof( aas_entityinfo_t, old_origin ), 3, stateType_t::Float32 },
+	{ "lastvisorigin", offsetof( aas_entityinfo_t, lastvisorigin ), 3, stateType_t::Float32 },
+	{ "mins", offsetof( aas_entityinfo_t, mins ), 3, stateType_t::Float32 },
+	{ "maxs", offsetof( aas_entityinfo_t, maxs ), 3, stateType_t::Float32 },
+	{ "groundent", offsetof( aas_entityinfo_t, groundent ), 1, stateType_t::Int32 },
+	{ "solid", offsetof( aas_entityinfo_t, solid ), 1, stateType_t::Int32 },
+	{ "modelindex", offsetof( aas_entityinfo_t, modelindex ), 1, stateType_t::Int32 },
+	{ "modelindex2", offsetof( aas_entityinfo_t, modelindex2 ), 1, stateType_t::Int32 },
+	{ "frame", offsetof( aas_entityinfo_t, frame ), 1, stateType_t::Int32 },
+	{ "event", offsetof( aas_entityinfo_t, event ), 1, stateType_t::Int32 },
+	{ "eventParm", offsetof( aas_entityinfo_t, eventParm ), 1, stateType_t::Int32 },
+	{ "powerups", offsetof( aas_entityinfo_t, powerups ), 1, stateType_t::Int32 },
+	{ "weapon", offsetof( aas_entityinfo_t, weapon ), 1, stateType_t::Int32 },
+	{ "legsAnim", offsetof( aas_entityinfo_t, legsAnim ), 1, stateType_t::Int32 },
+	{ "torsoAnim", offsetof( aas_entityinfo_t, torsoAnim ), 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t aasEntitySchema = { "botlib.aasEntity", 1, 1, sizeof( aas_entityinfo_t ), aasEntityFields, sizeof( aasEntityFields ) / sizeof( *aasEntityFields ) };
+static constexpr stateField_t aasEntityCountField = { "count", 0, 1, stateType_t::Int32 };
+static constexpr stateSchema_t aasEntityCountSchema = { "botlib.aasEntities", 1, 1, sizeof( int32_t ), &aasEntityCountField, 1 };
+static bool ValidAASEntity( const aas_entityinfo_t &entity, int slot ) {
+	if ( entity.valid < 0 || entity.valid > 1 || ( entity.valid && entity.number != slot ) || entity.groundent < -1 || entity.groundent >= MAX_GENTITIES ||
+		 entity.solid < SOLID_NOT || entity.solid > SOLID_BSP || entity.modelindex < 0 || entity.modelindex >= MAX_MODELS ||
+		 entity.modelindex2 < 0 || entity.modelindex2 >= MAX_MODELS )
+		return false;
+	for ( const auto &field : aasEntityFields )
+		if ( field.type == stateType_t::Float32 ) {
+			const auto *values = reinterpret_cast<const unsigned char *>( &entity ) + field.offset;
+			for ( uint32_t i = 0; i < field.count; ++i ) {
+				float value;
+				memcpy( &value, values + i * sizeof( float ), sizeof( value ) );
+				if ( !std::isfinite( value ) )
+					return false;
+			}
+		}
+	for ( int i = 0; i < 3; ++i )
+		if ( entity.mins[i] > entity.maxs[i] )
+			return false;
+	return true;
+}
+bool AAS_WriteEntityState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	const int32_t count = aasworld.entities ? aasworld.maxentities : 0;
+	if ( count < 0 || count > MAX_GENTITIES ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, aasEntityCountSchema, 0, &count ) )
+		return false;
+	for ( int i = 0; i < count; ++i ) {
+		// The Quake 3 BSP adapter returns no leaf links. Spatial AAS links are owned
+		// by AAS_WriteLinkState, independently of whether this frame marked i valid.
+		if ( aasworld.entities[i].leaves || !ValidAASEntity( aasworld.entities[i].i, i ) ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( !State_Append( writer, aasEntitySchema, uint32_t( i ), &aasworld.entities[i].i ) )
+			return false;
+	}
+	return true;
+}
+bool AAS_ReadEntityState( const stateReader_t &reader, bool apply ) {
+	int32_t count;
+	uint32_t version;
+	if ( !State_Find( reader, aasEntityCountSchema, 0, &count, &version ) || count < 0 || count > MAX_GENTITIES ||
+		 count != ( aasworld.entities ? aasworld.maxentities : 0 ) )
+		return false;
+	static aas_entityinfo_t saved[MAX_GENTITIES];
+	for ( int i = 0; i < count; ++i )
+		if ( aasworld.entities[i].leaves || !State_Find( reader, aasEntitySchema, uint32_t( i ), &saved[i], &version ) || !ValidAASEntity( saved[i], i ) )
+			return false;
+	if ( apply )
+		for ( int i = 0; i < count; ++i )
+			aasworld.entities[i].i = saved[i];
+	return true;
+}

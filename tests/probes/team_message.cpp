@@ -1,3 +1,4 @@
+#include <cmath>
 #include <stdio.h>
 #include <stdarg.h>
 [[maybe_unused]] static int TestVsprintf( char *, const char *, va_list );
@@ -10,6 +11,36 @@
 #include <assert.h>
 
 gentity_t g_entities[MAX_GENTITIES];
+// ASan retains the new callback identity table; these unrelated paths must not run.
+vmCvar_t g_gametype;
+#ifdef MISSIONPACK
+level_locals_t level;
+vmCvar_t g_obeliskHealth, g_obeliskRegenPeriod, g_obeliskRegenAmount;
+void G_AddEvent( gentity_t *, int, int ) {
+	abort();
+}
+void AddScore( gentity_t *, vec3_t, int ) {
+	abort();
+}
+#endif
+void trap_SetConfigstring( int, const char * ) {
+	abort();
+}
+gentity_t *G_Find( gentity_t *, int, const char * ) {
+	abort();
+}
+void G_FreeEntity( gentity_t * ) {
+	abort();
+}
+void RespawnItem( gentity_t * ) {
+	abort();
+}
+gentity_t *G_TempEntity( vec3_t, int ) {
+	abort();
+}
+void QDECL G_Printf( const char *, ... ) {
+	abort();
+}
 static const char *mode;
 static int sent;
 

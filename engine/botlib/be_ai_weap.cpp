@@ -44,6 +44,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_interface.h"
 #include "be_ai_weight.h" //fuzzy weights
 #include "be_ai_weap.h"
+#include "../../third_party/sha256/sha-256.h"
 
 //#define DEBUG_AI_WEAP
 
@@ -483,3 +484,148 @@ void BotShutdownWeaponAI( void ) {
 		} //end if
 	} //end for
 } //end of the function BotShutdownWeaponAI
+
+struct weaponPoolSave_t {
+	uint32_t present[MAX_CLIENTS + 1], indices[MAX_CLIENTS + 1], config;
+	int32_t cachedWeights[MAX_CLIENTS + 1], weapons, projectiles;
+	uint8_t contentHash[32], indexHash[MAX_CLIENTS + 1][32];
+};
+static_assert( sizeof( weaponPoolSave_t ) == 2904 );
+static constexpr stateField_t weaponPoolFields[] = {
+	{ "present", offsetof( weaponPoolSave_t, present ), MAX_CLIENTS + 1, stateType_t::UInt32 },
+	{ "indices", offsetof( weaponPoolSave_t, indices ), MAX_CLIENTS + 1, stateType_t::UInt32 },
+	{ "config", offsetof( weaponPoolSave_t, config ), 1, stateType_t::UInt32 },
+	{ "cachedWeights", offsetof( weaponPoolSave_t, cachedWeights ), MAX_CLIENTS + 1, stateType_t::Int32 },
+	{ "weapons", offsetof( weaponPoolSave_t, weapons ), 1, stateType_t::Int32 },
+	{ "projectiles", offsetof( weaponPoolSave_t, projectiles ), 1, stateType_t::Int32 },
+	{ "contentHash", offsetof( weaponPoolSave_t, contentHash ), 32, stateType_t::Bytes },
+	{ "indexHash", offsetof( weaponPoolSave_t, indexHash ), ( MAX_CLIENTS + 1 ) * 32, stateType_t::Bytes }
+};
+static constexpr stateSchema_t weaponPoolSchema = { "botlib.weaponPool", 1, 1, sizeof( weaponPoolSave_t ), weaponPoolFields, 8 };
+static bool WeaponPoolIdentity( weaponPoolSave_t *saved, bot_weaponstate_t *const *states = botweaponstates ) {
+	*saved = {};
+	for ( auto &index : saved->cachedWeights )
+		index = -1;
+	if ( states[0] )
+		return false;
+	saved->config = weaponconfig != nullptr;
+	if ( weaponconfig ) {
+		// These loaded descriptors have no pointers or padding on supported ABIs.
+		static_assert( sizeof( projectileinfo_t ) == 2 * MAX_STRINGFIELD + 12 * 4 );
+		static_assert( sizeof( weaponinfo_t ) == 3 * MAX_STRINGFIELD + 26 * 4 + sizeof( projectileinfo_t ) );
+		saved->weapons = weaponconfig->numweapons;
+		saved->projectiles = weaponconfig->numprojectiles;
+		if ( saved->weapons < 0 || saved->weapons > 4096 || saved->projectiles < 0 || saved->projectiles > 4096 ||
+			 ( saved->weapons && !weaponconfig->weaponinfo ) || ( saved->projectiles && !weaponconfig->projectileinfo ) )
+			return false;
+		Sha_256 hash;
+		sha_256_init( &hash, saved->contentHash );
+		const int32_t counts[] = { saved->weapons, saved->projectiles };
+		sha_256_write( &hash, counts, sizeof( counts ) );
+		if ( saved->weapons )
+			sha_256_write( &hash, weaponconfig->weaponinfo, size_t( saved->weapons ) * sizeof( weaponinfo_t ) );
+		if ( saved->projectiles )
+			sha_256_write( &hash, weaponconfig->projectileinfo, size_t( saved->projectiles ) * sizeof( projectileinfo_t ) );
+		sha_256_close( &hash );
+	}
+	for ( int i = 1; i <= MAX_CLIENTS; ++i ) {
+		const auto *weapon = states[i];
+		if ( !weapon )
+			continue;
+		saved->present[i] = 1;
+		saved->cachedWeights[i] = Bot_WeightCacheIndex( weapon->weaponweightconfig );
+		if ( saved->cachedWeights[i] == -2 )
+			for ( int j = 1; j < i; ++j )
+				if ( states[j] && states[j]->weaponweightconfig == weapon->weaponweightconfig )
+					return false;
+		saved->indices[i] = weapon->weaponweightindex != nullptr;
+		if ( weapon->weaponweightindex ) {
+			if ( !weaponconfig || !weapon->weaponweightconfig )
+				return false;
+			for ( int j = 0; j < saved->weapons; ++j )
+				if ( weapon->weaponweightindex[j] < -1 || weapon->weaponweightindex[j] >= weapon->weaponweightconfig->numweights )
+					return false;
+			calc_sha_256( saved->indexHash[i], weapon->weaponweightindex, size_t( saved->weapons ) * sizeof( int32_t ) );
+		}
+	}
+	return true;
+}
+bool Bot_WriteWeaponState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	weaponPoolSave_t pool;
+	if ( !WeaponPoolIdentity( &pool ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, weaponPoolSchema, 0, &pool ) )
+		return false;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+		if ( pool.present[i] && pool.cachedWeights[i] == -2 && !Bot_WriteWeightState( writer, 256 + i, botweaponstates[i]->weaponweightconfig ) )
+			return false;
+	return true;
+}
+bool Bot_ReadWeaponState( const stateReader_t &reader, bool apply ) {
+	weaponPoolSave_t pool, current;
+	uint32_t version;
+	if ( !State_Find( reader, weaponPoolSchema, 0, &pool, &version ) || !WeaponPoolIdentity( &current ) || memcmp( &pool, &current, sizeof( pool ) ) )
+		return false;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+		if ( pool.present[i] && pool.cachedWeights[i] == -2 && !Bot_ReadWeightState( reader, 256 + i, botweaponstates[i]->weaponweightconfig, false ) )
+			return false;
+	if ( apply )
+		for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+			if ( pool.present[i] && pool.cachedWeights[i] == -2 && !Bot_ReadWeightState( reader, 256 + i, botweaponstates[i]->weaponweightconfig, true ) )
+				return false;
+	return true;
+}
+
+bool Bot_PrepareWeaponState( const stateReader_t &reader ) {
+	for ( const auto *state : botweaponstates )
+		if ( state )
+			return false;
+	weaponPoolSave_t pool, loaded;
+	uint32_t version;
+	if ( !State_Find( reader, weaponPoolSchema, 0, &pool, &version ) || pool.present[0] )
+		return false;
+	bot_weaponstate_t *draft[MAX_CLIENTS + 1] = {};
+	bool valid = true;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS && valid; ++i ) {
+		if ( pool.present[i] > 1 || pool.indices[i] > 1 || pool.cachedWeights[i] < -2 || pool.cachedWeights[i] >= 128 ) {
+			valid = false;
+			break;
+		}
+		if ( !pool.present[i] )
+			continue;
+		auto *state = (bot_weaponstate_t *)GetClearedMemory( sizeof( bot_weaponstate_t ) );
+		draft[i] = state;
+		if ( pool.cachedWeights[i] == -2 )
+			valid = Bot_CreateWeightState( reader, 256 + i, &state->weaponweightconfig );
+		else if ( pool.cachedWeights[i] >= 0 ) {
+			state->weaponweightconfig = Bot_WeightCacheAt( pool.cachedWeights[i] );
+			valid = state->weaponweightconfig != nullptr;
+		}
+		if ( valid && pool.indices[i] ) {
+			valid = weaponconfig && state->weaponweightconfig;
+			if ( valid )
+				state->weaponweightindex = WeaponWeightIndex( state->weaponweightconfig, weaponconfig );
+		}
+	}
+	valid = valid && WeaponPoolIdentity( &loaded, draft ) && !memcmp( &pool, &loaded, sizeof( pool ) );
+	if ( !valid ) {
+		for ( auto *state : draft )
+			if ( state ) {
+				Bot_FreePrivateWeightState( state->weaponweightconfig );
+				if ( state->weaponweightindex )
+					FreeMemory( state->weaponweightindex );
+				FreeMemory( state );
+			}
+		return false;
+	}
+	memcpy( botweaponstates, draft, sizeof( draft ) );
+	return true;
+}
+
+bool Bot_HasWeaponState( int handle ) {
+	return handle > 0 && handle <= MAX_CLIENTS && botweaponstates[handle] != nullptr;
+}

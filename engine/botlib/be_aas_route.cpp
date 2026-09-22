@@ -44,6 +44,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_aas_def.h"
+#include "../../third_party/sha256/sha-256.h"
+#include <cmath>
 
 #define ROUTING_DEBUG
 
@@ -2142,3 +2144,368 @@ int AAS_NearestHideArea( int srcnum [[maybe_unused]], vec3_t origin, int areanum
 	} //end while
 	return bestarea;
 } //end of the function AAS_NearestHideArea
+
+// ponytail: command-only scans are quadratic at a 4,096-cache ceiling. Index the
+// pointers only if measured checkpoint latency warrants it; excess rejects.
+static constexpr uint32_t MAX_SAVED_ROUTE_CACHES = 4096;
+static constexpr uint32_t MAX_SAVED_ROUTE_TIMES = 65536;
+struct routeHeaderSave_t {
+	uint32_t count;
+	int32_t bytes, maxBytes, areaUpdates, portalUpdates;
+	uint8_t derived[32];
+};
+static constexpr stateField_t routeHeaderFields[] = {
+	{ "count", offsetof( routeHeaderSave_t, count ), 1, stateType_t::UInt32 },
+	{ "bytes", offsetof( routeHeaderSave_t, bytes ), 1, stateType_t::Int32 },
+	{ "maxBytes", offsetof( routeHeaderSave_t, maxBytes ), 1, stateType_t::Int32 },
+	{ "areaUpdates", offsetof( routeHeaderSave_t, areaUpdates ), 1, stateType_t::Int32 },
+	{ "portalUpdates", offsetof( routeHeaderSave_t, portalUpdates ), 1, stateType_t::Int32 },
+	{ "derived", offsetof( routeHeaderSave_t, derived ), 32, stateType_t::Bytes }
+};
+static constexpr stateSchema_t routeHeaderSchema = { "botlib.aasRouting", 1, 1, sizeof( routeHeaderSave_t ), routeHeaderFields, 6 };
+struct routeMetaSave_t {
+	uint32_t type, count;
+	float time, origin[3], starttraveltime;
+	int32_t cluster, areanum, travelflags, prev, next;
+};
+static constexpr stateField_t routeMetaFields[] = {
+	{ "type", offsetof( routeMetaSave_t, type ), 1, stateType_t::UInt32 },
+	{ "count", offsetof( routeMetaSave_t, count ), 1, stateType_t::UInt32 },
+	{ "time", offsetof( routeMetaSave_t, time ), 1, stateType_t::Float32 },
+	{ "origin", offsetof( routeMetaSave_t, origin ), 3, stateType_t::Float32 },
+	{ "starttraveltime", offsetof( routeMetaSave_t, starttraveltime ), 1, stateType_t::Float32 },
+	{ "cluster", offsetof( routeMetaSave_t, cluster ), 1, stateType_t::Int32 },
+	{ "areanum", offsetof( routeMetaSave_t, areanum ), 1, stateType_t::Int32 },
+	{ "travelflags", offsetof( routeMetaSave_t, travelflags ), 1, stateType_t::Int32 },
+	{ "prev", offsetof( routeMetaSave_t, prev ), 1, stateType_t::Int32 },
+	{ "next", offsetof( routeMetaSave_t, next ), 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t routeMetaSchema = { "botlib.aasRouteCache", 1, 1, sizeof( routeMetaSave_t ), routeMetaFields, 10 };
+struct routeCacheSave_t {
+	routeMetaSave_t meta;
+	uint32_t traveltimes[MAX_SAVED_ROUTE_TIMES];
+	uint8_t reachabilities[MAX_SAVED_ROUTE_TIMES];
+};
+static routeCacheSave_t savedRouteCache;
+static routeMetaSave_t savedRouteMeta[MAX_SAVED_ROUTE_CACHES];
+static aas_routingcache_t *savedRoutePointers[MAX_SAVED_ROUTE_CACHES];
+static bool RouteDerivedHash( uint8_t *digest ) {
+	if ( !aasworld.initialized || aasworld.numareas < 1 || aasworld.numareas > 65536 || aasworld.numclusters < 1 || aasworld.numclusters > 65536 ||
+		 aasworld.numportals < 0 || aasworld.numportals > 65536 || aasworld.reachabilitysize < 0 ||
+		 !aasworld.clusters || !aasworld.areasettings || !aasworld.clusterareacache || !aasworld.portalcache ||
+		 !aasworld.areacontentstravelflags || !aasworld.reversedreachability || !aasworld.areatraveltimes ||
+		 ( aasworld.numportals && !aasworld.portalmaxtraveltimes ) ||
+		 ( aasworld.reachabilitysize && ( !aasworld.reachabilityareas || !aasworld.reachabilityareaindex ) ) )
+		return false;
+	Sha_256 hash;
+	sha_256_init( &hash, digest );
+	const int32_t dimensions[] = { aasworld.numareas, aasworld.numclusters, aasworld.numportals, aasworld.reachabilitysize };
+	sha_256_write( &hash, dimensions, sizeof( dimensions ) );
+	sha_256_write( &hash, aasworld.travelflagfortype, sizeof( aasworld.travelflagfortype ) );
+	sha_256_write( &hash, aasworld.areacontentstravelflags, size_t( aasworld.numareas ) * sizeof( int32_t ) );
+	if ( aasworld.numportals )
+		sha_256_write( &hash, aasworld.portalmaxtraveltimes, size_t( aasworld.numportals ) * sizeof( int32_t ) );
+	int maxUpdates = 0;
+	for ( int cluster = 0; cluster < aasworld.numclusters; ++cluster ) {
+		const auto &data = aasworld.clusters[cluster];
+		if ( data.numareas < 0 || data.numareas > 65536 || data.numreachabilityareas < 0 || data.numreachabilityareas > data.numareas || !aasworld.clusterareacache[cluster] )
+			return false;
+		if ( maxUpdates < data.numreachabilityareas )
+			maxUpdates = data.numreachabilityareas;
+	}
+	if ( ( maxUpdates && !aasworld.areaupdate ) || !aasworld.portalupdate )
+		return false;
+	// Routing updates finish synchronously; only inlist can affect the next query.
+	// All other update fields (including old stack pointers) are overwritten first.
+	for ( int i = 0; i < maxUpdates; ++i )
+		if ( aasworld.areaupdate[i].inlist )
+			return false;
+	for ( int i = 0; i <= aasworld.numportals; ++i )
+		if ( aasworld.portalupdate[i].inlist )
+			return false;
+	for ( int area = 0; area < aasworld.numareas; ++area ) {
+		const auto &reverse = aasworld.reversedreachability[area];
+		const auto &settings = aasworld.areasettings[area];
+		if ( reverse.numlinks < 0 || reverse.numlinks > aasworld.reachabilitysize || settings.numreachableareas < 0 || settings.numreachableareas > 128 ||
+			 ( settings.numreachableareas && !aasworld.areatraveltimes[area] ) )
+			return false;
+		sha_256_write( &hash, &reverse.numlinks, sizeof( reverse.numlinks ) );
+		const auto *link = reverse.first;
+		for ( int i = 0; i < reverse.numlinks; ++i ) {
+			if ( !link || link->areanum < 0 || link->areanum >= aasworld.numareas || link->linknum < 0 || link->linknum >= aasworld.reachabilitysize )
+				return false;
+			const int32_t fields[] = { link->areanum, link->linknum };
+			sha_256_write( &hash, fields, sizeof( fields ) );
+			link = link->next;
+		}
+		if ( link )
+			return false;
+		sha_256_write( &hash, &settings.numreachableareas, sizeof( settings.numreachableareas ) );
+		for ( int i = 0; i < settings.numreachableareas; ++i ) {
+			if ( reverse.numlinks && !aasworld.areatraveltimes[area][i] )
+				return false;
+			if ( reverse.numlinks )
+				sha_256_write( &hash, aasworld.areatraveltimes[area][i], size_t( reverse.numlinks ) * sizeof( uint16_t ) );
+		}
+	}
+	int64_t nextArea = 0;
+	for ( int i = 0; i < aasworld.reachabilitysize; ++i ) {
+		const auto &areas = aasworld.reachabilityareas[i];
+		if ( areas.firstarea != nextArea || areas.numareas < 0 || areas.numareas > MAX_REACHABILITYPASSAREAS )
+			return false;
+		sha_256_write( &hash, &areas.numareas, sizeof( areas.numareas ) );
+		for ( int j = 0; j < areas.numareas; ++j ) {
+			const int32_t area = aasworld.reachabilityareaindex[nextArea + j];
+			if ( area < 0 || area >= aasworld.numareas )
+				return false;
+			sha_256_write( &hash, &area, sizeof( area ) );
+		}
+		nextArea += areas.numareas;
+	}
+	sha_256_close( &hash );
+	return true;
+}
+static int RouteCacheSlot( const aas_routingcache_t *cache, uint32_t count ) {
+	if ( !cache )
+		return -1;
+	for ( uint32_t i = 0; i < count; ++i )
+		if ( savedRoutePointers[i] == cache )
+			return int( i );
+	return -2;
+}
+static int RouteCacheBucket( const routeMetaSave_t &cache ) {
+	if ( cache.type > CACHETYPE_AREA || cache.cluster < 0 || cache.cluster >= aasworld.numclusters || cache.areanum <= 0 || cache.areanum >= aasworld.numareas ||
+		 !std::isfinite( cache.time ) || !std::isfinite( cache.starttraveltime ) || cache.starttraveltime < 0 || cache.starttraveltime > UINT16_MAX )
+		return -1;
+	for ( float value : cache.origin )
+		if ( !std::isfinite( value ) )
+			return -1;
+	const uint32_t count = uint32_t( cache.type == CACHETYPE_AREA ? aasworld.clusters[cache.cluster].numreachabilityareas : aasworld.numportals );
+	if ( cache.count != count || count > MAX_SAVED_ROUTE_TIMES )
+		return -1;
+	if ( cache.type == CACHETYPE_PORTAL )
+		return cache.areanum;
+	const int cluster = aasworld.areasettings[cache.areanum].cluster;
+	if ( cluster > 0 && cluster != cache.cluster )
+		return -1;
+	if ( cluster <= 0 ) {
+		if ( cluster == INT32_MIN || -cluster >= aasworld.numportals || !aasworld.portals )
+			return -1;
+		const auto &portal = aasworld.portals[-cluster];
+		if ( portal.frontcluster != cache.cluster && portal.backcluster != cache.cluster )
+			return -1;
+	}
+	const int bucket = AAS_ClusterAreaNum( cache.cluster, cache.areanum );
+	return bucket >= 0 && bucket < aasworld.clusters[cache.cluster].numareas ? bucket : -1;
+}
+static bool RouteSameBucket( const routeMetaSave_t &left, const routeMetaSave_t &right ) {
+	return left.type == right.type && ( left.type != CACHETYPE_AREA || left.cluster == right.cluster ) && RouteCacheBucket( left ) == RouteCacheBucket( right );
+}
+static bool ValidRouteGraph( const routeHeaderSave_t &header ) {
+	uint8_t seen[MAX_SAVED_ROUTE_CACHES]{};
+	int64_t bytes = 0;
+	for ( uint32_t i = 0; i < header.count; ++i ) {
+		const auto &cache = savedRouteMeta[i];
+		if ( RouteCacheBucket( cache ) < 0 || cache.prev < -1 || cache.prev >= int32_t( header.count ) || cache.next < -1 || cache.next >= int32_t( header.count ) )
+			return false;
+		bytes += sizeof( aas_routingcache_t ) + cache.count * 3;
+	}
+	if ( bytes != header.bytes )
+		return false;
+	for ( uint32_t i = 0; i < header.count; ++i )
+		if ( savedRouteMeta[i].prev == -1 ) {
+			for ( uint32_t j = 0; j < i; ++j )
+				if ( savedRouteMeta[j].prev == -1 && RouteSameBucket( savedRouteMeta[i], savedRouteMeta[j] ) )
+					return false;
+			int previous = -1;
+			for ( int slot = int( i ); slot != -1; slot = savedRouteMeta[slot].next ) {
+				if ( seen[slot] || savedRouteMeta[slot].prev != previous || !RouteSameBucket( savedRouteMeta[i], savedRouteMeta[slot] ) )
+					return false;
+				seen[slot] = 1;
+				previous = slot;
+			}
+		}
+	for ( uint32_t i = 0; i < header.count; ++i )
+		if ( !seen[i] )
+			return false;
+	return true;
+}
+static bool RouteCacheRecord( stateWriter_t *writer, const stateReader_t *reader, uint32_t slot, aas_routingcache_t *cache, bool apply ) {
+	auto &saved = savedRouteCache;
+	saved.meta = savedRouteMeta[slot];
+	stateField_t fields[12];
+	memcpy( fields, routeMetaFields, sizeof( routeMetaFields ) );
+	uint32_t fieldCount = 10;
+	if ( saved.meta.count ) {
+		fields[fieldCount++] = { "traveltimes", offsetof( routeCacheSave_t, traveltimes ), saved.meta.count, stateType_t::UInt32 };
+		fields[fieldCount++] = { "reachabilities", offsetof( routeCacheSave_t, reachabilities ), saved.meta.count, stateType_t::Bytes };
+	}
+	const stateSchema_t schema = { "botlib.aasRouteCache", 1, 1, sizeof( saved ), fields, fieldCount };
+	if ( writer ) {
+		if ( cache->size != int( sizeof( *cache ) + saved.meta.count * 3 ) || cache->reachabilities != reinterpret_cast<uint8_t *>( cache ) + sizeof( *cache ) + saved.meta.count * 2 )
+			return false;
+		for ( uint32_t i = 0; i < saved.meta.count; ++i )
+			saved.traveltimes[i] = cache->traveltimes[i];
+		if ( saved.meta.count )
+			memcpy( saved.reachabilities, cache->reachabilities, saved.meta.count );
+	} else {
+		uint32_t version;
+		if ( !State_Find( *reader, schema, slot, &saved, &version ) )
+			return false;
+	}
+	for ( uint32_t i = 0; i < saved.meta.count; ++i )
+		if ( saved.traveltimes[i] > UINT16_MAX )
+			return false;
+	if ( saved.meta.type == CACHETYPE_AREA )
+		for ( int area = 1; area < aasworld.numareas; ++area ) {
+			const auto &settings = aasworld.areasettings[area];
+			if ( settings.cluster == 0 || ( settings.cluster > 0 && settings.cluster != saved.meta.cluster ) )
+				continue;
+			if ( settings.cluster <= 0 ) {
+				if ( settings.cluster == INT32_MIN || -settings.cluster >= aasworld.numportals || !aasworld.portals )
+					return false;
+				const auto &portal = aasworld.portals[-settings.cluster];
+				if ( portal.frontcluster != saved.meta.cluster && portal.backcluster != saved.meta.cluster )
+					continue;
+			}
+			const int index = AAS_ClusterAreaNum( saved.meta.cluster, area );
+			if ( index >= 0 && uint32_t( index ) < saved.meta.count && saved.traveltimes[index] && settings.numreachableareas > 0 && saved.reachabilities[index] >= settings.numreachableareas )
+				return false;
+		}
+	if ( writer )
+		return State_Append( writer, schema, slot, &saved );
+	if ( apply ) {
+		cache->type = uint8_t( saved.meta.type );
+		cache->time = saved.meta.time;
+		cache->cluster = saved.meta.cluster;
+		cache->areanum = saved.meta.areanum;
+		memcpy( cache->origin, saved.meta.origin, sizeof( cache->origin ) );
+		cache->starttraveltime = saved.meta.starttraveltime;
+		cache->travelflags = saved.meta.travelflags;
+		for ( uint32_t i = 0; i < saved.meta.count; ++i )
+			cache->traveltimes[i] = uint16_t( saved.traveltimes[i] );
+		if ( saved.meta.count )
+			memcpy( cache->reachabilities, saved.reachabilities, saved.meta.count );
+	}
+	return true;
+}
+static bool CaptureRouteGraph( routeHeaderSave_t *header ) {
+	header->count = 0;
+	for ( auto *cache = aasworld.oldestcache; cache; cache = cache->time_next ) {
+		if ( header->count == MAX_SAVED_ROUTE_CACHES || cache->time_prev != ( header->count ? savedRoutePointers[header->count - 1] : nullptr ) )
+			return false;
+		savedRoutePointers[header->count++] = cache;
+	}
+	if ( aasworld.newestcache != ( header->count ? savedRoutePointers[header->count - 1] : nullptr ) )
+		return false;
+	for ( uint32_t i = 0; i < header->count; ++i ) {
+		const auto &cache = *savedRoutePointers[i];
+		auto &saved = savedRouteMeta[i];
+		saved = {};
+		saved.type = cache.type;
+		saved.time = cache.time;
+		saved.cluster = cache.cluster;
+		saved.areanum = cache.areanum;
+		memcpy( saved.origin, cache.origin, sizeof( saved.origin ) );
+		saved.starttraveltime = cache.starttraveltime;
+		saved.travelflags = cache.travelflags;
+		saved.prev = RouteCacheSlot( cache.prev, header->count );
+		saved.next = RouteCacheSlot( cache.next, header->count );
+		if ( cache.cluster < 0 || cache.cluster >= aasworld.numclusters )
+			return false;
+		saved.count = uint32_t( cache.type == CACHETYPE_AREA ? aasworld.clusters[cache.cluster].numreachabilityareas : aasworld.numportals );
+	}
+	if ( !ValidRouteGraph( *header ) )
+		return false;
+	uint32_t heads = 0;
+	for ( int cluster = 0; cluster < aasworld.numclusters; ++cluster )
+		for ( int area = 0; area < aasworld.clusters[cluster].numareas; ++area ) {
+			const auto *cache = aasworld.clusterareacache[cluster][area];
+			if ( !cache )
+				continue;
+			const int slot = RouteCacheSlot( cache, header->count );
+			if ( slot < 0 || savedRouteMeta[slot].prev != -1 || cache->type != CACHETYPE_AREA || cache->cluster != cluster || RouteCacheBucket( savedRouteMeta[slot] ) != area )
+				return false;
+			++heads;
+		}
+	for ( int area = 0; area < aasworld.numareas; ++area ) {
+		const auto *cache = aasworld.portalcache[area];
+		if ( !cache )
+			continue;
+		const int slot = RouteCacheSlot( cache, header->count );
+		if ( slot < 0 || savedRouteMeta[slot].prev != -1 || cache->type != CACHETYPE_PORTAL || cache->areanum != area )
+			return false;
+		++heads;
+	}
+	for ( uint32_t i = 0; i < header->count; ++i )
+		if ( savedRouteMeta[i].prev == -1 )
+			--heads;
+	return heads == 0;
+}
+bool AAS_WriteRoutingState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	routeHeaderSave_t header{ 0, routingcachesize, max_routingcachesize, numareacacheupdates, numportalcacheupdates, {} };
+	if ( header.bytes < 0 || header.bytes > 256 * 1024 * 1024 || header.maxBytes < 0 || header.maxBytes > 64 * 1024 * 1024 ||
+		 header.areaUpdates < 0 || header.portalUpdates < 0 || !RouteDerivedHash( header.derived ) || !CaptureRouteGraph( &header ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, routeHeaderSchema, 0, &header ) )
+		return false;
+	for ( uint32_t i = 0; i < header.count; ++i )
+		if ( !RouteCacheRecord( writer, nullptr, i, savedRoutePointers[i], false ) ) {
+			writer->failed = true;
+			return false;
+		}
+	return true;
+}
+bool AAS_ReadRoutingState( const stateReader_t &reader, bool apply ) {
+	routeHeaderSave_t header;
+	uint32_t version;
+	uint8_t derived[32];
+	if ( !State_Find( reader, routeHeaderSchema, 0, &header, &version ) || header.count > MAX_SAVED_ROUTE_CACHES || header.bytes < 0 || header.bytes > 256 * 1024 * 1024 ||
+		 header.maxBytes < 0 || header.maxBytes > 64 * 1024 * 1024 || header.areaUpdates < 0 || header.portalUpdates < 0 ||
+		 !RouteDerivedHash( derived ) || memcmp( derived, header.derived, sizeof( derived ) ) )
+		return false;
+	for ( uint32_t i = 0; i < header.count; ++i )
+		if ( !State_Find( reader, routeMetaSchema, i, &savedRouteMeta[i], &version ) )
+			return false;
+	if ( !ValidRouteGraph( header ) )
+		return false;
+	for ( uint32_t i = 0; i < header.count; ++i )
+		if ( !RouteCacheRecord( nullptr, &reader, i, nullptr, false ) )
+			return false;
+	if ( apply ) {
+		// Fully validated immutable archive; replace only caches, retaining rebuilt
+		// routing geometry and scratch storage. Time-list slot order is oldest first.
+		while ( aasworld.oldestcache )
+			AAS_FreeRoutingCache( aasworld.oldestcache );
+		routingcachesize = 0;
+		for ( int cluster = 0; cluster < aasworld.numclusters; ++cluster )
+			memset( aasworld.clusterareacache[cluster], 0, size_t( aasworld.clusters[cluster].numareas ) * sizeof( aas_routingcache_t * ) );
+		memset( aasworld.portalcache, 0, size_t( aasworld.numareas ) * sizeof( aas_routingcache_t * ) );
+		for ( uint32_t i = 0; i < header.count; ++i ) {
+			auto *cache = savedRoutePointers[i] = AAS_AllocRoutingCache( int( savedRouteMeta[i].count ) );
+			if ( !RouteCacheRecord( nullptr, &reader, i, cache, true ) )
+				return false;
+			AAS_LinkCache( cache );
+		}
+		for ( uint32_t i = 0; i < header.count; ++i ) {
+			auto *cache = savedRoutePointers[i];
+			const auto &saved = savedRouteMeta[i];
+			cache->prev = saved.prev < 0 ? nullptr : savedRoutePointers[saved.prev];
+			cache->next = saved.next < 0 ? nullptr : savedRoutePointers[saved.next];
+			if ( saved.prev < 0 ) {
+				if ( saved.type == CACHETYPE_AREA )
+					aasworld.clusterareacache[saved.cluster][RouteCacheBucket( saved )] = cache;
+				else
+					aasworld.portalcache[saved.areanum] = cache;
+			}
+		}
+		max_routingcachesize = header.maxBytes;
+		numareacacheupdates = header.areaUpdates;
+		numportalcacheupdates = header.portalUpdates;
+	}
+	return true;
+}

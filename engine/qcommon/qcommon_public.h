@@ -563,6 +563,20 @@ qboolean Cvar_Command( void );
 // command.  Returns true if the command was a variable reference that
 // was handled. (print or change)
 
+struct stateWriter_t;
+struct stateReader_t;
+// Checkpoint coordinator validates every owner-selected record and registry
+// capacity before applying, then restores group/global notification bookkeeping.
+bool Cvar_WriteState( stateWriter_t *writer, const char *group, uint32_t slot, const char *name );
+// Runs trusted read-only owner validators and counts distinct missing names.
+bool Cvar_CheckStateCapacity( const stateReader_t &reader, bool ( *validate )( const stateReader_t & ) );
+bool Cvar_ReadState( const stateReader_t &reader, const char *group, uint32_t slot, const char *name, bool apply, bool prepare = false, bool removable = false );
+bool Cvar_WriteServerState( stateWriter_t *writer );
+bool Cvar_ReadServerState( const stateReader_t &reader, bool apply );
+const cvar_t *Cvar_First( void );
+int Cvar_Capacity( void );
+qboolean Cvar_ValidateName( const char *name );
+void Com_InitProfileCommands();
 void Cvar_WriteVariables( fileHandle_t f );
 // writes lines containing "set variable value" for all variables
 // with the archive flag set to true.
@@ -1131,6 +1145,9 @@ void CL_PacketEvent( const netadr_t *from, msg_t *msg );
 void CL_ConsolePrint( const char *text );
 
 qboolean CL_MapLoading( void );
+bool CL_CheckpointReady();
+bool CL_WriteCheckpoint( stateWriter_t *writer );
+bool CL_ReadCheckpoint( const stateReader_t &reader, bool apply, bool paused );
 // do a screen update before starting to load a map
 // when the server is going to load a new map, the entire hunk
 // will be cleared, so the client must shutdown cgame, ui, and
@@ -1341,7 +1358,6 @@ int HuffmanGetSymbol( unsigned int *symbol, const byte *buffer, int bitIndex );
 #ifdef AFTERSHOCK_DEVTOOLS
 void Z_InitDevMemory( void );
 size_t Z_DevMemoryUsed( void );
-const cvar_t *Cvar_First( void );
 #endif
 
 #endif // _QCOMMON_H_

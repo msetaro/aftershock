@@ -40,6 +40,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_aas_def.h"
+#include <cmath>
 
 extern botlib_import_t botimport;
 
@@ -1036,3 +1037,72 @@ int AAS_HorizontalVelocityForJump( float zvel, vec3_t start, vec3_t end, float *
 	} //end if
 	return 1;
 } //end of the function AAS_HorizontalVelocityForJump
+
+static constexpr stateField_t aasSettingsFields[] = {
+	{ "phys_gravitydirection", offsetof( aas_settings_t, phys_gravitydirection ), 3, stateType_t::Float32 },
+	{ "phys_friction", offsetof( aas_settings_t, phys_friction ), 1, stateType_t::Float32 },
+	{ "phys_stopspeed", offsetof( aas_settings_t, phys_stopspeed ), 1, stateType_t::Float32 },
+	{ "phys_gravity", offsetof( aas_settings_t, phys_gravity ), 1, stateType_t::Float32 },
+	{ "phys_waterfriction", offsetof( aas_settings_t, phys_waterfriction ), 1, stateType_t::Float32 },
+	{ "phys_watergravity", offsetof( aas_settings_t, phys_watergravity ), 1, stateType_t::Float32 },
+	{ "phys_maxvelocity", offsetof( aas_settings_t, phys_maxvelocity ), 1, stateType_t::Float32 },
+	{ "phys_maxwalkvelocity", offsetof( aas_settings_t, phys_maxwalkvelocity ), 1, stateType_t::Float32 },
+	{ "phys_maxcrouchvelocity", offsetof( aas_settings_t, phys_maxcrouchvelocity ), 1, stateType_t::Float32 },
+	{ "phys_maxswimvelocity", offsetof( aas_settings_t, phys_maxswimvelocity ), 1, stateType_t::Float32 },
+	{ "phys_walkaccelerate", offsetof( aas_settings_t, phys_walkaccelerate ), 1, stateType_t::Float32 },
+	{ "phys_airaccelerate", offsetof( aas_settings_t, phys_airaccelerate ), 1, stateType_t::Float32 },
+	{ "phys_swimaccelerate", offsetof( aas_settings_t, phys_swimaccelerate ), 1, stateType_t::Float32 },
+	{ "phys_maxstep", offsetof( aas_settings_t, phys_maxstep ), 1, stateType_t::Float32 },
+	{ "phys_maxsteepness", offsetof( aas_settings_t, phys_maxsteepness ), 1, stateType_t::Float32 },
+	{ "phys_maxwaterjump", offsetof( aas_settings_t, phys_maxwaterjump ), 1, stateType_t::Float32 },
+	{ "phys_maxbarrier", offsetof( aas_settings_t, phys_maxbarrier ), 1, stateType_t::Float32 },
+	{ "phys_jumpvel", offsetof( aas_settings_t, phys_jumpvel ), 1, stateType_t::Float32 },
+	{ "phys_falldelta5", offsetof( aas_settings_t, phys_falldelta5 ), 1, stateType_t::Float32 },
+	{ "phys_falldelta10", offsetof( aas_settings_t, phys_falldelta10 ), 1, stateType_t::Float32 },
+	{ "rs_waterjump", offsetof( aas_settings_t, rs_waterjump ), 1, stateType_t::Float32 },
+	{ "rs_teleport", offsetof( aas_settings_t, rs_teleport ), 1, stateType_t::Float32 },
+	{ "rs_barrierjump", offsetof( aas_settings_t, rs_barrierjump ), 1, stateType_t::Float32 },
+	{ "rs_startcrouch", offsetof( aas_settings_t, rs_startcrouch ), 1, stateType_t::Float32 },
+	{ "rs_startgrapple", offsetof( aas_settings_t, rs_startgrapple ), 1, stateType_t::Float32 },
+	{ "rs_startwalkoffledge", offsetof( aas_settings_t, rs_startwalkoffledge ), 1, stateType_t::Float32 },
+	{ "rs_startjump", offsetof( aas_settings_t, rs_startjump ), 1, stateType_t::Float32 },
+	{ "rs_rocketjump", offsetof( aas_settings_t, rs_rocketjump ), 1, stateType_t::Float32 },
+	{ "rs_bfgjump", offsetof( aas_settings_t, rs_bfgjump ), 1, stateType_t::Float32 },
+	{ "rs_jumppad", offsetof( aas_settings_t, rs_jumppad ), 1, stateType_t::Float32 },
+	{ "rs_aircontrolledjumppad", offsetof( aas_settings_t, rs_aircontrolledjumppad ), 1, stateType_t::Float32 },
+	{ "rs_funcbob", offsetof( aas_settings_t, rs_funcbob ), 1, stateType_t::Float32 },
+	{ "rs_startelevator", offsetof( aas_settings_t, rs_startelevator ), 1, stateType_t::Float32 },
+	{ "rs_falldamage5", offsetof( aas_settings_t, rs_falldamage5 ), 1, stateType_t::Float32 },
+	{ "rs_falldamage10", offsetof( aas_settings_t, rs_falldamage10 ), 1, stateType_t::Float32 },
+	{ "rs_maxfallheight", offsetof( aas_settings_t, rs_maxfallheight ), 1, stateType_t::Float32 },
+	{ "rs_maxjumpfallheight", offsetof( aas_settings_t, rs_maxjumpfallheight ), 1, stateType_t::Float32 },
+};
+static constexpr stateSchema_t aasSettingsSchema = { "botlib.aasSettings", 1, 1, sizeof( aas_settings_t ), aasSettingsFields, sizeof( aasSettingsFields ) / sizeof( *aasSettingsFields ) };
+static bool ValidAASSettings( const aas_settings_t &settings ) {
+	for ( const auto &field : aasSettingsFields )
+		for ( uint32_t i = 0; i < field.count; ++i ) {
+			float value;
+			memcpy( &value, reinterpret_cast<const unsigned char *>( &settings ) + field.offset + i * sizeof( float ), sizeof( value ) );
+			if ( !std::isfinite( value ) )
+				return false;
+		}
+	return true;
+}
+bool AAS_WriteSettingsState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	if ( !ValidAASSettings( aassettings ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, aasSettingsSchema, 0, &aassettings );
+}
+bool AAS_ReadSettingsState( const stateReader_t &reader, bool apply ) {
+	aas_settings_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, aasSettingsSchema, 0, &saved, &version ) || !ValidAASSettings( saved ) )
+		return false;
+	if ( apply )
+		aassettings = saved;
+	return true;
+}

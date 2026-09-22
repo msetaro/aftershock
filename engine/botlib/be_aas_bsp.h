@@ -88,3 +88,7 @@ int AAS_VectorForBSPEpairKey( int ent, const char *key, vec3_t v );
 int AAS_FloatForBSPEpairKey( int ent, const char *key, float *value );
 //get an integer for the BSP epair key
 int AAS_IntForBSPEpairKey( int ent, const char *key, int *value );
+
+#include "../public/state_public.h"
+bool AAS_WriteBSPContentState( stateWriter_t *writer );
+bool AAS_ReadBSPContentState( const stateReader_t &reader );

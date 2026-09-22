@@ -248,3 +248,7 @@ void FreeScript( script_t *script );
 void PS_SetBaseFolder( const char *path );
 //print a script error with filename and line number
 void QDECL ScriptError( script_t *script, const char *fmt, ... ) __attribute__( ( format( printf, 2, 3 ) ) );
+
+#include "../public/state_public.h"
+bool PS_WriteState( stateWriter_t *writer );
+bool PS_ReadState( const stateReader_t &reader, bool apply );
