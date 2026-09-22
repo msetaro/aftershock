@@ -36,6 +36,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-profile-') as temporary:
             engine.request('panel',name='Cvars')
             engine.request('cvar.select',name='s_volume')
             engine.request('editor.filter',kind='cvars',value='s_volume')
+            engine.request('world',collision=True,navigation=False,entities=True,radius=768)
             engine.step(3)
             execute('saveprofile acceptance')
             first=base/'profiles/acceptance.000.asstate'
@@ -53,6 +54,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-profile-') as temporary:
             engine.request('panel',name='Textures')
             engine.request('cvar.select',name='r_mode')
             engine.request('editor.filter',kind='cvars',value='r_')
+            engine.request('world',collision=False,navigation=True,entities=False,radius=128)
             engine.step(3)
             execute('saveprofile acceptance')
             assert (base/'profiles/acceptance.001.asstate').is_file(), 'a later save must keep a new revision'
@@ -64,6 +66,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-profile-') as temporary:
             if not args.record_v1_fixture:
                 editor=engine.request('editor.state')
                 assert editor['panel']=='Cvars' and editor['cvar']=='s_volume' and editor['filters']['cvars']=='s_volume', editor
+                assert editor['world']['collision'] and not editor['world']['navigation'] and editor['world']['entities'], editor
             print('PASS: versioned settings, bindings, editor selection/filter and preserved prior revision')
         finally:
             shutil.copyfile(engine.log_path,args.output/'profile.log')
@@ -77,6 +80,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-profile-') as temporary:
             engine.request('exec',command='bind F8')
             engine.step(2)
             assert re.findall(r'"F8" = "([^\"]*)"',engine.log_path.read_text())[-1]=='+back'
+            if not args.record_v1_fixture:
+                editor=engine.request('editor.state')
+                assert editor['panel']=='Textures' and editor['cvar']=='r_mode' and editor['filters']['cvars']=='r_', editor
+                assert not editor['world']['collision'] and editor['world']['navigation'] and not editor['world']['entities'], editor
             print('PASS: saved profile loads in a fresh client process')
         finally:
             shutil.copyfile(engine.log_path,args.output/'profile-restart.log')
@@ -98,6 +105,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-profile-') as temporary:
                 assert float(engine.request('cvar.get',name='s_volume')['value'])==0.31
                 editor=engine.request('editor.state')
                 assert not editor['enabled'] and editor['filters']['cvars']=='', 'v1 must migrate to explicit workspace defaults'
+                assert not any(editor['world'][key] for key in ('collision','navigation','entities')), editor
                 print('PASS: frozen version-1 profile loads with new workspace defaults')
             finally:
                 shutil.copyfile(engine.log_path,args.output/'profile-v1.log')
