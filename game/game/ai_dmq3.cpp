@@ -5811,6 +5811,6 @@ static const gCachedCvar_t savedBotNavigationCvars[] = {
 bool G_WriteBotNavigationCvarState( stateWriter_t *writer ) {
 	return G_WriteCachedCvars( writer, "game.cvars.BotNavigation", savedBotNavigationCvars, sizeof( savedBotNavigationCvars ) / sizeof( savedBotNavigationCvars[0] ) );
 }
-bool G_ReadBotNavigationCvarState( const stateReader_t &reader, bool apply ) {
+bool G_ReadBotNavigationCvarState( const stateReader_t &reader, int apply ) {
 	return G_ReadCachedCvars( reader, "game.cvars.BotNavigation", savedBotNavigationCvars, sizeof( savedBotNavigationCvars ) / sizeof( savedBotNavigationCvars[0] ), apply );
 }

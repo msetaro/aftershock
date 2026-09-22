@@ -1861,7 +1861,7 @@ bool G_WriteMainCvarState( stateWriter_t *writer ) {
 	}
 	return G_WriteCachedCvars( writer, "game.cvars.main", bindings, SAVED_GAME_CVARS ) && State_Append( writer, gameCvarTrackingSchema, 0, &tracking );
 }
-bool G_ReadMainCvarState( const stateReader_t &reader, bool apply ) {
+bool G_ReadMainCvarState( const stateReader_t &reader, int apply ) {
 	gCachedCvar_t bindings[SAVED_GAME_CVARS];
 	for ( uint32_t i = 0; i < SAVED_GAME_CVARS; ++i )
 		bindings[i] = { gameCvarTable[i].cvarName, gameCvarTable[i].vmCvar };

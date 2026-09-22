@@ -563,6 +563,14 @@ qboolean Cvar_Command( void );
 // command.  Returns true if the command was a variable reference that
 // was handled. (print or change)
 
+struct stateWriter_t;
+struct stateReader_t;
+// Checkpoint coordinator validates every owner-selected record and registry
+// capacity before applying, then restores group/global notification bookkeeping.
+bool Cvar_WriteState( stateWriter_t *writer, const char *group, uint32_t slot, const char *name );
+bool Cvar_ReadState( const stateReader_t &reader, const char *group, uint32_t slot, const char *name, bool apply, bool prepare = false, bool removable = false );
+bool Cvar_WriteServerState( stateWriter_t *writer );
+bool Cvar_ReadServerState( const stateReader_t &reader, bool apply );
 const cvar_t *Cvar_First( void );
 int Cvar_Capacity( void );
 qboolean Cvar_ValidateName( const char *name );

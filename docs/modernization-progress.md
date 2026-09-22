@@ -46,7 +46,7 @@ boundary are verified. Game-side bot actor/navigation/waypoint/scheduler/queue/t
 records are also complete. Character, movement, weight, goal, weapon and chat
 preparation rebuild saved slots locally. Native bot reconstruction, item/filter
 tables, arena accounting and bot/arena content identity are covered. Remaining
-work: engine cvar preparation and semantic validation; coordinate live
+work: semantic validation; coordinate prepared engine cvars and live
 server/client restore and both RNG streams; add the platform save-provider seam
 and frozen full-game N-to-N+1 OpenArena fixture. No partial checkpoint acceptance.
 After #19, take the newly reproduced chat-shutdown boundary bug in a separate
@@ -65,6 +65,32 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 engine/native cvar restore boundary
+
+Engine records now take trusted owner-selected names and preserve current/reset/
+latched strings, optional bounds, validators, flags and cached numeric/revision
+state. Existing registry addresses remain stable; absent records can remove only
+eligible dynamic variables or explicitly owned transient session names. Private
+variables reject capture/restore. Server notification flags/group state restore
+without replacing renderer notification state. Registry capacity must be checked
+across the complete restore by the coordinator before applying new names.
+
+Native cached-cvar owners now include their engine records through the existing
+native service boundary. Modes are 0 validate, 1 restore, 2 prepare: preparation
+withholds pending latched values so normal map initialization loads the saved
+current content; final restore reinstates the pending values. Additional records
+cover authoring paths, bot initialization settings, session/botsession names and
+per-item disable cvars. Current filesystem/process context remains separately
+owned. The literal cvar call inventory now has a source ownership check.
+
+Focused GCC/Clang libc++ UBSan prove real native/engine handoff, pending cached
+updates, fresh registry handles, latch/bound behavior, session cleanup and content
+path preparation (state-engine-cvar-bridge-{gcc,clang}.log). Full combined GCC/
+Clang suites, the client/server build and focused tidy pass after the preparation
+followup (state-bridge-full-{gcc,clang,build,tidy}.log). #19 comment 5773458340 records
+the preceding complete native-owner checkpoint. Full checkpoint integration is
+still incomplete; no accepted fixture changed.
 
 ## #19 cached native cvars and change counters
 

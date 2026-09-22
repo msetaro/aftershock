@@ -299,6 +299,23 @@ for file in ('g_main','ai_main','ai_dmq3','g_bot','g_animation','g_data_weapons'
     owner=source.split('static cvarTable_t gameCvarTable[]',1)[1].split('};',1)[0] if file=='g_main' else source.split('static const gCachedCvar_t saved',1)[1].split('};',1)[0]
     assert cvars <= set(re.findall(r'&([a-zA-Z_]\w*)',owner)), f'{file}: cached cvar lacks checkpoint ownership'
 print('PASS: every persistent native-game cvar has named checkpoint ownership; handles remain process-local')
+main_source=(ROOT/'game/game/g_main.cpp').read_text().split('static cvarTable_t gameCvarTable[]',1)[1].split('};',1)[0]
+selected=set(re.findall(r'\{\s*(?:&\w+|NULL),\s*"([^"]+)"',main_source))
+for file in ('ai_main','ai_dmq3','g_bot','g_animation','g_data_weapons','g_rewind'):
+    bindings=(ROOT/f'game/game/{file}.cpp').read_text().split('static const gCachedCvar_t saved',1)[1].split('};',1)[0]
+    selected.update(re.findall(r'"([^"]+)"',bindings))
+extra=(ROOT/'game/game/g_state.cpp').read_text().split('static const char *const names[]',1)[1].split('};',1)[0]
+selected.update(re.findall(r'"([^"]+)"',extra))
+# Runtime process/filesystem context and the map identity are supplied by the
+# coordinator; session/botsession and item-disable names are generated explicitly.
+context={'cl_running','com_buildScript','mapname','sv_mapChecksum','fs_basepath','fs_game','fs_cdpath'}
+for file in (ROOT/'game/game').glob('*.cpp'):
+    source=file.read_text()
+    reads=set(re.findall(r'trap_Cvar_(?:VariableIntegerValue|VariableStringBuffer|VariableValue|Set)\(\s*"([^"]+)"',source))
+    reads.update(re.findall(r'trap_Cvar_Register\(\s*&\w+,\s*"([^"]+)"',source))
+    assert reads <= selected|context, f'{file.name}: unowned game cvar names {reads-selected-context}'
+print('PASS: literal native cvar reads/registrations have explicit saved or runtime-context ownership')
+
 
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
@@ -308,6 +325,14 @@ run([*shlex.split(args.cc),'-std=c99','-O2','-c','third_party/sha256/sha-256.c',
 run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections','-fsanitize=undefined',
      '-fno-sanitize-recover=all','-c','engine/qcommon/q_shared.cpp','-o',shared])
+for definitions in ([], ['-DSTATE_NATIVE_CACHE']):
+    run([*shlex.split(args.cxx),*definitions,'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+         '-fsanitize=undefined','-fno-sanitize-recover=all',
+         'tests/probes/state_cvars.cpp','engine/qcommon/q_math.cpp',
+         'engine/qcommon/state.cpp',shared,sha,'-Wl,--gc-sections','-o',probe])
+    run([probe])
+
 for definitions in ([], ['-DSTATE_NATIVE_GAME']):
     run([*shlex.split(args.cxx),*definitions,'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-Wconversion','-Wshadow','-fsanitize=undefined','-fno-sanitize-recover=all',

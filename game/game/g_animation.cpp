@@ -454,6 +454,6 @@ static const gCachedCvar_t savedAnimationCvars[] = {
 bool G_WriteAnimationCvarState( stateWriter_t *writer ) {
 	return G_WriteCachedCvars( writer, "game.cvars.Animation", savedAnimationCvars, sizeof( savedAnimationCvars ) / sizeof( savedAnimationCvars[0] ) );
 }
-bool G_ReadAnimationCvarState( const stateReader_t &reader, bool apply ) {
+bool G_ReadAnimationCvarState( const stateReader_t &reader, int apply ) {
 	return G_ReadCachedCvars( reader, "game.cvars.Animation", savedAnimationCvars, sizeof( savedAnimationCvars ) / sizeof( savedAnimationCvars[0] ), apply );
 }

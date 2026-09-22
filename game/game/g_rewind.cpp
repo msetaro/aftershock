@@ -339,6 +339,6 @@ static const gCachedCvar_t savedRewindCvars[] = {
 bool G_WriteRewindCvarState( stateWriter_t *writer ) {
 	return G_WriteCachedCvars( writer, "game.cvars.Rewind", savedRewindCvars, sizeof( savedRewindCvars ) / sizeof( savedRewindCvars[0] ) );
 }
-bool G_ReadRewindCvarState( const stateReader_t &reader, bool apply ) {
+bool G_ReadRewindCvarState( const stateReader_t &reader, int apply ) {
 	return G_ReadCachedCvars( reader, "game.cvars.Rewind", savedRewindCvars, sizeof( savedRewindCvars ) / sizeof( savedRewindCvars[0] ), apply );
 }

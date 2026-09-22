@@ -549,10 +549,17 @@ static constexpr stateField_t cachedCvarFields[] = {
 	{ "integer", offsetof( cachedCvarSave_t, value.integer ), 1, stateType_t::Int32 },
 	{ "string", offsetof( cachedCvarSave_t, value.string ), MAX_CVAR_VALUE_STRING, stateType_t::String }
 };
+static bool EngineCvarGroup( const char *group, char ( &output )[64] ) {
+	if ( !group )
+		return false;
+	const int size = snprintf( output, sizeof( output ), "engine.%s", group );
+	return size > 0 && size < int( sizeof( output ) );
+}
 bool G_WriteCachedCvars( stateWriter_t *writer, const char *group, const gCachedCvar_t *bindings, uint32_t count ) {
 	if ( !writer )
 		return false;
-	if ( !bindings || !count || count > 128 ) {
+	char engineGroup[64];
+	if ( !bindings || !count || count > 128 || !EngineCvarGroup( group, engineGroup ) ) {
 		writer->failed = true;
 		return false;
 	}
@@ -569,26 +576,81 @@ bool G_WriteCachedCvars( stateWriter_t *writer, const char *group, const gCached
 		saved.present = binding.value != nullptr;
 		if ( binding.value )
 			saved.value = *binding.value;
-		if ( !State_Append( writer, schema, i, &saved ) )
+		if ( !State_Append( writer, schema, i, &saved ) || !GameImport_WriteCvarState( writer, engineGroup, i, binding.name ) ) {
+			writer->failed = true;
 			return false;
+		}
 	}
 	return true;
 }
-bool G_ReadCachedCvars( const stateReader_t &reader, const char *group, const gCachedCvar_t *bindings, uint32_t count, bool apply ) {
-	if ( !bindings || !count || count > 128 )
+bool G_ReadCachedCvars( const stateReader_t &reader, const char *group, const gCachedCvar_t *bindings, uint32_t count, int apply ) {
+	char engineGroup[64];
+	if ( apply < 0 || apply > 2 || !bindings || !count || count > 128 || !EngineCvarGroup( group, engineGroup ) )
 		return false;
 	const stateSchema_t schema = { group, 1, 1, sizeof( cachedCvarSave_t ), cachedCvarFields, 7 };
 	cachedCvarSave_t saved[128];
 	uint32_t version;
 	for ( uint32_t i = 0; i < count; ++i )
 		if ( !bindings[i].name || !State_Find( reader, schema, i, &saved[i], &version ) || saved[i].count != count ||
-			 saved[i].present != uint32_t( bindings[i].value != nullptr ) || strcmp( saved[i].name, bindings[i].name ) || !std::isfinite( saved[i].value.value ) )
+			 saved[i].present != uint32_t( bindings[i].value != nullptr ) || strcmp( saved[i].name, bindings[i].name ) || !std::isfinite( saved[i].value.value ) ||
+			 !GameImport_ReadCvarState( &reader, engineGroup, i, bindings[i].name, false, false ) )
 			return false;
 	if ( apply )
-		for ( uint32_t i = 0; i < count; ++i )
+		for ( uint32_t i = 0; i < count; ++i ) {
+			if ( !GameImport_ReadCvarState( &reader, engineGroup, i, bindings[i].name, apply, false ) )
+				return false;
 			if ( bindings[i].value ) {
 				saved[i].value.handle = bindings[i].value->handle;
 				*bindings[i].value = saved[i].value;
 			}
+		}
 	return true;
+}
+
+static bool ExtraCvarRecord( stateWriter_t *writer, const stateReader_t *reader, uint32_t slot, const char *name, int apply, bool removable = false ) {
+	return writer ? GameImport_WriteCvarState( writer, "engine.game.extraCvars", slot, name ) != 0 : GameImport_ReadCvarState( reader, "engine.game.extraCvars", slot, name, apply, removable ) != 0;
+}
+static bool ExtraCvarRecords( stateWriter_t *writer, const stateReader_t *reader, int apply ) {
+	static const char *const names[] = {
+		"nextmap", "bot_enable", "bot_testichat", "bot_visualizejumppads", "bot_forceclustering",
+		"bot_forcereachability", "bot_forcewrite", "bot_aasoptimize", "bot_reloadcharacters",
+		"max_aaslinks", "max_levelitems", "g_entityDefinitions", "g_animationBody", "g_animationRifle",
+		"g_weapons", "g_arenasFile", "g_botsFile", "session"
+	};
+	static_assert( sizeof( names ) / sizeof( names[0] ) < 128 );
+	for ( uint32_t i = 0; i < sizeof( names ) / sizeof( names[0] ); ++i )
+		if ( !ExtraCvarRecord( writer, reader, i, names[i], apply, !strcmp( names[i], "session" ) ) )
+			return false;
+	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i ) {
+		char name[64];
+		snprintf( name, sizeof( name ), "session%u", i );
+		if ( !ExtraCvarRecord( writer, reader, 128 + i, name, apply, true ) )
+			return false;
+		snprintf( name, sizeof( name ), "botsession%u", i );
+		if ( !ExtraCvarRecord( writer, reader, 256 + i, name, apply, true ) )
+			return false;
+	}
+	if ( bg_numItems < 1 || bg_numItems > MAX_ITEMS )
+		return false;
+	for ( uint32_t i = 1; i < uint32_t( bg_numItems ); ++i ) {
+		if ( !bg_itemlist[i].classname )
+			return false;
+		char name[64];
+		const int length = snprintf( name, sizeof( name ), "disable_%s", bg_itemlist[i].classname );
+		if ( length < 0 || length >= int( sizeof( name ) ) || !ExtraCvarRecord( writer, reader, 512 + i, name, apply ) )
+			return false;
+	}
+	return true;
+}
+bool G_WriteExtraCvarState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	if ( !ExtraCvarRecords( writer, nullptr, 0 ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return true;
+}
+bool G_ReadExtraCvarState( const stateReader_t &reader, int apply ) {
+	return apply >= 0 && apply <= 2 && ExtraCvarRecords( nullptr, &reader, 0 ) && ( !apply || ExtraCvarRecords( nullptr, &reader, apply ) );
 }

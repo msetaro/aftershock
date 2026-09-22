@@ -2192,6 +2192,6 @@ static const gCachedCvar_t savedBotCvars[] = {
 bool G_WriteBotCvarState( stateWriter_t *writer ) {
 	return G_WriteCachedCvars( writer, "game.cvars.Bot", savedBotCvars, sizeof( savedBotCvars ) / sizeof( savedBotCvars[0] ) );
 }
-bool G_ReadBotCvarState( const stateReader_t &reader, bool apply ) {
+bool G_ReadBotCvarState( const stateReader_t &reader, int apply ) {
 	return G_ReadCachedCvars( reader, "game.cvars.Bot", savedBotCvars, sizeof( savedBotCvars ) / sizeof( savedBotCvars[0] ), apply );
 }

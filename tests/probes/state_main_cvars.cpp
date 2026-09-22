@@ -1,6 +1,7 @@
 #define NATIVE_NAMESPACE game
 #define NATIVE_SOURCE "game/g_main.cpp"
 #include "../../game/module.cpp"
+#include "state_cvar_imports.h"
 int main() {
 	using namespace game;
 	for ( uint32_t i = 0; i < SAVED_GAME_CVARS; ++i ) {

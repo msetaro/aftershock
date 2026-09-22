@@ -1110,6 +1110,6 @@ static const gCachedCvar_t savedBotQueueCvars[] = {
 bool G_WriteBotQueueCvarState( stateWriter_t *writer ) {
 	return G_WriteCachedCvars( writer, "game.cvars.BotQueue", savedBotQueueCvars, sizeof( savedBotQueueCvars ) / sizeof( savedBotQueueCvars[0] ) );
 }
-bool G_ReadBotQueueCvarState( const stateReader_t &reader, bool apply ) {
+bool G_ReadBotQueueCvarState( const stateReader_t &reader, int apply ) {
 	return G_ReadCachedCvars( reader, "game.cvars.BotQueue", savedBotQueueCvars, sizeof( savedBotQueueCvars ) / sizeof( savedBotQueueCvars[0] ), apply );
 }

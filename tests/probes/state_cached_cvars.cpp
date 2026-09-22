@@ -1,6 +1,7 @@
 #define NATIVE_NAMESPACE game
 #define NATIVE_SOURCE "game/g_state.cpp"
 #include "../../game/module.cpp"
+#include "state_cvar_imports.h"
 int main() {
 	using namespace game;
 	vmCvar_t first{ 3, 19, 2.5f, 2, "2.5" }, last{ 4, 11, 7, 7, "7" };
@@ -13,7 +14,11 @@ int main() {
 	first = { 101, 0, 0, 0, "" };
 	last = { 102, 0, 0, 0, "" };
 	assert(G_ReadCachedCvars(reader,"game.cvars.test",bindings,3,false) && !first.value);
+	rejectCvarSlot = 2;
+	assert(!G_ReadCachedCvars(reader,"game.cvars.test",bindings,3,true) && !first.value && !cvarApplyCalls);
+	rejectCvarSlot = -1;
 	assert(G_ReadCachedCvars(reader,"game.cvars.test",bindings,3,true));
+	assert(cvarApplyCalls==3);
 	assert(first.handle==101 && first.modificationCount==19 && first.value==2.5f && first.integer==2 && !strcmp(first.string,"2.5"));
 	assert(last.handle==102 && last.modificationCount==11 && last.value==7);
 	const stateSchema_t schema{ "game.cvars.test", 1, 1, sizeof( cachedCvarSave_t ), cachedCvarFields, 7 };

@@ -608,6 +608,6 @@ static const gCachedCvar_t savedWeaponCvars[] = {
 bool G_WriteWeaponCvarState( stateWriter_t *writer ) {
 	return G_WriteCachedCvars( writer, "game.cvars.Weapon", savedWeaponCvars, sizeof( savedWeaponCvars ) / sizeof( savedWeaponCvars[0] ) );
 }
-bool G_ReadWeaponCvarState( const stateReader_t &reader, bool apply ) {
+bool G_ReadWeaponCvarState( const stateReader_t &reader, int apply ) {
 	return G_ReadCachedCvars( reader, "game.cvars.Weapon", savedWeaponCvars, sizeof( savedWeaponCvars ) / sizeof( savedWeaponCvars[0] ), apply );
 }
