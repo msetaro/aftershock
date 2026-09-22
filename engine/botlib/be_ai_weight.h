@@ -78,3 +78,9 @@ void EvolveWeightConfig( weightconfig_t *config );
 void InterbreedWeightConfigs( weightconfig_t *config1, weightconfig_t *config2, weightconfig_t *configout );
 //frees cached weight configurations
 void BotShutdownWeights( void );
+
+#include "../public/state_public.h"
+// Slots are assigned by the checkpoint owner: cache 0..127, goals 128+handle,
+// weapons 256+handle. Names/topology must match the normally reloaded content.
+bool Bot_WriteWeightState( stateWriter_t *writer, uint32_t slot, const weightconfig_t *config );
+bool Bot_ReadWeightState( const stateReader_t &reader, uint32_t slot, weightconfig_t *config, bool apply );

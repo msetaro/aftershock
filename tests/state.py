@@ -171,6 +171,14 @@ for i in range(spots):
     assert {name.split('.')[1] for name in move_fields if name.startswith(f'avoidspots[{i}].')}==declared_members(spot_body)
 assert len([name for name in move_fields if name.startswith('avoidspots[')])==spots*3
 print('PASS: botlib input and movement metadata account for every member and avoidance slot')
+weight_header=(ROOT/'engine/botlib/be_ai_weight.h').read_text()
+for tag,name,expected in (('fuzzyseperator_s','fuzzyseperator_t',{'index','value','type','weight','minweight','maxweight','child','next'}),
+                          ('weight_s','weight_t',{'name','firstseperator'}),
+                          ('weightconfig_s','weightconfig_t',{'numweights','weights','filename'})):
+    body=weight_header.split('typedef struct '+tag+' {',1)[1].split('} '+name+';',1)[0]
+    assert declared_members(body)==expected, f'{name}: weight topology/value ownership changed'
+print('PASS: bot weights classify topology, names, mutable values and pointer ownership')
+
 
 
 
@@ -282,7 +290,7 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wl,--gc-sections','-o',probe])
 run([probe])
 
-for component in ('input','move'):
+for component in ('input','move','weights'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',

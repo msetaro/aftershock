@@ -58,6 +58,18 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 mutable bot weight records
+
+Weight records retain current weight/minimum/maximum values against a digest of
+reloaded names and separator topology. Pointer identity never enters the digest;
+separate trees with identical content restore and evaluate bit-identically.
+GCC and Clang/libc++ UBSan pass relocation, changed-topology, missing-values,
+non-finite, cyclic and oversized-tree checks (state-bot-weights-{gcc,clang}.log).
+The command-only ceiling is 4,096 nodes per configuration: excess rejects the
+save, never truncates it. Only live array prefixes are stored. Existing weight
+math is unchanged. Build and focused tidy pass. Cache/goal/weapon ownership and
+reconstruction still need wiring; these per-configuration records are groundwork.
+
 ## #19 botlib input and movement ownership
 
 Botlib inputs preserve jump-edge flags and previous input; movement records retain

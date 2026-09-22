@@ -44,6 +44,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_ai_weight.h"
+#include "../../third_party/sha256/sha-256.h"
+#include <cmath>
 
 #define MAX_INVENTORYVALUE			999999
 #define EVALUATERECURSIVELY
@@ -880,3 +882,128 @@ void BotShutdownWeights( void ) {
 		} //end if
 	} //end for
 } //end of the function BotShutdownWeights
+
+// ponytail: bounded command-only tree scan; index nodes if save latency needs it.
+static constexpr uint32_t MAX_SAVED_WEIGHT_NODES = 4096;
+struct weightIdentitySave_t {
+	uint32_t present, nodes;
+	uint8_t topology[32];
+	char filename[MAX_QPATH];
+};
+struct weightValuesSave_t {
+	float weights[MAX_SAVED_WEIGHT_NODES], minimum[MAX_SAVED_WEIGHT_NODES], maximum[MAX_SAVED_WEIGHT_NODES];
+};
+static_assert( sizeof( weightIdentitySave_t ) == 104 && sizeof( weightValuesSave_t ) == 49152 );
+static fuzzyseperator_t *savedWeightNodes[MAX_SAVED_WEIGHT_NODES], *pendingWeightNodes[MAX_SAVED_WEIGHT_NODES];
+static weightValuesSave_t savedWeightValues;
+static constexpr stateField_t weightIdentityFields[] = {
+	{ "present", offsetof( weightIdentitySave_t, present ), 1, stateType_t::UInt32 },
+	{ "nodes", offsetof( weightIdentitySave_t, nodes ), 1, stateType_t::UInt32 },
+	{ "topology", offsetof( weightIdentitySave_t, topology ), 32, stateType_t::Bytes },
+	{ "filename", offsetof( weightIdentitySave_t, filename ), MAX_QPATH, stateType_t::String }
+};
+static constexpr stateSchema_t weightIdentitySchema = { "botlib.weightIdentity", 1, 1, sizeof( weightIdentitySave_t ), weightIdentityFields, 4 };
+static bool WeightIdentity( const weightconfig_t *config, weightIdentitySave_t *identity ) {
+	*identity = {};
+	if ( !config )
+		return true;
+	if ( config->numweights < 0 || config->numweights > MAX_WEIGHTS || !memchr( config->filename, 0, sizeof( config->filename ) ) )
+		return false;
+	identity->present = 1;
+	strcpy( identity->filename, config->filename );
+	Sha_256 hash;
+	sha_256_init( &hash, identity->topology );
+	const int32_t count = config->numweights;
+	sha_256_write( &hash, &count, sizeof( count ) );
+	for ( int i = 0; i < count; ++i ) {
+		const auto &weight = config->weights[i];
+		if ( !weight.name )
+			return false;
+		const size_t length = strlen( weight.name );
+		if ( length >= MAX_TOKEN )
+			return false;
+		sha_256_write( &hash, weight.name, length + 1 );
+		const int32_t root = weight.firstseperator != nullptr;
+		sha_256_write( &hash, &root, sizeof( root ) );
+		uint32_t pending = 0;
+		if ( weight.firstseperator )
+			pendingWeightNodes[pending++] = weight.firstseperator;
+		while ( pending ) {
+			auto *node = pendingWeightNodes[--pending];
+			if ( identity->nodes == MAX_SAVED_WEIGHT_NODES )
+				return false;
+			for ( uint32_t j = 0; j < identity->nodes; ++j )
+				if ( savedWeightNodes[j] == node )
+					return false;
+			savedWeightNodes[identity->nodes++] = node;
+			const int32_t words[] = { node->index, node->value, node->type, node->child != nullptr, node->next != nullptr };
+			sha_256_write( &hash, words, sizeof( words ) );
+			if ( node->next ) {
+				if ( pending == MAX_SAVED_WEIGHT_NODES )
+					return false;
+				pendingWeightNodes[pending++] = node->next;
+			}
+			if ( node->child ) {
+				if ( pending == MAX_SAVED_WEIGHT_NODES )
+					return false;
+				pendingWeightNodes[pending++] = node->child;
+			}
+		}
+	}
+	sha_256_close( &hash );
+	return true;
+}
+static bool WeightValues( stateWriter_t *writer, const stateReader_t *reader, uint32_t slot, uint32_t count ) {
+	const stateField_t fields[] = {
+		{ "weights", offsetof( weightValuesSave_t, weights ), count, stateType_t::Float32 },
+		{ "minimum", offsetof( weightValuesSave_t, minimum ), count, stateType_t::Float32 },
+		{ "maximum", offsetof( weightValuesSave_t, maximum ), count, stateType_t::Float32 }
+	};
+	const stateSchema_t schema = { "botlib.weightValues", 1, 1, sizeof( weightValuesSave_t ), fields, 3 };
+	if ( !count )
+		return true;
+	uint32_t version;
+	if ( reader && !State_Find( *reader, schema, slot, &savedWeightValues, &version ) )
+		return false;
+	for ( uint32_t i = 0; i < count; ++i )
+		if ( !std::isfinite( savedWeightValues.weights[i] ) || !std::isfinite( savedWeightValues.minimum[i] ) || !std::isfinite( savedWeightValues.maximum[i] ) )
+			return false;
+	return !writer || State_Append( writer, schema, slot, &savedWeightValues );
+}
+bool Bot_WriteWeightState( stateWriter_t *writer, uint32_t slot, const weightconfig_t *config ) {
+	if ( !writer )
+		return false;
+	weightIdentitySave_t identity;
+	if ( !WeightIdentity( config, &identity ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, weightIdentitySchema, slot, &identity ) )
+		return false;
+	for ( uint32_t i = 0; i < identity.nodes; ++i ) {
+		savedWeightValues.weights[i] = savedWeightNodes[i]->weight;
+		savedWeightValues.minimum[i] = savedWeightNodes[i]->minweight;
+		savedWeightValues.maximum[i] = savedWeightNodes[i]->maxweight;
+	}
+	if ( !WeightValues( writer, nullptr, slot, identity.nodes ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return true;
+}
+bool Bot_ReadWeightState( const stateReader_t &reader, uint32_t slot, weightconfig_t *config, bool apply ) {
+	weightIdentitySave_t saved, loaded;
+	uint32_t version;
+	if ( !State_Find( reader, weightIdentitySchema, slot, &saved, &version ) || !WeightIdentity( config, &loaded ) ||
+		 saved.present != loaded.present || saved.nodes != loaded.nodes || strcmp( saved.filename, loaded.filename ) ||
+		 memcmp( saved.topology, loaded.topology, sizeof( saved.topology ) ) || !WeightValues( nullptr, &reader, slot, saved.nodes ) )
+		return false;
+	if ( apply )
+		for ( uint32_t i = 0; i < saved.nodes; ++i ) {
+			auto *node = savedWeightNodes[i];
+			node->weight = savedWeightValues.weights[i];
+			node->minweight = savedWeightValues.minimum[i];
+			node->maxweight = savedWeightValues.maximum[i];
+		}
+	return true;
+}
