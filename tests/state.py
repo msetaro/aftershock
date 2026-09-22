@@ -53,7 +53,7 @@ def declared_members(body):
         declaration=declaration.strip()
         if not declaration:
             continue
-        callback=re.fullmatch(r'void\s*\(\s*\*\s*(\w+)\s*\)\s*\([\s\S]*\)',declaration)
+        callback=re.fullmatch(r'(?:void|int)\s*\(\s*\*\s*(\w+)\s*\)\s*\([\s\S]*\)',declaration)
         if callback:
             fields.add(callback[1])
             continue
@@ -145,6 +145,19 @@ assert waypoint_fields | {'goal','next','prev'}==declared_members(waypoint_body)
 goal=(ROOT/'game/game/be_ai_goal.h').read_text().split('typedef struct bot_goal_s {',1)[1].split('} bot_goal_t;',1)[0]
 assert set(re.findall(r'offsetof\( bot_goal_t, (\w+) \)',main_header))==declared_members(goal)
 print('PASS: bot waypoint and shared goal records describe all members')
+bot_main=(ROOT/'game/game/ai_main.cpp').read_text()
+bot_body=main_header.split('typedef struct bot_state_s {',1)[1].split('} bot_state_t;',1)[0]
+bot_fields={name.split('.')[0] for name in re.findall(r'offsetof\( bot_state_t, ([\w.]+) \)',bot_main)}
+bot_fields.update(re.findall(r'&bot_state_t::(\w+)',bot_main))
+bot_fields.update(('cur_ps','lastucmd','ainode','activatestack','activategoalheap','checkpoints','patrolpoints','curpatrolpoint'))
+assert bot_fields==declared_members(bot_body), f'bot actor member coverage: {bot_fields ^ declared_members(bot_body)}'
+activation=main_header.split('typedef struct bot_activategoal_s {',1)[1].split('} bot_activategoal_t;',1)[0]
+assert set(re.findall(r'offsetof\( bot_activategoal_t, (\w+) \)',bot_main)) | {'goal','next'}==declared_members(activation)
+ai_nodes=set(re.findall(r'bs->ainode = (AINode_\w+);',(ROOT/'game/game/ai_dmnet.cpp').read_text()))
+registered_nodes=set(re.findall(r'\{ "(AINode_\w+)", AINode_\w+ \}',bot_main))
+assert ai_nodes==registered_nodes, 'AI node callback needs a stable saved identity'
+print(f'PASS: all bot actor/activation members and {len(ai_nodes)} typed AI nodes have state ownership')
+
 
 
 run([sys.executable, 'tools/replication.py', '--check'])
@@ -241,5 +254,12 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
      '-fsanitize=undefined','-fno-sanitize-recover=all',
      'tests/probes/state_waypoints.cpp','engine/qcommon/state.cpp',sha,
+     '-Wl,--gc-sections','-o',probe])
+run([probe])
+
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+     '-fsanitize=undefined','-fno-sanitize-recover=all',
+     'tests/probes/state_bot_actor.cpp','engine/qcommon/state.cpp',sha,
      '-Wl,--gc-sections','-o',probe])
 run([probe])

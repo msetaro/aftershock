@@ -118,4 +118,7 @@ int G_StateWaypointSlot( const bot_waypoint_s *waypoint );
 bot_waypoint_s *G_StateWaypoint( int slot );
 bool G_WriteWaypointState( stateWriter_t *writer );
 bool G_ReadWaypointState( const stateReader_t &reader, bool apply );
+struct bot_state_s;
+bool G_WriteBotActorState( stateWriter_t *writer, uint32_t slot, const bot_state_s &bot );
+bool G_ReadBotActorState( const stateReader_t &reader, uint32_t slot, bot_state_s *bot, bool apply );
 #endif

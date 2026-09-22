@@ -39,7 +39,8 @@ with typed callbacks, checked references and nullable strings. Composed, authore
 animation/weapon, rewind, utility/spawn-generation, combat, team and podium owners
 also have validated local checkpoint records. Definition/editor state restores
 against matching map registry topology. Remaining work: other game globals and
-all bot owners, gameplay validation, live
+bot map-navigation and botlib owners (actor, activation, waypoint, scheduler,
+queue and team draft records are complete), gameplay validation, live
 restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
 
 Completed local #19 support: named/versioned fields with bounded strings and
@@ -55,6 +56,25 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 bot actor and activation drafts
+
+Actor records describe all 134 scalar fields, shared player/input state, goals,
+nullable typed AI-node identities and checked activation/waypoint references.
+All eleven AI-node identities pass GCC and Clang/libc++ UBSan round-trips with
+full actor byte equality after explicit pointer relocation. Invalid active-stack
+cycles, unknown callbacks and incomplete actors reject before publication
+(state-bot-actor-{gcc,clang}.log). Member/callback source coverage passes, as do
+the client/server build and focused tidy. Botlib handle identities are retained
+as draft integers; final restore must coordinate their corresponding botlib
+objects and verify live actor counts before application. These are not complete
+checkpoint acceptance. The combined state driver through waypoint support also
+passes with both compilers (state-combined-{gcc,clang}.log).
+
+Next: bot map-navigation globals, all botlib mutable owners and immutable-content
+checks; then global cvar/configstring/content state and server/game/client restore
+coordination, both RNG integrations, platform save routing and full saved-game
+N-to-N+1 fixture acceptance. No accepted fixture has been regenerated.
 
 ## #19 bot waypoint ownership
 
