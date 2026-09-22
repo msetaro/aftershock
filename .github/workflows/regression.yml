@@ -93,9 +93,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build libc++-dev libc++abi-dev
       - name: Cook owned source assets and verify production poses
         run: |
-          sudo apt-get update && sudo apt-get install -y python3-venv python3-jsonschema ninja-build fonts-dejavu-core libsdl2-dev pkg-config
+          sudo apt-get update && sudo apt-get install -y python3-venv python3-jsonschema ninja-build fonts-dejavu-core libsdl2-dev pkg-config libarchive-dev
           python3 -m venv ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python
-          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt -r tools/level/requirements.txt
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/cook.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/packages.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           CC='${{ matrix.cc }}' CXX='${{ matrix.cxx }}' ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/materials.py

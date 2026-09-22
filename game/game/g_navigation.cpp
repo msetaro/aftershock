@@ -95,7 +95,7 @@ static aiObservation_t NavigationSense( int owner, uint32_t elapsed, aiSenseStat
 		trap_Trace( &trace, eye, nullptr, nullptr, candidate.position, owner, MASK_SOLID );
 		candidate.clearSight = trace.fraction == 1;
 		candidate.blockedSound = trace.fraction < 1;
-		candidate.loudness = navigationNoise[other] && uint32_t( level.time ) - navigationNoise[other] < 200 ? 1 : 0;
+		candidate.loudness = navigationNoise[other] && uint32_t( level.time ) - navigationNoise[other] < 200 ? 1.0f : 0.0f;
 		// Legacy weapon samples use full volume at 80 units and 0.0008 falloff.
 		// Share the authored audio distance/occlusion model, with those extents.
 		candidate.referenceDistance = 80;
@@ -199,7 +199,7 @@ bool G_NavigationFrame( int time ) {
 						Nav_TriggerLaunch( actor.path, pad.r.absmin, pad.r.absmax, &actor.cursor );
 				}
 				navFollowOutput_t following;
-				if ( actor.path.count && Nav_Follow( actor.path, feet, player.groundEntityNum != ENTITYNUM_NONE, actor.action == AI_COVER ? 8 : 16, &actor.cursor, &following ) && !following.arrived ) {
+				if ( actor.path.count && Nav_Follow( actor.path, feet, player.groundEntityNum != ENTITYNUM_NONE, actor.action == AI_COVER ? 8.0f : 16.0f, &actor.cursor, &following ) && !following.arrived ) {
 					vec3_t desired;
 					VectorSubtract( following.position, feet, desired );
 					desired[2] = 0;

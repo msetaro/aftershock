@@ -37,9 +37,13 @@ print('PASS: collision header dependencies invalidate the cooker cache')
 """])
 source = args.output/'source'
 source.mkdir(exist_ok=True)
-with (args.output/'level.log').open('w') as log:
-    subprocess.run([sys.executable, 'tools/level', 'tests/assets/levels/two_lane.json', '--output', str(source)],
-                   cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=600)
+try:
+    with (args.output/'level.log').open('w') as log:
+        subprocess.run([sys.executable, 'tools/level', 'tests/assets/levels/two_lane.json', '--output', str(source)],
+                       cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=600)
+except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+    print((args.output/'level.log').read_text(), file=sys.stderr)
+    raise
 # The source is actual CM collision, including brushes and patches, not visible
 # render triangles. Recast generates walkable polygons offline.
 definition = dict(version=1, collision='maps/two_lane.bsp', agent=dict(

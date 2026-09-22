@@ -48,7 +48,9 @@ CI/docs registration is committed. Draft PR177 is open against main for hosted
 checks; #21 merge waits for both its exact-head 26 checks and integrated #20's
 26 checks. Recheck current main/base/head immediately before merge.
 
-While those run, start isolated #22 profiling work from current main. Reuse the
+PR177 head 9fd94edb exposed two hosted portability/setup failures; correct them
+and require all fresh checks before merge. Isolated #22 profiling work has begun
+from current main while predecessor checks run. Reuse the
 existing developer timers/GPU/allocator/network owners; preserve issue branches
 and merge order. Merge accepted #21 main forward before #22 final checks/merge.
 Follow the specific gate evidence below, not historical next steps.
@@ -57,6 +59,20 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
+
+## #21 hosted portability and cold tool setup
+
+Head 9fd94edb fails MSVC C4244 on two integer ternaries assigned/passed as
+floats. Use exact float constants (0/1 and 8/16), preserving values. Both hosted
+unit legs fail preparing the owned compiled level. Reproducing with a clean
+cook-only Python venv and an unextracted pinned archive confirms the missing
+level-tool Python dependency. Install the existing tools/level/requirements.txt
+and libarchive-dev on those CI runners, matching runtime setup. The navigation
+driver now prints its saved level log when compilation fails. No local system
+packages or accepted fixtures change. Clean-cache full navigation cooking/native
+checks pass after the dependency install (navigation-cold-after.log). Client/server
+rebuild, format/types, workflow lint and all four native-controller tidy/lifetime
+configurations pass. Fresh hosted checks remain required before PR177 can merge.
 
 ## #21 main integration
 
