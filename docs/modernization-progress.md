@@ -52,6 +52,33 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 navigation checkpoint owner
+
+After a67d9c69's failing full-game contract, typed records own navmesh/behavior
+content identities, controller clock, each bot's behavior state, route corners,
+authored link kinds, cursor/phase and goal. Both latched asset selections use the
+existing cached-cvar owner. Decode validates all actors before publication;
+navmesh bots have their own connection/spawn reference validation and no legacy
+bot handles. Missing pre-AI records migrate to the legacy controller; present
+invalid records fail through the tested presence API.
+
+Same-process and fresh-process paused restore and 25-tick continuation pass with
+exact actor/weapon/route data (navigation-checkpoint-fresh.log). The full existing
+state suite passes GCC and Clang UBSan (navigation-state-{gcc,clang}.log), and the
+legacy runtime suite still passes interrupted/replaced reconnect, fresh-process
+continuation and the unchanged frozen-v1 fixture (navigation-legacy-checkpoint.log).
+Tidy passes 1446 production configurations; full lifetimes are still running.
+The full MinGW client/server/devtools build passes. Loading the unchanged frozen
+v1 fixture from an active AI session also passes and clears both selected AI
+assets (navigation-checkpoint-migration.log). Combat/cover and q3dm17 AI traversal
+remain pending.
+
+The extended --combat runtime contract fails as intended on the patrol-only
+client: the visible hostile does not trigger data-weapon fire
+(navigation-combat-before.log). It requires real player damage, a low-health
+transition, movement into trace-protected cover and exact checkpoint continuation.
+Commit this test before connecting the existing perception and weapon services.
+
 ## #21 live AI checkpoint contract, test first
 
 Extend native patrol acceptance with a paused full-game save, 25 live ticks,

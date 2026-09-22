@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run cooked navigation and behavior through native bot commands and Pmove."""
 import argparse
+import gzip
 import json
 import math
 from pathlib import Path
@@ -13,8 +14,25 @@ from run import ROOT, SCRATCH
 sys.path.insert(0, str(ROOT))
 from tools.agent import Engine
 
+def pause(engine):
+    engine.request('key', name='ESCAPE', down=True)
+    engine.request('key', name='ESCAPE', down=False)
+    engine.step(2)
+
+
+def load(engine, path='saves/navigation.000.asstate'):
+    loaded = engine.log_path.read_text().count('Game loaded: ')
+    engine.request('exec', command='loadgame '+path)
+    for _ in range(200):
+        engine.step()
+        if engine.log_path.read_text().count('Game loaded: ') > loaded:
+            return
+    raise AssertionError('AI checkpoint reconnect did not complete')
+
+
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path, required=True)
+parser.add_argument('--combat', action='store_true', help='exercise sight, weapon damage and protected cover before checkpoint continuation')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 parser.add_argument('--data', type=Path, default=Path.home()/'.q3a/baseq3')
 parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-navigation-runtime')
@@ -35,6 +53,27 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
     navigation = dict(version=1, collision='maps/two_lane.bsp', agent=dict(radius=15,height=56,climb=18,slope=46),
                       cell_size=4, cell_height=2, links=[])
     behavior = dict(version=1, name='patrol', initial='patrol', states=[dict(name='patrol', action='patrol', transitions=[])])
+    if args.combat:
+        behavior = dict(version=1, name='guard', initial='patrol', states=[
+            dict(name='patrol', action='patrol', transitions=[dict(to='attack',field='visible',op='eq',value=1,min_ms=0)]),
+            dict(name='attack', action='attack', transitions=[dict(to='cover',field='health',op='lt',value=.9,min_ms=500)]),
+            dict(name='cover', action='cover', transitions=[dict(to='attack',field='covered',op='eq',value=1,min_ms=1000)])])
+        (base/'maps/navigation-combat.ent').write_text('''{
+"classname" "worldspawn"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "0 -180 48"
+"angle" "90"
+"nobots" "1"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "0 80 48"
+"angle" "270"
+"nohumans" "1"
+}
+''')
     (source/'navigation.json').write_text(json.dumps(navigation))
     (source/'behavior.json').write_text(json.dumps(behavior))
     (source/'assets.json').write_text(json.dumps(dict(version=1, assets=[
@@ -49,22 +88,64 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
             '+set', 'g_weapons', 'weapons/range_rifle.asweapon']) as engine:
         try:
             engine.request('session', dt=20, seed=21)
+            if args.combat:
+                engine.request('cvar.set', name='dev_entityFile', value='maps/navigation-combat.ent')
+                engine.request('cvar.set', name='dev_loadEntities', value='1')
             engine.request('map', name='two_lane')
             engine.step(50)
-            engine.request('exec', command='team spectator')
+            engine.request('exec', command='god; weapon 1' if args.combat else 'team spectator')
             engine.step(5)
             engine.request('exec', command='addbot Sarge 3')
             engine.step(100)
             actor = engine.request('actor', owner=1)
             assert actor.get('ai'), 'cooked behavior/navigation did not activate on the native bot'
-            assert actor['ai']['state'] == 'patrol' and actor['weapons'][0], actor
-            for _ in range(30):
-                engine.step(10)
-                actor = engine.request('actor', owner=1)
-                assert actor['ai']['state'] == 'patrol', actor
-                rows.append(actor['ai'])
-            assert max(math.dist(rows[0]['position'], row['position']) for row in rows) > 128, 'native bot did not follow its route'
-            assert any(row['pathCount'] > 1 and row['complete'] for row in rows), 'no complete navmesh path'
+            if args.combat:
+                assert actor['ai']['state'] == 'attack' and actor['weapons'][0]['sequence'] > 0, 'visible hostile must trigger native data-weapon fire'
+                engine.request('subscribe', enabled=True)
+                engine.request('exec', command='god')
+                engine.step(2)
+                initial = engine.request('state')['player']['health']
+                for _ in range(60):
+                    engine.step()
+                    if engine.request('state')['player']['health'] < initial:
+                        break
+                else:
+                    raise AssertionError('bot data weapon never damaged the player')
+                engine.request('exec', command='god')
+                engine.step(2)
+                assert any(e['event']=='hit' and e['actor']==1 and e['target']==0 for e in engine.events)
+                start = actor['ai']['position']
+                for _ in range(60):
+                    target = next(e for e in engine.request('entity.list')['entities'] if e['entity']==1)
+                    origin = engine.request('state')['camera']['origin']
+                    delta = [target['origin'][i]-origin[i] for i in range(3)]
+                    delta[2] += 26
+                    yaw = math.degrees(math.atan2(delta[1],delta[0]))
+                    pitch = -math.degrees(math.atan2(delta[2],math.hypot(*delta[:2])))
+                    engine.request('input',forward=0,right=0,up=0,yaw=yaw,pitch=pitch,fire=True)
+                    engine.step()
+                    target = next(e for e in engine.request('entity.list')['entities'] if e['entity']==1)
+                    if target['health'] < 90:
+                        break
+                else:
+                    raise AssertionError('player shot did not trigger the authored low-health cover rule')
+                engine.request('input',forward=0,right=0,up=0,yaw=yaw,pitch=pitch,fire=False)
+                for _ in range(100):
+                    engine.step(5)
+                    rows.append(engine.request('actor',owner=1)['ai'])
+                    if any(row['state']=='cover' for row in rows) and rows[-1]['covered']:
+                        break
+                assert any(row['state']=='cover' for row in rows) and any(row['covered'] for row in rows), 'bot did not reach protected navmesh cover'
+                assert max(math.dist(start,row['position']) for row in rows)>32, 'cover must involve actual movement'
+            else:
+                assert actor['ai']['state'] == 'patrol' and actor['weapons'][0], actor
+                for _ in range(30):
+                    engine.step(10)
+                    actor = engine.request('actor', owner=1)
+                    assert actor['ai']['state'] == 'patrol', actor
+                    rows.append(actor['ai'])
+                assert max(math.dist(rows[0]['position'], row['position']) for row in rows) > 128, 'native bot did not follow its route'
+                assert any(row['pathCount'] > 1 and row['complete'] for row in rows), 'no complete navmesh path'
             engine.request('panel', name='AI')
             engine.step(2)
             capture = engine.request('capture', name='navigation-inspector')
@@ -72,34 +153,41 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
             from PIL import Image
             Image.open(base/capture['path']).save(args.output/'navigation-inspector.png')
             engine.request('cvar.set', name='dev_tools', value='0')
-            def pause():
-                engine.request('key', name='ESCAPE', down=True)
-                engine.request('key', name='ESCAPE', down=False)
-                engine.step(2)
-            pause()
+            pause(engine)
             assert engine.request('cvar.get', name='sv_paused')['value'] == '1'
             before = engine.request('actor', owner=1)
             engine.request('exec', command='savegame navigation')
             engine.step(2)
             assert (base/'saves/navigation.000.asstate').is_file(), 'AI checkpoint write failed'
-            pause()
+            pause(engine)
             engine.step(25)
             continued = engine.request('actor', owner=1)
             assert continued['ai']['position'] != before['ai']['position']
-            loaded = engine.log_path.read_text().count('Game loaded: ')
-            engine.request('exec', command='loadgame saves/navigation.000.asstate')
-            for _ in range(200):
-                engine.step()
-                if engine.log_path.read_text().count('Game loaded: ') > loaded:
-                    break
-            else:
-                raise AssertionError('AI checkpoint reconnect did not complete')
+            load(engine)
             assert engine.request('actor', owner=1) == before, 'AI actor did not restore exactly'
-            pause()
+            pause(engine)
             engine.step(25)
             assert engine.request('actor', owner=1) == continued, 'AI path/behavior/weapon continuation differs'
 
         finally:
             shutil.copyfile(engine.log_path, args.output/'client.log')
             (args.output/'actors.json').write_text(json.dumps(rows, indent=2))
-print('PASS: cooked navmesh/behavior, native bot Pmove, data weapon and AI inspector')
+    with Engine(args.binary, args.data, args.content, home=home) as engine:
+        try:
+            engine.request('session', dt=20, seed=123)
+            load(engine)
+            assert engine.request('actor', owner=1) == before, 'fresh-process AI restore differs'
+            pause(engine)
+            engine.step(25)
+            assert engine.request('actor', owner=1) == continued, 'fresh-process AI continuation differs'
+            if args.content == 'openarena':
+                legacy = ROOT/'tests/assets/state/checkpoint-v1.asstate.gz'
+                (base/'saves/pre-navigation.asstate').write_bytes(gzip.decompress(legacy.read_bytes()))
+                load(engine, 'saves/pre-navigation.asstate')
+                assert engine.request('actor', owner=1)['ai'] is None, 'old checkpoint must restore the legacy controller'
+                for name in ('g_navigation', 'g_behavior'):
+                    assert engine.request('cvar.get', name=name)['value'] == '', 'old checkpoint retained a live AI asset selection'
+
+        finally:
+            shutil.copyfile(engine.log_path, args.output/'checkpoint-restart.log')
+print('PASS: cooked navmesh/behavior, native Pmove/weapon, inspector and same/fresh-process checkpoint continuation')

@@ -2206,7 +2206,7 @@ bool G_ValidateBotReferences( const stateReader_t &reader, const gentity_t *enti
 		return false;
 	bool used[4][MAX_CLIENTS + 1]{};
 	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i ) {
-		const bool active = clients[i].pers.connected != CON_DISCONNECTED && ( entities[i].r.svFlags & SVF_BOT );
+		const bool active = !G_NavigationEnabled() && clients[i].pers.connected != CON_DISCONNECTED && ( entities[i].r.svFlags & SVF_BOT );
 		if ( pool.allocated[i] > 1 || pool.active[i] > pool.allocated[i] || pool.active[i] != uint32_t( active ) )
 			return false;
 		if ( !active )

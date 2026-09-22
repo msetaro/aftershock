@@ -2,6 +2,9 @@
 #define NATIVE_SOURCE "game/ai_main.cpp"
 #include "../../game/module.cpp"
 namespace game {
+bool G_NavigationEnabled() {
+	return false;
+}
 static bot_waypoint_t originalWaypoints[128], restoredWaypoints[128];
 static bot_waypoint_t *waypoints = originalWaypoints;
 int G_StateWaypointSlot( const bot_waypoint_t *pointer ) {
