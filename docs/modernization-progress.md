@@ -22,9 +22,9 @@ upstream; historical upstream PR references below are completed past work.
 
 Resume the active predecessor gates before any later issue can merge:
 - #31 PR174 is fully accepted on main 5caa2c1c; #31 is closed again.
-- #19 PR175 merged at b92b6ef5 after all 26 exact-head jobs passed. Merged build
-  35728186900 passes; regression 35728186799 is in its final profile/checkpoint
-  step. Require merged acceptance before #25's checkbox and #20 merge.
+- #19 PR175 is fully accepted at main b92b6ef5. Merged build 35728186900 and
+  regression 35728186799 pass all 26 required jobs. Merge tree ac9a6cd4 matches
+  tested head 312048f0. Issue #19 and #25 are updated for integrated acceptance.
 - #20 draft PR176 includes that main. Earlier b2c2ae5e eventually passed all
   26 jobs, but self-review found signed overflow in the new relative package seek
   branch. Test-first 8702f1d3 and fix 4d06f25b move checked relative offsets into
@@ -51,6 +51,19 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
+
+## #21 checkpoint migration presence contract, test first
+
+The new AI owner needs an explicit absent-record migration for frozen pre-AI
+checkpoints. Extend the existing state probe so lookup reports whether a named
+record exists independently of schema success: a missing owner may migrate,
+but an existing undecodable owner must fail. This avoids treating malformed new
+state as an older save. Commit the failing optional-presence API contract before
+implementation; syntax compilation fails at the absent presence argument
+(navigation-state-presence-compile-before.log). The full state driver separately
+stops at its expected unowned g_navigation/g_behavior guard until AI cvar
+ownership is connected. No fixture regeneration or existing schema change is
+needed.
 
 ## #21 first native patrol integration
 
