@@ -406,3 +406,127 @@ bool G_ReadClientState( const stateReader_t &reader, uint32_t slot, const gState
 	*client = restored;
 	return true;
 }
+
+static constexpr stateField_t gameLevelFields[] = {
+	{ "num_entities", offsetof( level_locals_t, num_entities ), 1, stateType_t::Int32 },
+	{ "warmupTime", offsetof( level_locals_t, warmupTime ), 1, stateType_t::Int32 },
+	{ "maxclients", offsetof( level_locals_t, maxclients ), 1, stateType_t::Int32 },
+	{ "framenum", offsetof( level_locals_t, framenum ), 1, stateType_t::Int32 },
+	{ "time", offsetof( level_locals_t, time ), 1, stateType_t::Int32 },
+	{ "previousTime", offsetof( level_locals_t, previousTime ), 1, stateType_t::Int32 },
+	{ "startTime", offsetof( level_locals_t, startTime ), 1, stateType_t::Int32 },
+	{ "teamScores", offsetof( level_locals_t, teamScores ), TEAM_NUM_TEAMS, stateType_t::Int32 },
+	{ "lastTeamLocationTime", offsetof( level_locals_t, lastTeamLocationTime ), 1, stateType_t::Int32 },
+	{ "newSession", offsetof( level_locals_t, newSession ), 1, stateType_t::UInt32 },
+	{ "restarted", offsetof( level_locals_t, restarted ), 1, stateType_t::UInt32 },
+	{ "numConnectedClients", offsetof( level_locals_t, numConnectedClients ), 1, stateType_t::Int32 },
+	{ "numNonSpectatorClients", offsetof( level_locals_t, numNonSpectatorClients ), 1, stateType_t::Int32 },
+	{ "numPlayingClients", offsetof( level_locals_t, numPlayingClients ), 1, stateType_t::Int32 },
+	{ "sortedClients", offsetof( level_locals_t, sortedClients ), MAX_CLIENTS, stateType_t::Int32 },
+	{ "follow1", offsetof( level_locals_t, follow1 ), 1, stateType_t::Int32 },
+	{ "follow2", offsetof( level_locals_t, follow2 ), 1, stateType_t::Int32 },
+	{ "snd_fry", offsetof( level_locals_t, snd_fry ), 1, stateType_t::Int32 },
+	{ "warmupModificationCount", offsetof( level_locals_t, warmupModificationCount ), 1, stateType_t::Int32 },
+	{ "voteString", offsetof( level_locals_t, voteString ), MAX_STRING_CHARS, stateType_t::String },
+	{ "voteDisplayString", offsetof( level_locals_t, voteDisplayString ), MAX_STRING_CHARS, stateType_t::String },
+	{ "voteTime", offsetof( level_locals_t, voteTime ), 1, stateType_t::Int32 },
+	{ "voteExecuteTime", offsetof( level_locals_t, voteExecuteTime ), 1, stateType_t::Int32 },
+	{ "voteYes", offsetof( level_locals_t, voteYes ), 1, stateType_t::Int32 },
+	{ "voteNo", offsetof( level_locals_t, voteNo ), 1, stateType_t::Int32 },
+	{ "numVotingClients", offsetof( level_locals_t, numVotingClients ), 1, stateType_t::Int32 },
+	{ "teamVoteString[0]", offsetof( level_locals_t, teamVoteString[0] ), MAX_STRING_CHARS, stateType_t::String },
+	{ "teamVoteString[1]", offsetof( level_locals_t, teamVoteString[1] ), MAX_STRING_CHARS, stateType_t::String },
+	{ "teamVoteTime", offsetof( level_locals_t, teamVoteTime ), 2, stateType_t::Int32 },
+	{ "teamVoteYes", offsetof( level_locals_t, teamVoteYes ), 2, stateType_t::Int32 },
+	{ "teamVoteNo", offsetof( level_locals_t, teamVoteNo ), 2, stateType_t::Int32 },
+	{ "numteamVotingClients", offsetof( level_locals_t, numteamVotingClients ), 2, stateType_t::Int32 },
+	{ "intermissionQueued", offsetof( level_locals_t, intermissionQueued ), 1, stateType_t::Int32 },
+	{ "intermissiontime", offsetof( level_locals_t, intermissiontime ), 1, stateType_t::Int32 },
+	{ "readyToExit", offsetof( level_locals_t, readyToExit ), 1, stateType_t::UInt32 },
+	{ "exitTime", offsetof( level_locals_t, exitTime ), 1, stateType_t::Int32 },
+	{ "intermission_origin", offsetof( level_locals_t, intermission_origin ), 3, stateType_t::Float32 },
+	{ "intermission_angle", offsetof( level_locals_t, intermission_angle ), 3, stateType_t::Float32 },
+	{ "locationLinked", offsetof( level_locals_t, locationLinked ), 1, stateType_t::UInt32 },
+	{ "bodyQueIndex", offsetof( level_locals_t, bodyQueIndex ), 1, stateType_t::Int32 },
+#ifdef MISSIONPACK
+	{ "portalSequence", offsetof( level_locals_t, portalSequence ), 1, stateType_t::Int32 },
+#endif
+};
+const stateSchema_t gameLevelSchema = { "game.level", 1, 1, sizeof( level_locals_t ), gameLevelFields, sizeof( gameLevelFields ) / sizeof( gameLevelFields[0] ) };
+struct gLevelRefs_t {
+	int32_t locationHead, bodyQue[BODY_QUEUE_SIZE];
+};
+static_assert( sizeof( gLevelRefs_t ) == 36 );
+static constexpr stateField_t levelRefsFields[] = {
+	{ "locationHead", offsetof( gLevelRefs_t, locationHead ), 1, stateType_t::Int32 },
+	{ "bodyQue", offsetof( gLevelRefs_t, bodyQue ), BODY_QUEUE_SIZE, stateType_t::Int32 },
+};
+static constexpr stateSchema_t levelRefsSchema = { "game.levelRefs", 1, 1, sizeof( gLevelRefs_t ), levelRefsFields, 2 };
+static constexpr stateField_t levelStringsFields[] = {
+	{ "present", offsetof( gLevelStrings_t, present ), 1, stateType_t::UInt32 },
+	{ "changemap", offsetof( gLevelStrings_t, changemap ), MAX_SPAWN_VARS_CHARS, stateType_t::String },
+};
+static constexpr stateSchema_t levelStringsSchema = { "game.levelStrings", 1, 1, sizeof( gLevelStrings_t ), levelStringsFields, 2 };
+size_t G_LevelStringBytes( const gLevelStrings_t &strings ) {
+	return strings.present > 1 ? SIZE_MAX : StringBytes( strings.changemap, strings.present != 0 );
+}
+bool G_RestoreLevelStrings( const gLevelStrings_t &strings, char *storage, size_t capacity, level_locals_t *level ) {
+	const size_t bytes = G_LevelStringBytes( strings );
+	if ( !level || bytes == SIZE_MAX || bytes > capacity || ( bytes && !storage ) )
+		return false;
+	level->changemap = RestoreString( strings.changemap, strings.present != 0, &storage );
+	return true;
+}
+bool G_WriteLevelState( stateWriter_t *writer, const level_locals_t &level, const gStatePools_t &pools ) {
+	if ( !writer )
+		return false;
+	if ( !ValidPools( pools ) || level.spawning || level.gentities != pools.entities || level.clients != pools.clients ||
+		 level.gentitySize != sizeof( gentity_t ) || level.num_entities < 0 || level.num_entities > pools.entityCount ||
+		 level.maxclients < 0 || level.maxclients > pools.clientCount ) {
+		writer->failed = true;
+		return false;
+	}
+	gLevelRefs_t refs{};
+	gLevelStrings_t strings{};
+	refs.locationHead = Slot( level.locationHead, pools.entities, pools.entityCount );
+	if ( refs.locationHead == -2 || !CaptureString( level.changemap, strings.changemap, 0, &strings.present ) ) {
+		writer->failed = true;
+		return false;
+	}
+	for ( int i = 0; i < BODY_QUEUE_SIZE; ++i ) {
+		refs.bodyQue[i] = Slot( level.bodyQue[i], pools.entities, pools.entityCount );
+		if ( refs.bodyQue[i] == -2 ) {
+			writer->failed = true;
+			return false;
+		}
+	}
+	return State_Append( writer, gameLevelSchema, 0, &level ) && State_Append( writer, levelRefsSchema, 0, &refs ) && State_Append( writer, levelStringsSchema, 0, &strings );
+}
+bool G_ReadLevelState( const stateReader_t &reader, const gStatePools_t &pools, level_locals_t *level, gLevelStrings_t *strings ) {
+	if ( !level || !strings || !ValidPools( pools ) )
+		return false;
+	level_locals_t restored{};
+	gLevelRefs_t refs;
+	gLevelStrings_t text;
+	uint32_t version;
+	if ( !State_Find( reader, gameLevelSchema, 0, &restored, &version ) || !State_Find( reader, levelRefsSchema, 0, &refs, &version ) ||
+		 !State_Find( reader, levelStringsSchema, 0, &text, &version ) || G_LevelStringBytes( text ) == SIZE_MAX ||
+		 restored.num_entities < 0 || restored.num_entities > pools.entityCount || restored.maxclients < 0 || restored.maxclients > pools.clientCount ||
+		 refs.locationHead < -1 || refs.locationHead >= pools.entityCount )
+		return false;
+	for ( int i = 0; i < BODY_QUEUE_SIZE; ++i ) {
+		const int slot = refs.bodyQue[i];
+		if ( slot < -1 || slot >= pools.entityCount )
+			return false;
+		restored.bodyQue[i] = slot == -1 ? nullptr : &pools.entities[slot];
+	}
+	restored.locationHead = refs.locationHead == -1 ? nullptr : &pools.entities[refs.locationHead];
+	restored.clients = pools.clients;
+	restored.gentities = pools.entities;
+	restored.gentitySize = sizeof( gentity_t );
+	restored.logFile = level->logFile;
+	// Spawn parsing is frame-local scratch; file handles and pool addresses come from map setup.
+	*level = restored;
+	*strings = text;
+	return true;
+}

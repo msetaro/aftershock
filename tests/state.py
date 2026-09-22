@@ -59,7 +59,7 @@ def declared_members(body):
         match=re.fullmatch(r'(?:(?:struct|const)\s+)?\w+\s+([\s\S]+)',declaration)
         assert match, f'unclassified native declaration: {declaration}'
         for declarator in match[1].split(','):
-            member=re.fullmatch(r'\s*\*?\s*(\w+)(?:\[\w+\])?\s*',declarator)
+            member=re.fullmatch(r'\s*\*?\s*(\w+)(?:\[\w+\])*\s*',declarator)
             assert member, f'unclassified native member: {declaration}'
             fields.add(member[1])
     return fields
@@ -89,6 +89,12 @@ for name, prefix, separate in (('clientPersistant_t','pers.',{'cmd','teamState'}
     described={field[len(prefix):] for field in client_fields if field.startswith(prefix) and '.' not in field[len(prefix):]}
     assert described | separate == declared_members(native_body(name)), f'{name}: saved client field coverage'
 print('PASS: every client/session/team member has a save description or explicit ownership rule')
+level_fields={field.split('[')[0] for field in re.findall(r'offsetof\( level_locals_t, ([\w\[\]]+) \)',records)}
+# References/strings are explicit records; these remaining values are recreated by map setup or are frame-local parsing scratch.
+level_fields.update(('clients','gentities','gentitySize','logFile','locationHead','bodyQue','changemap',
+                     'spawning','numSpawnVars','spawnVars','numSpawnVarChars','spawnVarChars'))
+assert level_fields==declared_members(native_body('level_locals_t')), 'level member needs state or lifetime ownership'
+print('PASS: every level member has a save description or explicit map/frame lifetime rule')
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'

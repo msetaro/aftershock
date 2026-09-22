@@ -132,7 +132,63 @@ static void Client() {
 	puts( "PASS: client inventory, input, session, clocks and grapple survive draft restore" );
 }
 
+static void Level() {
+	static game::gentity_t entities[16], replacement[16];
+	static game::gclient_t clients[2], newClients[2];
+	game::gStatePools_t pools{ entities, 16, clients, 2, nullptr, 0 };
+	game::level_locals_t level{};
+	level.gentities = entities;
+	level.clients = clients;
+	level.gentitySize = sizeof( game::gentity_t );
+	level.num_entities = 16;
+	level.maxclients = 2;
+	level.logFile = 41;
+	level.framenum = 123;
+	level.time = 6170;
+	level.previousTime = 6150;
+	level.startTime = 1000;
+	level.teamScores[game::TEAM_RED] = 4;
+	level.voteTime = 5900;
+	strcpy( level.voteString, "map_restart" );
+	strcpy( level.teamVoteString[1], "leader 1" );
+	level.teamVoteYes[1] = 1;
+	level.intermission_origin[2] = 34.5f;
+	level.locationHead = &entities[3];
+	level.bodyQueIndex = 3;
+	for ( int i = 0; i < BODY_QUEUE_SIZE; ++i )
+		level.bodyQue[i] = &entities[i + 4];
+	level.changemap = (char *)"nextmap";
+	unsigned char archive[32768];
+	stateWriter_t writer{ archive, sizeof( archive ) };
+	assert( game::G_WriteLevelState(&writer,level,pools) );
+	const size_t size = State_Finish( &writer );
+	stateReader_t reader;
+	assert( size && State_Open(archive,size,&reader) );
+	pools.entities = replacement;
+	pools.clients = newClients;
+	game::level_locals_t restored{};
+	restored.logFile = 72;
+	game::gLevelStrings_t strings;
+	assert( game::G_ReadLevelState(reader,pools,&restored,&strings) );
+	char storage[64];
+	assert( game::G_RestoreLevelStrings(strings,storage,sizeof(storage),&restored) );
+	assert( !strcmp(restored.changemap,level.changemap) && restored.changemap!=level.changemap );
+	level.changemap = restored.changemap;
+	level.logFile = 72; // Fresh-process file handles are retained from map setup.
+	level.gentities = replacement;
+	level.clients = newClients;
+	level.locationHead = &replacement[3];
+	for ( int i = 0; i < BODY_QUEUE_SIZE; ++i )
+		level.bodyQue[i] = &replacement[i + 4];
+	assert( !memcmp(&level,&restored,sizeof(level)) );
+	level.spawning = game::qtrue;
+	writer = { archive, sizeof( archive ) };
+	assert( !game::G_WriteLevelState(&writer,level,pools) && !State_Finish(&writer) );
+	puts( "PASS: level clocks, votes, corpse queue and intermission restore with fresh process handles" );
+}
+
 int main() {
+	Level();
 	Client();
 	Scalars();
 	Strings();

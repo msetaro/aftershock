@@ -34,8 +34,9 @@ Additive affected-test and progress conflicts are resolved in 57c0589d. Combined
 GCC/Clang state probes, entity probes, client/server build, profile migration and
 all three entity runtime scenarios pass (private state-entities-*.log). Implement
 full single-player checkpoint integration from the
-committed failing tests/checkpoint_runtime.py. All game/client/bot/subsystem records, callback/reference restoration, clocks and
-both RNG states remain required. No partial checkpoint acceptance.
+committed failing tests/checkpoint_runtime.py. Entity, client and level draft records now round-trip with typed callbacks, checked
+references and nullable strings. Remaining work includes subsystem/bot records,
+gameplay validation, live restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
 
 Completed local #19 support: named/versioned fields with bounded strings and
 schema/slot archives; shared entity/player/usercmd descriptions; profiles restoring
@@ -50,6 +51,16 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 level draft records
+
+Level archives retain clocks, team/voting state, intermission data, location links,
+and corpse queue slots. Runtime pool addresses, native struct size and log handles
+come from the new map setup; spawn-parser scratch is frame-local and reset. Saving
+mid-spawn is rejected. A byte comparison after explicit handle/reference rebinding
+passes with GCC and Clang/libc++ UBSan (state-level-{gcc,clang}.log). Source coverage
+now accounts for each entity, client/session/team and level member, including the
+explicit transient ownership rules. Full server/game/bot coordination remains open.
 
 ## #19 client draft records
 

@@ -75,4 +75,14 @@ bool G_ReadEntityState( const stateReader_t &reader, uint32_t slot, const gState
 extern const stateSchema_t gameClientSchema;
 bool G_WriteClientState( stateWriter_t *writer, uint32_t slot, const gclient_t &client, const gStatePools_t &pools );
 bool G_ReadClientState( const stateReader_t &reader, uint32_t slot, const gStatePools_t &pools, gclient_t *client );
+struct gLevelStrings_t {
+	uint32_t present;
+	char changemap[MAX_SPAWN_VARS_CHARS];
+};
+static_assert( sizeof( gLevelStrings_t ) == 4100 );
+extern const stateSchema_t gameLevelSchema;
+size_t G_LevelStringBytes( const gLevelStrings_t &strings );
+bool G_RestoreLevelStrings( const gLevelStrings_t &strings, char *storage, size_t capacity, level_locals_t *level );
+bool G_WriteLevelState( stateWriter_t *writer, const level_locals_t &level, const gStatePools_t &pools );
+bool G_ReadLevelState( const stateReader_t &reader, const gStatePools_t &pools, level_locals_t *level, gLevelStrings_t *strings );
 #endif
