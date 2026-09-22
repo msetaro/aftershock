@@ -241,7 +241,7 @@ static bool WriteServerCheckpoint( stateWriter_t *writer ) {
 	for ( uint32_t i = 0; i < ARRAY_LEN( checkpointCvars ); ++i )
 		if ( !Cvar_WriteState( writer, "engine.serverCvars", i, checkpointCvars[i] ) )
 			return false;
-	return Cvar_WriteServerState( writer ) && CM_WritePortalState( writer );
+	return Cvar_WriteServerState( writer ) && CM_WritePortalState( writer ) && SV_WriteWorldState( writer );
 }
 static bool ValidateCheckpointCvars( const stateReader_t &reader ) {
 	for ( uint32_t i = 0; i < ARRAY_LEN( checkpointCvars ); ++i )
@@ -261,7 +261,7 @@ static bool SaveCheckpoint( const char *name ) {
 	stateReader_t reader;
 	checkpointHeader_t header;
 	const bool readable = size && State_Open( data, size, &reader ) && ReadServerCheckpoint( reader, &header ) && Cvar_CheckStateCapacity( reader, ValidateCheckpointCvars ) && Game_ReadCheckpoint( &reader, 0 ) &&
-						  BotLib_ReadState( reader, now, false ) && CM_ReadPortalState( reader, false );
+						  BotLib_ReadState( reader, now, false ) && CM_ReadPortalState( reader, false ) && SV_ReadWorldState( reader, false );
 	const bool success = readable && Sys_SaveRevision( saveKind_t::Game, name, data, int( size ), path, sizeof( path ) );
 	Z_Free( data );
 	if ( success )
@@ -333,7 +333,8 @@ static bool RestoreCheckpointServer() {
 		sv.svEntities[i].replicationPriority = saved.replicationPriority;
 		sv.svEntities[i].interestRadius = saved.interestRadius;
 	}
-	Game_LinkCheckpointEntities();
+	if ( !SV_ReadWorldState( reader, true ) )
+		return false;
 	SV_CreateBaseline();
 	return CM_ReadPortalState( reader, true );
 }
@@ -393,7 +394,7 @@ static bool LoadCheckpoint( const char *path ) {
 				break;
 	}
 	const uint32_t now = uint32_t( Sys_Milliseconds() );
-	if ( !BotLib_PrepareState( reader, now ) || !Game_ReadCheckpoint( &reader, 0 ) || !CM_ReadPortalState( reader, false ) ||
+	if ( !BotLib_PrepareState( reader, now ) || !Game_ReadCheckpoint( &reader, 0 ) || !CM_ReadPortalState( reader, false ) || !SV_ReadWorldState( reader, false ) ||
 		 !Game_ReadCheckpoint( &reader, 1 ) || !BotLib_ReadState( reader, now, true ) || !RestoreCheckpointServer() ) {
 		SV_Shutdown( "Checkpoint owner reconstruction failed" );
 		return false;

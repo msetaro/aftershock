@@ -202,7 +202,6 @@ void Game_Shutdown( int restart );
 int Game_WriteCheckpoint( void *writer );
 int Game_ReadCheckpointCvars( const void *reader, int apply );
 int Game_ReadCheckpoint( const void *reader, int apply );
-void Game_LinkCheckpointEntities( void );
 int Game_RestoreCheckpointRandom( const void *reader );
 const char *Game_ClientConnect( int clientNum, int firstTime, int isBot );
 void Game_RunFrame( int time );

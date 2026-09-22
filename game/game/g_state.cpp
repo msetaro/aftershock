@@ -889,17 +889,6 @@ bool G_ReadCheckpoint( const stateReader_t &reader, bool apply ) {
 	trap_LocateGameData( g_entities, level.num_entities, sizeof( gentity_t ), &level.clients[0].ps, sizeof( gclient_t ) );
 	return true;
 }
-void G_LinkCheckpointEntities() {
-	// The server has cleared its spatial world. Relink without changing the saved
-	// link generation used by native mover and ground-entity continuation.
-	for ( int i = 0; i < level.num_entities; ++i )
-		if ( g_entities[i].r.linked ) {
-			const int count = g_entities[i].r.linkcount;
-			g_entities[i].r.linked = qfalse;
-			trap_LinkEntity( &g_entities[i] );
-			g_entities[i].r.linkcount = count;
-		}
-}
 bool G_RestoreCheckpointRandom( const stateReader_t &reader ) {
 	uint32_t seed, version;
 	if ( !State_Find( reader, nativeRandomSchema, 0, &seed, &version ) )

@@ -59,9 +59,6 @@ int Game_ReadCheckpointCvars( const void *reader, int apply ) {
 int Game_ReadCheckpoint( const void *reader, int apply ) {
 	return reader && ( apply == 0 || apply == 1 ) && game::G_ReadCheckpoint( *(const stateReader_t *)reader, apply != 0 );
 }
-void Game_LinkCheckpointEntities( void ) {
-	game::G_LinkCheckpointEntities();
-}
 int Game_RestoreCheckpointRandom( const void *reader ) {
 	return reader && game::G_RestoreCheckpointRandom( *(const stateReader_t *)reader );
 }

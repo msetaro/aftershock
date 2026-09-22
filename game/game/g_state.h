@@ -167,7 +167,6 @@ bool G_ValidateLevelState( const level_locals_t &saved, const gStatePools_t &poo
 bool G_WriteCheckpoint( stateWriter_t *writer );
 bool G_ReadCheckpointCvars( const stateReader_t &reader, int apply );
 bool G_ReadCheckpoint( const stateReader_t &reader, bool apply );
-void G_LinkCheckpointEntities();
 bool G_RestoreCheckpointRandom( const stateReader_t &reader );
 
 bool G_ValidateBotReferences( const stateReader_t &reader, const gentity_t *entities, const gclient_t *clients );

@@ -67,6 +67,21 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 exact spatial restore; continuation investigation
+
+The spatial owner now preserves sector heads, exact entity list order, cluster
+membership and map-derived sector geometry with checked indices. It validates
+whole lists and rejects cycles/mismatched native linked flags before publication.
+Native saved absolute bounds are retained without rerunning collision math; the
+superseded native relink helper is removed. GCC/Clang libc++ UBSan, build, native
+ABI, focused tidy and policy gates pass (state-world-*). The full OpenArena runtime
+now restores all 86 entity rows exactly, including snapped player bounds.
+
+The continuation assertion still fails on small player/bot position differences
+after resuming; no tolerance was added. Investigate first differing clocks/input
+and RNG records using private saved archive comparisons. Full #19 remains open;
+no fixture has been frozen or regenerated. PR174 remains gated on hosted runtime.
+
 ## #19 live restore spatial correction, test first
 
 The first full runtime reaches load completion and restores all 86 OpenArena

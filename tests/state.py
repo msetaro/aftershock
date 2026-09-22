@@ -339,6 +339,11 @@ run([probe])
 run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
      '-fsanitize=undefined','-fno-sanitize-recover=all',
+     'tests/probes/state_world.cpp','engine/qcommon/state.cpp',shared,sha,'-Wl,--gc-sections','-o',probe])
+run([probe])
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+     '-fsanitize=undefined','-fno-sanitize-recover=all',
      'tests/probes/state_portals.cpp','engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
 run([probe])
 # Real botlib phases with owned empty configs, including normal setup/shutdown.
