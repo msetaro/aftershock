@@ -73,6 +73,7 @@ every wire and file-format struct; issue updated with what changed and what was 
 
 - `engine/qcommon` shared core: cvars, commands, filesystem, packet protocols, collision (cm_*)
 - `engine/server`, `engine/client` server and client
+- `engine/ui` bounded cooked menu/HUD layout and navigation
 - `engine/animation` cooked skeletal sampling, graphs, root motion, IK and hit boxes
 - `engine/botlib` bot AI library
 - `engine/devtools` optional development UI and bounded console/debug data

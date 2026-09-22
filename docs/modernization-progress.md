@@ -48,7 +48,13 @@ and records the source font dependency. Schema checks also pass after supplying
 the documented private Go PATH (the initial invocation lacked Go). The next
 native probe fails on the missing engine/ui module (ui-native-before.log):
 localized records, focus skipping/wrap, slider bounds, safe-area containment and
-proportional 1080p/4K geometry, plus 1440p/ultrawide/4:3. Implement that POD core next, then real controller/rebinding/HUD acceptance
+proportional 1080p/4K geometry, plus 1440p/ultrawide/4:3. a5c189aa records the
+missing native API; the bounded POD reader/layout/navigation now passes GCC and
+Clang/libc++ UBSan (ui-native-{first,clang}.log). The cooked Arabic advance is
+less than 80% of isolated codepoints, proving joining. Added the UI directory to
+lifetime analysis and the client source list. The boundary gate caught the local
+copy lambda named read (an OS-call reserved name); renamed it copyRecords.
+Next implement the real client menu/controller/rebinding/HUD adapter, then real controller/rebinding/HUD acceptance
 at 1080p, 1440p and 4K. No maintainer input is currently needed.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
