@@ -82,6 +82,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 authored backend UI contract, test first
+
+A new owned menu source contains sign-in, queue, profile, results and sign-out
+buttons plus bounded public status/stat values. Its cook fails on the missing
+backend action enum before implementation (backend-ui-before.log). A native byte
+reader probe also rejects an injected command target independently of the cooker.
+Existing UI sources and accepted fixtures are untouched. These checks only define
+the menu contract; native HTTPS actions and actual client acceptance still follow.
+
 ## #29 durable ambiguous allocation recovery
 
 Before issuing an allocation request, the backend durably marks the attempt as

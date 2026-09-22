@@ -1,0 +1,444 @@
+{
+  "version": 1,
+  "name": "backend",
+  "font": "font.ttf",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "locales": [
+    {
+      "id": "en",
+      "direction": "ltr"
+    }
+  ],
+  "texts": [
+    {
+      "id": "title",
+      "size": 28,
+      "values": {
+        "en": "AFTERSHOCK ONLINE"
+      }
+    },
+    {
+      "id": "login",
+      "size": 28,
+      "values": {
+        "en": "Sign in"
+      }
+    },
+    {
+      "id": "queue",
+      "size": 28,
+      "values": {
+        "en": "Find match"
+      }
+    },
+    {
+      "id": "profile",
+      "size": 28,
+      "values": {
+        "en": "Refresh profile"
+      }
+    },
+    {
+      "id": "results",
+      "size": 28,
+      "values": {
+        "en": "Match results"
+      }
+    },
+    {
+      "id": "logout",
+      "size": 28,
+      "values": {
+        "en": "Sign out"
+      }
+    },
+    {
+      "id": "backend_status",
+      "size": 28,
+      "values": {
+        "en": "Status"
+      }
+    },
+    {
+      "id": "backend_name",
+      "size": 28,
+      "values": {
+        "en": "Player"
+      }
+    },
+    {
+      "id": "backend_match",
+      "size": 28,
+      "values": {
+        "en": "Match"
+      }
+    },
+    {
+      "id": "backend_score",
+      "size": 28,
+      "values": {
+        "en": "Score"
+      }
+    },
+    {
+      "id": "backend_kills",
+      "size": 28,
+      "values": {
+        "en": "Kills"
+      }
+    },
+    {
+      "id": "backend_deaths",
+      "size": 28,
+      "values": {
+        "en": "Deaths"
+      }
+    },
+    {
+      "id": "fps",
+      "size": 28,
+      "values": {
+        "en": "FPS"
+      }
+    }
+  ],
+  "pages": [
+    {
+      "id": "main",
+      "items": [
+        {
+          "id": "title",
+          "kind": "label",
+          "text": "title",
+          "rect": [
+            180,
+            90,
+            1200,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "login",
+          "kind": "button",
+          "action": "backend",
+          "target": "login",
+          "text": "login",
+          "rect": [
+            180,
+            190,
+            460,
+            72
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "queue",
+          "kind": "button",
+          "action": "backend",
+          "target": "queue",
+          "text": "queue",
+          "rect": [
+            180,
+            290,
+            460,
+            72
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "profile",
+          "kind": "button",
+          "action": "backend",
+          "target": "profile",
+          "text": "profile",
+          "rect": [
+            180,
+            390,
+            460,
+            72
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "results",
+          "kind": "button",
+          "action": "backend",
+          "target": "results",
+          "text": "results",
+          "rect": [
+            180,
+            490,
+            460,
+            72
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "logout",
+          "kind": "button",
+          "action": "backend",
+          "target": "logout",
+          "text": "logout",
+          "rect": [
+            180,
+            590,
+            460,
+            72
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_status_label",
+          "kind": "label",
+          "text": "backend_status",
+          "rect": [
+            720,
+            190,
+            300,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_status",
+          "kind": "value",
+          "target": "backend_status",
+          "text": "backend_status",
+          "rect": [
+            1050,
+            190,
+            620,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_name_label",
+          "kind": "label",
+          "text": "backend_name",
+          "rect": [
+            720,
+            270,
+            300,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_name",
+          "kind": "value",
+          "target": "backend_name",
+          "text": "backend_name",
+          "rect": [
+            1050,
+            270,
+            620,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_match_label",
+          "kind": "label",
+          "text": "backend_match",
+          "rect": [
+            720,
+            350,
+            300,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_match",
+          "kind": "value",
+          "target": "backend_match",
+          "text": "backend_match",
+          "rect": [
+            1050,
+            350,
+            620,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_score_label",
+          "kind": "label",
+          "text": "backend_score",
+          "rect": [
+            720,
+            430,
+            300,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_score",
+          "kind": "value",
+          "target": "backend_score",
+          "text": "backend_score",
+          "rect": [
+            1050,
+            430,
+            620,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_kills_label",
+          "kind": "label",
+          "text": "backend_kills",
+          "rect": [
+            720,
+            510,
+            300,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_kills",
+          "kind": "value",
+          "target": "backend_kills",
+          "text": "backend_kills",
+          "rect": [
+            1050,
+            510,
+            620,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_deaths_label",
+          "kind": "label",
+          "text": "backend_deaths",
+          "rect": [
+            720,
+            590,
+            300,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "backend_deaths",
+          "kind": "value",
+          "target": "backend_deaths",
+          "text": "backend_deaths",
+          "rect": [
+            1050,
+            590,
+            620,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "options",
+      "items": [
+        {
+          "id": "back",
+          "kind": "button",
+          "action": "page",
+          "target": "main",
+          "text": "title",
+          "rect": [
+            180,
+            190,
+            460,
+            72
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hud",
+      "items": [
+        {
+          "id": "fps",
+          "kind": "value",
+          "target": "fps",
+          "text": "fps",
+          "rect": [
+            180,
+            90,
+            200,
+            60
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}
