@@ -132,7 +132,7 @@ static bool LoadProfile( const char *path, profile_t *profile ) {
 		return false;
 	void *data = Z_Malloc( size_t( length ) );
 	const bool complete = Sys_ReadSave( path, data, length ) == length;
-	uint32_t version;
+	uint32_t version = 0;
 	bool valid = complete && State_Read( profileSchema, data, size_t( length ), profile, &version );
 	// Version 1 had no workspace; give the new fields explicit, stable defaults.
 	if ( valid && version == 1 )

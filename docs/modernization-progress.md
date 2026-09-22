@@ -48,7 +48,10 @@ adapter gaps, now corrected. Both full local unit command sets pass using their
 recorded passed prefixes plus resumed tails (state-unit-{gcc,clang}-suite/ and
 state-unit-*-resume*.log). Full tidy/lifetime, profile migration, both content
 sets' checkpoint continuation, legacy bot goldens and fixed replay frames pass.
-Push this combined correction, require all 26 checks on the new exact head, and
+Combined correction db9a51db is in CI (build 35719871675, regression
+35719871602). MSVC flags the profile reader version output as potentially
+uninitialized (C4701); initialize it explicitly, rerun profile migration, then
+push and require all 26 checks on the new exact head, and
 recheck current main/base before ready/merge. Also finish PR174's rerun integration
 gate before closing #31. No partial checkpoint acceptance.
 
@@ -62,6 +65,14 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 MSVC profile output initialization
+
+Build 35719871675 reaches a remaining C4701 in profile loading: MSVC does not
+prove that the successful State_Read out-parameter is initialized through the
+stored valid flag. Initialize the version output to zero; valid reads still
+replace it and rejected reads never publish the profile. Rerun the real profile
+and frozen v1 migration, then require another exact-head hosted matrix.
 
 ## #19 combined CI corrections verified locally
 
