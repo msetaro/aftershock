@@ -12,6 +12,7 @@ import struct
 import subprocess
 import tempfile
 import wave
+import zipfile
 
 from cook import cook
 from run import ROOT, SCRATCH, content_maps, content_settings
@@ -63,6 +64,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-audio-runtime-') as temporar
         dict(name='sound/audio_test', kind='audio', source='tone.wav'),
         dict(name='sound/audio_event', kind='sound-event', source='event.json')])))
     cook(project, base)
+    # An owned compressed pk3 proves playback never rewinds the allocating inflater.
+    with zipfile.ZipFile(base / 'zz-audio-test.pk3', 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.write(base / 'sound/audio_test.wav', 'sound/audio_test.wav')
+    (base / 'sound/audio_test.wav').unlink()
     commands = [f'map {content_maps(args.content)[0]}', 'wait 120', 's_stop',
                 'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',
                 'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',

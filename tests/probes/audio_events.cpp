@@ -138,4 +138,23 @@ int main( int argc, char **argv ) {
 		S_MixEvents( &mixer, output, 256, 48000 );
 	}
 	assert( std::fabs( output[100][1] ) > 990 );
+	// Streamed stereo music and decoded voice use the same buses, even with no event voices.
+	static sBusFrame_t input[256];
+	for ( auto &frame : input ) {
+		frame.samples[S_BUS_MUSIC][0] = 1000;
+		frame.samples[S_BUS_MUSIC][1] = -500;
+		frame.samples[S_BUS_VOICE][0] = frame.samples[S_BUS_VOICE][1] = 100;
+	}
+	mixer = {};
+	for ( int i = 0; i < 10; ++i ) {
+		memset( output, 0, sizeof( output ) );
+		S_MixEvents( &mixer, output, 256, 48000, nullptr, input );
+	}
+	assert( output[100][0] > 449 && output[100][0] < 452 );
+	assert( output[100][1] < -74 && output[100][1] > -77 );
+	mixer = {};
+	mixer.busGain[S_BUS_VOICE] = 0;
+	memset( output, 0, sizeof( output ) );
+	S_MixEvents( &mixer, output, 256, 48000, nullptr, input );
+	assert( output[100][0] == 1000 && output[100][1] == -500 && mixer.duck == 0 );
 }
