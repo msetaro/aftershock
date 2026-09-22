@@ -79,6 +79,14 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 terminal assignment contract, test first
+
+An additional real-database test covers a match ending before its expected player
+enters. It fails because there is no personal score row to trigger queue cleanup
+(backend-terminal-before/contracts.log). Read-only completion metadata must identify
+the authenticated player's current assignment even when no result was earned.
+This is unfinished #29 behavior, not a production #31 bug or invented score record.
+
 ## #29 native HTTPS transport
 
 The platform owns one bounded nonblocking curl-multi request with verified TLS 1.2+,
