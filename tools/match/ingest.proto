@@ -5,5 +5,7 @@ import "google/protobuf/empty.proto";
 // Versioned, bounded batch fields are specified by batch in ingest.go.
 // Match allocation token travels in authorization metadata, never in event data.
 service Ingest {
+  // Reader-only credential; version/player_id/before -> bounded results and leaderboard.
+  rpc Read(google.protobuf.Struct) returns (google.protobuf.Struct);
   rpc Append(google.protobuf.Struct) returns (google.protobuf.Empty);
 }

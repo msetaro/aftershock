@@ -79,6 +79,20 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 acknowledged results read API
+
+The existing development ingest owner now exposes an authenticated read-only gRPC
+method with a separate reader credential. Only final, completed and acknowledged
+checkpoints appear as results. History pages contain at most 20 matches with a stable
+match-ID cursor; score-ordered leaderboards contain at most 100 accounts. Private
+allocation credentials, slot ownership and raw events never leave this API.
+
+Go race tests pass for account isolation, unfinished exclusion, duplicate ACKs,
+restart recovery and complete traversal of 105 results through bounded pages
+(backend-results-after.log). The development stub intentionally reuses its existing
+in-memory/log storage; #30 owns replacing it with indexed transactional storage.
+Next: player-facing HTTPS consumer, native UI and kind acceptance.
+
 ## #29 read-only results contract, test first
 
 The new read contract requires separate reader authorization, canonical account

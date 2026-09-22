@@ -33,6 +33,8 @@ type batch struct {
 	Final      bool       `json:"final"`
 }
 type ingest struct {
+	reader  string
+	results map[string][]byte
 	mu      sync.Mutex
 	file    *os.File
 	tokens  map[string]string
@@ -51,7 +53,7 @@ func newIngest(path string, tokens map[string]string) (*ingest, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := &ingest{file: f, tokens: tokens, offsets: map[string]int64{}, closed: map[string]bool{}, digests: map[string][32]byte{}}
+	s := &ingest{results: map[string][]byte{}, file: f, tokens: tokens, offsets: map[string]int64{}, closed: map[string]bool{}, digests: map[string][32]byte{}}
 	info, err := f.Stat()
 	if err != nil {
 		f.Close()
@@ -80,6 +82,7 @@ func newIngest(path string, tokens map[string]string) (*ingest, error) {
 		s.offsets[b.Match] = b.End
 		s.closed[b.Match] = b.Final
 		s.digests[batchKey(b)] = sha256.Sum256(data)
+		s.retainResult(b)
 	}
 	if err := scan.Err(); err != nil {
 		f.Close()
@@ -139,12 +142,14 @@ func (s *ingest) accept(b batch, token string) error {
 	s.offsets[b.Match] = b.End
 	s.closed[b.Match] = b.Final
 	s.digests[batchKey(b)] = digest
+	s.retainResult(b)
 	fmt.Printf("ingest match=%s end=%d events=%d final=%t\n", b.Match, b.End, len(b.Events), b.Final)
 	return nil
 }
 
 type ingestService interface {
 	Append(context.Context, *structpb.Struct) (*emptypb.Empty, error)
+	Read(context.Context, *structpb.Struct) (*structpb.Struct, error)
 }
 
 func (s *ingest) Append(ctx context.Context, input *structpb.Struct) (*emptypb.Empty, error) {
@@ -172,11 +177,22 @@ func serveIngest(ctx context.Context, address, path string, tokens map[string]st
 		return err
 	}
 	defer s.file.Close()
+	s.reader = os.Getenv("MATCH_READ_TOKEN")
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		return err
 	}
 	server := grpc.NewServer(grpc.MaxRecvMsgSize(131072), grpc.MaxConcurrentStreams(32))
+	registerIngest(server, s)
+	go func() { <-ctx.Done(); server.Stop() }()
+	err = server.Serve(listener)
+	if errors.Is(err, grpc.ErrServerStopped) {
+		return nil
+	}
+	return err
+}
+
+func registerIngest(server *grpc.Server, s ingestService) {
 	server.RegisterService(&grpc.ServiceDesc{ServiceName: "aftershock.match.v1.Ingest", HandlerType: (*ingestService)(nil), Methods: []grpc.MethodDesc{{MethodName: "Append", Handler: func(srv any, ctx context.Context, decode func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 		in := new(structpb.Struct)
 		if err := decode(in); err != nil {
@@ -189,11 +205,17 @@ func serveIngest(ctx context.Context, address, path string, tokens map[string]st
 			return call(ctx, in)
 		}
 		return interceptor(ctx, in, &grpc.UnaryServerInfo{Server: srv, FullMethod: "/aftershock.match.v1.Ingest/Append"}, call)
+	}}, {MethodName: "Read", Handler: func(srv any, ctx context.Context, decode func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
+		in := new(structpb.Struct)
+		if err := decode(in); err != nil {
+			return nil, err
+		}
+		call := func(ctx context.Context, request any) (any, error) {
+			return srv.(ingestService).Read(ctx, request.(*structpb.Struct))
+		}
+		if interceptor == nil {
+			return call(ctx, in)
+		}
+		return interceptor(ctx, in, &grpc.UnaryServerInfo{Server: srv, FullMethod: "/aftershock.match.v1.Ingest/Read"}, call)
 	}}}}, s)
-	go func() { <-ctx.Done(); server.Stop() }()
-	err = server.Serve(listener)
-	if errors.Is(err, grpc.ErrServerStopped) {
-		return nil
-	}
-	return err
 }
