@@ -44,8 +44,9 @@ sufficient. Private read-only findings and primary references are in
 /home/matt/.cache/aftershock-modernization/audio-research.md. A private SDL dummy
 output baseline passed; it does not establish any #16 feature.
 
-Authored map acoustics and reusable music/ambient streams now pass. Next complete
-real weapon near/far acceptance and final regression/build gates.
+Authored map acoustics, reusable music/ambient streams, voice and real weapon
+near/far acceptance now pass. Next complete final regression/build gates and
+self-review, mark PR171 ready, and merge only after every active check succeeds.
 Prepared event registration/playback and both-content output checks now pass. Record failures before fixes. No maintainer input is currently needed.
 
 #15 is accepted and checked in #25: merged-tree build/publication 35658235970
@@ -61,6 +62,21 @@ Never install local system packages, copy game paks, or regenerate accepted gold
 After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
+
+## #16 weapon acceptance and final gates
+
+ff0eab9a records the missing mixed-layer evidence before implementation. Role
+counters now track actual nonzero PCM contributions. GCC and Clang/libc++ UBSan
+component checks pass. Real two-client firing passes Quake 3 and OpenArena:
+near roles 9592/9584/0 frames, peak 10783.330, room wet peak 1104.528;
+far roles 0/0/9568, peak about 264, outdoor wet peak 0. Each phase receives exactly
+one remote shot notify and all voices retire. Prepared storage stays at three
+samples/57,600 bytes. Evidence: audio-weapons-{oa,q3}/ and matching logs.
+The systeminfo capability passes real voice reconnect acceptance and both
+content sets' unchanged bot goldens. Local MinGW rebuild, format/types/boundaries,
+suite/affected contracts and actionlint pass. Added weapon acceptance to runtime
+CI and corrected the new audio artifact paths to a YAML literal list.
+Final hosted compiler/regression checks remain required; PR171 is still draft.
 
 ## #16 hosted feedback and weapon acceptance in progress
 

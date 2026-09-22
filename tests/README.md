@@ -350,7 +350,14 @@ It verifies received speech reaches the voice bus without opening a microphone,
 including a second fresh speaker reusing the same server client slot.
 `voip_test N` is a devtools-only, cheat-server command for that synthetic input.
 
-`sv_voip 1` enables bounded relay to clients advertising `cl_voip 1`.
+`python3 tests/audio_weapons_runtime.py --binary CLIENT` fires an owned cooked
+weapon through two ordinary clients on private displays. Real remote animation
+notifies must play mechanical/tail layers nearby and only the distant layer far
+away; the authored room has a wet tail and outdoors is dry. `s_audioInfo` reports
+nonzero mixed sample counts per layer role. The test uses terminal console input
+to synchronize phases, and supports both installed content sets.
+
+`sv_voip 1` (engine systeminfo) enables bounded relay to clients advertising `cl_voip 1`.
 `bind v +voiprecord` provides push-to-talk; `cl_voipSend` defaults to 0. Capture
 opens only during an explicit send request and closes on release/disconnect/shutdown.
 `cl_voipShowMeter` displays the live input level; `cl_voipTarget -1` sends directly

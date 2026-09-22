@@ -67,7 +67,7 @@ struct sEventMixer_t {
 	sEventVoice_t voices[96];
 	float busGain[S_BUS_COUNT] = { 1, 1, 1, 1, 1 };
 	float duck;
-	uint64_t sequence;
+	uint64_t sequence, layerFrames[3];
 	uint32_t active, stolen;
 };
 static_assert( std::is_trivially_destructible_v<sEventMixer_t> );

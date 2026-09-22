@@ -218,8 +218,8 @@ static void VoiceInfo() {
 }
 
 static void Info() {
-	Com_Printf( "Audio events: events=%u samples=%u bytes=%u active=%u started=%u mixed=%" PRIu64 " peak=%.3f zones=%u zone=%d wet=%.3f traced=%u blocked=%u wetPeak=%.3f\n",
-		eventCount, sampleCount, sampleBytes, mixer.active, started, mixed, double( peak ), zoneCount, zoneIndex, double( reverb.wet ), traced, blocked, double( wetPeak ) );
+	Com_Printf( "Audio events: events=%u samples=%u bytes=%u active=%u started=%u mixed=%" PRIu64 " peak=%.3f zones=%u zone=%d wet=%.3f traced=%u blocked=%u wetPeak=%.3f layers=%" PRIu64 ",%" PRIu64 ",%" PRIu64 "\n",
+		eventCount, sampleCount, sampleBytes, mixer.active, started, mixed, double( peak ), zoneCount, zoneIndex, double( reverb.wet ), traced, blocked, double( wetPeak ), mixer.layerFrames[0], mixer.layerFrames[1], mixer.layerFrames[2] );
 }
 
 static void PlayAt() {

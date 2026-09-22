@@ -172,7 +172,11 @@ void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, i
 				const uint32_t index = uint32_t( voice.cursor[layer] );
 				const float fraction = float( voice.cursor[layer] - index );
 				const float a = MonoSample( pcm, index ), b = MonoSample( pcm, index + 1 );
-				sample += ( a + fraction * ( b - a ) ) * S_EventLayerGain( voice.event->layers[layer], voice.spatial.distance );
+				const auto &definition = voice.event->layers[layer];
+				const float contribution = ( a + fraction * ( b - a ) ) * S_EventLayerGain( definition, voice.spatial.distance );
+				if ( contribution != 0.0f )
+					++mixer->layerFrames[definition.role];
+				sample += contribution;
 				voice.cursor[layer] += double( pcm.rate ) * voice.spatial.pitch / rate;
 			}
 			if ( !playing && !voice.tail ) {
