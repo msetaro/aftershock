@@ -22,11 +22,14 @@ key.chmod(0o600)
 redirected=[]
 class Handler(http.server.BaseHTTPRequestHandler):
     def log_message(self,*args): pass
+    def handle(self):
+        try: super().handle()
+        except (BrokenPipeError,ConnectionResetError,ssl.SSLEOFError): pass
     def do_GET(self):
         if self.path=='/redirect':
-            self.send_response(302);self.send_header('Location','/unexpected');self.end_headers()
+            self.send_response(302);self.send_header('Location','/unexpected');self.send_header('Content-Length','0');self.end_headers()
         elif self.path=='/large':
-            self.send_response(200);self.end_headers()
+            self.send_response(200);self.send_header('Content-Length','40000');self.end_headers()
             try:self.wfile.write(b'x'*40000)
             except (BrokenPipeError,ConnectionResetError):pass
         else:
@@ -35,18 +38,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         data=self.rfile.read(int(self.headers.get('Content-Length','0')))
         valid=self.headers.get('Authorization')=='Bearer aabb' and self.headers.get('Content-Type')=='application/json' and data==b'{"test":1}'
-        self.send_response(200 if valid else 400);self.end_headers();self.wfile.write(b'{"ok":true}')
+        self.send_response(200 if valid else 400);self.send_header('Content-Length','11');self.end_headers();self.wfile.write(b'{"ok":true}')
 server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
 context=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);context.load_cert_chain(cert,key)
 server.socket=context.wrap_socket(server.socket,server_side=True)
 thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
 try:
-    binary=args.output/'http'
-    run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti','-fsanitize=undefined',
-         '-fno-sanitize-recover=all','-DUSE_CURL','-ffunction-sections','-fdata-sections',
-         'tests/probes/backend_http.cpp','engine/platform/sys_http.cpp','engine/platform/sys_curl.cpp',
-         '-Wl,--gc-sections','-lcurl','-pthread','-o',binary])
-    run([binary,f'https://127.0.0.1:{server.server_port}',cert],timeout=25)
+    for name,flags,libraries in [('linked',['-DUSE_CURL'],['-lcurl']),
+                                  ('loaded',['-DUSE_CURL','-DUSE_CURL_DLOPEN'],['-ldl']),
+                                  ('unavailable',[],[])]:
+        binary=args.output/name
+        run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti','-fsanitize=undefined',
+             '-fno-sanitize-recover=all',*flags,'-ffunction-sections','-fdata-sections',
+             'tests/probes/backend_http.cpp','engine/platform/sys_http.cpp','engine/platform/sys_curl.cpp',
+             '-Wl,--gc-sections',*libraries,'-pthread','-o',binary])
+        run([binary,f'https://127.0.0.1:{server.server_port}',cert],timeout=25)
     assert not redirected,redirected
 finally:
     server.shutdown();server.server_close();thread.join()

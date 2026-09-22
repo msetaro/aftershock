@@ -79,6 +79,22 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 native HTTPS transport
+
+The platform owns one bounded nonblocking curl-multi request with verified TLS 1.2+,
+explicit optional CA roots, fixed timeouts, allowed methods and bounded headers/body/
+response. Redirects are not followed. Completion/cancellation clears private buffers.
+The existing curl loader moves into platform code with shared reference ownership so
+a download shutdown cannot unload an outstanding HTTPS request. No new library is added.
+
+GCC and Clang UBSan probes pass with linked curl, dynamic curl and curl disabled;
+private trust, oversized responses, header rejection, cancellation/reuse and shared
+loader lifetime all pass (backend-http-{gcc,clang}.log). The full native client build,
+existing unchanged download golden and curl option probe pass. Targeted production
+transport tidy and format/type/boundary checks pass. The test HTTP endpoint needed
+explicit Content-Length framing for clean TLS completion; certificate checks stayed on.
+Next: client login/queue/profile state and authored UI, then real cluster acceptance.
+
 ## #29 native HTTPS contract, test first
 
 A native transport probe now requires verified private-CA HTTPS, method/header/body
