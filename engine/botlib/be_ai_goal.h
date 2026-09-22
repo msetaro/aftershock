@@ -125,3 +125,6 @@ bool Bot_ReadLevelItemState( const stateReader_t &reader, bool apply );
 
 bool Bot_WriteGoalMapState( stateWriter_t *writer );
 bool Bot_ReadGoalMapState( const stateReader_t &reader );
+
+// Prepare exact saved handles into an empty pool after shared weights.
+bool Bot_PrepareGoalState( const stateReader_t &reader );

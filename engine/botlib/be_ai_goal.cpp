@@ -1827,11 +1827,11 @@ static constexpr stateField_t goalPoolFields[] = {
 	{ "indexHash", offsetof( goalPoolSave_t, indexHash ), ( MAX_CLIENTS + 1 ) * 32, stateType_t::Bytes }
 };
 static constexpr stateSchema_t goalPoolSchema = { "botlib.goalPool", 1, 1, sizeof( goalPoolSave_t ), goalPoolFields, 7 };
-static bool GoalPoolIdentity( goalPoolSave_t *saved ) {
+static bool GoalPoolIdentity( goalPoolSave_t *saved, bot_goalstate_t *const *states = botgoalstates ) {
 	*saved = {};
 	for ( auto &index : saved->cachedWeights )
 		index = -1;
-	if ( botgoalstates[0] )
+	if ( states[0] )
 		return false;
 	saved->itemConfig = itemconfig != nullptr;
 	if ( itemconfig ) {
@@ -1843,14 +1843,14 @@ static bool GoalPoolIdentity( goalPoolSave_t *saved ) {
 		calc_sha_256( saved->itemHash, saved->items ? (const void *)itemconfig->iteminfo : "", size_t( saved->items ) * sizeof( iteminfo_t ) );
 	}
 	for ( int i = 1; i <= MAX_CLIENTS; ++i ) {
-		const auto *goal = botgoalstates[i];
+		const auto *goal = states[i];
 		if ( !goal )
 			continue;
 		saved->present[i] = 1;
 		saved->cachedWeights[i] = Bot_WeightCacheIndex( goal->itemweightconfig );
 		if ( saved->cachedWeights[i] == -2 )
 			for ( int j = 1; j < i; ++j )
-				if ( botgoalstates[j] && botgoalstates[j]->itemweightconfig == goal->itemweightconfig )
+				if ( states[j] && states[j]->itemweightconfig == goal->itemweightconfig )
 					return false;
 		saved->indices[i] = goal->itemweightindex != nullptr;
 		if ( goal->itemweightindex ) {
@@ -2149,4 +2149,54 @@ bool Bot_ReadGoalMapState( const stateReader_t &reader ) {
 	uint8_t saved[32], loaded[32];
 	uint32_t version;
 	return State_Find( reader, goalMapHashSchema, 0, saved, &version ) && GoalMapHash( loaded ) && !memcmp( saved, loaded, sizeof( saved ) );
+}
+
+bool Bot_PrepareGoalState( const stateReader_t &reader ) {
+	for ( const auto *state : botgoalstates )
+		if ( state )
+			return false;
+	goalPoolSave_t pool, loaded;
+	uint32_t version;
+	if ( !State_Find( reader, goalPoolSchema, 0, &pool, &version ) || pool.present[0] )
+		return false;
+	bot_goalstate_t *draft[MAX_CLIENTS + 1] = {};
+	bool valid = true;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS && valid; ++i ) {
+		if ( pool.present[i] > 1 || pool.indices[i] > 1 || pool.cachedWeights[i] < -2 || pool.cachedWeights[i] >= 128 ) {
+			valid = false;
+			break;
+		}
+		if ( !pool.present[i] )
+			continue;
+		auto *state = (bot_goalstate_t *)GetClearedMemory( sizeof( bot_goalstate_t ) );
+		draft[i] = state;
+		if ( !State_Find( reader, goalStateSchema, i, state, &version ) || !ValidGoalState( *state ) ) {
+			valid = false;
+			break;
+		}
+		if ( pool.cachedWeights[i] == -2 )
+			valid = Bot_CreateWeightState( reader, 128 + i, &state->itemweightconfig );
+		else if ( pool.cachedWeights[i] >= 0 ) {
+			state->itemweightconfig = Bot_WeightCacheAt( pool.cachedWeights[i] );
+			valid = state->itemweightconfig != nullptr;
+		}
+		if ( valid && pool.indices[i] ) {
+			valid = itemconfig && state->itemweightconfig;
+			if ( valid )
+				state->itemweightindex = ItemWeightIndex( state->itemweightconfig, itemconfig );
+		}
+	}
+	valid = valid && GoalPoolIdentity( &loaded, draft ) && !memcmp( &pool, &loaded, sizeof( pool ) );
+	if ( !valid ) {
+		for ( auto *state : draft )
+			if ( state ) {
+				Bot_FreePrivateWeightState( state->itemweightconfig );
+				if ( state->itemweightindex )
+					FreeMemory( state->itemweightindex );
+				FreeMemory( state );
+			}
+		return false;
+	}
+	memcpy( botgoalstates, draft, sizeof( draft ) );
+	return true;
 }

@@ -92,3 +92,6 @@ bool Bot_ReadWeightCacheState( const stateReader_t &reader, bool apply );
 // Preparation owns new allocations; the destination/cache must be empty.
 bool Bot_CreateWeightState( const stateReader_t &reader, uint32_t slot, weightconfig_t **output );
 bool Bot_PrepareWeightCacheState( const stateReader_t &reader );
+
+weightconfig_t *Bot_WeightCacheAt( int index );
+void Bot_FreePrivateWeightState( weightconfig_t *config );

@@ -1084,3 +1084,11 @@ bool Bot_PrepareWeightCacheState( const stateReader_t &reader ) {
 	memcpy( weightFileList, draft, sizeof( draft ) );
 	return true;
 }
+
+weightconfig_t *Bot_WeightCacheAt( int index ) {
+	return index >= 0 && index < MAX_WEIGHT_FILES ? weightFileList[index] : nullptr;
+}
+void Bot_FreePrivateWeightState( weightconfig_t *config ) {
+	if ( Bot_WeightCacheIndex( config ) == -2 )
+		FreeWeightConfig2( config );
+}

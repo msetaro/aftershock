@@ -409,6 +409,15 @@ for component in ('input','move','weights','weight_prepare','characters','chat_q
          '-Wl,--gc-sections','-o',probe])
     run([probe])
 
+for component in ('goal','weapon'):
+    run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+         '-fsanitize=undefined','-fno-sanitize-recover=all',
+         f'tests/probes/state_bot_{component}_prepare.cpp','engine/botlib/be_ai_weight.cpp',
+         'engine/botlib/l_script.cpp','engine/botlib/l_precomp.cpp',
+         'engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
+    run([probe])
+
 for component in ('goals','weapons','goal_map'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',

@@ -43,8 +43,8 @@ movement, goal/item/weight/weapon pools, character caches, chat queues/content,
 libvars, global clocks and map identities. AAS records cover entities, spatial
 lists, world/physics state and routing caches; BSP content and the quiescent parser
 boundary are verified. Game-side bot actor/navigation/waypoint/scheduler/queue/team
-records are also complete. Remaining work: reconstruct botlib handles/caches in
-saved slots; finish other game globals and semantic validation; coordinate live
+records are also complete. Character, movement, weight, goal and weapon preparation now rebuild saved
+slots locally. Remaining work: reconstruct chat handles/content; finish other game globals and semantic validation; coordinate live
 server/client restore and both RNG streams; add the platform save-provider seam
 and frozen full-game N-to-N+1 OpenArena fixture. No partial checkpoint acceptance.
 After #19, take the newly reproduced chat-shutdown boundary bug in a separate
@@ -63,6 +63,17 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 goal and weapon handle reconstruction
+
+Goal and weapon preparation stage exact saved handles, reuse the shared weight
+cache, rebuild private weights and derive content indices with the existing
+index builders. Loaded content/index identities must match before publication;
+failed staging frees its private weights, indices and handles. GCC and
+Clang/libc++ UBSan pass sparse slots including MAX_CLIENTS, shared/private
+ownership, learned values, same-next goal pop and rollback without touching the
+shared cache (state-{goal,weapon,weight}-handles-{gcc,clang}.log). Client/server build and focused tidy
+pass (state-owner-prepare-{build,tidy}.log). Chat reconstruction is next, followed by native/server coordination.
 
 ## #19 shared and private weight reconstruction
 
