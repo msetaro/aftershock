@@ -41,7 +41,7 @@ Local input clock ownership now also restores paused clock lead, timing flags,
 view angles, selected weapon/sensitivity and pending loopback input. Full OpenArena
 save/load passes exact entity restoration and identical player/bot continuation in
 both the same process and a fresh process seeded differently
-(state-client-clock-runtime.log). Quake 3 runtime is running next. Freeze and
+(state-client-clock-runtime.log). Quake 3 same/fresh-process continuation also passes (state-client-clock-q3.log). Freeze and
 migrate the full-game N-to-N+1 OpenArena fixture, register final runtime CI, and run
 all required gates before a PR/merge. No partial checkpoint acceptance.
 
@@ -55,6 +55,16 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 full-game v1 fixture creation command
+
+Quake 3 also passes the unchanged same/fresh-process exact continuation gate.
+The explicit --record-v1-fixture command now requires OpenArena and a version-1
+writer, refuses existing gzip/metadata paths, and writes only after the full runtime
+assertions pass. It records binary/source and raw/compressed hashes plus exact
+saved/continued entity projections. A private screenshot supports review. Run it
+once at this committed writer/driver, review, then freeze the bytes; CI never
+invokes the creation flag. Implement v2 migration only after that reviewed fixture.
 
 ## #19 full OpenArena checkpoint continuation passes
 
