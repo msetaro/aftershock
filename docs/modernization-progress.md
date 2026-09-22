@@ -44,14 +44,30 @@ Its v1 format, content identity, compression and patch rules are documented in
 docs/design/packages.md. The native/platform stream contract passes GCC and Clang/libc++ UBSan.
 Filesystem mounting and both-content runtime acceptance now pass, including
 rendered texture deltas and pure client/server sessions. Lifetime/replay
-checks pass. Finish the two full local unit-job variants, merge accepted #19 main
-forward, then open #20 with its full hosted gates.
+and both full local unit-job variants pass. Open #20 as a draft for early hosted
+compiler feedback while #19 finishes; merge accepted #19 main forward before
+#20 final acceptance and require fresh checks on the combined tree.
 Do not merge #20 before #19.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
 is currently needed. Do not end at a checkpoint or CI wait.
+
+## #20 draft-feedback workflow decision
+
+Both complete local unit variants pass (content-unit-suite/suite-report.json
+ok:true, full:false because only unit jobs were selected). Linux/MinGW builds,
+full lifetime/tidy coverage, both-content package/pure/render acceptance, existing
+bot goldens and both fixed replays have passed. No accepted golden changed.
+
+Earlier notes kept #20 local while waiting for #19. With local acceptance complete,
+open a draft into current main for early hosted compiler feedback instead of
+waiting idle. This does not change merge order: #19 must merge first, then its
+current main must be merged forward into #20 and fresh final gates must pass.
+Any checks on the older base are preliminary evidence only. Self-review finds
+only #20 package/root/test/docs changes, no authoritative simulation edits, no
+new non-trivial core owners and no new per-read/seek allocations.
 
 ## #20 CI evidence retention
 
