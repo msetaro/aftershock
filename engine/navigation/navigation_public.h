@@ -33,6 +33,8 @@ struct navFollowOutput_t {
 // chooses a steering target/action; it never moves an actor. Reset on a new path.
 bool Nav_Follow( const navPath_t &path, const float feet[3], bool grounded, float radius,
 	navFollowState_t *state, navFollowOutput_t *out );
+// Consume an actual native pad-touch notification, bounded to the current link.
+bool Nav_TriggerLaunch( const navPath_t &path, const float mins[3], const float maxs[3], navFollowState_t *state );
 struct navAgent_t {
 	float position[3], velocity[3];
 	bool offMesh, partial;

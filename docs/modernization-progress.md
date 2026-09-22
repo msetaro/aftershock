@@ -60,7 +60,13 @@ contract that consumes the existing authoritative pad-touch bounds and advances
 only the current matching launch link (including unrelated/invalid bounds and
 ordinary-jump rejection). Also allow native ground steering after an off-center
 landing; preserving pad velocity only applies while airborne. No movement or
-impulse expression changes. Evidence: navigation-q3-runtime.log/actors.json.
+impulse expression changes. Evidence: navigation-q3-runtime.log/actors.json. Test-first 2305f981 failed
+on the missing trigger API before implementation. Both compiler UBSan navigation
+suites now pass (navigation-trigger-{gcc,clang}.log). The native q3dm17 route
+now finishes after two pad flights: 38 sampled airborne/landing phases and arrival
+at sample 83 (navigation-q3-trigger-runtime.log). Inspector capture reviewed;
+map-derived assets and trajectories remain private. Combat/cover acceptance on
+q3dm17 is still running.
 
 ## #21 native combat and cover
 

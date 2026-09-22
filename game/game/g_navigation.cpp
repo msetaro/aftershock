@@ -193,6 +193,11 @@ bool G_NavigationFrame( int time ) {
 				actor.replan = 500;
 			}
 			if ( actor.action != AI_IDLE && !( actor.action == AI_ATTACK && actor.observation.visible ) ) {
+				if ( player.jumppad_frame == player.pmove_framecount && player.jumppad_ent > 0 && player.jumppad_ent < level.num_entities ) {
+					const auto &pad = g_entities[player.jumppad_ent];
+					if ( pad.inuse && pad.s.eType == ET_PUSH_TRIGGER )
+						Nav_TriggerLaunch( actor.path, pad.r.absmin, pad.r.absmax, &actor.cursor );
+				}
 				navFollowOutput_t following;
 				if ( actor.path.count && Nav_Follow( actor.path, feet, player.groundEntityNum != ENTITYNUM_NONE, actor.action == AI_COVER ? 8 : 16, &actor.cursor, &following ) && !following.arrived ) {
 					vec3_t desired;
@@ -223,7 +228,7 @@ bool G_NavigationFrame( int time ) {
 						vectoangles( velocity, input.viewangles );
 					if ( following.kind == NAV_LINK_JUMP )
 						input.actionflags |= ACTION_JUMP;
-					if ( actor.cursor.phase == 2 && actor.path.points[actor.cursor.point].kind == NAV_LINK_LAUNCH )
+					if ( actor.cursor.phase == 2 && player.groundEntityNum == ENTITYNUM_NONE && actor.path.points[actor.cursor.point].kind == NAV_LINK_LAUNCH )
 						input.speed = 0;
 				}
 			}

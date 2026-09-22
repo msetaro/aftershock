@@ -267,6 +267,19 @@ bool Nav_Path( navWorld_t *world, const float start[3], const float end[3], bool
 	}
 	return out->count > 0;
 }
+bool Nav_TriggerLaunch( const navPath_t &path, const float mins[3], const float maxs[3], navFollowState_t *state ) {
+	if ( !state || !mins || !maxs || !Finite( mins, 3 ) || !Finite( maxs, 3 ) || path.count > NAV_MAX_POINTS ||
+		 state->point >= path.count || state->phase > 2 )
+		return false;
+	const auto &point = path.points[state->point];
+	if ( !point.link || point.kind != NAV_LINK_LAUNCH || state->point + 1 == path.count || !Finite( point.position, 3 ) )
+		return false;
+	for ( int axis = 0; axis < 3; ++axis )
+		if ( mins[axis] > maxs[axis] || point.position[axis] < mins[axis] || point.position[axis] > maxs[axis] )
+			return false;
+	state->phase = 2;
+	return true;
+}
 bool Nav_Follow( const navPath_t &path, const float feet[3], bool grounded, float radius,
 	navFollowState_t *state, navFollowOutput_t *out ) {
 	if ( !feet || !state || !out || !Finite( feet, 3 ) || !std::isfinite( radius ) || radius <= 0 || radius > 128 ||
