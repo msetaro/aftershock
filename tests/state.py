@@ -118,6 +118,17 @@ weapon_public=(ROOT/'engine/weapons/weapons_public.h').read_text()
 weapon_state=weapon_public.split('struct weaponState_t {',1)[1].split('};',1)[0]
 assert set(re.findall(r'offsetof\( weaponState_t, (\w+) \)',weapon_public)) == declared_members(weapon_state)
 print('PASS: weapon actor fields are saved or reconstructed from verified matching content')
+history=(ROOT/'engine/qcommon/net_history_public.h').read_text()
+for name, expected in (('netHistory_t',{'next','count','frames'}),
+                       ('netHistoryFrame_t',{'time','boxCount','entities','boxes'}),
+                       ('netHistoryEntity_t',{'generation','firstBox','boxCount'}),
+                       ('netBox_t',{'mins','maxs'})):
+    native=history.split('struct '+name+' {',1)[1].split('};',1)[0]
+    assert declared_members(native)==expected, f'{name}: checkpoint history ownership needs review'
+rewind=(ROOT/'game/game/g_rewind.cpp').read_text()
+rewind_entities=rewind.split('} rewindEntities[',1)[0].rsplit('static struct {',1)[1]
+assert declared_members(rewind_entities)=={'spawn','playerSpawn','teleport','generation'}
+print('PASS: rewind ownership accounts for live history, generations, report clocks and frame-local scratch')
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'
@@ -176,3 +187,10 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      'tests/probes/state_weapons.cpp','engine/weapons/weapons.cpp','engine/animation/animation.cpp',
      'engine/render/tr_cooked.cpp','engine/qcommon/state.cpp',sha,native,'-Wl,--gc-sections','-o',probe])
 run([probe,weapons/'weapons/range_rifle.asweapon',range_assets/'animations/range_rifle.asanim'])
+
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-ffp-contract=off','-fno-fast-math','-Wall','-Wextra','-Werror',
+     '-ffunction-sections','-fdata-sections','-fsanitize=undefined','-fno-sanitize-recover=all',
+     'tests/probes/state_rewind.cpp','engine/qcommon/net_history.cpp',
+     'engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
+run([probe])

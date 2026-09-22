@@ -216,3 +216,117 @@ extern const gSaveCallback_t saveCallbacks_g_rewind[] = {
 	{ nullptr }
 };
 #endif
+
+struct rewindSave_t {
+	uint32_t enabled, next, count, spawn[MAX_GENTITIES], reports[MAX_CLIENTS];
+	int32_t playerSpawn[MAX_GENTITIES], teleport[MAX_GENTITIES];
+	uint64_t nextGeneration, generation[MAX_GENTITIES];
+};
+struct rewindFrameSave_t {
+	uint32_t time, boxCount, firstBox[NET_HISTORY_ENTITIES], counts[NET_HISTORY_ENTITIES];
+	uint64_t generation[NET_HISTORY_ENTITIES];
+	netBox_t boxes[NET_HISTORY_BOXES];
+};
+// Engine-thread command scratch; avoid putting two 64 KiB frame records on the stack.
+static rewindFrameSave_t rewindSaveFrame;
+static constexpr stateField_t rewindFields[] = {
+	{ "enabled", offsetof( rewindSave_t, enabled ), 1, stateType_t::UInt32 },
+	{ "next", offsetof( rewindSave_t, next ), 1, stateType_t::UInt32 },
+	{ "count", offsetof( rewindSave_t, count ), 1, stateType_t::UInt32 },
+	{ "spawn", offsetof( rewindSave_t, spawn ), MAX_GENTITIES, stateType_t::UInt32 },
+	{ "reports", offsetof( rewindSave_t, reports ), MAX_CLIENTS, stateType_t::UInt32 },
+	{ "playerSpawn", offsetof( rewindSave_t, playerSpawn ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "teleport", offsetof( rewindSave_t, teleport ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "nextGeneration", offsetof( rewindSave_t, nextGeneration ), 1, stateType_t::UInt64 },
+	{ "generation", offsetof( rewindSave_t, generation ), MAX_GENTITIES, stateType_t::UInt64 },
+};
+static constexpr stateSchema_t rewindSchema = { "game.rewind", 1, 1, sizeof( rewindSave_t ), rewindFields, 9 };
+static constexpr stateField_t rewindFrameFields[] = {
+	{ "time", offsetof( rewindFrameSave_t, time ), 1, stateType_t::UInt32 },
+	{ "boxCount", offsetof( rewindFrameSave_t, boxCount ), 1, stateType_t::UInt32 },
+	{ "firstBox", offsetof( rewindFrameSave_t, firstBox ), NET_HISTORY_ENTITIES, stateType_t::UInt32 },
+	{ "counts", offsetof( rewindFrameSave_t, counts ), NET_HISTORY_ENTITIES, stateType_t::UInt32 },
+	{ "generation", offsetof( rewindFrameSave_t, generation ), NET_HISTORY_ENTITIES, stateType_t::UInt64 },
+	{ "boxes", offsetof( rewindFrameSave_t, boxes ), NET_HISTORY_BOXES * 6, stateType_t::Float32 },
+};
+static constexpr stateSchema_t rewindFrameSchema = { "game.rewindFrame", 1, 1, sizeof( rewindFrameSave_t ), rewindFrameFields, 6 };
+bool G_WriteRewindState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	if ( useRewind && ( !rewindHistory || rewindHistory->count > NET_HISTORY_FRAMES || rewindHistory->next >= NET_HISTORY_FRAMES ) ) {
+		writer->failed = true;
+		return false;
+	}
+	rewindSave_t saved{};
+	saved.enabled = uint32_t( useRewind );
+	saved.count = useRewind ? rewindHistory->count : 0;
+	saved.next = useRewind ? rewindHistory->next : 0;
+	saved.nextGeneration = nextGeneration;
+	memcpy( saved.reports, lastRewindReport, sizeof( saved.reports ) );
+	for ( int i = 0; i < MAX_GENTITIES; ++i ) {
+		saved.spawn[i] = rewindEntities[i].spawn;
+		saved.playerSpawn[i] = rewindEntities[i].playerSpawn;
+		saved.teleport[i] = rewindEntities[i].teleport;
+		saved.generation[i] = rewindEntities[i].generation;
+	}
+	if ( !State_Append( writer, rewindSchema, 0, &saved ) )
+		return false;
+	uint32_t previous = 0;
+	for ( uint32_t i = 0; i < saved.count; ++i ) {
+		const auto &frame = rewindHistory->frames[( saved.next + NET_HISTORY_FRAMES - saved.count + i ) % NET_HISTORY_FRAMES];
+		if ( !NET_HistoryFrameValid( &frame ) || ( i && int32_t( frame.time - previous ) <= 0 ) ) {
+			writer->failed = true;
+			return false;
+		}
+		previous = frame.time;
+		rewindSaveFrame = {};
+		rewindSaveFrame.time = frame.time;
+		rewindSaveFrame.boxCount = frame.boxCount;
+		for ( uint32_t entity = 0; entity < NET_HISTORY_ENTITIES; ++entity ) {
+			rewindSaveFrame.firstBox[entity] = frame.entities[entity].firstBox;
+			rewindSaveFrame.counts[entity] = frame.entities[entity].boxCount;
+			rewindSaveFrame.generation[entity] = frame.entities[entity].generation;
+		}
+		memcpy( rewindSaveFrame.boxes, frame.boxes, frame.boxCount * sizeof( netBox_t ) );
+		if ( !State_Append( writer, rewindFrameSchema, i, &rewindSaveFrame ) )
+			return false;
+	}
+	return true;
+}
+bool G_ReadRewindState( const stateReader_t &reader, bool apply ) {
+	rewindSave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, rewindSchema, 0, &saved, &version ) || saved.enabled != uint32_t( useRewind ) ||
+		 saved.count > NET_HISTORY_FRAMES || saved.next >= NET_HISTORY_FRAMES || ( !saved.enabled && ( saved.count || saved.next ) ) || ( saved.enabled && !rewindHistory ) )
+		return false;
+	// rewindFrame is overwritten at the start of G_RecordRewind; it is not live history.
+	for ( int pass = 0; pass < ( apply ? 2 : 1 ); ++pass ) {
+		uint32_t previous = 0;
+		for ( uint32_t i = 0; i < saved.count; ++i ) {
+			if ( !State_Find( reader, rewindFrameSchema, i, &rewindSaveFrame, &version ) || rewindSaveFrame.boxCount > NET_HISTORY_BOXES )
+				return false;
+			rewindFrame = {};
+			rewindFrame.time = rewindSaveFrame.time;
+			rewindFrame.boxCount = rewindSaveFrame.boxCount;
+			for ( uint32_t entity = 0; entity < NET_HISTORY_ENTITIES; ++entity )
+				rewindFrame.entities[entity] = { rewindSaveFrame.generation[entity], rewindSaveFrame.firstBox[entity], rewindSaveFrame.counts[entity] };
+			memcpy( rewindFrame.boxes, rewindSaveFrame.boxes, rewindFrame.boxCount * sizeof( netBox_t ) );
+			if ( !NET_HistoryFrameValid( &rewindFrame ) || ( i && int32_t( rewindFrame.time - previous ) <= 0 ) )
+				return false;
+			previous = rewindFrame.time;
+			if ( pass )
+				rewindHistory->frames[( saved.next + NET_HISTORY_FRAMES - saved.count + i ) % NET_HISTORY_FRAMES] = rewindFrame;
+		}
+	}
+	if ( apply ) {
+		if ( rewindHistory ) {
+			rewindHistory->next = saved.next;
+			rewindHistory->count = saved.count;
+		}
+		nextGeneration = saved.nextGeneration;
+		memcpy( lastRewindReport, saved.reports, sizeof( lastRewindReport ) );
+		for ( int i = 0; i < MAX_GENTITIES; ++i )
+			rewindEntities[i] = { saved.spawn[i], saved.playerSpawn[i], saved.teleport[i], saved.generation[i] };
+	}
+	return true;
+}

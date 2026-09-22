@@ -52,6 +52,23 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 rewind history state
+
+Rewind checkpoints retain live ring frames, cursor/count, 64-bit spawn generations
+and report clocks. Reset does not clear old ring storage, so unreachable frames
+are intentionally never read or serialized; unused box storage is zeroed in the
+save representation. Validation reuses the existing history-frame rules without
+changing query/interpolation math. A fixed command scratch record avoids two
+64 KiB stack frames; the existing per-frame scratch is safe to reuse during load.
+GCC/Clang UBSan proves clock-wrap restore, identical subsequent history queries,
+no partial application on a missing later frame, and compact empty-history saves
+(state-rewind-{gcc,clang}.log). The old gameplay probe now discards unused checkpoint
+sections when linking, as the other focused probes do. Original rewind acceptance
+still passes 950/950 delayed hits with max error 0.000488, plus live-world/view-time
+and reused-slot checks (state-rewind-control.log). Client/server build, focused
+tidy, format/types/boundaries pass. No accepted fixture or authoritative FP
+expression changed. Remaining owners and full checkpoint coordination stay open.
+
 ## #19 authored weapon state
 
 Weapon checkpoints retain both-hand inventory, RNG/cooldowns, attachment masks,
