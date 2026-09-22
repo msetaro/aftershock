@@ -78,6 +78,30 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 persistent authentication and profiles
+
+The bounded HTTP handler verifies identity using Steam's documented publisher-side
+AuthenticateUserTicket GET API and the aftershock identity purpose. Its endpoint
+must use HTTPS; redirects are refused and upstream URLs/errors containing credentials
+are never returned/logged. The local integration fixture is HTTPS too. A caller
+cannot choose the authenticated account. Sessions use random 256-bit opaque bearer
+tokens, store only token/ticket digests, expire after one hour and retain exchanged-
+ticket fingerprints across logout/expiry. Retention is one row per exchanged ticket;
+provider-proven cleanup lifetime is deferred until #180 supplies that guarantee.
+PostgreSQL owns session/profile state and the unique exchange constraint. Startup
+schema installation is serialized across replicas; no ORM or custom DB protocol.
+Profile updates are atomic, bounded UTF-8 names plus catalog-validated weapon paths.
+
+The real private PostgreSQL gate passes, including restart persistence, account
+isolation, expiry/logout, oversized and unknown-field rejection, no followed auth
+redirects, and eight concurrent exchanges yielding exactly one accepted session.
+Full existing Go race tests also pass (backend-services-db/contracts.log and
+backend-go-service.log). The initial nil-loadout scan needed the standard []byte
+SQL destination before JSON encoding; the final gate passes. The service process/
+TLS entry point, parties/queue/Agones, read-only results and native client UI are
+still outstanding; this handler alone is not #29 completion or live Steam acceptance.
+Primary API reference: https://partner.steamgames.com/doc/webapi/ISteamUserAuth .
+
 ## #29 persistent authentication/profile contract, test first
 
 A real PostgreSQL integration test requires upstream-verified account identity,

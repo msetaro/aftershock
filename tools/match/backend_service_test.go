@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
+	"sync/atomic"
 	"testing"
 )
 
@@ -19,8 +21,14 @@ func TestBackendAuthProfile(t *testing.T) {
 	if dsn == "" {
 		t.Fatal("BACKEND_TEST_DATABASE is required; run tests/backend_services.py")
 	}
+	var redirected atomic.Int32
 	steam := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" || r.ParseForm() != nil || r.Form.Get("key") != "private-test-key" || r.Form.Get("appid") != "12345" {
+		if r.URL.Path == "/redirected" {
+			redirected.Add(1)
+			http.Error(w, "unexpected redirect", 500)
+			return
+		}
+		if r.Method != "GET" || r.ParseForm() != nil || r.Form.Get("key") != "private-test-key" || r.Form.Get("appid") != "12345" || r.Form.Get("identity") != "aftershock" {
 			http.Error(w, "invalid test exchange", 400)
 			return
 		}
@@ -31,6 +39,9 @@ func TestBackendAuthProfile(t *testing.T) {
 			id = "123"
 		case "cc00":
 			id = "18446744073709551616"
+		case "ee00":
+			http.Redirect(w, r, "https://"+r.Host+"/redirected", 307)
+			return
 		default:
 			http.Error(w, "rejected", 403)
 			return
@@ -66,6 +77,11 @@ func TestBackendAuthProfile(t *testing.T) {
 	call("POST", "/v1/login", "", `{"ticket":"zz"}`, 400)
 	call("POST", "/v1/login", "", `{"ticket":"dd00"}`, 401)
 	call("POST", "/v1/login", "", `{"ticket":"cc00"}`, 401)
+	call("POST", "/v1/login", "", `{"ticket":"ee00"}`, 503)
+	if redirected.Load() != 0 {
+		t.Fatal("authentication followed a redirect")
+	}
+	call("POST", "/v1/login", "", `{"ticket":"`+strings.Repeat("aa", 5000)+`"}`, 400)
 	call("POST", "/v1/login", "", `{"ticket":"aa00","player_id":"123"}`, 400)
 	login := call("POST", "/v1/login", "", `{"ticket":"aa00"}`, 200)
 	if login["player_id"] != "18446744073709551615" || login["version"] != float64(1) {
@@ -95,6 +111,28 @@ func TestBackendAuthProfile(t *testing.T) {
 	profile = call("GET", "/v1/profile", token, "", 200)
 	if profile["display_name"] != "Player ☃" || profile["loadout"].(map[string]any)["secondary"] != "weapons/second.asweapon" {
 		t.Fatal(profile)
+	}
+	// Concurrent replica attempts cannot exchange one provider ticket twice.
+	results := make(chan int, 8)
+	for range 8 {
+		go func() {
+			r := httptest.NewRequest("POST", "https://backend.test/v1/login", strings.NewReader(`{"ticket":"aa01"}`))
+			w := httptest.NewRecorder()
+			service.ServeHTTP(w, r)
+			results <- w.Code
+		}()
+	}
+	accepted := 0
+	for range 8 {
+		status := <-results
+		if status == 200 {
+			accepted++
+		} else if status != 401 {
+			t.Fatal("concurrent exchange", status)
+		}
+	}
+	if accepted != 1 {
+		t.Fatal("ticket replay across replicas", accepted)
 	}
 	other := call("POST", "/v1/login", "", `{"ticket":"bb00"}`, 200)["token"].(string)
 	if call("GET", "/v1/profile", other, "", 200)["display_name"] == "Player ☃" {
