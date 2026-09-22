@@ -133,13 +133,21 @@ type playerStats struct {
 	Kills  int `json:"kills"`
 	Deaths int `json:"deaths"`
 }
+type accountStats struct {
+	Kills  int `json:"kills"`
+	Deaths int `json:"deaths"`
+	Score  int `json:"score"`
+}
 type checkpoint struct {
-	Seconds   int                    `json:"seconds"`
-	Players   map[string]playerStats `json:"players"`
-	Joins     int                    `json:"joins"`
-	Kills     int                    `json:"kills"`
-	Scores    map[string]int         `json:"scores"`
-	Completed bool                   `json:"completed"`
+	Accounts    map[string]accountStats `json:"accounts,omitempty"`
+	Owners      map[string]string       `json:"owners,omitempty"`
+	OwnerScores map[string]int          `json:"owner_scores,omitempty"`
+	Seconds     int                     `json:"seconds"`
+	Players     map[string]playerStats  `json:"players"`
+	Joins       int                     `json:"joins"`
+	Kills       int                     `json:"kills"`
+	Scores      map[string]int          `json:"scores"`
+	Completed   bool                    `json:"completed"`
 }
 
 func (c *checkpoint) add(line string) {
@@ -150,6 +158,38 @@ func (c *checkpoint) add(line string) {
 	}
 	c.Seconds = minutes*60 + seconds
 	switch event {
+	case "ClientConnect:", "ClientDisconnect:":
+		var slot int
+		if n, _ := fmt.Sscanf(line, "%d:%d %s %d", &minutes, &seconds, &event, &slot); n == 4 {
+			delete(c.Owners, strconv.Itoa(slot))
+			delete(c.OwnerScores, strconv.Itoa(slot))
+		}
+	case "ClientIdentity:":
+		var slot int
+		var player string
+		if n, _ := fmt.Sscanf(line, "%d:%d ClientIdentity: %d %s", &minutes, &seconds, &slot, &player); n != 4 || slot < 0 || slot >= 64 || !contracts.PlayerID(player) {
+			return
+		}
+		if c.Accounts == nil {
+			c.Accounts = map[string]accountStats{}
+		}
+		if c.Owners == nil {
+			c.Owners = map[string]string{}
+		}
+		if c.OwnerScores == nil {
+			c.OwnerScores = map[string]int{}
+		}
+		if _, exists := c.Accounts[player]; !exists {
+			if len(c.Accounts) >= 64 {
+				return
+			}
+			c.Accounts[player] = accountStats{}
+		}
+		key := strconv.Itoa(slot)
+		if c.Owners[key] != player {
+			delete(c.OwnerScores, key)
+		}
+		c.Owners[key] = player
 	case "ClientBegin:":
 		c.Joins++
 	case "Kill:":
@@ -164,12 +204,22 @@ func (c *checkpoint) add(line string) {
 				p := c.Players[key]
 				p.Kills++
 				c.Players[key] = p
+				if owner := c.Owners[key]; owner != "" {
+					a := c.Accounts[owner]
+					a.Kills++
+					c.Accounts[owner] = a
+				}
 			}
 			if victim >= 0 && victim < 64 {
 				key := strconv.Itoa(victim)
 				p := c.Players[key]
 				p.Deaths++
 				c.Players[key] = p
+				if owner := c.Owners[key]; owner != "" {
+					a := c.Accounts[owner]
+					a.Deaths++
+					c.Accounts[owner] = a
+				}
 			}
 		}
 	case "Exit:":
@@ -180,7 +230,17 @@ func (c *checkpoint) add(line string) {
 			if c.Scores == nil {
 				c.Scores = map[string]int{}
 			}
-			c.Scores[strconv.Itoa(client)] = score
+			key := strconv.Itoa(client)
+			c.Scores[key] = score
+			if owner := c.Owners[key]; owner != "" {
+				a := c.Accounts[owner]
+				a.Score += score - c.OwnerScores[key]
+				c.Accounts[owner] = a
+				if c.OwnerScores == nil {
+					c.OwnerScores = map[string]int{}
+				}
+				c.OwnerScores[key] = score
+			}
 		}
 	}
 }

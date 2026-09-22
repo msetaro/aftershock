@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 //
 #include "g_local.h"
+#include <inttypes.h>
 
 // g_client.c -- client functions that don't happen every frame
 
@@ -1028,6 +1029,9 @@ void ClientBegin( int clientNum ) {
 			trap_SendServerCommand( -1, va( (char *)"print \"%s" S_COLOR_WHITE " entered the game\n\"", client->pers.netname ) );
 		}
 	}
+	uint64_t identity;
+	if ( GameImport_GetPlayerIdentity( clientNum, &identity ) )
+		G_LogPrintf( "ClientIdentity: %i %" PRIu64 "\n", clientNum, identity );
 	G_LogPrintf( "ClientBegin: %i\n", clientNum );
 
 	// count current clients and rank for scoreboard

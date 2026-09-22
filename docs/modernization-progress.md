@@ -79,6 +79,17 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 verified result ownership
+
+The native game emits ClientIdentity only from the server's existing verified
+identity import at ClientBegin; no client name/userinfo claim is used. The sidecar
+keeps bounded account statistics separate from legacy slot statistics, clears
+ownership on disconnect/connect, accumulates reconnect score deltas, and preserves
+its baseline across checkpoint restart. Anonymous game logs are unchanged.
+Go race checks and the full native build pass (backend-owner-after.log,
+backend-owner-build.log). Actual authenticated-client log acceptance follows with
+the HTTPS/UI runtime gate; this is not yet end-to-end backend acceptance.
+
 ## #29 verified result ownership, test first
 
 The checkpoint contract now requires server-verified account attribution through
