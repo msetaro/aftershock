@@ -267,6 +267,57 @@ bool Nav_Path( navWorld_t *world, const float start[3], const float end[3], bool
 	}
 	return out->count > 0;
 }
+bool Nav_Follow( const navPath_t &path, const float feet[3], bool grounded, float radius,
+	navFollowState_t *state, navFollowOutput_t *out ) {
+	if ( !feet || !state || !out || !Finite( feet, 3 ) || !std::isfinite( radius ) || radius <= 0 || radius > 128 ||
+		 !path.count || path.count > NAV_MAX_POINTS || state->point > path.count || state->phase > 2 )
+		return false;
+	for ( uint32_t i = 0; i < path.count; ++i ) {
+		const auto &point = path.points[i];
+		if ( !Finite( point.position, 3 ) || point.kind > NAV_LINK_LAUNCH ||
+			 ( bool( point.link ) != ( point.kind != NAV_LINK_NONE ) ) || ( point.link && i + 1 == path.count ) )
+			return false;
+	}
+	if ( state->phase && ( state->point == path.count || !path.points[state->point].link ) )
+		return false;
+	*out = {};
+	const auto near = [&]( const float point[3] ) {
+		const float dx = point[0] - feet[0], dy = point[1] - feet[1];
+		return dx * dx + dy * dy <= radius * radius && std::fabs( point[2] - feet[2] ) <= radius;
+	};
+	while ( state->point < path.count ) {
+		const auto &point = path.points[state->point];
+		if ( !point.link ) {
+			if ( grounded && near( point.position ) ) {
+				++state->point;
+				continue;
+			}
+			std::memcpy( out->position, point.position, sizeof( out->position ) );
+			return true;
+		}
+		if ( !state->phase && grounded && near( point.position ) )
+			state->phase = 1;
+		if ( state->phase && !grounded )
+			state->phase = 2;
+		const auto &landing = path.points[state->point + 1];
+		if ( state->phase && grounded && near( landing.position ) &&
+			 ( state->phase == 2 || point.kind == NAV_LINK_DOOR || point.kind == NAV_LINK_DROP ) ) {
+			++state->point;
+			state->phase = 0;
+			continue;
+		}
+		// Existing map launch pads supply their own impulse. Stay on the pad
+		// until Pmove reports flight; never request a synthetic jump for it.
+		const auto &target = !state->phase || ( state->phase == 1 && point.kind == NAV_LINK_LAUNCH ) ? point : landing;
+		std::memcpy( out->position, target.position, sizeof( out->position ) );
+		out->link = point.link;
+		out->kind = state->phase == 1 ? point.kind : NAV_LINK_NONE;
+		return true;
+	}
+	std::memcpy( out->position, path.points[path.count - 1].position, sizeof( out->position ) );
+	out->arrived = path.complete;
+	return true;
+}
 bool Nav_CoverPoints( navWorld_t *world, const float position[3], float range, navCoverQuery_t *out ) {
 	if ( !world || !position || !out || !Finite( position, 3 ) || !std::isfinite( range ) || range <= 0 || range > 4096 )
 		return false;

@@ -56,6 +56,17 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 authoritative route following
+
+After 872f868f's failing contract, Nav_Follow keeps an eight-byte POD corner/
+phase cursor. It selects bounded ground/off-mesh steering targets from actual
+feet and grounded state, waits for a real map-pad launch and landing, and never
+moves an entity. Jump commands end in flight; door/drop targets remain explicit;
+partial routes never report arrival. Both compiler UBSan suites pass copied-
+cursor continuation and zero tick allocations (navigation-follow-{gcc,clang}.log).
+Isolated lifetime and the configured tidy error policy pass for the owner; the
+existing advisory warnings remain. Full production integration gates are pending.
+
 ## #21 authoritative route-following test first
 
 Extend the native allocation-counted probe with authoritative foot positions and

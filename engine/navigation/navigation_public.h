@@ -19,6 +19,20 @@ struct navPath_t {
 	uint32_t count;
 	bool complete;
 };
+struct navFollowState_t {
+	uint32_t point, phase; // Approach, trigger, airborne; checkpoint-owned POD.
+};
+static_assert( sizeof( navFollowState_t ) == 8 && offsetof( navFollowState_t, phase ) == 4 );
+struct navFollowOutput_t {
+	float position[3];
+	uint32_t link;
+	navLinkKind_t kind;
+	bool arrived;
+};
+// Feet position and grounded state come from authoritative movement. This only
+// chooses a steering target/action; it never moves an actor. Reset on a new path.
+bool Nav_Follow( const navPath_t &path, const float feet[3], bool grounded, float radius,
+	navFollowState_t *state, navFollowOutput_t *out );
 struct navAgent_t {
 	float position[3], velocity[3];
 	bool offMesh, partial;
