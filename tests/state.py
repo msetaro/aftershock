@@ -137,6 +137,15 @@ utilities=(ROOT/'game/game/g_utils.cpp').read_text()
 remap_body=utilities.split('} shaderRemap_t;',1)[0].rsplit('typedef struct {',1)[1]
 assert set(re.findall(r'offsetof\( shaderRemap_t, (\w+) \)',utilities))==declared_members(remap_body)
 print('PASS: team and shader remap records describe every persistent owner field')
+main_header=(ROOT/'game/game/ai_main.h').read_text()
+waypoint_body=main_header.split('typedef struct bot_waypoint_s {',1)[1].split('} bot_waypoint_t;',1)[0]
+# Pointer links use checked indices; the goal has its own shared named record.
+waypoint_fields=set(re.findall(r'offsetof\( bot_waypoint_t, (\w+) \)',(ROOT/'game/game/ai_dmq3.cpp').read_text()))
+assert waypoint_fields | {'goal','next','prev'}==declared_members(waypoint_body)
+goal=(ROOT/'game/game/be_ai_goal.h').read_text().split('typedef struct bot_goal_s {',1)[1].split('} bot_goal_t;',1)[0]
+assert set(re.findall(r'offsetof\( bot_goal_t, (\w+) \)',main_header))==declared_members(goal)
+print('PASS: bot waypoint and shared goal records describe all members')
+
 
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
@@ -227,3 +236,10 @@ for component in ('QUEUE','CLOCK','TEAM'):
          'tests/probes/state_bot_globals.cpp','engine/qcommon/state.cpp',sha,
          '-Wl,--gc-sections','-o',probe])
     run([probe])
+
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+     '-fsanitize=undefined','-fno-sanitize-recover=all',
+     'tests/probes/state_waypoints.cpp','engine/qcommon/state.cpp',sha,
+     '-Wl,--gc-sections','-o',probe])
+run([probe])

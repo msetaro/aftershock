@@ -56,6 +56,17 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 bot waypoint ownership
+
+Waypoint saves retain stable pool indices, names, goals and the exact free-list
+order. Shared named bot-goal metadata accounts for every goal member. Links are
+range-checked and next chains must terminate before restore; inactive free-node
+prev pointers retain their historical values. GCC and Clang/libc++ UBSan prove
+that restored chains allocate the same next waypoint and reject cyclic/foreign
+links (state-waypoints-{gcc,clang}.log). Full bot actors, activation stacks, map
+navigation globals and botlib remain next. Scheduler/queue/team records are
+committed in aeedbf68; definition/editor records in 508bcdaa.
+
 ## #19 bot scheduler, queue and team ownership
 
 Bot checkpoints now retain delayed spawn queue entries, minimum-player check time,

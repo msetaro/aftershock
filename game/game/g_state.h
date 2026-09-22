@@ -113,4 +113,9 @@ bool G_WriteBotClockState( stateWriter_t *writer );
 bool G_ReadBotClockState( const stateReader_t &reader, bool apply );
 bool G_WriteBotTeamState( stateWriter_t *writer );
 bool G_ReadBotTeamState( const stateReader_t &reader, bool apply );
+struct bot_waypoint_s;
+int G_StateWaypointSlot( const bot_waypoint_s *waypoint );
+bot_waypoint_s *G_StateWaypoint( int slot );
+bool G_WriteWaypointState( stateWriter_t *writer );
+bool G_ReadWaypointState( const stateReader_t &reader, bool apply );
 #endif

@@ -5567,3 +5567,96 @@ BotShutdownDeathmatchAI
 void BotShutdownDeathmatchAI( void ) {
 	altroutegoals_setup = qfalse;
 }
+
+#ifdef __cplusplus
+int G_StateWaypointSlot( const bot_waypoint_t *waypoint ) {
+	if ( !waypoint )
+		return -1;
+	for ( int i = 0; i < MAX_WAYPOINTS; ++i )
+		if ( waypoint == &botai_waypoints[i] )
+			return i;
+	return -2;
+}
+bot_waypoint_t *G_StateWaypoint( int slot ) {
+	return slot >= 0 && slot < MAX_WAYPOINTS ? &botai_waypoints[slot] : nullptr;
+}
+struct waypointLinksSave_t {
+	int32_t free, next[MAX_WAYPOINTS], prev[MAX_WAYPOINTS];
+};
+static_assert( sizeof( waypointLinksSave_t ) == 1028 );
+static constexpr stateField_t waypointLinksFields[] = {
+	{ "free", offsetof( waypointLinksSave_t, free ), 1, stateType_t::Int32 },
+	{ "next", offsetof( waypointLinksSave_t, next ), MAX_WAYPOINTS, stateType_t::Int32 },
+	{ "prev", offsetof( waypointLinksSave_t, prev ), MAX_WAYPOINTS, stateType_t::Int32 }
+};
+static constexpr stateSchema_t waypointLinksSchema = { "game.waypointLinks", 1, 1, sizeof( waypointLinksSave_t ), waypointLinksFields, 3 };
+static constexpr stateField_t waypointFields[] = {
+	{ "inuse", offsetof( bot_waypoint_t, inuse ), 1, stateType_t::Int32 },
+	{ "name", offsetof( bot_waypoint_t, name ), 32, stateType_t::String }
+};
+static constexpr stateSchema_t waypointSchema = { "game.waypoint", 1, 1, sizeof( bot_waypoint_t ), waypointFields, 2 };
+static bool ValidWaypointLinks( const waypointLinksSave_t &links ) {
+	if ( links.free < -1 || links.free >= MAX_WAYPOINTS )
+		return false;
+	for ( int i = 0; i < MAX_WAYPOINTS; ++i )
+		if ( links.next[i] < -1 || links.next[i] >= MAX_WAYPOINTS || links.prev[i] < -1 || links.prev[i] >= MAX_WAYPOINTS )
+			return false;
+	// Both the free list and active chains must terminate; prev may be stale on free nodes.
+	for ( int i = 0; i < MAX_WAYPOINTS; ++i ) {
+		int slot = i, steps = 0;
+		while ( slot >= 0 ) {
+			if ( ++steps > MAX_WAYPOINTS )
+				return false;
+			slot = links.next[slot];
+		}
+	}
+	return true;
+}
+bool G_WriteWaypointState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	waypointLinksSave_t links;
+	links.free = G_StateWaypointSlot( botai_freewaypoints );
+	for ( int i = 0; i < MAX_WAYPOINTS; ++i ) {
+		links.next[i] = G_StateWaypointSlot( botai_waypoints[i].next );
+		links.prev[i] = G_StateWaypointSlot( botai_waypoints[i].prev );
+	}
+	if ( !ValidWaypointLinks( links ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, waypointLinksSchema, 0, &links ) )
+		return false;
+	for ( int i = 0; i < MAX_WAYPOINTS; ++i ) {
+		const auto &waypoint = botai_waypoints[i];
+		if ( !G_ValidBotGoal( waypoint.goal ) || waypoint.inuse < 0 || waypoint.inuse > 1 ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( !State_Append( writer, waypointSchema, uint32_t( i ), &waypoint ) || !State_Append( writer, botGoalSchema, uint32_t( i ), &waypoint.goal ) )
+			return false;
+	}
+	return true;
+}
+bool G_ReadWaypointState( const stateReader_t &reader, bool apply ) {
+	waypointLinksSave_t links;
+	uint32_t version;
+	if ( !State_Find( reader, waypointLinksSchema, 0, &links, &version ) || !ValidWaypointLinks( links ) )
+		return false;
+	bot_waypoint_t saved[MAX_WAYPOINTS]{};
+	for ( int i = 0; i < MAX_WAYPOINTS; ++i ) {
+		auto &waypoint = saved[i];
+		if ( !State_Find( reader, waypointSchema, uint32_t( i ), &waypoint, &version ) ||
+			 !State_Find( reader, botGoalSchema, uint32_t( i ), &waypoint.goal, &version ) ||
+			 !G_ValidBotGoal( waypoint.goal ) || waypoint.inuse < 0 || waypoint.inuse > 1 )
+			return false;
+		waypoint.next = G_StateWaypoint( links.next[i] );
+		waypoint.prev = G_StateWaypoint( links.prev[i] );
+	}
+	if ( apply ) {
+		memcpy( botai_waypoints, saved, sizeof( saved ) );
+		botai_freewaypoints = G_StateWaypoint( links.free );
+	}
+	return true;
+}
+#endif
