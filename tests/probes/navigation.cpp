@@ -91,6 +91,19 @@ int main( int argc, char **argv ) {
 	navFollowOutput_t continued{};
 	assert(Nav_Follow(route,landed,true,12,&restored,&continued));
 	assert(continued.arrived && restored.point == cursor.point && restored.phase == cursor.phase);
+	// A real trigger can launch before the route's center-point arrival radius.
+	// Only the current authored launch endpoint inside that trigger may advance.
+	cursor = { 1, 0 };
+	const float triggerMin[3] = { 60, -40, -8 }, triggerMax[3] = { 140, 40, 24 };
+	assert(!Nav_TriggerLaunch(route,landed,triggerMax,&cursor) && cursor.phase == 0);
+	assert(Nav_TriggerLaunch(route,triggerMin,triggerMax,&cursor) && cursor.phase == 2);
+	assert(Nav_Follow(route,flight,false,12,&cursor,&follow) && follow.position[0] == 200);
+	assert(Nav_Follow(route,landed,true,12,&cursor,&follow) && follow.arrived);
+	assert(!Nav_TriggerLaunch(route,triggerMin,triggerMax,&cursor));
+	cursor = { 1, 0 };
+	route.points[1].kind = NAV_LINK_JUMP;
+	assert(!Nav_TriggerLaunch(route,triggerMin,triggerMax,&cursor));
+	route.points[1].kind = NAV_LINK_LAUNCH;
 	// Jump requests stop once airborne. Doors and drops steer through their
 	// endpoint without waiting for a launch impulse. Partial routes never arrive.
 	for ( auto kind : { NAV_LINK_JUMP, NAV_LINK_DROP, NAV_LINK_DOOR } ) {

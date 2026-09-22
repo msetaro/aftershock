@@ -52,6 +52,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 launch-trigger continuation contract, test first
+
+The first actual q3dm17 AI run launches but its route cursor stays at the source:
+the native trigger overlaps the actor before the endpoint arrival radius. Add a
+contract that consumes the existing authoritative pad-touch bounds and advances
+only the current matching launch link (including unrelated/invalid bounds and
+ordinary-jump rejection). Also allow native ground steering after an off-center
+landing; preserving pad velocity only applies while airborne. No movement or
+impulse expression changes. Evidence: navigation-q3-runtime.log/actors.json.
+
 ## #21 native combat and cover
 
 After the committed failing combat contract in 1b248ac6, the controller feeds real
