@@ -93,6 +93,31 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 native join-ticket contract, test first
+
+Extend the same backend driver with a native UBSan probe using the independent
+Python HMAC signature already checked by Go. It requires exact uint64 identity,
+match/time/signature checks, cleared rejected outputs, trivial POD records and
+bounded nonce retention. The replay store must reject duplicates and fail closed
+when all 256 entries are live, then reuse expired entries without accepting the
+same new nonce twice. This fails on the absent join_public.h/join.cpp before any
+native implementation (backend-native-before.log). A server must preserve the
+replay store across restarts within the same match and handle retransmitted
+connect handshakes idempotently; those integration checks remain to be written.
+
+## Current predecessor gate update
+
+#21 PR177 is merged as main 7c24808f16f9a72d9ed21ba9af736cd54adba386 after
+all 26 final-head jobs passed. Its tree c14c33d3 equals the tested 2cefd7e3 tree;
+main build 35757322676/regression 35757322732 are running. #22 final head b23ef158
+includes that main and starts build 35757405874/regression 35757405820. Earlier
+#22 regression 35749778962 is cancelled as superseded. The initial #23 head's
+16 compiler builds and nine completed regression jobs passed; remaining runtime
+35752232064 is cancelled because the required final #22 main integration will
+need all fresh checks. Neither cancelled run is merge acceptance. #23 must still
+merge accepted #22 main and pass every final check before merging. No red/skipped
+required gate is waived.
+
 ## #29 v1 contract implementation
 
 The three versioned contracts now validate schema shape and semantic limits.
