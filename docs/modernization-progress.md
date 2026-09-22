@@ -69,8 +69,11 @@ renderer restart and returning from in-game controller options
 (ui-runtime-oa-final.log). MinGW and full tidy checks pass. Self-review's extra
 -Wconversion/-Wshadow check exposed implicit UI pixel-to-float conversions;
 made these explicit for MSVC's warning gate without changing arithmetic. Keep
-the native probe warning check. Finish lifetime analysis and rebuilt UI checks,
-then merge accepted #16 main forward and run final hosted gates. No maintainer
+the native probe warning check. Lifetime analysis passes all 1,276 compilation commands; tidy passes 1,334.
+Both compiler probes pass with conversion/shadow warnings, and all six 1080p
+OpenArena captures are byte-identical before/after the explicit casts
+(ui-runtime-casts.log). The rebuilt MinGW link remains in progress. Once it
+finishes, merge accepted #16 main forward and run final hosted #17 gates. No maintainer
 input is currently needed.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
