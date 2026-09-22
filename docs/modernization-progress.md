@@ -48,6 +48,17 @@ Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
 
+## #19 profile test before implementation
+
+`tests/profile_runtime.py` starts an isolated real devtools client, changes an
+archived volume setting and a real F8 binding, and requires numbered profile
+saves plus reload in the same and a fresh process. Earlier revisions must remain
+byte-identical. It fails at the absent saveprofile file (profile-before.log) on
+the accepted UI client. Profiles will use the common named-field serializer and
+existing cvar/binding/filesystem services; numbered saves avoid overwriting user
+data. No automatic replacement of legacy q3config.cfg is intended. Editor workspace
+and full game-state acceptance remain separate required slices of #19.
+
 ## #19 field serializer implementation
 
 The committed missing-API test (10c1bee0, introduction-version extension 26e2824d)
