@@ -69,3 +69,7 @@ int AAS_PointReachabilityAreaIndex( vec3_t point );
 //returns the plane the given face is in
 void AAS_FacePlane(int facenum, vec3_t normal, float *dist);
 #endif
+
+#include "../public/state_public.h"
+bool AAS_WriteLinkState( stateWriter_t *writer );
+bool AAS_ReadLinkState( const stateReader_t &reader, bool apply );

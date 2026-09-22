@@ -1041,3 +1041,21 @@ leaving duplicate YAML keys in create-testing and update-release. Build workflow
 .github/workflows/build.yml` at that commit (duplicate keys at lines 194/222).
 The issue branch removes only the redundant blocks; full required gates and actual
 merged publication are pending. #158 stays open until that publication succeeds.
+
+## Open: bot chat shutdown skips the last valid handle (#31)
+
+Found while inventorying #19 ownership. BotAllocChatState allocates handles 1
+through MAX_CLIENTS inclusive, but BotShutdownChatAI visits 0 through MAX_CLIENTS-1.
+With all 64 handles allocated, shutdown leaves botchatstates[64] live. The goal,
+movement and weapon shutdown loops already include their last valid handle.
+No engine fix is included in #19. Fix in a separate #31 PR with a failing test.
+
+Reproducer at 4b4cce3a: include engine/botlib/be_ai_chat.cpp in a small standalone
+probe, stub GetClearedMemory/FreeMemory with calloc/free, LibVarGetValue with 0,
+and Q_strncpyz with a bounded copy; define botimport. Call BotAllocChatState 64
+times (assert returned handles 1..64), then BotShutdownChatAI; asserting
+botchatstates[MAX_CLIENTS] == nullptr fails. Compile with C++20, -O2,
+-ffunction-sections -fdata-sections and -Wl,--gc-sections. The private runnable
+probe and output are preserved as bot-chat-shutdown-before.cpp/.log under
+/home/matt/.cache/aftershock-modernization; measured exit status 1. There is no
+accepted golden or sanitizer suppression involved.

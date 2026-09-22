@@ -39,7 +39,7 @@ with typed callbacks, checked references and nullable strings. Composed, authore
 animation/weapon, rewind, utility/spawn-generation, combat, team and podium owners
 also have validated local checkpoint records. Definition/editor state restores
 against matching map registry topology. Remaining work: other game globals and
-botlib AAS/libvar and immutable navigation-content owners (input/movement, goal/item, weight, weapon, character cache, chat content/timers and chat queue
+botlib AAS geometry/settings/routing ownership (input/movement, goal/item, weight, weapon, character cache, chat content/timers, libvars, global clocks/map identity, AAS entity/spatial links and chat queue
 and game map-navigation, actor, activation, waypoint, scheduler,
 queue and team draft records are complete), gameplay validation, live
 restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
@@ -57,6 +57,26 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 AAS entity history and spatial links
+
+AAS entity records preserve history even for entities invalidated this frame;
+spatial links remain separately owned, and the unused Quake 3 BSP leaf pointer
+must be null. Named scalar/vector fields validate finite values, model indices
+and bounds before application. The AAS link owner retains both list orders
+(entities in areas and areas touched by entities), their back-links, the free-list
+and free count. Every link must belong exactly once to both live views or once to
+the free list. Free payload is omitted. The capture ceiling is 65,536 links and
+areas; excess fails explicitly. GCC/Clang libc++ UBSan cover relocation, actual
+unlink/relink with identical next slots, maximum-size heap, invalid/incomplete
+records, cycles and live/free overlap (state-aas-{entities,links}-{gcc,clang}.log).
+Client/server build and focused tidy pass.
+
+A separate existing bug was reproduced: BotShutdownChatAI omits allocated handle
+64. Issue31 reopened with comment 5772659684; docs/bugs.md records the reproducer
+and exit 1. No fix is mixed into #19. Take a separate test-first #31 PR after #19
+unless full restore makes it a prerequisite. Private reproducer is retained under
+the modernization cache. No fixture or suppression changed.
 
 ## #19 botlib globals and immutable map information
 

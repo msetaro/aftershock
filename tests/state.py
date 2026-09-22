@@ -239,6 +239,18 @@ for tag,name in (('maplocation_s','maplocation_t'),('campspot_s','campspot_t')):
     body=goal_source.split('typedef struct '+tag+' {',1)[1].split('} '+name+';',1)[0]
     assert set(re.findall(r'offsetof\( '+name+r', (\w+) \)',goal_source)) | {'next'}==declared_members(body)
 print('PASS: botlib global clocks and immutable map-location/camp descriptors have complete field ownership')
+aas_header=(ROOT/'engine/botlib/be_aas.h').read_text()
+aas_entities=(ROOT/'engine/botlib/be_aas_entity.cpp').read_text()
+body=aas_header.split('typedef struct aas_entityinfo_s {',1)[1].split('} aas_entityinfo_t;',1)[0]
+assert set(re.findall(r'offsetof\( aas_entityinfo_t, (\w+) \)',aas_entities))==declared_members(body)
+aas_def=(ROOT/'engine/botlib/be_aas_def.h').read_text()
+body=aas_def.split('typedef struct aas_entity_s {',1)[1].split('} aas_entity_t;',1)[0]
+assert declared_members(body)=={'i','areas','leaves'}
+body=aas_def.split('typedef struct aas_link_s {',1)[1].split('} aas_link_t;',1)[0]
+aas_links=(ROOT/'engine/botlib/be_aas_sample.cpp').read_text()
+assert set(re.findall(r'offsetof\( aasLinksSave_t, (\w+) \)',aas_links)) - {'areaHeads','entityHeads'}==declared_members(body)
+print('PASS: AAS entity history and spatial link membership/order have complete field ownership')
+
 
 
 
@@ -359,7 +371,7 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wl,--gc-sections','-o',probe])
 run([probe])
 
-for component in ('input','move','weights','characters','chat_queue','chat_content','libvars','interface'):
+for component in ('input','move','weights','characters','chat_queue','chat_content','libvars','interface','aas_entities','aas_links'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',
