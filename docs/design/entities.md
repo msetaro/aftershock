@@ -11,7 +11,9 @@ For example, an `item_health_mega` prefab with `pickup.amount: 30` creates a new
 pickup without new native code. Map entity `classname` selects the prefab;
 explicit map fields override its defaults. Runtime spawning follows the same
 path. All classic item/spawn callbacks receive compatibility definitions at map
-startup, preserving their original dispatch and simulation arithmetic. Empty
+startup. The game keeps native classname for callbacks (including CTF flag and
+path/target lookups), with authored identity in a separate private field for the
+inspector. Original dispatch and simulation arithmetic remain unchanged. Empty
 `g_entityDefinitions` keeps classic content behavior and logging unchanged.
 
 | Component | Values and behavior |
@@ -53,6 +55,7 @@ component structure; cooked edits are flattened experimental snapshots. Recookin
 the source intentionally replaces defaults with source values.
 
 Acceptance uses new data-only pickups, generic save/reload, an owned animated
-solid/destructible sound emitter and a once-only damage/target trigger. Both
+solid/destructible sound emitter, a once-only damage/target trigger and CTF flag
+alias pickup/capture. Both
 installed content sets exercise the real client. Classic bot logs and fixed demo
 frames remain the compatibility oracle; accepted fixtures are not regenerated.

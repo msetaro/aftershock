@@ -368,6 +368,10 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 
 	const auto *definition = Entity_FindDefinition( entityDefinitions, ent->classname );
 	const char *native = definition ? definition->native : ent->classname;
+	if ( definition ) {
+		ent->definitionName = definition->name;
+		ent->classname = native;
+	}
 
 	// check item spawn functions
 	for ( item = bg_itemlist + 1; item->classname; item++ ) {
@@ -793,7 +797,9 @@ static bool Dev_ReadEntity( int index, devEntity_t *out ) {
 	if ( index < 0 || index >= level.num_entities || !g_entities[index].inuse )
 		return false;
 	const gentity_t *entity = &g_entities[index];
-	Q_strncpyz( out->classname, entity->classname ? entity->classname : "", sizeof( out->classname ) );
+	Q_strncpyz( out->classname, entity->definitionName ? entity->definitionName : entity->classname ? entity->classname
+																									: "",
+		sizeof( out->classname ) );
 	VectorCopy( entity->r.currentOrigin, out->origin );
 	VectorCopy( entity->r.absmin, out->mins );
 	VectorCopy( entity->r.absmax, out->maxs );
@@ -824,6 +830,10 @@ static bool Dev_ReadField( int index, const char *key, char *value, int capacity
 	const field_t *field = Dev_Field( key );
 	if ( capacity <= 0 || !Dev_ReadEntity( index, &info ) || !field )
 		return false;
+	if ( !Q_stricmp( key, "classname" ) ) {
+		Q_strncpyz( value, info.classname, capacity );
+		return true;
+	}
 	const byte *data = (const byte *)&g_entities[index] + field->ofs;
 	switch ( field->type ) {
 	case F_LSTRING: {

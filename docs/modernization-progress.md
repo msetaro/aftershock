@@ -37,10 +37,11 @@ hosted gates green, recheck exact main/base, then ready/merge with a merge commi
 
 #18 is local on issue/18-entity-definitions in
 /home/matt/.cache/aftershock-modernization/entities-tree, no PR yet. Current step:
-accepted audio main is merged forward. All component runtime coverage and generic
-definition editing/save/reload pass OpenArena. Finish Quake 3 editor acceptance,
-full lifetime/tidy checks and unchanged fixed replay. UI kind 13 arrives when #17
-is accepted; entities kind 14 is retained alongside sound kind 12.
+accepted audio main is merged forward. Both-content component/editor acceptance,
+full lifetime/tidy and unchanged fixed replay pass at 731bd28d. Self-review added
+a failing prefab flag test; the native identity correction passes OpenArena. Finish
+Quake 3 flags, commit, and open a draft for compiler feedback. UI kind 13 arrives
+when #17 is accepted; entities kind 14 remains alongside sound kind 12.
 Merge accepted #17 main before final #18 gates. No accepted golden regeneration.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.

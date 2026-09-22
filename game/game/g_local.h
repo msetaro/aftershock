@@ -181,6 +181,7 @@ struct gentity_s {
 	float random;
 
 	gitem_t *item; // for bonus items
+	const char *definitionName; // authored identity; classname remains the native callback identity
 };
 
 

@@ -373,6 +373,7 @@ void G_InitGentity( gentity_t *e ) {
 #endif
 	e->inuse = qtrue;
 	e->classname = "noclass";
+	e->definitionName = nullptr;
 	e->s.number = (int)( e - g_entities );
 	e->r.ownerNum = ENTITYNUM_NONE;
 	GameImport_SetEntityReplication( e->s.number, 0, 0 );
