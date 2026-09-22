@@ -44,12 +44,23 @@ profile migration. Shared replication-derived state descriptions also pass GCC/C
 unchanged network bytes. The first real checkpoint test now fails at the missing save file after loading
 a live bot and pausing through the existing menu. Continue source inventory while
 #18 gates run; merge accepted #18 main before game checkpoint integration.
-Private state-preflight.md records the full-state source inventory. No native
+The native RNG getter also passes sequence/restoration tests and unchanged-codegen
+checks; botlib RNG capture remains outstanding. Private state-preflight.md records
+the full-state source inventory. No native
 pointer dumps or partial checkpoint acceptance.
 
 Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
+
+## #19 native RNG seed exposure
+
+The committed missing-getter test dca6282c passes GCC and Clang/libc++ UBSan
+(state-rng-{gcc,clang}.log). Q_GetRandomSeed reads the existing full-width seed;
+restoration uses existing srand. Neither original RNG function was edited, and
+compiled instruction comparison confirms rand/srand are unchanged with both
+compilers (state-rng-codegen.log). Format/types pass. This is native RNG exposure
+only; botlib's libc state and full checkpoints remain outstanding.
 
 ## #19 native RNG state test before implementation
 

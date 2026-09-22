@@ -756,6 +756,10 @@ double tan( double x ) {
 
 static int randSeed = 0;
 
+uint32_t Q_GetRandomSeed( void ) {
+	return (uint32_t)randSeed;
+}
+
 void srand( unsigned seed ) {
 	randSeed = seed;
 }
