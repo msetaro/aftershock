@@ -1705,10 +1705,7 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 	++animationFrames;
 }
 
-static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint32_t milliseconds ) {
-	static float history[240];
-	static uint32_t cursor;
-	history[cursor++ % ARRAY_LEN( history )] = (float)elapsed;
+static void InspectProfile( const refexport_t *renderer, uint32_t milliseconds ) {
 	const devNetwork_t *net = DevTools_Network();
 	static uint64_t previous[2];
 	static uint32_t previousTime;
@@ -1723,14 +1720,55 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 	}
 	if ( !BeginPanel( "Profile" ) )
 		return;
-	ImGui::PlotLines( "Frame ms", history, ARRAY_LEN( history ), (int)( cursor % ARRAY_LEN( history ) ), nullptr, 0, 100, ImVec2( 0, 80 ) );
+	static devCpuFrame_t selected;
+	static bool held, inspectPeak;
+	float history[240];
+	uint32_t frames = 0;
+	while ( const auto *frame = DevTools_CpuFrame( frames ) ) {
+		history[frames++] = float( frame->microseconds ) / 1000.0f;
+	}
+	ImGui::PlotLines( "CPU frame ms (newest first)", history, (int)frames, 0, nullptr, 0, FLT_MAX, ImVec2( 0, 80 ) );
+	if ( frames && ImGui::IsItemHovered() && ImGui::IsMouseClicked( ImGuiMouseButton_Left ) ) {
+		const float fraction = ( ImGui::GetMousePos().x - ImGui::GetItemRectMin().x ) / ( ImGui::GetItemRectMax().x - ImGui::GetItemRectMin().x );
+		const uint32_t age = MIN( frames - 1, (uint32_t)( MAX( 0.0f, fraction ) * float( frames ) ) );
+		selected = *DevTools_CpuFrame( age );
+		held = true;
+		inspectPeak = false;
+	}
+	if ( ImGui::Button( "Inspect peak" ) ) {
+		inspectPeak = true;
+		held = false;
+	}
+	ImGui::SameLine();
+	if ( ImGui::Button( "Live" ) )
+		inspectPeak = held = false;
+	ImGui::SameLine();
+	if ( ImGui::Button( "Clear history" ) ) {
+		DevTools_ClearCpuHistory();
+		inspectPeak = held = false;
+	}
+	const auto *frame = held ? &selected : inspectPeak ? DevTools_CpuPeak()
+													   : DevTools_CpuFrame( 0 );
+	if ( frame ) {
+		ImGui::Text( "%s frame %u: %.3f ms; %u scope drops", held ? "Selected" : inspectPeak ? "Peak"
+																							 : "Latest",
+			frame->serial, double( frame->microseconds ) / 1000, frame->dropped );
+		ImGui::TextUnformatted( "Scope: inclusive / self ms (click history to retain a frame)" );
+		for ( uint32_t i = 0; i < frame->count; ++i ) {
+			const auto &scope = frame->scopes[i];
+			uint32_t depth = 0;
+			for ( uint32_t ancestor = scope.parent; ancestor != UINT32_MAX; ancestor = frame->scopes[ancestor].parent )
+				++depth;
+			const float indent = float( depth ) * 12.0f;
+			if ( depth )
+				ImGui::Indent( indent );
+			ImGui::Text( "%s: %.3f / %.3f ms", scope.name, double( scope.microseconds ) / 1000, double( scope.selfMicroseconds ) / 1000 );
+			if ( depth )
+				ImGui::Unindent( indent );
+		}
+	}
 	devGpuTiming_t timings[32];
 	const uint32_t count = renderer->GetDeveloperTimings( timings, ARRAY_LEN( timings ) );
-	const devCpuTiming_t *cpu;
-	const uint32_t cpuCount = DevTools_CpuTimings( &cpu );
-	ImGui::TextUnformatted( "Previous CPU frame (inclusive scopes)" );
-	for ( uint32_t i = 0; i < cpuCount; ++i )
-		ImGui::Text( "%s: %.3f ms", cpu[i].name, (double)cpu[i].microseconds / 1000.0 );
 	postRenderStats_t post;
 	renderer->PostStats( &post );
 	ImGui::Text( "Post draws %u / drops %u / profile loads %u", post.draws, post.dropped, post.loads );
@@ -1889,7 +1927,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 				ImGui::EndTabItem();
 			}
 			InspectAssets( renderer );
-			InspectProfile( renderer, elapsed, (uint32_t)milliseconds );
+			InspectProfile( renderer, (uint32_t)milliseconds );
 			InspectMemory();
 			InspectAnimation( renderer, elapsed );
 			InspectEntities();

@@ -935,7 +935,7 @@ static void Agent_Memory( agentReply_t &reply ) {
 	reply.Text( "}" );
 }
 
-static void Agent_Profile( agentReply_t &reply ) {
+static void Agent_Profile( agentReply_t &reply, const devCpuFrame_t *frame ) {
 	int64_t sorted[ARRAY_LEN( agentFrameTimes )];
 	const uint32_t count = MIN( agentSamples, (uint32_t)ARRAY_LEN( sorted ) );
 	memcpy( sorted, agentFrameTimes, count * sizeof( sorted[0] ) );
@@ -948,16 +948,43 @@ static void Agent_Profile( agentReply_t &reply ) {
 	reply.Number( count ? double( sorted[( count - 1 ) * 95 / 100] ) / 1000 : 0 );
 	reply.Text( ",\"p99_ms\":" );
 	reply.Number( count ? double( sorted[( count - 1 ) * 99 / 100] ) / 1000 : 0 );
-	reply.Text( ",\"cpu\":[" );
-	const devCpuTiming_t *cpu;
-	const uint32_t scopes = DevTools_CpuTimings( &cpu );
-	for ( uint32_t i = 0; i < scopes; ++i ) {
+	reply.Text( ",\"frame\":" );
+	if ( frame ) {
+		reply.Text( "{\"serial\":" );
+		reply.Number( frame->serial );
+		reply.Text( ",\"milliseconds\":" );
+		reply.Number( double( frame->microseconds ) / 1000 );
+		reply.Text( ",\"dropped\":" );
+		reply.Number( frame->dropped );
+		reply.Text( "}" );
+	} else
+		reply.Text( "null" );
+	reply.Text( ",\"history\":[" );
+	for ( uint32_t age = 0; const auto *previous = DevTools_CpuFrame( age ); ++age ) {
+		if ( age )
+			reply.Text( "," );
+		reply.Text( "{\"serial\":" );
+		reply.Number( previous->serial );
+		reply.Text( ",\"milliseconds\":" );
+		reply.Number( double( previous->microseconds ) / 1000 );
+		reply.Text( "}" );
+	}
+	reply.Text( "],\"cpu\":[" );
+	for ( uint32_t i = 0; frame && i < frame->count; ++i ) {
+		const auto &cpu = frame->scopes[i];
 		if ( i )
 			reply.Text( "," );
 		reply.Text( "{\"name\":" );
-		reply.String( cpu[i].name );
+		reply.String( cpu.name );
 		reply.Text( ",\"milliseconds\":" );
-		reply.Number( double( cpu[i].microseconds ) / 1000 );
+		reply.Number( double( cpu.microseconds ) / 1000 );
+		reply.Text( ",\"self_ms\":" );
+		reply.Number( double( cpu.selfMicroseconds ) / 1000 );
+		reply.Text( ",\"parent\":" );
+		if ( cpu.parent == UINT32_MAX )
+			reply.Text( "null" );
+		else
+			reply.Number( cpu.parent );
 		reply.Text( "}" );
 	}
 	reply.Text( "],\"gpu\":[" );
@@ -1586,7 +1613,15 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	} else if ( !strncmp( op, "entity.", 7 ) ) {
 		return Agent_Entity( op, request, end, reply );
 	} else if ( !strcmp( op, "profile" ) ) {
-		Agent_Profile( reply );
+		uint32_t age = 0;
+		bool peak = false, reset = false;
+		if ( ( JSON_ObjectGetNamedValue( request, end, "age" ) && !Agent_Integer( request, end, "age", age ) ) || age >= 240 ||
+			 ( JSON_ObjectGetNamedValue( request, end, "peak" ) && !Agent_Bool( request, end, "peak", peak ) ) ||
+			 ( JSON_ObjectGetNamedValue( request, end, "reset" ) && !Agent_Bool( request, end, "reset", reset ) ) )
+			return reply.Error( "invalid_argument", "$", "Use age in [0,239] and optional boolean peak/reset." );
+		if ( reset )
+			DevTools_ClearCpuHistory();
+		Agent_Profile( reply, peak ? DevTools_CpuPeak() : DevTools_CpuFrame( age ) );
 	} else if ( !strcmp( op, "state" ) ) {
 		Agent_State( reply );
 	} else if ( !strcmp( op, "capture" ) ) {

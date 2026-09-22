@@ -31,9 +31,10 @@ Resume the active predecessor gates before any later issue can merge:
   equals the tested head. Integrated build 35744183979 and regression 35744184060
   are running; require their acceptance before any later issue merges.
 
-#21 draft PR177 is at 9fd94edb and includes main 13106135. Final build
-35744800673 and regression 35744800701 are queued/running; superseded initial-head
-runs were cancelled. Only the final head counts. Its local native
+#21 draft PR177 is at d24ba4f4 and includes main 13106135. Corrected build
+35746723438 and regression 35746723448 are running. Previous head 9fd94edb
+failed MSVC implicit float conversions and unit level-tool dependencies; the
+correction passes clean-cache navigation locally. Only the corrected head counts. Its local native
 navigation/combat/hearing, checkpoint, policy, sanitizer and unchanged legacy
 gates pass. Require all 26 exact-head hosted checks and integrated #20 acceptance
 before readiness/self-merge. Recheck current main/base/head immediately before
@@ -58,7 +59,14 @@ currently needed. Do not end at a checkpoint or CI wait.
 Extend the existing native command probe: select the retained peak, expose parent
 and self-time fields plus bounded history summaries, reject out-of-range age and
 invalid booleans before a requested reset, and clear history explicitly. The old
-handler ignores those arguments; the new check must fail before implementation.
+handler ignores those arguments; the new check fails before implementation
+(profiling-agent-before.log, a8ead056). The handler now exposes the retained
+frame/parent/self-time/history and validates before reset. GCC protocol probe
+passes (profiling-agent-gcc.log). The overlay consumes the same history, supports
+click-to-retain, peak and live selection, and displays indented inclusive/self
+timings. Explicit frame/pacing/event-command scopes extend existing server/client
+scopes; no RAII or simulation expressions change. GCC and Clang/libc++ protocol checks and a complete developer client/server
+build pass. Runtime overlay validation and remaining issue scope are next.
 
 ## #22 profiling contract, test first
 

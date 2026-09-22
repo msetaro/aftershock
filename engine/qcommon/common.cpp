@@ -3747,6 +3747,7 @@ void Com_Frame( qboolean noDelay ) {
 #ifdef AFTERSHOCK_DEVTOOLS
 	const bool explicitStep = DevTools_AgentActive();
 	DevTools_BeginFrame( DevTools_AgentActive() || Cvar_VariableIntegerValue( "dev_tools" ) != 0 );
+	const uint64_t frameScope = Dev_BeginScope( "frame" );
 #else
 	const bool explicitStep = false;
 #endif
@@ -3825,6 +3826,10 @@ void Com_Frame( qboolean noDelay ) {
 		SV_SendQueuedPackets();
 #endif
 
+
+#ifdef AFTERSHOCK_DEVTOOLS
+	const uint64_t waitScope = Dev_BeginScope( "frame pacing" );
+#endif
 	// waiting for incoming packets
 	if ( noDelay == qfalse && !explicitStep )
 		do {
@@ -3846,12 +3851,21 @@ void Com_Frame( qboolean noDelay ) {
 			NET_Sleep( sleepMsec * 1000 - 500 );
 		} while ( Com_TimeVal( minMsec ) );
 
+
+#ifdef AFTERSHOCK_DEVTOOLS
+	Dev_EndScope( waitScope );
+	const uint64_t eventScope = Dev_BeginScope( "events and commands" );
+#endif
 	lastTime = com_frameTime;
 	com_frameTime = Com_EventLoop();
 	realMsec = com_frameTime - lastTime;
 
 	Cbuf_Execute();
 
+
+#ifdef AFTERSHOCK_DEVTOOLS
+	Dev_EndScope( eventScope );
+#endif
 	// mess with msec if needed
 	msec = Com_ModifyMsec( realMsec );
 #ifdef AFTERSHOCK_DEVTOOLS
@@ -3922,9 +3936,15 @@ void Com_Frame( qboolean noDelay ) {
 		if ( com_speeds->integer ) {
 			timeBeforeEvents = Sys_Milliseconds();
 		}
+#ifdef AFTERSHOCK_DEVTOOLS
+		const uint64_t clientEvents = Dev_BeginScope( "client events and commands" );
+#endif
 		Com_EventLoop();
 
 		Cbuf_Execute();
+#ifdef AFTERSHOCK_DEVTOOLS
+		Dev_EndScope( clientEvents );
+#endif
 
 		//
 		// client side
@@ -3985,6 +4005,9 @@ void Com_Frame( qboolean noDelay ) {
 	}
 
 	com_frameNumber++;
+#ifdef AFTERSHOCK_DEVTOOLS
+	Dev_EndScope( frameScope );
+#endif
 }
 
 
