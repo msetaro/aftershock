@@ -617,8 +617,12 @@ func TestBackendResults(t *testing.T) {
 	if len(result.Results) != 1 || result.Results[0].Stats.Score != 3 || len(result.Leaderboard) != 2 {
 		t.Fatal(result)
 	}
-	if exact:=call("/v1/results?match=result-901",200);len(exact.Results)!=1{t.Fatal(exact)}
-	if missing:=call("/v1/results?match=another-match",200);len(missing.Results)!=0{t.Fatal("unrelated result returned",missing)}
+	if exact := call("/v1/results?match=result-901", 200); len(exact.Results) != 1 {
+		t.Fatal(exact)
+	}
+	if missing := call("/v1/results?match=another-match", 200); len(missing.Results) != 0 {
+		t.Fatal("unrelated result returned", missing)
+	}
 	var active bool
 	if err = db.QueryRow("SELECT active FROM backend_match_members WHERE match_id='result-901'").Scan(&active); err != nil || active {
 		t.Fatal("completed assignment not released", err)

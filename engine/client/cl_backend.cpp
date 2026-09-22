@@ -160,7 +160,8 @@ static bool BackendReply( backendOperation_t operation, const httpResult_t &repl
 		const char *array = JSON_ObjectGetNamedValue( json, end, "results" );
 		if ( !array || JSON_ValueGetType( array, end ) != JSONTYPE_ARRAY )
 			return false;
-		int count = 0;
+		int count = 0, selectedScore = 0, selectedKills = 0, selectedDeaths = 0;
+		char selectedMatch[65] = {};
 		bool found = false;
 		for ( const char *row = JSON_ArrayGetFirstValue( array, end ); row; row = JSON_ArrayGetNextValue( row, end ) ) {
 			if ( ++count > 20 )
@@ -170,12 +171,20 @@ static bool BackendReply( backendOperation_t operation, const httpResult_t &repl
 			const char *stats = JSON_ObjectGetNamedValue( row, end, "stats" );
 			if ( !BackendString( row, end, "match", match ) || !BackendIdentifier( match ) || !stats || !BackendNumber( stats, end, "score", score ) || !BackendNumber( stats, end, "kills", kills ) || !BackendNumber( stats, end, "deaths", deaths ) || kills < 0 || deaths < 0 )
 				return false;
-			if ( !found || !strcmp( match, backend.match ) ) {
-				Com_sprintf( backend.score, sizeof( backend.score ), "%d", score );
-				Com_sprintf( backend.kills, sizeof( backend.kills ), "%d", kills );
-				Com_sprintf( backend.deaths, sizeof( backend.deaths ), "%d", deaths );
+			if ( !found && ( !backend.match[0] || !strcmp( match, backend.match ) ) ) {
+				selectedScore = score;
+				selectedKills = kills;
+				selectedDeaths = deaths;
+				Q_strncpyz( selectedMatch, match, sizeof( selectedMatch ) );
 				found = true;
 			}
+		}
+		backend.score[0] = backend.kills[0] = backend.deaths[0] = 0;
+		if ( found ) {
+			Com_sprintf( backend.score, sizeof( backend.score ), "%d", selectedScore );
+			Com_sprintf( backend.kills, sizeof( backend.kills ), "%d", selectedKills );
+			Com_sprintf( backend.deaths, sizeof( backend.deaths ), "%d", selectedDeaths );
+			Q_strncpyz( backend.match, selectedMatch, sizeof( backend.match ) );
 		}
 		BackendStatus( found ? "Results loaded" : "No results yet" );
 		return true;
@@ -223,8 +232,11 @@ void CL_BackendAction( const char *action ) {
 			BackendStatus( "Finding match" );
 	} else if ( !strcmp( action, "profile" ) )
 		BackendRequest( BACKEND_PROFILE, "GET", "/v1/profile", "" );
-	else if ( !strcmp( action, "results" ) )
-		BackendRequest( BACKEND_RESULTS, "GET", "/v1/results", "" );
+	else if ( !strcmp( action, "results" ) ) {
+		char path[96];
+		Com_sprintf( path, sizeof( path ), "/v1/results%s%s", backend.match[0] ? "?match=" : "", backend.match );
+		BackendRequest( BACKEND_RESULTS, "GET", path, "" );
+	}
 }
 void CL_BackendFrame() {
 	if ( backend.operation == BACKEND_TICKET ) {

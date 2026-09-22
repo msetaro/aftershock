@@ -46,8 +46,9 @@ func (s *ingest) Read(ctx context.Context, input *structpb.Struct) (*structpb.St
 		PlayerID string `json:"player_id"`
 		Before   string `json:"before,omitempty"`
 		Active   string `json:"active_match,omitempty"`
+		Match    string `json:"match,omitempty"`
 	}
-	if err != nil || strictJSON(data, &query) != nil || query.Version != 1 || !contracts.PlayerID(query.PlayerID) || (query.Before != "" && !identifier.MatchString(query.Before)) || (query.Active != "" && !identifier.MatchString(query.Active)) {
+	if err != nil || strictJSON(data, &query) != nil || query.Version != 1 || !contracts.PlayerID(query.PlayerID) || (query.Before != "" && !identifier.MatchString(query.Before)) || (query.Active != "" && !identifier.MatchString(query.Active)) || (query.Match != "" && !identifier.MatchString(query.Match)) {
 		return nil, status.Error(codes.InvalidArgument, "invalid result query")
 	}
 	s.mu.Lock()
@@ -64,7 +65,7 @@ func (s *ingest) Read(ctx context.Context, input *structpb.Struct) (*structpb.St
 		if json.Unmarshal(data, &c) != nil {
 			return nil, status.Error(codes.Internal, "invalid stored result")
 		}
-		if stats, ok := c.Accounts[query.PlayerID]; ok && (query.Before == "" || id < query.Before) {
+		if stats, ok := c.Accounts[query.PlayerID]; ok && (query.Before == "" || id < query.Before) && (query.Match == "" || id == query.Match) {
 			result.Results = append(result.Results, matchResult{id, c.Seconds, stats})
 		}
 		for player, stats := range c.Accounts {

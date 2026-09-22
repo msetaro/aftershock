@@ -321,7 +321,7 @@ func (b *backendService) readResults(w http.ResponseWriter, r *http.Request, pla
 		return
 	}
 	query, err := url.ParseQuery(r.URL.RawQuery)
-	if err != nil || len(query) > 1 || (len(query) == 1 && len(query["before"]) != 1) || (query.Get("before") != "" && !identifier.MatchString(query.Get("before"))) {
+	if err != nil || len(query) > 1 || (len(query) == 1 && len(query["before"]) != 1 && len(query["match"]) != 1) || (query.Get("before") != "" && !identifier.MatchString(query.Get("before"))) || (query.Get("match") != "" && !identifier.MatchString(query.Get("match"))) {
 		backendError(w, 400, "invalid_query")
 		return
 	}
@@ -335,7 +335,7 @@ func (b *backendService) readResults(w http.ResponseWriter, r *http.Request, pla
 		backendError(w, 503, "unavailable")
 		return
 	}
-	input, _ := structpb.NewStruct(map[string]any{"version": 1, "player_id": player, "before": query.Get("before"), "active_match": active})
+	input, _ := structpb.NewStruct(map[string]any{"version": 1, "player_id": player, "before": query.Get("before"), "active_match": active, "match": query.Get("match")})
 	var response structpb.Struct
 	ctx := metadata.AppendToOutgoingContext(r.Context(), "authorization", "Bearer "+b.reader)
 	if err = b.results.Invoke(ctx, "/aftershock.match.v1.Ingest/Read", input, &response, grpc.MaxCallRecvMsgSize(65536)); err != nil {

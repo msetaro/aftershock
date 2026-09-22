@@ -82,6 +82,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 exact owned result selection
+
+The read API and HTTPS consumer now support an optional exact match ID, still scoped
+to the authenticated account. The client uses its selected match ID and applies stats
+only after the whole response validates; unrelated history never appears under that
+match label. Paginated history remains available separately. Go race, real DB/TLS and
+both compiler client-preview probes pass (backend-exact-results-{go,after}/logs and
+backend-client-preview*.log). Actual native integration still awaits accepted #23 main.
+
 ## #29 exact match result selection, test first
 
 The result contract now requests an owned match by ID even when it is beyond the
