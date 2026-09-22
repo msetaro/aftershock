@@ -89,6 +89,7 @@ set(CLIENT_SOURCES
   engine/client/cl_voice.cpp
   engine/client/cl_keys.cpp
   engine/client/cl_main.cpp
+  engine/client/cl_checkpoint.cpp
   engine/client/cl_net_chan.cpp
   engine/client/cl_parse.cpp
   engine/client/cl_scrn.cpp

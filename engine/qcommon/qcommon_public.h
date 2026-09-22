@@ -1146,7 +1146,8 @@ void CL_ConsolePrint( const char *text );
 
 qboolean CL_MapLoading( void );
 bool CL_CheckpointReady();
-void CL_RestoreCheckpointInput( const usercmd_t &command, bool paused );
+bool CL_WriteCheckpoint( stateWriter_t *writer );
+bool CL_ReadCheckpoint( const stateReader_t &reader, bool apply, bool paused );
 // do a screen update before starting to load a map
 // when the server is going to load a new map, the entire hunk
 // will be cleared, so the client must shutdown cgame, ui, and

@@ -241,6 +241,10 @@ static bool WriteServerCheckpoint( stateWriter_t *writer ) {
 	for ( uint32_t i = 0; i < ARRAY_LEN( checkpointCvars ); ++i )
 		if ( !Cvar_WriteState( writer, "engine.serverCvars", i, checkpointCvars[i] ) )
 			return false;
+#ifndef DEDICATED
+	if ( !CL_WriteCheckpoint( writer ) )
+		return false;
+#endif
 	return Cvar_WriteServerState( writer ) && CM_WritePortalState( writer ) && SV_WriteWorldState( writer );
 }
 static bool ValidateCheckpointCvars( const stateReader_t &reader ) {
@@ -357,6 +361,12 @@ static bool LoadCheckpoint( const char *path ) {
 		Z_Free( data );
 		return false;
 	}
+#ifndef DEDICATED
+	if ( !CL_ReadCheckpoint( reader, false, false ) ) {
+		Z_Free( data );
+		return false;
+	}
+#endif
 	char mapPath[MAX_QPATH + 16];
 	Com_sprintf( mapPath, sizeof( mapPath ), "maps/%s.bsp", header.map );
 	if ( FS_ReadFile( mapPath, nullptr ) <= 0 ) {
@@ -439,7 +449,10 @@ bool SV_CheckpointFrame() {
 		SV_Shutdown( "Checkpoint final state rejected" );
 		return true;
 	}
-	CL_RestoreCheckpointInput( checkpointLoad.commands[checkpointLoad.header.localClient], Cvar_VariableIntegerValue( "cl_paused" ) != 0 );
+	if ( !CL_ReadCheckpoint( reader, true, Cvar_VariableIntegerValue( "cl_paused" ) != 0 ) ) {
+		SV_Shutdown( "Checkpoint local input rejected" );
+		return true;
+	}
 	if ( !Game_RestoreCheckpointRandom( &reader ) || !Q_RestoreRandomState( &random ) ) {
 		SV_Shutdown( "Checkpoint random stream is incompatible" );
 		return true;

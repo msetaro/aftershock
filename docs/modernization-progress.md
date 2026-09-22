@@ -37,13 +37,13 @@ resolved without discarding #19 evidence. Full save/load now builds, with both
 compiler owner suites and focused/policy gates passing at their recorded heads.
 Real OpenArena local-player-plus-Sarge restore matches all 86 saved entity rows
 exactly after preserving actual spatial lists and snapped collision bounds.
-Continuation still fails: private archive comparison finds matching server/bot
-clocks and RNG records but human usercmd.serverTime 100 ms behind baseline,
-followed by small player/bot position differences. Add a client clock/input owner
-instead of deriving its timing from the last server-received command. Keep the
-exact continuation assertion. Then prove same/fresh-process continuation, freeze
-and migrate the full-game N-to-N+1 OpenArena fixture, register final runtime CI,
-and run all required gates before a PR/merge. No partial checkpoint acceptance.
+Local input clock ownership now also restores paused clock lead, timing flags,
+view angles, selected weapon/sensitivity and pending loopback input. Full OpenArena
+save/load passes exact entity restoration and identical player/bot continuation in
+both the same process and a fresh process seeded differently
+(state-client-clock-runtime.log). Quake 3 runtime is running next. Freeze and
+migrate the full-game N-to-N+1 OpenArena fixture, register final runtime CI, and run
+all required gates before a PR/merge. No partial checkpoint acceptance.
 
 Named fields/archives, native entity/client/level owners, botlib reconstruction,
 cvar preparation/capacity, portal/spatial state, platform save routing, profiles
@@ -55,6 +55,22 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 full OpenArena checkpoint continuation passes
+
+A client checkpoint owner retains the actual input clock rebased against the new
+process clock, old frame/time cursors, extrapolation/new-snapshot flags, exact view
+angles, selected weapon/sensitivity and pending loopback command. Transport sequence
+numbers remain fresh. This resolves the 100 ms input discrepancy without changing
+normal clock adjustment, movement arithmetic or the exact equality assertions.
+
+The small owner probe passes GCC/Clang libc++ UBSan. Full OpenArena runtime now
+passes same-process paused restore and continuation, then fresh-process restore
+and the same continuation with a different initial RNG seed. Earlier numbered
+revisions remain unchanged. Build, focused tidy, format/types/boundaries pass
+(state-client-clock-*); the isolated scratch executable initially collided with
+an existing directory, then ran successfully under a unique name. No accepted
+fixture changed. Quake 3 runtime and full-game migration/hosted acceptance remain.
 
 ## #19 local input clock test first
 
