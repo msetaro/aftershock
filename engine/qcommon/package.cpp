@@ -313,10 +313,16 @@ int Package_ReadAsset( packageStream_t *stream, void *data, int size ) {
 	stream->position += count;
 	return int( count );
 }
-bool Package_SeekAsset( packageStream_t *stream, uint64_t position ) {
-	if ( !stream || position > stream->entry.size )
+bool Package_SeekAsset( packageStream_t *stream, int64_t offset, fsOrigin_t origin ) {
+	if ( !stream || ( origin != FS_SEEK_SET && origin != FS_SEEK_CUR && origin != FS_SEEK_END ) )
 		return false;
-	stream->position = position;
+	const int64_t base = origin == FS_SEEK_CUR ? int64_t( stream->position ) : origin == FS_SEEK_END ? int64_t( stream->entry.size )
+																									 : 0;
+	// Package extents are bounded to 256 MiB. Check the signed offset before
+	// addition, including INT64_MIN/MAX requests from 64-bit file interfaces.
+	if ( offset < -base || offset > int64_t( stream->entry.size ) - base )
+		return false;
+	stream->position = uint64_t( base + offset );
 	return true;
 }
 uint64_t Package_TellAsset( const packageStream_t *stream ) {

@@ -2131,14 +2131,9 @@ int FS_Seek( fileHandle_t f, fsOffset_t offset, fsOrigin_t origin ) {
 	}
 
 	if ( fsh[f].packageStream ) {
-		int64_t position = offset;
-		if ( origin == FS_SEEK_CUR )
-			position += int64_t( Package_TellAsset( fsh[f].packageStream ) );
-		else if ( origin == FS_SEEK_END )
-			position += fsh[f].zipFileLen;
-		else if ( origin != FS_SEEK_SET )
+		if ( origin != FS_SEEK_SET && origin != FS_SEEK_CUR && origin != FS_SEEK_END )
 			Com_Error( ERR_FATAL, "Bad origin in FS_Seek" );
-		return position >= 0 && Package_SeekAsset( fsh[f].packageStream, uint64_t( position ) ) ? 0 : -1;
+		return Package_SeekAsset( fsh[f].packageStream, offset, origin ) ? 0 : -1;
 	}
 	if ( fsh[f].zipFile == qtrue ) {
 		//FIXME: this is really, really crappy

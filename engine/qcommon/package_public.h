@@ -32,7 +32,7 @@ bool Package_ValidateMounts( package_t *const *packages, uint32_t count, uint8_t
 // platform file stream; compressed assets retain a bounded decoded zone buffer.
 packageStream_t *Package_OpenAsset( const package_t *package, uint32_t index );
 int Package_ReadAsset( packageStream_t *stream, void *data, int size );
-bool Package_SeekAsset( packageStream_t *stream, uint64_t position );
+bool Package_SeekAsset( packageStream_t *stream, int64_t offset, fsOrigin_t origin = FS_SEEK_SET );
 uint64_t Package_TellAsset( const packageStream_t *stream );
 void Package_CloseAsset( packageStream_t *stream );
 #endif

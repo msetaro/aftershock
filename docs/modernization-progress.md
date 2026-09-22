@@ -27,13 +27,15 @@ Require merged acceptance before updating #25's checkbox or merging #20.
 #20 PR176 includes that main at b2c2ae5e. Self-review found possible signed overflow
 in the new modern-package relative-seek branch: on 64-bit-offset platforms,
 INT64_MAX plus a nonzero current position overflows before its bounds check.
-Move relative-origin handling into the package owner, validate against its bounded
-extent before addition, and extend the existing allocation-counted package probe.
-The new relative-seek contract first fails to compile at the absent overload;
-commit it before implementing. Do not merge b2c2ae5e or reuse its hosted gates as
-final acceptance. Rerun changed-owner/package runtime checks, push a new head and
-require all 26 exact-head jobs plus accepted #19 integration before self-review,
-readiness and merge. No accepted content fixture changes.
+Test-first 8702f1d3 extends the existing allocation-counted package probe. The
+package owner now checks the signed offset against its bounded extent before
+addition; the filesystem delegates all modern-package seek origins to that owner.
+GCC and Clang/libc++ UBSan, all 16 changed-owner tidy configurations, format/type/
+boundary checks, client/server build and full OpenArena package runtime pass
+(content-seek-*.log). Invalid seeks retain position and allocate nothing.
+Push the new head and require all 26 fresh exact-head jobs plus accepted #19
+integration before self-review/readiness/merge. Do not reuse b2c2ae5e gates as
+final acceptance. No accepted content fixture changes.
 
 #21 remains isolated in navigation-tree (issue/21-ai-navigation), with tested
 cooking/routes/crowd/cover/stateless steering/behavior/perception and a failing
