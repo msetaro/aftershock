@@ -356,6 +356,7 @@ void SVC_RateDropAddress( const netadr_t *from, int burst, int period );
 
 void QDECL SV_SendServerCommand( client_t *cl, const char *fmt, ... ) __attribute__( ( format( printf, 2, 3 ) ) );
 
+void SV_SaveGame_f( void );
 void SV_AddOperatorCommands( void );
 void SV_RemoveOperatorCommands( void );
 

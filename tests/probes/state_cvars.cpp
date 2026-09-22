@@ -2,6 +2,10 @@
 #include <assert.h>
 #include <stdlib.h>
 #ifdef STATE_NATIVE_CACHE
+// This mixed engine/native probe shares the legacy q_shared include guard.
+namespace game {
+uint32_t Q_GetRandomSeed( void );
+}
 #define NATIVE_NAMESPACE game
 #define NATIVE_SOURCE "game/g_state.cpp"
 #include "../../game/module.cpp"

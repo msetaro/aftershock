@@ -161,3 +161,11 @@ bool G_ValidateEntityState( uint32_t slot, const gentity_t &entity, const gState
 bool G_ValidateClientState( uint32_t slot, const gclient_t &client, const gStatePools_t &pools );
 bool G_ValidateLevelState( const level_locals_t &saved, const gStatePools_t &pools );
 #endif
+
+// Fresh-map checkpoint orchestration; the server keeps simulation stopped and
+// discards the world on failure. Restore both random streams after all other work.
+bool G_WriteCheckpoint( stateWriter_t *writer );
+bool G_ReadCheckpointCvars( const stateReader_t &reader, int apply );
+bool G_ReadCheckpoint( const stateReader_t &reader, bool apply );
+void G_LinkCheckpointEntities();
+bool G_RestoreCheckpointRandom( const stateReader_t &reader );

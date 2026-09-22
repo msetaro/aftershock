@@ -36,6 +36,14 @@ int main() {
 	entity.s.eType = ET_WEAPON_STATE;
 	entity.s.pos.trBase[0] = 65535;
 	assert(G_ValidateEntityState(3,entity,pools));
+	for ( int sequence = 0; sequence < 4; ++sequence ) {
+		entity.s.eType = int( ET_EVENTS ) + int( EV_JUMP ) + ( sequence << 8 );
+		assert(G_ValidateEntityState(3,entity,pools));
+		entity.s.eType = int( ET_EVENTS ) + int( EV_WEAPON_NOTIFY ) + 1 + ( sequence << 8 );
+		assert(!G_ValidateEntityState(3,entity,pools));
+	}
+	entity.s.eType = INT32_MIN;
+	assert(!G_ValidateEntityState(3,entity,pools));
 	auto &client = clients[3];
 	client.pers.connected = CON_CONNECTED;
 	client.ps.clientNum = 3;

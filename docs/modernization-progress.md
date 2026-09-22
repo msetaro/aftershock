@@ -67,6 +67,35 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 live capture integration in progress
+
+Native checkpoint orchestration and the server savegame command now build with
+the native ABI gate and focused tidy. The native phase stages all
+entity/client/level drafts and owner validation before publishing; string storage
+uses the existing level arena, spatial relinking preserves link generations, and
+native RNG restoration remains an explicit final phase. Server capture owns map
+context, client slots/input, configstrings, replication interest, selected cvars,
+portal counts and the libc random stream. Save revisions use the user directory
+and never replace a previous numbered path. Platform save-provider routing and
+loadgame orchestration remain unfinished.
+
+Live OpenArena oa_dm1 capture with a paused local player and Sarge now writes a
+17,314,861-byte checkpoint. Before writing it, the command opens the archive and
+validates the complete native, botlib and portal state against the live world.
+New validation was corrected for the unused native level.gentitySize (map setup
+leaves zero) and predictable temporary events carrying EV_EVENT_BITS in eType.
+The reference and semantic probes cover those cases. No gameplay code changed.
+
+Client/server build, native ABI, focused tidy and format/type/boundary checks pass.
+Full GCC/Clang state suites pass (state-capture-full-{gcc,clang}.log).
+The mixed engine/native cvar probe now explicitly declares the native RNG helper
+because the two legacy q_shared headers share an include guard; production builds
+already compile those namespaces separately. Captured files are private temporary
+artifacts, not accepted fixtures. Next: cross-owner bot handle/cvar capacity
+validation, platform save routing and loadgame coordination, then the committed
+full runtime acceptance and frozen N-to-N+1 OpenArena fixture. Do not claim capture
+alone as #19 completion.
+
 ## #19 botlib checkpoint phases
 
 BotLib_WriteState now groups every owner behind a setup/navigation header.

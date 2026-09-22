@@ -484,7 +484,7 @@ bool G_WriteLevelState( stateWriter_t *writer, const level_locals_t &level, cons
 	if ( !writer )
 		return false;
 	if ( !G_StatePoolsValid( pools ) || level.spawning || level.gentities != pools.entities || level.clients != pools.clients ||
-		 level.gentitySize != sizeof( gentity_t ) || level.num_entities < 0 || level.num_entities > pools.entityCount ||
+		 ( level.gentitySize && level.gentitySize != sizeof( gentity_t ) ) || level.num_entities < 0 || level.num_entities > pools.entityCount ||
 		 level.maxclients < 0 || level.maxclients > pools.clientCount ) {
 		writer->failed = true;
 		return false;
@@ -526,7 +526,7 @@ bool G_ReadLevelState( const stateReader_t &reader, const gStatePools_t &pools, 
 	restored.locationHead = refs.locationHead == -1 ? nullptr : &pools.entities[refs.locationHead];
 	restored.clients = pools.clients;
 	restored.gentities = pools.entities;
-	restored.gentitySize = sizeof( gentity_t );
+	restored.gentitySize = level->gentitySize; // Unused by native gameplay; map setup leaves zero.
 	restored.logFile = level->logFile;
 	// Spawn parsing is frame-local scratch; file handles and pool addresses come from map setup.
 	*level = restored;
@@ -683,7 +683,10 @@ static bool ValidStateTrajectory( const trajectory_t &trajectory ) {
 		   ( StateEnum( trajectory.trType ) != TR_SINE || trajectory.trDuration > 0 );
 }
 static bool ValidNetworkEntityState( const entityState_t &entity ) {
-	const bool kind = ( entity.eType >= ET_GENERAL && entity.eType <= int( ET_EVENTS ) + int( EV_WEAPON_NOTIFY ) ) ||
+	// Predictable temporary events carry the two event-sequence bits in eType.
+	const uint32_t event = uint32_t( entity.eType ) - uint32_t( ET_EVENTS );
+	const bool kind = ( entity.eType >= ET_GENERAL && entity.eType < ET_EVENTS ) ||
+					  ( event & ~uint32_t( EV_EVENT_BITS ) ) <= uint32_t( EV_WEAPON_NOTIFY ) ||
 					  entity.eType == ET_ANIMATION || entity.eType == ET_WEAPON_STATE || entity.eType == ET_WEAPON_ANIMATION;
 	return kind && entity.number >= 0 && entity.number < MAX_GENTITIES &&
 		   ValidStateTrajectory( entity.pos ) && ValidStateTrajectory( entity.apos ) && StateFloatsFinite( entityStateSchema, &entity );
@@ -757,5 +760,150 @@ bool G_ValidateLevelState( const level_locals_t &saved, const gStatePools_t &poo
 	for ( int count : votes )
 		if ( count < 0 || count > MAX_CLIENTS )
 			return false;
+	return true;
+}
+
+
+static constexpr stateField_t nativeRandomField{ "seed", 0, 1, stateType_t::UInt32 };
+static constexpr stateSchema_t nativeRandomSchema{ "game.random", 1, 1, sizeof( uint32_t ), &nativeRandomField, 1 };
+static bool ReadCheckpointCvars( const stateReader_t &reader, int apply ) {
+	return G_ReadMainCvarState( reader, apply ) && G_ReadBotCvarState( reader, apply ) && G_ReadBotNavigationCvarState( reader, apply ) &&
+		   G_ReadBotQueueCvarState( reader, apply ) && G_ReadAnimationCvarState( reader, apply ) && G_ReadWeaponCvarState( reader, apply ) &&
+		   G_ReadRewindCvarState( reader, apply ) && G_ReadExtraCvarState( reader, apply );
+}
+bool G_ReadCheckpointCvars( const stateReader_t &reader, int apply ) {
+	return apply >= 0 && apply <= 2 && ReadCheckpointCvars( reader, 0 ) && ( !apply || ReadCheckpointCvars( reader, apply ) );
+}
+static bool CheckpointOwnerWrite( bool success, const char *name ) {
+	if ( !success )
+		G_Printf( "Checkpoint: %s record failed.\n", name );
+	return success;
+}
+static bool WriteCheckpointOwners( stateWriter_t *writer, const gStatePools_t &pools ) {
+	return CheckpointOwnerWrite( G_WriteComposedState( writer ), "G_WriteComposedState" ) && CheckpointOwnerWrite( G_WriteAnimationState( writer, pools ), "G_WriteAnimationState" ) && CheckpointOwnerWrite( G_WriteWeaponState( writer, pools ), "G_WriteWeaponState" ) &&
+		   CheckpointOwnerWrite( G_WriteRewindState( writer ), "G_WriteRewindState" ) && CheckpointOwnerWrite( G_WriteUtilityState( writer ), "G_WriteUtilityState" ) && CheckpointOwnerWrite( G_WriteCombatState( writer ), "G_WriteCombatState" ) && CheckpointOwnerWrite( G_WritePodiumState( writer, pools ), "G_WritePodiumState" ) &&
+		   CheckpointOwnerWrite( G_WriteTeamState( writer, pools ), "G_WriteTeamState" ) && CheckpointOwnerWrite( G_WriteDefinitionState( writer ), "G_WriteDefinitionState" ) && CheckpointOwnerWrite( G_WriteEditorState( writer ), "G_WriteEditorState" ) && CheckpointOwnerWrite( G_WriteBotQueueState( writer ), "G_WriteBotQueueState" ) &&
+		   CheckpointOwnerWrite( G_WriteBotClockState( writer ), "G_WriteBotClockState" ) && CheckpointOwnerWrite( G_WriteBotTeamState( writer ), "G_WriteBotTeamState" ) && CheckpointOwnerWrite( G_WriteWaypointState( writer ), "G_WriteWaypointState" ) && CheckpointOwnerWrite( G_WriteBotPoolState( writer ), "G_WriteBotPoolState" ) &&
+		   CheckpointOwnerWrite( G_WriteBotNavigationState( writer ), "G_WriteBotNavigationState" ) && CheckpointOwnerWrite( G_WriteMemoryState( writer ), "G_WriteMemoryState" ) && CheckpointOwnerWrite( G_WriteRegisteredItemState( writer ), "G_WriteRegisteredItemState" ) && CheckpointOwnerWrite( G_WriteIPFilterState( writer ), "G_WriteIPFilterState" ) &&
+		   CheckpointOwnerWrite( G_WriteBotInfoState( writer ), "G_WriteBotInfoState" ) && CheckpointOwnerWrite( G_WriteMainCvarState( writer ), "G_WriteMainCvarState" ) && CheckpointOwnerWrite( G_WriteBotCvarState( writer ), "G_WriteBotCvarState" ) && CheckpointOwnerWrite( G_WriteBotNavigationCvarState( writer ), "G_WriteBotNavigationCvarState" ) &&
+		   CheckpointOwnerWrite( G_WriteBotQueueCvarState( writer ), "G_WriteBotQueueCvarState" ) && CheckpointOwnerWrite( G_WriteAnimationCvarState( writer ), "G_WriteAnimationCvarState" ) && CheckpointOwnerWrite( G_WriteWeaponCvarState( writer ), "G_WriteWeaponCvarState" ) && CheckpointOwnerWrite( G_WriteRewindCvarState( writer ), "G_WriteRewindCvarState" ) &&
+		   CheckpointOwnerWrite( G_WriteExtraCvarState( writer ), "G_WriteExtraCvarState" );
+}
+static bool ReadCheckpointOwners( const stateReader_t &reader, const gStatePools_t &pools, bool apply ) {
+	return G_ReadComposedState( reader, apply ) && G_ReadAnimationState( reader, pools, apply ) && G_ReadWeaponState( reader, pools, apply ) &&
+		   G_ReadRewindState( reader, apply ) && G_ReadUtilityState( reader, apply ) && G_ReadCombatState( reader, apply ) && G_ReadPodiumState( reader, pools, apply ) &&
+		   G_ReadTeamState( reader, pools, apply ) && G_ReadDefinitionState( reader, apply ) && G_ReadEditorState( reader, apply ) && G_ReadBotQueueState( reader, apply ) &&
+		   G_ReadBotClockState( reader, apply ) && G_ReadBotTeamState( reader, apply ) && G_ReadWaypointState( reader, apply ) && G_ReadBotPoolState( reader, apply ) &&
+		   G_ReadBotNavigationState( reader, apply ) && G_ReadMemoryState( reader, apply ) && G_ReadRegisteredItemState( reader, apply ) && G_ReadIPFilterState( reader, apply ) &&
+		   G_ReadBotInfoState( reader ) && ReadCheckpointCvars( reader, apply ? 1 : 0 );
+}
+bool G_WriteCheckpoint( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	const gStatePools_t pools{ g_entities, MAX_GENTITIES, level.clients, MAX_CLIENTS, bg_itemlist, bg_numItems };
+	const auto *callbacks = G_StateCallbackTables();
+	const uint32_t seed = Q_GetRandomSeed();
+	if ( !G_ValidateLevelState( level, pools ) || !G_WriteLevelState( writer, level, pools ) || !State_Append( writer, nativeRandomSchema, 0, &seed ) ) {
+		writer->failed = true;
+		G_Printf( "Checkpoint: level record failed.\n" );
+		return false;
+	}
+	for ( uint32_t i = 0; i < MAX_GENTITIES; ++i )
+		if ( !G_ValidateEntityState( i, g_entities[i], pools ) || !G_WriteEntityState( writer, i, g_entities[i], pools, callbacks ) ) {
+			G_Printf( "Checkpoint: entity %u (%s) record failed; type %d, number %d, trajectory %u/%u, client %d, semantic %d.\n", i,
+				g_entities[i].classname ? g_entities[i].classname : "empty", g_entities[i].s.eType, g_entities[i].s.number,
+				StateEnum( g_entities[i].s.pos.trType ), StateEnum( g_entities[i].s.apos.trType ),
+				g_entities[i].client != nullptr, G_ValidateEntityState( i, g_entities[i], pools ) );
+			writer->failed = true;
+			return false;
+		}
+	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i )
+		if ( !G_ValidateClientState( i, level.clients[i], pools ) || !G_WriteClientState( writer, i, level.clients[i], pools ) ) {
+			G_Printf( "Checkpoint: client %u record failed.\n", i );
+			writer->failed = true;
+			return false;
+		}
+	if ( !WriteCheckpointOwners( writer, pools ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return true;
+}
+bool G_ReadCheckpoint( const stateReader_t &reader, bool apply ) {
+	const gStatePools_t pools{ g_entities, MAX_GENTITIES, level.clients, MAX_CLIENTS, bg_itemlist, bg_numItems };
+	const auto *callbacks = G_StateCallbackTables();
+	static gentity_t entities[MAX_GENTITIES];
+	static gclient_t clients[MAX_CLIENTS];
+	level_locals_t restoredLevel{};
+	restoredLevel.logFile = level.logFile;
+	gLevelStrings_t levelStrings;
+	uint32_t seed, version;
+	if ( !G_StatePoolsValid( pools ) || !G_ReadLevelState( reader, pools, &restoredLevel, &levelStrings ) ||
+		 !G_ValidateLevelState( restoredLevel, pools ) || restoredLevel.maxclients != level.maxclients ||
+		 !State_Find( reader, nativeRandomSchema, 0, &seed, &version ) )
+		return false;
+	size_t stringBytes = G_LevelStringBytes( levelStrings );
+	gEntityStrings_t strings;
+	for ( uint32_t i = 0; i < MAX_GENTITIES; ++i ) {
+		if ( !G_ReadEntityState( reader, i, pools, callbacks, &entities[i], &strings ) || !G_ValidateEntityState( i, entities[i], pools ) )
+			return false;
+		const size_t bytes = G_EntityStringBytes( strings );
+		if ( bytes == SIZE_MAX || bytes > SIZE_MAX - stringBytes )
+			return false;
+		stringBytes += bytes;
+	}
+	// Same bounded entity/string limits as the individual records, with one allocation.
+	if ( stringBytes > uint64_t( MAX_GENTITIES + 1 ) * sizeof( gEntityStrings_t ) )
+		return false;
+	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i )
+		if ( !G_ReadClientState( reader, i, pools, &clients[i] ) || !G_ValidateClientState( i, clients[i], pools ) )
+			return false;
+	if ( !ReadCheckpointOwners( reader, pools, false ) )
+		return false;
+	if ( !apply )
+		return true;
+	// Called only in a freshly loaded, stopped world. The immutable reader was
+	// completely validated above; failures here require discarding that world.
+	char *storage = stringBytes ? (char *)GameImport_AllocLevelMemory( uint32_t( stringBytes ) ) : nullptr;
+	size_t remaining = stringBytes;
+	const size_t levelBytes = G_LevelStringBytes( levelStrings );
+	if ( !G_RestoreLevelStrings( levelStrings, storage, remaining, &restoredLevel ) )
+		return false;
+	if ( levelBytes )
+		storage += levelBytes;
+	remaining -= levelBytes;
+	for ( uint32_t i = 0; i < MAX_GENTITIES; ++i ) {
+		// Decode text one entity at a time; do not keep a 40 MiB string draft.
+		if ( !State_Find( reader, entityStringsSchema, i, &strings, &version ) || !G_RestoreEntityStrings( strings, storage, remaining, &entities[i] ) )
+			return false;
+		const size_t bytes = G_EntityStringBytes( strings );
+		if ( bytes )
+			storage += bytes;
+		remaining -= bytes;
+	}
+	memcpy( g_entities, entities, sizeof( entities ) );
+	memcpy( level.clients, clients, sizeof( clients ) );
+	level = restoredLevel;
+	if ( !ReadCheckpointOwners( reader, pools, true ) )
+		return false;
+	trap_LocateGameData( g_entities, level.num_entities, sizeof( gentity_t ), &level.clients[0].ps, sizeof( gclient_t ) );
+	return true;
+}
+void G_LinkCheckpointEntities() {
+	// The server has cleared its spatial world. Relink without changing the saved
+	// link generation used by native mover and ground-entity continuation.
+	for ( int i = 0; i < level.num_entities; ++i )
+		if ( g_entities[i].r.linked ) {
+			const int count = g_entities[i].r.linkcount;
+			g_entities[i].r.linked = qfalse;
+			trap_LinkEntity( &g_entities[i] );
+			g_entities[i].r.linkcount = count;
+		}
+}
+bool G_RestoreCheckpointRandom( const stateReader_t &reader ) {
+	uint32_t seed, version;
+	if ( !State_Find( reader, nativeRandomSchema, 0, &seed, &version ) )
+		return false;
+	srand( seed );
 	return true;
 }

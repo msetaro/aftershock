@@ -49,3 +49,19 @@ void Game_ClientBegin( int clientNum ) {
 void Game_ClientCommand( int clientNum ) {
 	game::ClientCommand( clientNum );
 }
+
+int Game_WriteCheckpoint( void *writer ) {
+	return writer && game::G_WriteCheckpoint( (stateWriter_t *)writer );
+}
+int Game_ReadCheckpointCvars( const void *reader, int apply ) {
+	return reader && game::G_ReadCheckpointCvars( *(const stateReader_t *)reader, apply );
+}
+int Game_ReadCheckpoint( const void *reader, int apply ) {
+	return reader && ( apply == 0 || apply == 1 ) && game::G_ReadCheckpoint( *(const stateReader_t *)reader, apply != 0 );
+}
+void Game_LinkCheckpointEntities( void ) {
+	game::G_LinkCheckpointEntities();
+}
+int Game_RestoreCheckpointRandom( const void *reader ) {
+	return reader && game::G_RestoreCheckpointRandom( *(const stateReader_t *)reader );
+}

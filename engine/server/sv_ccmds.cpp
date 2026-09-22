@@ -1505,6 +1505,7 @@ void SV_AddOperatorCommands( void ) {
 	Cmd_AddCommand( "kicknum", SV_KickNum_f );
 	Cmd_AddCommand( "clientkick", SV_KickNum_f ); // Legacy command
 	Cmd_AddCommand( "status", SV_Status_f );
+	Cmd_AddCommand( "savegame", SV_SaveGame_f );
 	Cmd_AddCommand( "dumpuser", SV_DumpUser_f );
 	Cmd_AddCommand( "map_restart", SV_MapRestart_f );
 	Cmd_AddCommand( "sectorlist", SV_SectorList_f );

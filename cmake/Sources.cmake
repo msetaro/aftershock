@@ -10,6 +10,7 @@ set(COMMON_SOURCES
   engine/server/sv_bot.cpp
   engine/server/sv_client.cpp
   engine/server/sv_ccmds.cpp
+  engine/server/sv_checkpoint.cpp
   engine/server/sv_filter.cpp
   engine/server/sv_game.cpp
   engine/server/sv_identity.cpp

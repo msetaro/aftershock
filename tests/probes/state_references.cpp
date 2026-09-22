@@ -139,7 +139,7 @@ static void Level() {
 	game::level_locals_t level{};
 	level.gentities = entities;
 	level.clients = clients;
-	level.gentitySize = sizeof( game::gentity_t );
+	level.gentitySize = 0; // Native map initialization leaves this legacy member unused.
 	level.num_entities = 16;
 	level.maxclients = 2;
 	level.logFile = 41;
