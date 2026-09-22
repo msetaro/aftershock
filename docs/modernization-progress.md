@@ -82,6 +82,17 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 native backend client contract, test first
+
+The new native client probe specifies login through the platform ticket seam,
+server-authenticated account ownership, profile-owner mismatch rejection, queue
+polling, address-bound join-ticket retries and clearing the ticket on connection.
+Session/ticket data must not become cvars, UI values or console command arguments.
+Logout clears local credentials even when its network reply fails. The test fails
+on the absent cl_backend.cpp before implementation (backend-client-before.log).
+#23's required runtime job is still running; its accepted main must be merged
+forward before final native provider/client integration gates.
+
 ## #29 authored backend menu validation
 
 The UI schema, cooker and native document validator now accept a fixed backend
