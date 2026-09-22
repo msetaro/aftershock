@@ -36,8 +36,12 @@ inherited replication metadata; it fails because engine/entities does not exist
 passes GCC and Clang/libc++ UBSan with conversion/shadow warnings; no IO or
 allocation in the definition module (entities-native-{first,clang}.log).
 Format/types/boundaries pass. Added the module to shared build/lifetime ownership.
-Next wire existing game spawn services and finish the remaining components,
-with a failing real pickup test before runtime implementation. Current component
+738a895e implements the native lookup. The real-client pickup test now fails
+as expected because medical_boost is not resolved from cooked definitions
+(entities-runtime-before.log and engine.log). It uses the owned two_lane map,
+existing development entity-file override and real health pickup behavior;
+map-instance count override and generic runtime field edit must affect health.
+Next wire existing game spawn services and finish the remaining components. Current component
 schema covers only transform/pickup/hooks/replication; add
 model/animation/collision/trigger/damage/audio after tracing their existing
 services. No #18 runtime implementation or PR exists yet. Use JSON
