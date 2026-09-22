@@ -5,7 +5,7 @@ import shapely
 from shapely import Polygon, LineString, Point, box
 from shapely.geometry.polygon import orient
 
-from geometry import entity, vector
+from geometry import entity, vector, audio_metadata
 
 
 def require(condition, message):
@@ -306,6 +306,7 @@ def generate(level):
         entities.append(entity({'classname':'misc_model','model':prop['model'],'origin':vector(prop['origin']),'angle':prop.get('angle',0),
                                 '_remap':'*;textures/'+level['materials'][prop['material']]}))
     worldspawn = {'classname':'worldspawn','message':level['name'],'_minlight':level['lighting']['ambient']}
+    worldspawn.update(audio_metadata(level))
     if level['lighting'].get('directional',False):
         worldspawn['_aftershock_deluxe'] = 1
     return entity(worldspawn,world)+''.join(entities)
@@ -405,9 +406,10 @@ def navigation(level, records, routes=None):
 
 
 def validate(level, assets):
-    from validate import material_sources, prop_asset
+    from validate import material_sources, prop_asset, audio_specs
     from tools.agent.formats import validate as validate_format
     validate_format('level',level,'<level>')
+    audio_specs(level.get('audio_zones',[]))
     sources = material_sources(level['materials'],assets,pbr=True)
     area,records = pieces(level)
     for prop in level['props']:

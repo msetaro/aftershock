@@ -834,6 +834,8 @@ Destructor for data allocated in a client structure
 =====================
 */
 void SV_FreeClient( client_t *client ) {
+	client->voiceCount = client->voiceRead = 0;
+	client->voiceRate = {};
 	SV_CloseIdentity( client );
 	SV_Netchan_FreeQueue( client );
 	SV_CloseDownload( client );
@@ -2230,6 +2232,59 @@ SV_ExecuteClientMessage
 Parse a client packet
 ===================
 */
+static byte voiceGenerations[MAX_CLIENTS];
+
+static bool SV_ReadVoice( client_t *sender, msg_t *msg, bool ignore ) {
+	voicePacket_t packet;
+	if ( !MSG_ReadVoice( msg, &packet, true ) ) {
+		SV_DropClient( sender, "Invalid voice packet" );
+		return false;
+	}
+	if ( ignore || !sv_voip->integer || sender->state != CS_ACTIVE || packet.frames > 3 || !( packet.flags & 2 ) ||
+		 strcmp( Info_ValueForKey( sender->userinfo, "cl_voip" ), "1" ) )
+		return true;
+	// Bound codec duration/rate as well as queue storage. Six frames of burst, 50 frames/sec.
+	for ( int frame = 0; frame < packet.frames; ++frame )
+		if ( SVC_RateLimit( &sender->voiceRate, 6, 20 ) )
+			return true;
+	packet.sender = int( sender - svs.clients );
+	// A reconnect resets client sequence/generation; preserve a server-owned epoch per reused slot.
+	if ( !sender->voiceReceived || sender->voiceInputGeneration != packet.generation ) {
+		sender->voiceReceived = true;
+		sender->voiceInputGeneration = packet.generation;
+		++voiceGenerations[packet.sender];
+	}
+	packet.generation = voiceGenerations[packet.sender];
+	// ponytail: direct voice only; game-owned team/proximity filtering can extend this relay.
+	packet.flags = 2;
+	for ( int i = 0; i < sv_maxclients->integer; ++i ) {
+		auto &receiver = svs.clients[i];
+		if ( &receiver == sender || receiver.state != CS_ACTIVE || receiver.netchan.remoteAddress.type == NA_BOT ||
+			 !( packet.targets[i / 8] & ( 1u << ( i % 8 ) ) ) || strcmp( Info_ValueForKey( receiver.userinfo, "cl_voip" ), "1" ) )
+			continue;
+		if ( receiver.voiceCount == 4 ) {
+			receiver.voiceRead = ( receiver.voiceRead + 1 ) % 4;
+			--receiver.voiceCount;
+		}
+		const uint32_t slot = ( receiver.voiceRead + receiver.voiceCount++ ) % 4;
+		receiver.voiceQueue[slot] = packet;
+		receiver.voiceQueuedAt[slot] = svs.time;
+	}
+	return true;
+}
+
+void SV_WriteVoice( client_t *client, msg_t *msg ) {
+	while ( client->voiceCount ) {
+		const uint32_t slot = client->voiceRead;
+		if ( sv_voip->integer && !strcmp( Info_ValueForKey( client->userinfo, "cl_voip" ), "1" ) &&
+			 uint32_t( svs.time - client->voiceQueuedAt[slot] ) < 250 &&
+			 !MSG_WriteVoice( msg, client->voiceQueue[slot], false ) )
+			break;
+		client->voiceRead = ( slot + 1 ) % 4;
+		--client->voiceCount;
+	}
+}
+
 void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 	int c;
 	int serverId;
@@ -2334,6 +2389,13 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 		} else {
 			return; // cl->state <= CS_CONNECTED
 		}
+	}
+
+	// A single optional voice packet precedes movement, using the reserved ioq3 IDs.
+	if ( c == clc_voipOpus || c == clc_voipSpeex ) {
+		if ( !SV_ReadVoice( cl, msg, c == clc_voipSpeex ) )
+			return;
+		c = MSG_ReadByte( msg );
 	}
 
 	// read the usercmd_t

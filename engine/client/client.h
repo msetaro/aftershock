@@ -451,6 +451,12 @@ qboolean CL_CheckPaused( void );
 void CL_InitInput( void );
 void CL_ClearInput( void );
 void CL_SendCmd( void );
+float CL_VoiceLevel();
+void CL_VoiceInit();
+void CL_VoiceReset();
+void CL_VoiceShutdown();
+void CL_WriteVoice( msg_t *msg );
+void CL_ParseVoice( msg_t *msg, bool ignore );
 void CL_WritePacket( int repeat );
 
 //

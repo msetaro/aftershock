@@ -81,6 +81,7 @@ set(CLIENT_SOURCES
   engine/client/cl_cin.cpp
   engine/client/cl_console.cpp
   engine/client/cl_input.cpp
+  engine/client/cl_voice.cpp
   engine/client/cl_keys.cpp
   engine/client/cl_main.cpp
   engine/client/cl_net_chan.cpp
@@ -93,6 +94,10 @@ set(CLIENT_SOURCES
   engine/sound/snd_dma.cpp
   engine/sound/snd_mem.cpp
   engine/sound/snd_mix.cpp
+  engine/sound/snd_spatial.cpp
+  engine/sound/snd_event.cpp
+  engine/sound/snd_authored.cpp
+  engine/sound/snd_voice.cpp
   engine/sound/snd_wavelet.cpp
   engine/sound/snd_main.cpp
   engine/sound/snd_codec.cpp

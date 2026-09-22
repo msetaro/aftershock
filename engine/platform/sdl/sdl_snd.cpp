@@ -45,14 +45,6 @@ static int dmasize = 0;
 
 static SDL_AudioDeviceID sdlPlaybackDevice;
 
-#if defined USE_VOIP && SDL_VERSION_ATLEAST( 2, 0, 5 )
-#define USE_SDL_AUDIO_CAPTURE
-
-static SDL_AudioDeviceID sdlCaptureDevice;
-static cvar_t *s_sdlCapture;
-static float sdlMasterGain = 1.0f;
-#endif
-
 
 /*
 ===============
@@ -89,31 +81,6 @@ static void SNDDMA_AudioCallback( void *userdata [[maybe_unused]], Uint8 *stream
 
 	if ( dmapos >= dmasize )
 		dmapos = 0;
-
-#ifdef USE_SDL_AUDIO_CAPTURE
-	if ( sdlMasterGain != 1.0f ) {
-		int i;
-		if ( dma.isfloat && ( dma.samplebits == 32 ) ) {
-			float *ptr = (float *)stream;
-			len /= sizeof( *ptr );
-			for ( i = 0; i < len; i++, ptr++ ) {
-				*ptr *= sdlMasterGain;
-			}
-		} else if ( dma.samplebits == 16 ) {
-			Sint16 *ptr = (Sint16 *)stream;
-			len /= sizeof( *ptr );
-			for ( i = 0; i < len; i++, ptr++ ) {
-				*ptr = (Sint16)( ( (float)*ptr ) * sdlMasterGain );
-			}
-		} else if ( dma.samplebits == 8 ) {
-			Uint8 *ptr = (Uint8 *)stream;
-			len /= sizeof( *ptr );
-			for ( i = 0; i < len; i++, ptr++ ) {
-				*ptr = (Uint8)( ( (float)*ptr ) * sdlMasterGain );
-			}
-		}
-	}
-#endif
 }
 
 static const struct
@@ -287,40 +254,9 @@ qboolean SNDDMA_Init( void ) {
 	dmasize = ( dma.samples * ( dma.samplebits / 8 ) );
 	dma.buffer = (byte *)calloc( 1, dmasize );
 
-#ifdef USE_SDL_AUDIO_CAPTURE
-	// !!! FIXME: some of these SDL_OpenAudioDevice() values should be cvars.
-	s_sdlCapture = Cvar_Get( "s_sdlCapture", "1", CVAR_ARCHIVE | CVAR_LATCH );
-	Cvar_SetDescription( s_sdlCapture, "Set to 1 to enable SDL audio capture." );
-	// !!! FIXME: pulseaudio capture records audio the entire time the program is running. https://bugzilla.libsdl.org/show_bug.cgi?id=4087
-	if ( Q_stricmp( SDL_GetCurrentAudioDriver(), "pulseaudio" ) == 0 ) {
-		Com_Printf( "SDL audio capture support disabled for pulseaudio (https://bugzilla.libsdl.org/show_bug.cgi?id=4087)\n" );
-	} else if ( !s_sdlCapture->integer ) {
-		Com_Printf( "SDL audio capture support disabled by user ('+set s_sdlCapture 1' to enable)\n" );
-	}
-#if USE_MUMBLE
-	else if ( cl_useMumble->integer ) {
-		Com_Printf( "SDL audio capture support disabled for Mumble support\n" );
-	}
-#endif
-	else {
-		/* !!! FIXME: list available devices and let cvar specify one, like OpenAL does */
-		SDL_AudioSpec spec;
-		SDL_zero( spec );
-		spec.freq = 48000;
-		spec.format = AUDIO_S16SYS;
-		spec.channels = 1;
-		spec.samples = VOIP_MAX_PACKET_SAMPLES * 4;
-		sdlCaptureDevice = SDL_OpenAudioDevice( NULL, SDL_TRUE, &spec, NULL, 0 );
-		Com_Printf( "SDL capture device %s.\n",
-			( sdlCaptureDevice == 0 ) ? "failed to open" : "opened" );
-	}
-
-	sdlMasterGain = 1.0f;
-#endif
 
 	Com_Printf( "Starting SDL audio callback...\n" );
 	SDL_PauseAudioDevice( sdlPlaybackDevice, 0 ); // start callback.
-	// don't unpause the capture device; we'll do that in StartCapture.
 
 	Com_Printf( "SDL audio initialized.\n" );
 	snd_inited = qtrue;
@@ -344,6 +280,7 @@ SNDDMA_Shutdown
 ===============
 */
 void SNDDMA_Shutdown( void ) {
+	SNDDMA_StopVoiceCapture();
 	if ( sdlPlaybackDevice != 0 ) {
 		Com_Printf( "Closing SDL audio playback device...\n" );
 		SDL_CloseAudioDevice( sdlPlaybackDevice );
@@ -351,14 +288,6 @@ void SNDDMA_Shutdown( void ) {
 		sdlPlaybackDevice = 0;
 	}
 
-#ifdef USE_SDL_AUDIO_CAPTURE
-	if ( sdlCaptureDevice ) {
-		Com_Printf( "Closing SDL audio capture device...\n" );
-		SDL_CloseAudioDevice( sdlCaptureDevice );
-		Com_Printf( "SDL audio capture device closed.\n" );
-		sdlCaptureDevice = 0;
-	}
-#endif
 
 	SDL_QuitSubSystem( SDL_INIT_AUDIO );
 	free( dma.buffer );
@@ -391,50 +320,63 @@ void SNDDMA_BeginPainting( void ) {
 }
 
 
-#ifdef USE_VOIP
-void SNDDMA_StartCapture( void ) {
-#ifdef USE_SDL_AUDIO_CAPTURE
-	if ( sdlCaptureDevice ) {
-		SDL_ClearQueuedAudio( sdlCaptureDevice );
-		SDL_PauseAudioDevice( sdlCaptureDevice, 0 );
-	}
-#endif
-}
+// A fixed callback ring avoids SDL's dynamically growing queued-capture storage.
+static SDL_AudioDeviceID voiceDevice;
+static int16_t voiceSamples[8192];
+static uint32_t voiceRead, voiceCount;
 
-
-int SNDDMA_AvailableCaptureSamples( void ) {
-#ifdef USE_SDL_AUDIO_CAPTURE
-	// divided by 2 to convert from bytes to (mono16) samples.
-	return sdlCaptureDevice ? ( SDL_GetQueuedAudioSize( sdlCaptureDevice ) / 2 ) : 0;
-#else
-	return 0;
-#endif
-}
-
-
-void SNDDMA_Capture( int samples, byte *data ) {
-#ifdef USE_SDL_AUDIO_CAPTURE
-	// multiplied by 2 to convert from (mono16) samples to bytes.
-	if ( sdlCaptureDevice ) {
-		SDL_DequeueAudio( sdlCaptureDevice, data, samples * 2 );
-	} else
-#endif
-	{
-		SDL_memset( data, '\0', samples * 2 );
+static void VoiceCaptureCallback( void *, Uint8 *data, int length ) {
+	for ( int i = 0; i < length / 2; ++i ) {
+		if ( voiceCount == 8192 ) {
+			voiceRead = ( voiceRead + 1 ) % 8192;
+			--voiceCount;
+		}
+		memcpy( &voiceSamples[( voiceRead + voiceCount++ ) % 8192], data + i * 2, 2 );
 	}
 }
 
-void SNDDMA_StopCapture( void ) {
-#ifdef USE_SDL_AUDIO_CAPTURE
-	if ( sdlCaptureDevice ) {
-		SDL_PauseAudioDevice( sdlCaptureDevice, 1 );
+bool SNDDMA_StartVoiceCapture() {
+	if ( voiceDevice )
+		return true;
+	if ( !snd_inited )
+		return false;
+	const char *name = Cvar_Get( "s_captureDevice", "", CVAR_ARCHIVE )->string;
+	SDL_AudioSpec spec = {};
+	spec.freq = 48000;
+	spec.format = AUDIO_S16SYS;
+	spec.channels = 1;
+	spec.samples = 1024;
+	spec.callback = VoiceCaptureCallback;
+	voiceRead = voiceCount = 0;
+	voiceDevice = SDL_OpenAudioDevice( *name ? name : nullptr, SDL_TRUE, &spec, nullptr, 0 );
+	if ( !voiceDevice ) {
+		Com_Printf( "Voice capture failed: %s\n", SDL_GetError() );
+		return false;
 	}
-#endif
+	Com_Printf( "Voice capture device opened (SDL)\n" );
+	SDL_PauseAudioDevice( voiceDevice, 0 );
+	return true;
 }
 
-void SNDDMA_MasterGain( float val ) {
-#ifdef USE_SDL_AUDIO_CAPTURE
-	sdlMasterGain = val;
-#endif
+int SNDDMA_ReadVoiceCapture( int16_t *samples, int capacity ) {
+	if ( !voiceDevice || !samples || capacity < 1 || capacity > 2880 )
+		return 0;
+	SDL_LockAudioDevice( voiceDevice );
+	int count = 0;
+	while ( count < capacity && voiceCount ) {
+		samples[count++] = voiceSamples[voiceRead];
+		voiceRead = ( voiceRead + 1 ) % 8192;
+		--voiceCount;
+	}
+	SDL_UnlockAudioDevice( voiceDevice );
+	return count;
 }
-#endif
+
+void SNDDMA_StopVoiceCapture() {
+	if ( voiceDevice ) {
+		SDL_CloseAudioDevice( voiceDevice );
+		voiceDevice = 0;
+		Com_Printf( "Voice capture device closed (SDL)\n" );
+	}
+	voiceRead = voiceCount = 0;
+}

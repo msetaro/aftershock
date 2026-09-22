@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "q_shared.h"
 #include "qcommon_public.h"
+#include "voice_public.h"
 
 static int pcount[256];
 
@@ -1255,3 +1256,48 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 }
 
 //===========================================================================
+
+
+bool MSG_ReadVoice( msg_t *msg, voicePacket_t *packet, bool fromClient ) {
+	*packet = {};
+	packet->sender = fromClient ? -1 : MSG_ReadShort( msg );
+	const int generation = MSG_ReadByte( msg );
+	packet->generation = byte( generation );
+	packet->sequence = uint32_t( MSG_ReadLong( msg ) );
+	packet->frames = MSG_ReadByte( msg );
+	if ( fromClient ) {
+		MSG_ReadData( msg, packet->targets, sizeof( packet->targets ) );
+		packet->flags = MSG_ReadByte( msg );
+	}
+	packet->size = MSG_ReadShort( msg );
+	if ( !fromClient )
+		packet->flags = MSG_ReadBits( msg, 2 );
+	if ( generation < 0 || packet->size < 1 || packet->size > int( sizeof( packet->data ) ) ||
+		 packet->frames < 1 || packet->flags < 0 || packet->flags > 3 || msg->readcount > msg->cursize )
+		return false;
+	MSG_ReadData( msg, packet->data, packet->size );
+	return msg->readcount <= msg->cursize && ( fromClient || ( packet->sender >= 0 && packet->sender < MAX_CLIENTS ) );
+}
+
+bool MSG_WriteVoice( msg_t *msg, const voicePacket_t &packet, bool fromClient ) {
+	if ( packet.size < 1 || packet.size > int( sizeof( packet.data ) ) || packet.frames < 1 || packet.frames > 3 ||
+		 packet.flags < 0 || packet.flags > 3 || ( !fromClient && ( packet.sender < 0 || packet.sender >= MAX_CLIENTS ) ) ||
+		 msg->cursize + packet.size * 2 + 64 + ( fromClient ? 4096 : 0 ) > msg->maxsize )
+		return false;
+	// Reserve worst-case Huffman expansion before writing, leaving gameplay messages intact.
+	MSG_WriteByte( msg, fromClient ? int( clc_voipOpus ) : int( svc_voipOpus ) );
+	if ( !fromClient )
+		MSG_WriteShort( msg, packet.sender );
+	MSG_WriteByte( msg, packet.generation );
+	MSG_WriteLong( msg, int32_t( packet.sequence ) );
+	MSG_WriteByte( msg, packet.frames );
+	if ( fromClient ) {
+		MSG_WriteData( msg, packet.targets, sizeof( packet.targets ) );
+		MSG_WriteByte( msg, packet.flags );
+	}
+	MSG_WriteShort( msg, packet.size );
+	if ( !fromClient )
+		MSG_WriteBits( msg, packet.flags, 2 );
+	MSG_WriteData( msg, packet.data, packet.size );
+	return true;
+}

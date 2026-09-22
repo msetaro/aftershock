@@ -6,6 +6,11 @@ def vector(values):
     return ' '.join(format(v, '.9g') for v in values)
 
 
+def audio_metadata(level):
+    return {'audio_zone_'+str(i):vector(zone['mins']+zone['maxs']+[zone['wet'],zone['decay'],zone['damping']])
+            for i,zone in enumerate(level.get('audio_zones',[]))}
+
+
 def entity(values, brushes=()):
     return '{\n' + ''.join(f'"{key}" "{value}"\n' for key, value in values.items()) + ''.join(brushes) + '}\n'
 
@@ -140,6 +145,7 @@ def generate(level):
         entities.append(entity({'classname':'light','targetname':light['id'],'origin':vector(light['origin']),
                                 '_color':vector(light['color']),'light':light['intensity']}))
     worldspawn = {'classname':'worldspawn','message':level['name'],'_minlight':level['lighting']['ambient']}
+    worldspawn.update(audio_metadata(level))
     if level['lighting'].get('directional',False):
         worldspawn['_aftershock_deluxe'] = 1
     return entity(worldspawn,world)+''.join(entities)
