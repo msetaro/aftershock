@@ -41,8 +41,9 @@ q3dm17 acceptance passes: two native pad flights, data-weapon damage and movemen
 into protected cover. Engine/simulation expressions and accepted fixtures remain
 unchanged. Legacy botlib remains pending full legacy-match parity.
 
-Finish the running fixed replay/local policy gates, self-review the #21 diff and
-commit its CI/docs registration. New owned tests run in both unit compiler legs
+Fixed replays for both content sets, legacy runtime smoke, differential/unit
+goldens and full policy gates pass. Finish the supplemental cooker/format and
+sanitizer checks and the final #21 review; CI/docs registration is committed. New owned tests run in both unit compiler legs
 and hosted OpenArena runtime. Merge accepted #20 main forward before final #21
 hosted gates/PR acceptance; preserve the strict merge order. Nothing has been
 pushed for #21 yet. Follow the specific gate evidence below, not historical next
@@ -71,7 +72,11 @@ the same path/perception/weapon/checkpoint owners without proprietary content.
 GCC/Clang navigation UBSan and both legacy bot smoke content sets pass unchanged.
 Full tidy passed 1446 configurations, with the final two-line cover correction
 rechecked for tidy/lifetimes in all four configurations (navigation-cover-recheck.log).
-Full lifetimes and fixed demos are still completing. No accepted golden changed.
+Full lifetimes pass all 1380 commands. Fixed demos retain Q3 frame hash
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4 and OpenArena
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(navigation-demo-{q3,oa}.log). The owned combat/checkpoint test also passes with
+installed Q3 content (navigation-combat-q3.log). No accepted golden changed.
 
 ## #21 cover completion after memory expiry, test first
 
