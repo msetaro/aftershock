@@ -79,6 +79,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 native HTTPS contract, test first
+
+A native transport probe now requires verified private-CA HTTPS, method/header/body
+validation, a bounded response, no redirect following, untrusted-CA rejection,
+cancellation and handle reuse. The local endpoint owns its ephemeral TLS key.
+It fails on the absent platform HTTP header/implementation (backend-http-before.log).
+Reuse the current curl loader with shared ownership instead of adding another loader
+or networking library. Curl/OS handles stay in platform code; core state remains POD.
+
 ## #29 player-facing results consumer
 
 The HTTPS tier reads the acknowledged result API over verified TLS gRPC using a
