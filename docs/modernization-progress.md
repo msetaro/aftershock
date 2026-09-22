@@ -44,7 +44,9 @@ both the same process and a fresh process seeded differently
 (state-client-clock-runtime.log). Quake 3 same/fresh-process continuation also passes (state-client-clock-q3.log). The frozen full-game v1 fixture now migrates into v2 and continues identically.
 Final runtime CI and command documentation are registered. Both full compiler
 owner suites, interrupted-load lifecycle and full tidy pass. Finish lifetime,
-normal replay/runtime and hosted checks before merge. No partial checkpoint acceptance.
+hosted checks before merge. Quake 3 fixed replay and both bot-smoke hashes
+remain identical; final Quake 3 checkpoint and OpenArena profile migration pass.
+No partial checkpoint acceptance.
 
 Named fields/archives, native entity/client/level owners, botlib reconstruction,
 cvar preparation/capacity, portal/spatial state, platform save routing, profiles
@@ -71,8 +73,11 @@ CI now runs all state owners with both compilers and real profile/checkpoint
 migration with OpenArena in the runtime job; evidence uploads only logs and entity
 JSON. Affected-test routing, AGENTS commands and tests/README describe storage,
 supported local-game context, migration and immutable fixture provenance.
-Actionlint, affected-contract and suite-contract checks pass. Finish normal
-replay/runtime compatibility and hosted acceptance before merging #19.
+Actionlint, affected-contract and suite-contract checks pass. Normal Quake 3 fixed replay and both bot-smoke hashes remain identical
+(state-final-demo.log, state-final-smoke.log). Final Quake 3 checkpoint and
+OpenArena profile/frozen-profile migration pass (state-final-{q3,profile}.log).
+Format, types and boundaries pass. Open the draft PR for hosted acceptance;
+finish lifetime analysis and self-review before ready/merge.
 
 ## #19 interrupted-load lifecycle test first
 
