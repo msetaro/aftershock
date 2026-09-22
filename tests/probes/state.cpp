@@ -17,7 +17,7 @@ struct previous_t {
 	char name[32];
 };
 struct current_t {
-	char name[32];
+	char name[64];
 	float position[3];
 	int32_t armor, health;
 	uint64_t identity;
@@ -27,10 +27,10 @@ static constexpr stateField_t previousFields[] = {
 	{ "identity", offsetof( previous_t, identity ), 1, stateType_t::UInt64 },
 	{ "removedItem", offsetof( previous_t, removedItem ), 1, stateType_t::Int32 },
 	{ "position", offsetof( previous_t, position ), 3, stateType_t::Float32 },
-	{ "name", offsetof( previous_t, name ), 32, stateType_t::Bytes }
+	{ "name", offsetof( previous_t, name ), 32, stateType_t::String }
 };
 static constexpr stateField_t currentFields[] = {
-	{ "name", offsetof( current_t, name ), 32, stateType_t::Bytes },
+	{ "name", offsetof( current_t, name ), 64, stateType_t::String },
 	{ "identity", offsetof( current_t, identity ), 1, stateType_t::UInt64 },
 	{ "position", offsetof( current_t, position ), 3, stateType_t::Float32 },
 	{ "armor", offsetof( current_t, armor ), 1, stateType_t::Int32, 2 },
@@ -65,6 +65,7 @@ int main() {
 	unsigned char bytes[4096];
 	const size_t size = State_Write( previousSchema, &previous, bytes, sizeof( bytes ) );
 	assert( size > 0 );
+	assert( size < 48 + 40 + 5 * 72 + 4 + 8 + 4 + 12 + 32 ); // Store used text, not unused string capacity.
 	previous_t same = {};
 	uint32_t version = 0;
 	assert( State_Read( previousSchema, bytes, size, &same, &version ) && version == 1 );

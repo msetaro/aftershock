@@ -53,6 +53,15 @@ Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
 
+## #19 bounded text state test before implementation
+
+Entity state contains many separately referenced strings. The state probe now
+requires a bounded string field to serialize only its used bytes and load after
+the destination capacity grows from 32 to 64 bytes. It fails on the missing
+String field kind (state-string-before.log). This avoids serializing native
+pointers or filling each entity's file record with maximum-capacity empty text.
+Existing profile Bytes fields and the frozen v1 profile remain unchanged.
+
 ## #19 native RNG seed exposure
 
 The committed missing-getter test dca6282c passes GCC and Clang/libc++ UBSan
