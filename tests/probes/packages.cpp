@@ -58,6 +58,12 @@ static void Compare( package_t *package, const char *name, const char *root ) {
 	assert(Package_ReadAsset(stream,actual,sizeof(actual))==int(count));
 	assert(!memcmp(expected,actual,count));
 	assert(Package_SeekAsset(stream,0)&&Package_TellAsset(stream)==0);
+	assert(Package_SeekAsset(stream,-1,FS_SEEK_END)&&Package_TellAsset(stream)==total-1);
+	assert(Package_SeekAsset(stream,1,FS_SEEK_CUR)&&Package_TellAsset(stream)==total);
+	assert(!Package_SeekAsset(stream,INT64_MAX,FS_SEEK_CUR)&&Package_TellAsset(stream)==total);
+	assert(!Package_SeekAsset(stream,INT64_MIN,FS_SEEK_END)&&Package_TellAsset(stream)==total);
+	assert(!Package_SeekAsset(stream,1,FS_SEEK_END)&&Package_TellAsset(stream)==total);
+	assert(Package_SeekAsset(stream,-int64_t(total),FS_SEEK_CUR)&&Package_TellAsset(stream)==0);
 	assert(allocations==before); // No per-read/seek zone allocation.
 	fclose( reference );
 	Package_CloseAsset( stream );

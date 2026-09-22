@@ -20,38 +20,26 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#16/#17/#18 and PR174's #31 chat fix are fully accepted. Main's chat-fix build
-35715942160 and regression 35715942143 attempt 2 pass all 26 jobs; #31 is closed.
+#19 PR175 is merged at main b92b6ef5 after all 26 exact-head jobs passed; its
+merged build 35728186900 passed and regression 35728186799 is still running.
+Require merged acceptance before updating #25's checkbox or merging #20.
 
-#19 PR175 merged at b92b6ef50745bccec699e36757ccff4b95b7b3e9 on 2026-09-22
-12:36:14 UTC after all 26 exact-head checks passed for 312048f0: build
-35720181499 and regression 35720181577. Fresh current main/base, clean head,
-self-review and immutable known-good tag were verified. Merge tree
-ac9a6cd40b4903d50553072165aff295f9a1e807 equals the tested tree. Merged build 35728186900 and regression 35728186799 are running/queued;
-require both before marking #19 integration accepted in #25.
+#20 PR176 includes that main at b2c2ae5e. Self-review found possible signed overflow
+in the new modern-package relative-seek branch: on 64-bit-offset platforms,
+INT64_MAX plus a nonzero current position overflows before its bounds check.
+Move relative-origin handling into the package owner, validate against its bounded
+extent before addition, and extend the existing allocation-counted package probe.
+The new relative-seek contract first fails to compile at the absent overload;
+commit it before implementing. Do not merge b2c2ae5e or reuse its hosted gates as
+final acceptance. Rerun changed-owner/package runtime checks, push a new head and
+require all 26 exact-head jobs plus accepted #19 integration before self-review,
+readiness and merge. No accepted content fixture changes.
 
-This is issue/20-content-packages, draft PR176. The package/root implementation
-and both-content local acceptance are complete. Preliminary head af524559 passes
-all 16 builds and nine active regressions; its runtime is still running. Main
-including #19 is now merged forward here. Additive includes/test-list/docs
-conflicts are resolved retaining both features. The combined client/server build,
-format/types/boundaries and affected/suite contracts pass. Package plus profile/
-checkpoint runtime checks are running (content-state-*.log). Push the merged
-head for fresh final hosted gates and inspect both local/hosted results.
-Require all 26 exact-head jobs and accepted #19 integration before #20 readiness/
-merge. Do not reuse the preliminary older-base checks as final acceptance.
-
-#21 bounded preparation lives separately in navigation-tree, with no PR/push.
-Its collision cooker and isolated Detour route/link/crowd owners pass both compiler
-UBSan tests. The latest data-authored hierarchical behavior contract fails on the
-missing behavior cook kind. Runtime gameplay/perception/cover/tooling integration
-still waits for #19/#20 acceptance; do not discard or restart the preparation.
-
-
-Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
-Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
-needed now; continue through gates instead of ending at a checkpoint or CI wait.
+#21 remains isolated in navigation-tree (issue/21-ai-navigation), with tested
+cooking/routes/crowd/cover/stateless steering/behavior/perception and a failing
+native runtime patrol contract. Merge accepted #20 main forward before gameplay,
+ImGui and checkpoint integration. Continue the full roadmap; no maintainer input
+is needed and a CI wait is not a stopping point.
 
 ## #19 merge and #20 combined-tree checkpoint
 
