@@ -11,6 +11,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <limits.h>
+#include "../engine/entities/entities_public.h"
 #include "../engine/physics/physics_public.h"
 #include "../engine/animation/animation_public.h"
 #include "../engine/weapons/weapons_public.h"

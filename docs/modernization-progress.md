@@ -20,6 +20,13 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
+#16 has since merged as d2411083325edaa0213fa5680a63d6e8644f291e after all 26
+active gates passed on 4c8dc002. Main-tree build/regression runs 35678588496 and
+35678588538 are running. #17 merged that main forward and is draft PR172, initial
+head aa5cd964 (its checkpoint update will create a new head). Monitor #17 gates
+while continuing #18 locally; merge accepted #17 main before #18 final gates.
+Historical wait details below predate this acceptance.
+
 Three isolated worktrees are active. #18 has only its first failing cook test in
 issue/18-entity-definitions at /home/matt/.cache/aftershock-modernization/entities-tree,
 branched from main 0561e0f0 while #16/#17 checks run. tests/entities.py fails on the
@@ -44,7 +51,13 @@ map-instance count override and generic runtime field edit must affect health.
 Next wire existing game spawn services and finish the remaining components. Current component
 schema covers only transform/pickup/hooks/replication; add
 model/animation/collision/trigger/damage/audio after tracing their existing
-services. No #18 runtime implementation or PR exists yet. Use JSON
+services. The initial game spawn adapter now passes the real OpenArena pickup test
+(entities-runtime-second.log): map count overrides and generic runtime edits
+change collected health. game/module.cpp must include the public entity header
+before entering module namespaces (the first link diagnosed its omission).
+The first runtime fixture inherited targetname, which correctly hides legacy
+pickups until triggered; removed that hook from the collection fixture, with no
+engine behavior change. No #18 PR exists yet. Use JSON
 and the existing cooker/schema, entity storage/spawn callbacks and generic
 inspector; no ECS or scripting language. Finish #16 merge and #17 final gates
 before #18 acceptance. Private entities-preflight.md records the traced entry

@@ -24,6 +24,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-runtime-') as tempo
     source=root/'source'
     source.mkdir()
     definition=json.loads((ROOT/'tests/assets/entities/pickups.json').read_text())
+    # A targetname makes a classic pickup dormant until triggered.
+    definition['definitions'][1]['components'].pop('hooks')
     # The existing mega-health component allows observable gains above 100.
     definition['definitions'] += [
         dict(id='medical_boost',extends='medical_crate',native='item_health_mega',components={}),
@@ -49,7 +51,6 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-runtime-') as tempo
 "classname" "medical_boost"
 "origin" "128 0 48"
 "count" "45"
-"targetname" "map_crate"
 }
 ''')
     with Engine(args.binary,args.data,args.content,home=home,
@@ -75,7 +76,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-runtime-') as tempo
                 engine.step(3)
                 health=engine.request('state')['player']['health']
                 # Existing overhealth decays by one at a one-second boundary.
-                assert health in (100+amount,99+amount),(amount,health)
+                assert health in (100+amount,99+amount),(amount,health,engine.request('state'),engine.request('entity.list'))
             collect(128,0,45)
             execute('setviewpos -160 -160 32 0')
             entity=engine.request('entity.spawn',classname='medical_boost_small',x=128,y=128,z=48)['entity']
