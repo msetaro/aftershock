@@ -56,6 +56,9 @@ static void CheckReplicationState( const stateSchema_t &schema ) {
 }
 
 int main() {
+	for ( const auto &field : entitySaveFields )
+		if ( !strcmp( field.name, "pos.trType" ) || !strcmp( field.name, "apos.trType" ) )
+			assert( field.type == stateType_t::UInt32 );
 	CheckReplicationState<entityState_t>( entityStateSchema );
 	CheckReplicationState<playerState_t>( playerStateSchema );
 	const previous_t previous = { 73, 9, UINT64_C( 0xfedcba9876543210 ), { 16.25f, -32.5f, 48.0f }, "checkpoint" };

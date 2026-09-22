@@ -51,6 +51,14 @@ Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
 
+## #19 unsigned trajectory metadata correction test
+
+Review of q_shared.h found trType_t has explicit uint32_t storage. The new save
+metadata initially labeled its bytes Int32, although bit round trips passed. The
+probe now requires UInt32 for both trajectory type fields and fails on that label
+(state-enum-before.log). Correct the new generator's type mapping before game
+integration; the pre-existing network format remains untouched.
+
 ## #19 additional local verification
 
 The archive module compiles under MinGW and AArch64 with conversion/shadow errors
@@ -58,7 +66,7 @@ enabled. Client/dedicated rebuild and the real OpenArena profile/migration test
 pass (state-archive-build.log, state-archive-profile.log). Workspace coverage now
 also checks world overlay flags and fresh-process panel/cvar/filter restoration;
 both content sets pass (profile-workspace-world-{oa,q3}.log). No profile fixture was
-regenerated. Full lifetime analysis is completing; hosted #18 still has only its
+regenerated. Full lifetime analysis passes all 1312 configurations (state-profile-lifetimes.log); hosted #18 still has only its
 normal authored-level/runtime block outstanding.
 
 ## #19 checkpoint record grouping implementation
