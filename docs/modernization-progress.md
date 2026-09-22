@@ -52,6 +52,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 cover completion after memory expiry, test first
+
+q3dm17's longer cover route takes more than five seconds at native crouch speed.
+The bot reaches the selected protected point but the transient observation has
+expired, incorrectly clearing covered. Extend the owned runtime contract to hold
+cover for six seconds beyond arrival: target acquisition must expire, while
+protection against the stored last-known threat remains true. The current client
+fails that exact assertion (navigation-cover-memory-before.log). Reuse the
+already checkpointed sense position; no new owner or movement change is needed.
+
 ## #21 launch-trigger continuation contract, test first
 
 The first actual q3dm17 AI run launches but its route cursor stays at the source:

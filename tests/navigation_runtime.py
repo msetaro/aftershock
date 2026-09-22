@@ -60,7 +60,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
         behavior = dict(version=1, name='guard', initial='patrol', states=[
             dict(name='patrol', action='patrol', transitions=[dict(to='attack',field='visible',op='eq',value=1,min_ms=0)]),
             dict(name='attack', action='attack', transitions=[dict(to='cover',field='health',op='lt',value=.9,min_ms=500)]),
-            dict(name='cover', action='cover', transitions=[dict(to='attack',field='covered',op='eq',value=1,min_ms=1000)])])
+            dict(name='cover', action='cover', transitions=[dict(to='attack',field='covered',op='eq',value=1,min_ms=20000)])])
         entities = '''{
 "classname" "worldspawn"
 }
@@ -173,6 +173,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
                         break
                 assert any(row['state']=='cover' for row in rows) and any(row['covered'] for row in rows), 'bot did not reach protected navmesh cover'
                 assert max(math.dist(start,row['position']) for row in rows)>32, 'cover must involve actual movement'
+                engine.step(300)  # Finish the cover action even after five-second target memory expires.
+                expired = engine.request('actor',owner=1)['ai']
+                assert expired['target']==-1 and expired['covered'], ('completed cover lost its remembered threat',expired)
+                rows.append(expired)
             else:
                 assert actor['ai']['state'] == 'patrol' and actor['weapons'][0], actor
                 for _ in range(30):
