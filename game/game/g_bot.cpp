@@ -1011,3 +1011,49 @@ void G_InitBots( qboolean restart ) {
 		}
 	}
 }
+
+#ifdef __cplusplus
+struct botQueueSave_t {
+	int32_t minimumTime, clients[BOT_SPAWN_QUEUE_DEPTH], times[BOT_SPAWN_QUEUE_DEPTH];
+};
+static_assert( sizeof( botQueueSave_t ) == 132 );
+static constexpr stateField_t botQueueFields[] = {
+	{ "minimumTime", offsetof( botQueueSave_t, minimumTime ), 1, stateType_t::Int32 },
+	{ "clients", offsetof( botQueueSave_t, clients ), BOT_SPAWN_QUEUE_DEPTH, stateType_t::Int32 },
+	{ "times", offsetof( botQueueSave_t, times ), BOT_SPAWN_QUEUE_DEPTH, stateType_t::Int32 }
+};
+static constexpr stateSchema_t botQueueSchema = { "game.botQueue", 1, 1, sizeof( botQueueSave_t ), botQueueFields, 3 };
+static bool ValidBotQueue( const botQueueSave_t &saved ) {
+	for ( int client : saved.clients )
+		if ( client < 0 || client >= MAX_CLIENTS )
+			return false;
+	return true;
+}
+bool G_WriteBotQueueState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	botQueueSave_t saved;
+	saved.minimumTime = checkminimumplayers_time;
+	for ( int i = 0; i < BOT_SPAWN_QUEUE_DEPTH; ++i ) {
+		saved.clients[i] = botSpawnQueue[i].clientNum;
+		saved.times[i] = botSpawnQueue[i].spawnTime;
+	}
+	if ( !ValidBotQueue( saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, botQueueSchema, 0, &saved );
+}
+bool G_ReadBotQueueState( const stateReader_t &reader, bool apply ) {
+	botQueueSave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, botQueueSchema, 0, &saved, &version ) || !ValidBotQueue( saved ) )
+		return false;
+	if ( apply ) {
+		checkminimumplayers_time = saved.minimumTime;
+		for ( int i = 0; i < BOT_SPAWN_QUEUE_DEPTH; ++i )
+			botSpawnQueue[i] = { saved.clients[i], saved.times[i] };
+	}
+	return true;
+}
+#endif

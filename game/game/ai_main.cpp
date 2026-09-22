@@ -1753,3 +1753,53 @@ int BotAIShutdown( int restart ) {
 	}
 	return qtrue;
 }
+
+#ifdef __cplusplus
+struct botClockSave_t {
+	int32_t numbots, bot_interbreed, bot_interbreedmatchcount, local_time, botlib_residual, lastbotthink_time;
+	float floattime, regularupdate_time;
+};
+static_assert( sizeof( botClockSave_t ) == 32 );
+static constexpr stateField_t botClockFields[] = {
+	{ "numbots", offsetof( botClockSave_t, numbots ), 1, stateType_t::Int32 },
+	{ "bot_interbreed", offsetof( botClockSave_t, bot_interbreed ), 1, stateType_t::Int32 },
+	{ "bot_interbreedmatchcount", offsetof( botClockSave_t, bot_interbreedmatchcount ), 1, stateType_t::Int32 },
+	{ "local_time", offsetof( botClockSave_t, local_time ), 1, stateType_t::Int32 },
+	{ "botlib_residual", offsetof( botClockSave_t, botlib_residual ), 1, stateType_t::Int32 },
+	{ "lastbotthink_time", offsetof( botClockSave_t, lastbotthink_time ), 1, stateType_t::Int32 },
+	{ "floattime", offsetof( botClockSave_t, floattime ), 1, stateType_t::Float32 },
+	{ "regularupdate_time", offsetof( botClockSave_t, regularupdate_time ), 1, stateType_t::Float32 },
+};
+static constexpr stateSchema_t botClockSchema = { "game.botClocks", 1, 1, sizeof( botClockSave_t ), botClockFields, 8 };
+static bool ValidBotClock( const botClockSave_t &saved ) {
+	return saved.numbots >= 0 && saved.numbots <= MAX_CLIENTS && saved.bot_interbreed >= 0 && saved.bot_interbreed <= 1 &&
+		   saved.bot_interbreedmatchcount >= 0 && std::isfinite( saved.floattime ) && std::isfinite( saved.regularupdate_time );
+}
+bool G_WriteBotClockState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	const botClockSave_t saved{ numbots, bot_interbreed, bot_interbreedmatchcount, local_time, botlib_residual, lastbotthink_time, floattime, regularupdate_time };
+	if ( !ValidBotClock( saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, botClockSchema, 0, &saved );
+}
+bool G_ReadBotClockState( const stateReader_t &reader, bool apply ) {
+	botClockSave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, botClockSchema, 0, &saved, &version ) || !ValidBotClock( saved ) )
+		return false;
+	if ( apply ) {
+		numbots = saved.numbots;
+		bot_interbreed = saved.bot_interbreed;
+		bot_interbreedmatchcount = saved.bot_interbreedmatchcount;
+		local_time = saved.local_time;
+		botlib_residual = saved.botlib_residual;
+		lastbotthink_time = saved.lastbotthink_time;
+		floattime = saved.floattime;
+		regularupdate_time = saved.regularupdate_time;
+	}
+	return true;
+}
+#endif

@@ -219,3 +219,11 @@ for definitions in ([],['-DAFTERSHOCK_DEVTOOLS']):
          'tests/probes/state_definitions.cpp','engine/entities/entities.cpp','engine/qcommon/state.cpp',sha,
          '-Wl,--gc-sections','-o',probe])
     run([probe])
+
+for component in ('QUEUE','CLOCK','TEAM'):
+    run([*shlex.split(args.cxx),f'-DSTATE_{component}','-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+         '-fsanitize=undefined','-fno-sanitize-recover=all',
+         'tests/probes/state_bot_globals.cpp','engine/qcommon/state.cpp',sha,
+         '-Wl,--gc-sections','-o',probe])
+    run([probe])

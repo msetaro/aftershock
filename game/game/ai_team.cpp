@@ -2090,3 +2090,44 @@ void BotTeamAI( bot_state_t *bs ) {
 #endif
 	}
 }
+
+#ifdef __cplusplus
+static constexpr stateField_t botTeamFields[] = {
+	{ "name", offsetof( bot_ctftaskpreference_t, name ), 36, stateType_t::String },
+	{ "preference", offsetof( bot_ctftaskpreference_t, preference ), 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t botTeamSchema = { "game.botTeam", 1, 1, sizeof( bot_ctftaskpreference_t ), botTeamFields, 2 };
+static constexpr stateField_t botLeaderFields[] = { { "notleader", 0, MAX_CLIENTS, stateType_t::Int32 } };
+static constexpr stateSchema_t botLeaderSchema = { "game.botLeaders", 1, 1, sizeof( notleader ), botLeaderFields, 1 };
+static bool ValidBotTeam( const bot_ctftaskpreference_t &saved ) {
+	return memchr( saved.name, 0, sizeof( saved.name ) ) && saved.preference >= 0 && saved.preference <= ( TEAMTP_DEFENDER | TEAMTP_ATTACKER );
+}
+bool G_WriteBotTeamState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	for ( int i = 0; i < MAX_CLIENTS; ++i ) {
+		if ( !ValidBotTeam( ctftaskpreferences[i] ) || notleader[i] < 0 || notleader[i] > 1 ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( !State_Append( writer, botTeamSchema, uint32_t( i ), &ctftaskpreferences[i] ) )
+			return false;
+	}
+	return State_Append( writer, botLeaderSchema, 0, notleader );
+}
+bool G_ReadBotTeamState( const stateReader_t &reader, bool apply ) {
+	bot_ctftaskpreference_t saved[MAX_CLIENTS];
+	int32_t leaders[MAX_CLIENTS];
+	uint32_t version;
+	if ( !State_Find( reader, botLeaderSchema, 0, leaders, &version ) )
+		return false;
+	for ( int i = 0; i < MAX_CLIENTS; ++i )
+		if ( leaders[i] < 0 || leaders[i] > 1 || !State_Find( reader, botTeamSchema, uint32_t( i ), &saved[i], &version ) || !ValidBotTeam( saved[i] ) )
+			return false;
+	if ( apply ) {
+		memcpy( ctftaskpreferences, saved, sizeof( saved ) );
+		memcpy( notleader, leaders, sizeof( leaders ) );
+	}
+	return true;
+}
+#endif

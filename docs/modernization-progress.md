@@ -56,6 +56,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 bot scheduler, queue and team ownership
+
+Bot checkpoints now retain delayed spawn queue entries, minimum-player check time,
+AI scheduling clocks/residuals, interbreeding counters, team task preferences and
+leader exclusions. GCC and Clang/libc++ UBSan probes pass continuation and reject
+invalid/incomplete archives before applying any owner (state-bot-globals-{gcc,clang}.log).
+Client/server build, focused tidy and the existing bot command-byte control pass.
+Full bot actor/waypoint/activation and botlib ownership remain open; these records
+do not reset bots and are not full-game acceptance.
+
 ## #19 definition and editor checkpoint ownership
 
 Authored definition records use the shared schemas and existing ASENT validation.

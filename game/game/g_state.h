@@ -107,4 +107,10 @@ bool G_WriteDefinitionState( stateWriter_t *writer );
 bool G_ReadDefinitionState( const stateReader_t &reader, bool apply );
 bool G_WriteEditorState( stateWriter_t *writer );
 bool G_ReadEditorState( const stateReader_t &reader, bool apply );
+bool G_WriteBotQueueState( stateWriter_t *writer );
+bool G_ReadBotQueueState( const stateReader_t &reader, bool apply );
+bool G_WriteBotClockState( stateWriter_t *writer );
+bool G_ReadBotClockState( const stateReader_t &reader, bool apply );
+bool G_WriteBotTeamState( stateWriter_t *writer );
+bool G_ReadBotTeamState( const stateReader_t &reader, bool apply );
 #endif
