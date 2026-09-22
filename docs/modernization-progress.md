@@ -42,8 +42,10 @@ into protected cover. Engine/simulation expressions and accepted fixtures remain
 unchanged. Legacy botlib remains pending full legacy-match parity.
 
 Fixed replays for both content sets, legacy runtime smoke, differential/unit
-goldens and full policy gates pass. Finish the supplemental cooker/format and
-sanitizer checks and the final #21 review; CI/docs registration is committed. New owned tests run in both unit compiler legs
+goldens, sanitizer units and full policy gates pass. Cooker/schema checks pass
+(the schema command uses the documented private Go PATH). Final MinGW rebuild
+also passes. Final review added and verified collision-header cache dependencies;
+CI/docs registration is committed. Finish fresh-main integration and hosted gates. New owned tests run in both unit compiler legs
 and hosted OpenArena runtime. Merge accepted #20 main forward before final #21
 hosted gates/PR acceptance; preserve the strict merge order. Nothing has been
 pushed for #21 yet. Follow the specific gate evidence below, not historical next
@@ -60,7 +62,9 @@ Final review of the actual Ninja dependency records finds 12 engine headers in
 the new collision cooker, but its content-hash input list only included one.
 Extend the existing navigation test to simulate changed collision/platform header
 bytes in memory and require tool-hash invalidation. No production file or accepted
-fixture is modified. Add the verified header dependencies before final acceptance.
+fixture is modified. Test-first 27133f59 fails on the missing cm_local.h dependency
+(navigation-header-before.log). Adding all 12 verified header dependencies makes
+the complete navigation driver pass (navigation-header-after.log).
 
 ## #21 actual q3dm17 acceptance
 
