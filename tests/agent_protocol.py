@@ -44,10 +44,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-agent-protocol-', dir=scratc
     assert profile['frame'] == dict(serial=7, milliseconds=50, dropped=1)
     assert profile['cpu'] == [dict(name='frame', milliseconds=50, self_ms=30, parent=None),
                               dict(name='commands', milliseconds=20, self_ms=20, parent=0)]
+    assert profile['selected'] == 7
     assert profile['history'] == [dict(serial=7, milliseconds=50)]
     assert profile['network']['packets'] == [dict(time=123, bytes=1400, outgoing=True)]
     assert profile['network']['fields'] == [dict(name='player.origin[0]', readBits=12, writtenBits=24, reads=1, writes=2)]
     assert replies[11]['error']['code'] == replies[12]['error']['code'] == 'invalid_argument'
+    assert replies[13]['result']['selected'] is None
     assert replies[13]['ok'] and replies[13]['result']['frame'] is None
     assert replies[13]['result']['cpu'] == replies[13]['result']['history'] == []
     resource.setrlimit(resource.RLIMIT_CORE, (0, resource.getrlimit(resource.RLIMIT_CORE)[1]))

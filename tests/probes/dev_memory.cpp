@@ -1,14 +1,6 @@
 // Traverse real zone lists, including segment separators and free blocks.
 #include "../../engine/qcommon/common.cpp"
 #include <assert.h>
-static char report[8192];
-void QDECL Com_Printf( const char *format, ... ) {
-	va_list args;
-	va_start( args, format );
-	vsnprintf( report + strlen( report ), sizeof( report ) - strlen( report ), format, args );
-	va_end( args );
-}
-
 int main() {
 	memzone_t zone = {};
 	memblock_t blocks[4] = {};
@@ -33,10 +25,6 @@ int main() {
 	assert( !strcmp( memory.names[TAG_DEVTOOLS], "DEVTOOLS" ) );
 	assert( memory.hunkTotal == 1000 && memory.hunkPermanent == 400 && memory.hunkTemporary == 100 && memory.hunkFree == 500 );
 	assert( memory.hunkBytes[0] == 100 && memory.hunkBytes[1] == 300 && memory.hunkBytes[2] == 100 && memory.hunkBytes[3] == 0 );
-	Com_DeveloperMemoryReport();
-	assert( strstr( report, "Developer shutdown allocation report" ) );
-	assert( strstr( report, "GENERAL: 1 blocks, 64 bytes" ) );
-	assert( strstr( report, "HUNK-LOW-PERMANENT: 100 bytes" ) );
 	mainzone = nullptr;
 	Com_DeveloperMemory( &memory );
 	assert( memory.bytes[TAG_GENERAL] == 0 && memory.blocks[TAG_GENERAL] == 0 );

@@ -1049,8 +1049,10 @@ struct devMemory_t {
 	uint64_t bytes[TAG_COUNT], blocks[TAG_COUNT];
 	const char *names[TAG_COUNT];
 	int32_t hunkTotal, hunkPermanent, hunkTemporary, hunkFree;
+	int32_t hunkBytes[4]; // Low/high permanent, then low/high temporary regions.
 };
 void Com_DeveloperMemory( devMemory_t *memory );
+void Com_DeveloperMemoryReport();
 #endif
 
 

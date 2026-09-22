@@ -10,7 +10,8 @@ struct cpuScope_t {
 static cpuScope_t scopes[128];
 static devCpuTiming_t completed[128];
 static uint32_t count, completedCount, generation, parent = UINT32_MAX, dropped;
-static devCpuFrame_t history[240], peak;
+static devCpuFrame_t history[240], peak, selection;
+static bool haveSelection;
 static uint32_t historyCount, historyCursor;
 static int64_t frameStart, frameEnd;
 static bool havePeak;
@@ -73,7 +74,16 @@ const devCpuFrame_t *DevTools_CpuPeak() {
 }
 void DevTools_ClearCpuHistory() {
 	historyCount = historyCursor = 0;
-	havePeak = false;
+	havePeak = haveSelection = false;
+}
+
+void DevTools_SelectCpuFrame( const devCpuFrame_t *frame ) {
+	haveSelection = frame != nullptr;
+	if ( frame )
+		selection = *frame;
+}
+const devCpuFrame_t *DevTools_CpuSelection() {
+	return haveSelection ? &selection : nullptr;
 }
 
 uint64_t Dev_BeginScope( const char *name ) {

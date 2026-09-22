@@ -1071,7 +1071,8 @@ static void InspectMemory( void ) {
 	Com_DeveloperMemory( &memory );
 	ImGui::Text( "Hunk: %d total, %d permanent, %d temporary, %d free", memory.hunkTotal,
 		memory.hunkPermanent, memory.hunkTemporary, memory.hunkFree );
-	ImGui::TextUnformatted( "Zone bytes include block headers; hunk has lifetime regions, no tags." );
+	ImGui::TextUnformatted( "Zone tags include block headers; hunk tags identify bank/lifetime regions." );
+	ImGui::Text( "Hunk low/high permanent %d / %d; low/high temporary %d / %d", memory.hunkBytes[0], memory.hunkBytes[1], memory.hunkBytes[2], memory.hunkBytes[3] );
 	if ( ImGui::BeginTable( "Tags", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg ) ) {
 		ImGui::TableSetupColumn( "Tag" );
 		ImGui::TableSetupColumn( "Bytes" );
@@ -1720,8 +1721,6 @@ static void InspectProfile( const refexport_t *renderer, uint32_t milliseconds )
 	}
 	if ( !BeginPanel( "Profile" ) )
 		return;
-	static devCpuFrame_t selected;
-	static bool held, inspectPeak;
 	float history[240];
 	uint32_t frames = 0;
 	while ( const auto *frame = DevTools_CpuFrame( frames ) ) {
@@ -1731,27 +1730,22 @@ static void InspectProfile( const refexport_t *renderer, uint32_t milliseconds )
 	if ( frames && ImGui::IsItemHovered() && ImGui::IsMouseClicked( ImGuiMouseButton_Left ) ) {
 		const float fraction = ( ImGui::GetMousePos().x - ImGui::GetItemRectMin().x ) / ( ImGui::GetItemRectMax().x - ImGui::GetItemRectMin().x );
 		const uint32_t age = MIN( frames - 1, (uint32_t)( MAX( 0.0f, fraction ) * float( frames ) ) );
-		selected = *DevTools_CpuFrame( age );
-		held = true;
-		inspectPeak = false;
+		DevTools_SelectCpuFrame( DevTools_CpuFrame( age ) );
 	}
-	if ( ImGui::Button( "Inspect peak" ) ) {
-		inspectPeak = true;
-		held = false;
-	}
+	if ( ImGui::Button( "Inspect peak" ) )
+		DevTools_SelectCpuFrame( DevTools_CpuPeak() );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Live" ) )
-		inspectPeak = held = false;
+		DevTools_SelectCpuFrame( nullptr );
 	ImGui::SameLine();
 	if ( ImGui::Button( "Clear history" ) ) {
 		DevTools_ClearCpuHistory();
-		inspectPeak = held = false;
+		DevTools_SelectCpuFrame( nullptr );
 	}
-	const auto *frame = held ? &selected : inspectPeak ? DevTools_CpuPeak()
-													   : DevTools_CpuFrame( 0 );
+	const auto *selected = DevTools_CpuSelection();
+	const auto *frame = selected ? selected : DevTools_CpuFrame( 0 );
 	if ( frame ) {
-		ImGui::Text( "%s frame %u: %.3f ms; %u scope drops", held ? "Selected" : inspectPeak ? "Peak"
-																							 : "Latest",
+		ImGui::Text( "%s frame %u: %.3f ms; %u scope drops", selected ? "Selected" : "Latest",
 			frame->serial, double( frame->microseconds ) / 1000, frame->dropped );
 		ImGui::TextUnformatted( "Scope: inclusive / self ms (click history to retain a frame)" );
 		for ( uint32_t i = 0; i < frame->count; ++i ) {
@@ -1767,6 +1761,9 @@ static void InspectProfile( const refexport_t *renderer, uint32_t milliseconds )
 				ImGui::Unindent( indent );
 		}
 	}
+	const auto render = renderer->GetDeveloperStats();
+	ImGui::Text( "Draw calls %u; scene triangles %u / surfaces %u / submitted entities %u", render.drawCalls, render.triangles, render.surfaces, render.entities );
+	ImGui::Text( "GPU geometry %.1f MiB / staging %.1f MiB", double( render.geometryBytes ) / ( 1024 * 1024 ), double( render.stagingBytes ) / ( 1024 * 1024 ) );
 	devGpuTiming_t timings[32];
 	const uint32_t count = renderer->GetDeveloperTimings( timings, ARRAY_LEN( timings ) );
 	postRenderStats_t post;

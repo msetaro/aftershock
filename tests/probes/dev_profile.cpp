@@ -152,6 +152,7 @@ int main() {
 	Dev_EndScope( spike );
 	DevTools_BeginFrame( true );
 	const uint32_t peakSerial = DevTools_CpuPeak()->serial;
+	DevTools_SelectCpuFrame( DevTools_CpuPeak() );
 	for ( int i = 0; i < 300; ++i ) {
 		const uint64_t steady = Dev_BeginScope( "steady" );
 		++clockValue;
@@ -161,6 +162,9 @@ int main() {
 	assert( DevTools_CpuFrame( 239 ) && !DevTools_CpuFrame( 240 ) );
 	assert( DevTools_CpuFrame( 0 )->microseconds == 1 );
 	assert( DevTools_CpuPeak()->serial == peakSerial && DevTools_CpuPeak()->microseconds == 100 );
+	assert( DevTools_CpuSelection()->serial == peakSerial && DevTools_CpuSelection()->microseconds == 100 );
+	DevTools_SelectCpuFrame( nullptr );
+	assert( !DevTools_CpuSelection() );
 	Dev_BeginScope( "abandoned parent" );
 	const uint64_t survivor = Dev_BeginScope( "finished child" );
 	clockValue += 5;

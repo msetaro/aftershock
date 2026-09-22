@@ -2290,6 +2290,7 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.GetDeveloperImage = RE_GetDeveloperImage;
 	re.GetDeveloperMaterial = RE_GetDeveloperMaterial;
 	re.SetDeveloperMaterial = RE_SetDeveloperMaterial;
+	re.GetDeveloperStats = RE_GetDeveloperStats;
 	re.GetDeveloperTimings = RE_GetDeveloperTimings;
 #endif
 

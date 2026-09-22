@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../platform/runtime_public.h"
 
 #include "keys_public.h"
+#include <inttypes.h>
 
 const int demo_protocols[] = { 66, 67, OLD_PROTOCOL_VERSION, NEW_PROTOCOL_VERSION, 0 };
 
@@ -416,6 +417,9 @@ void Com_Quit_f( void ) {
 #endif
 		Com_Shutdown();
 		FS_Shutdown( qtrue );
+#ifdef AFTERSHOCK_DEVTOOLS
+		Com_DeveloperMemoryReport();
+#endif
 	}
 	Sys_Quit();
 }
@@ -1757,6 +1761,21 @@ void Com_DeveloperMemory( devMemory_t *memory ) {
 	memory->hunkPermanent = hunk_low.permanent + hunk_high.permanent;
 	memory->hunkFree = Hunk_MemoryRemaining();
 	memory->hunkTemporary = s_hunkTotal - memory->hunkFree - memory->hunkPermanent;
+	memory->hunkBytes[0] = hunk_low.permanent;
+	memory->hunkBytes[1] = hunk_high.permanent;
+	memory->hunkBytes[2] = MAX( 0, hunk_low.temp - hunk_low.permanent );
+	memory->hunkBytes[3] = MAX( 0, hunk_high.temp - hunk_high.permanent );
+}
+void Com_DeveloperMemoryReport() {
+	devMemory_t memory;
+	Com_DeveloperMemory( &memory );
+	Com_Printf( "Developer shutdown allocation report (retained blocks; inspect for leaks):\n" );
+	for ( int tag = 1; tag < TAG_COUNT; ++tag )
+		Com_Printf( "  %s: %" PRIu64 " blocks, %" PRIu64 " bytes\n", memory.names[tag], memory.blocks[tag], memory.bytes[tag] );
+	const char *names[] = { "HUNK-LOW-PERMANENT", "HUNK-HIGH-PERMANENT", "HUNK-LOW-TEMPORARY", "HUNK-HIGH-TEMPORARY" };
+	for ( uint32_t i = 0; i < ARRAY_LEN( names ); ++i )
+		Com_Printf( "  %s: %d bytes\n", names[i], memory.hunkBytes[i] );
+	Com_Printf( "Process-lifetime cvars, commands and arena reservations can remain until exit.\n" );
 }
 #endif
 

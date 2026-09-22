@@ -86,6 +86,7 @@ uint32_t DevTools_CpuTimings( const devCpuTiming_t **cpu ) {
 	return 0;
 }
 static bool cpuCleared;
+static const devCpuFrame_t *cpuSelected;
 static devCpuFrame_t cpuFrame = { 7, 2, 1, 50000, { { "frame", 50000, 30000, UINT32_MAX }, { "commands", 20000, 20000, 0 } } };
 const devCpuFrame_t *DevTools_CpuFrame( uint32_t age ) {
 	return !cpuCleared && age == 0 ? &cpuFrame : nullptr;
@@ -95,6 +96,13 @@ const devCpuFrame_t *DevTools_CpuPeak() {
 }
 void DevTools_ClearCpuHistory() {
 	cpuCleared = true;
+	cpuSelected = nullptr;
+}
+void DevTools_SelectCpuFrame( const devCpuFrame_t *frame ) {
+	cpuSelected = frame;
+}
+const devCpuFrame_t *DevTools_CpuSelection() {
+	return cpuSelected;
 }
 const devNetworkPacket_t *DevTools_NetworkPacket( uint32_t age ) {
 	static const devNetworkPacket_t packet = { 123, 1400, true };
@@ -212,7 +220,7 @@ int main( int argc, char **argv ) {
 	assert( !strcmp( value, "quote \" slash \\ newline\n" ) );
 	request( R"({"id":9,"op":"cvar.get","name":"missing"})" );
 	request( R"({"id":10,"op":"trace","start":[1,2,3],"end":[5,6,7],"hull":"point"})" );
-	request( R"({"id":11,"op":"profile","peak":true})" );
+	request( R"({"id":11,"op":"profile","peak":true,"select":true})" );
 	request( R"({"id":12,"op":"profile","age":240})" );
 	request( R"({"id":13,"op":"profile","reset":true,"peak":"yes"})" );
 	assert( !cpuCleared );

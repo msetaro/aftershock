@@ -932,6 +932,18 @@ static void Agent_Memory( agentReply_t &reply ) {
 	reply.Number( memory.hunkTemporary );
 	reply.Text( ",\"hunkFree\":" );
 	reply.Number( memory.hunkFree );
+	reply.Text( ",\"hunkTags\":[" );
+	const char *names[] = { "LOW-PERMANENT", "HIGH-PERMANENT", "LOW-TEMPORARY", "HIGH-TEMPORARY" };
+	for ( uint32_t i = 0; i < ARRAY_LEN( names ); ++i ) {
+		if ( i )
+			reply.Text( "," );
+		reply.Text( "{\"name\":" );
+		reply.String( names[i] );
+		reply.Text( ",\"bytes\":" );
+		reply.Number( memory.hunkBytes[i] );
+		reply.Text( "}" );
+	}
+	reply.Text( "]" );
 	reply.Text( "}" );
 }
 
@@ -958,6 +970,11 @@ static void Agent_Profile( agentReply_t &reply, const devCpuFrame_t *frame ) {
 		reply.Number( frame->dropped );
 		reply.Text( "}" );
 	} else
+		reply.Text( "null" );
+	reply.Text( ",\"selected\":" );
+	if ( const auto *selected = DevTools_CpuSelection() )
+		reply.Number( selected->serial );
+	else
 		reply.Text( "null" );
 	reply.Text( ",\"history\":[" );
 	for ( uint32_t age = 0; const auto *previous = DevTools_CpuFrame( age ); ++age ) {
@@ -1007,6 +1024,11 @@ static void Agent_Profile( agentReply_t &reply, const devCpuFrame_t *frame ) {
 	Agent_Memory( reply );
 #ifndef DEDICATED
 	if ( const auto *renderer = DevTools_Renderer() ) {
+		const auto render = renderer->GetDeveloperStats();
+		char renderText[384];
+		snprintf( renderText, sizeof( renderText ), ",\"render\":{\"drawCalls\":%u,\"triangles\":%u,\"surfaces\":%u,\"entities\":%u,\"geometryBytes\":%" PRIu64 ",\"stagingBytes\":%" PRIu64 "}",
+			render.drawCalls, render.triangles, render.surfaces, render.entities, render.geometryBytes, render.stagingBytes );
+		reply.Text( renderText );
 		postRenderStats_t post;
 		renderer->PostStats( &post );
 		char status[384];
@@ -1653,16 +1675,20 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		return Agent_Entity( op, request, end, reply );
 	} else if ( !strcmp( op, "profile" ) ) {
 		uint32_t age = 0;
-		bool peak = false, reset = false;
+		bool peak = false, reset = false, select = false;
 		if ( ( JSON_ObjectGetNamedValue( request, end, "age" ) && !Agent_Integer( request, end, "age", age ) ) || age >= 240 ||
 			 ( JSON_ObjectGetNamedValue( request, end, "peak" ) && !Agent_Bool( request, end, "peak", peak ) ) ||
-			 ( JSON_ObjectGetNamedValue( request, end, "reset" ) && !Agent_Bool( request, end, "reset", reset ) ) )
-			return reply.Error( "invalid_argument", "$", "Use age in [0,239] and optional boolean peak/reset." );
+			 ( JSON_ObjectGetNamedValue( request, end, "reset" ) && !Agent_Bool( request, end, "reset", reset ) ) ||
+			 ( JSON_ObjectGetNamedValue( request, end, "select" ) && !Agent_Bool( request, end, "select", select ) ) )
+			return reply.Error( "invalid_argument", "$", "Use age in [0,239] and optional boolean peak/reset/select." );
 		if ( reset ) {
 			DevTools_ClearCpuHistory();
 			DevTools_ClearNetwork();
 		}
-		Agent_Profile( reply, peak ? DevTools_CpuPeak() : DevTools_CpuFrame( age ) );
+		const auto *frame = peak ? DevTools_CpuPeak() : DevTools_CpuFrame( age );
+		if ( select )
+			DevTools_SelectCpuFrame( frame );
+		Agent_Profile( reply, frame );
 	} else if ( !strcmp( op, "state" ) ) {
 		Agent_State( reply );
 	} else if ( !strcmp( op, "capture" ) ) {

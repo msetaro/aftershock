@@ -31,23 +31,25 @@ Resume the active predecessor gates before any later issue can merge:
   equals the tested head. Integrated build 35744183979 and regression 35744184060
   are running; require their acceptance before any later issue merges.
 
-#21 draft PR177 is at d24ba4f4 and includes main 13106135. Corrected build
-35746723438 and regression 35746723448 are running. Previous head 9fd94edb
-failed MSVC implicit float conversions and unit level-tool dependencies; the
-correction passes clean-cache navigation locally. Only the corrected head counts. Its local native
-navigation/combat/hearing, checkpoint, policy, sanitizer and unchanged legacy
-gates pass. Require all 26 exact-head hosted checks and integrated #20 acceptance
-before readiness/self-merge. Recheck current main/base/head immediately before
-merge; preserve merge commits only.
+#21 draft PR177 is at 2cefd7e3 and includes main 13106135. Build 35748014590
+passes all 16 compiler legs; regression 35748014600 is running. Hosted corrections
+cover explicit float constants, cold level-tool dependencies, Windows min/max
+macros and C99 bool header compatibility. Existing spatial/native probes pass;
+optimized sound object bytes remain identical. Require all 26 final-head checks
+and integrated #20 acceptance before readiness/self-merge. Recheck current
+main/base/head immediately before merge; preserve merge commits only.
 
 This is issue/22-profiling in profiling-tree, branched from main 13106135.
-Continue isolated #22 implementation while #20/#21 hosted checks run. Merge
-accepted #21 main forward before final #22 gates/PR acceptance. Reuse the existing
-developer CPU/GPU, allocator, network and visual-debug owners. Start by extending
-the existing developer profile probe for bounded retained CPU history, parent
-scopes and self time; test must fail before implementation. Remaining scope:
-per-packet/field inspection, allocator shutdown reporting, renderer counters,
-overlay/agent spike attribution and all unchanged regression gates.
+CPU history/hierarchy/peak selection, packet/field inspection, arena/shutdown
+reports and renderer counters are implemented in existing owners. OpenArena
+runtime acceptance passes: a 317.081 ms renderer-restart frame attributes
+309.749 ms to events/commands and is selected in the actual overlay (reviewed
+profiling-runtime/runtime/profile.png). Command, both-compiler data and policy
+checks pass; shipping msg.o/common.o are byte-identical to main. No accepted
+fixture changes. Finish full policy, both-content/module runtime and regression
+validation, then merge accepted #21 main forward before final #22 PR/gates.
+Optional Tracy is deferred: built-in bounded capture satisfies the issue's gate
+without a mandatory dependency. Preserve merge order while doing isolated work.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
@@ -62,7 +64,14 @@ GPU geometry/staging budgets expose their real allocations. Hunk tags reflect it
 actual low/high permanent/temporary lifetime regions instead of inventing per-object
 ownership. Extend existing developer probes for these snapshots and an explicit
 shutdown retained-allocation report; process-lifetime cvars/arenas must not be
-misreported as proven leaks. Test first, then implementation.
+misreported as proven leaks. Test-first 3ff812a4 fails on missing renderer APIs.
+The implementation passes both compiler developer probes, native command tests
+and full developer build. A real OpenArena quit reports zero BOTLIB, RENDERER,
+CLIENTS and DEVTOOLS blocks; remaining cached packs/process strings and permanent
+hunk regions are shown rather than silently discarded. Runtime verifies the
+report after clean exit. The developer renderer ABI advances 31 to 32; shipping
+ABI 25 stays unchanged. Explicit frame selection is shared by the overlay and
+JSON command, with retention/reset covered by probes and a reviewed capture.
 
 ## #22 packet and field contract, test first
 

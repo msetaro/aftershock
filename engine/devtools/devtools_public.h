@@ -59,6 +59,8 @@ uint32_t DevTools_CpuTimings( const devCpuTiming_t **timings );
 const devCpuFrame_t *DevTools_CpuFrame( uint32_t age );
 const devCpuFrame_t *DevTools_CpuPeak();
 void DevTools_ClearCpuHistory();
+void DevTools_SelectCpuFrame( const devCpuFrame_t *frame );
+const devCpuFrame_t *DevTools_CpuSelection();
 void DevTools_Packet( bool outgoing, uint32_t bytes );
 void DevTools_Snapshot( uint32_t bits, bool delta );
 const devNetwork_t *DevTools_Network( void );
