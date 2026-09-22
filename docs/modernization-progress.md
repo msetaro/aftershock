@@ -47,6 +47,22 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 collision export mask, test first
+
+The existing physics collision probe now requires an explicit navigation contents
+mask. A player-clip brush must stay excluded from the existing cosmetic default
+but be included alongside solid patches when requested. Original winding area,
+inline-model exclusion, deduplication and cleanup assertions remain. The targeted
+compile fails on the absent three-argument export overload
+(navigation-collision-before.log). Keep the old two-argument symbol/default and
+reuse the same clipping implementation; no authoritative CM trace code changes.
+
+Predecessor update: #20's first runtime failure is an extra search-path line for
+an absent optional engine directory, not gameplay divergence. af524559 fixes it;
+both unchanged OA bot hashes and complete package/pure/render acceptance pass.
+New build 35725046713/regression 35725046710 are running/queued. PR174 integration
+is in its final sanitizer/replay checks; PR175 remains in level authoring.
+
 ## #21 pinned dependency preparation
 
 After the missing-kind failure was committed at 4c7fa084, import unmodified
