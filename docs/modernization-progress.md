@@ -66,7 +66,9 @@ common format, not checkpoint/settings/editor/replication integration or accepta
 Focused tidy and MinGW/aarch64 compilation also pass. Source review finds 64-bit
 generation identities in existing rewind state, so the next probe requires their
 exact preservation; it fails on the missing UInt64 field kind
-(state-identity-before.log).
+(state-identity-before.log). The added UInt64 field kind now passes GCC and
+Clang/libc++ UBSan, including high-bit identities through migration/reload
+(state-identity-{gcc,clang}.log).
 
 ## #19 initial migration test
 

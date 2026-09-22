@@ -36,6 +36,8 @@ static bool Name( const char *text, size_t capacity ) {
 }
 static uint32_t Width( stateType_t type ) {
 	switch ( type ) {
+	case stateType_t::UInt64:
+		return 8;
 	case stateType_t::Bytes:
 		return 1;
 	case stateType_t::Int32:

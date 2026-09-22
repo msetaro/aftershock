@@ -6,7 +6,8 @@
 enum class stateType_t : uint32_t { Bytes = 1,
 	Int32,
 	UInt32,
-	Float32 };
+	Float32,
+	UInt64 };
 struct stateField_t {
 	const char *name;
 	uint32_t offset, count;
