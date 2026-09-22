@@ -93,7 +93,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build libc++-dev libc++abi-dev
       - name: Cook owned source assets and verify production poses
         run: |
-          sudo apt-get update && sudo apt-get install -y python3-venv python3-jsonschema ninja-build fonts-dejavu-core
+          sudo apt-get update && sudo apt-get install -y python3-venv python3-jsonschema ninja-build fonts-dejavu-core libsdl2-dev pkg-config
           python3 -m venv ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/cook.py --cxx '${{ matrix.cxx }}'
@@ -105,6 +105,11 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/post.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/audio_events.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          python3 tests/audio_spatial.py --cxx '${{ matrix.cxx }}'
+          python3 tests/audio_streams.py --cxx '${{ matrix.cxx }}'
+          python3 tests/audio_voice.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          python3 tests/capture.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/temporal.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/streaming.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects_reference.py
@@ -362,6 +367,21 @@ jobs:
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-ui-runtime/*/*.log
       - name: Cosmetic props and grenade contacts
         run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/physics_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Authored audio playback and cache lifetime
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/audio_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Authored weapon near and far layers
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/audio_weapons_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Opus voice between real clients
+        run: python3 tests/voice_runtime.py --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Authored audio evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: authored-audio
+          path: |
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-audio-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-audio-weapons/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-voice-runtime/*.log
       - name: Cosmetic physics evidence
         if: always()
         uses: actions/upload-artifact@v7

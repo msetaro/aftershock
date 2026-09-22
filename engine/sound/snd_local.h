@@ -199,3 +199,14 @@ extern sfx_t *sfxScratchPointer;
 extern int sfxScratchIndex;
 
 qboolean S_Base_Init( soundInterface_t *si );
+
+// Authored events retain prepared PCM until sound shutdown.
+bool S_AuthoredHandle( sfxHandle_t handle );
+void S_AuthoredInit();
+void S_AuthoredClear();
+void S_AuthoredShutdown();
+sfxHandle_t S_AuthoredRegister( const char *name );
+void S_AuthoredStart( const vec3_t origin, int entity, sfxHandle_t handle );
+void S_AuthoredEntityPosition( int entity, const vec3_t origin );
+void S_AuthoredRespatialize( int entity, const vec3_t head, vec3_t axis[3] );
+void S_AuthoredPaint( portable_samplepair_t *paint, int frames, float volume );

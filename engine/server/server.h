@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon_public.h"
+#include "../qcommon/voice_public.h"
 #include "../public/g_public.h"
 #include "../public/bg_public.h"
 #include "../platform/services_public.h"
@@ -164,6 +165,12 @@ enum identityState_t { IDENTITY_ANONYMOUS,
 	IDENTITY_REJECTED };
 
 typedef struct client_s {
+	voicePacket_t voiceQueue[4];
+	int voiceQueuedAt[4];
+	uint32_t voiceRead, voiceCount;
+	rateLimit_t voiceRate;
+	byte voiceInputGeneration;
+	bool voiceReceived;
 	uint64_t identitySession, identityId;
 	uint32_t identityStart;
 	identityState_t identityState;
@@ -322,6 +329,8 @@ extern cvar_t *sv_snapshotBudget;
 extern cvar_t *sv_dlRate;
 extern cvar_t *sv_gametype;
 extern cvar_t *sv_pure;
+extern cvar_t *sv_voip;
+void SV_WriteVoice( client_t *client, msg_t *msg );
 extern cvar_t *sv_floodProtect;
 extern cvar_t *sv_lanForceRate;
 

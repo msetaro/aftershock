@@ -20,68 +20,56 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Two isolated worktrees are active. #16 implementation is complete on
-issue/16-audio-engine at 4c8dc002 in
-/home/matt/.cache/aftershock-modernization/audio-tree. PR171 targets main and
-remains draft until its final runtime gate succeeds. All 16 compiler legs in
-35673913679 and nine active regression jobs in 35673913655 passed; runtime is
-still running; it has passed delayed hitscan and is now compiling authored levels.
-Do not merge early. Recheck exact head/base/current main and all
-26 active gates immediately before ready/merge; use a merge commit. Main was
-0561e0f0446e96f6dca51f86bae56337d6cd23f5 at the last check. The previous accepted
-runtime took 57 minutes; waiting for it is not a maintainer blocker.
+#16 is accepted: PR171 merged into main as d2411083325edaa0213fa5680a63d6e8644f291e
+on 2026-09-22 UTC. Exact head 4c8dc002 passed all 16 compiler legs in 35673913679
+and all ten active regression jobs in 35673913655, including hosted playback,
+near/far weapon layers, voice reconnect, fixed/module demos and sanitized bots.
+Rechecked unchanged base 0561e0f0 and rollback tag before ready/merge. Private
+audio-final-gates.json records all 26 results. Monitor the merged-tree workflows.
+No accepted golden/demo or known-good tag changed.
 
-While those gates run, prepare #17 locally on issue/17-ui-framework in
-/home/matt/.cache/aftershock-modernization/ui-tree, branched from that current
-main. No #17 PR is open yet. Merge accepted #16 main forward before final #17
-gates. Do not redo accepted #15/#16 components or accepted goldens.
+#17 is locally implemented on issue/17-ui-framework in
+/home/matt/.cache/aftershock-modernization/ui-tree. Current step: merge accepted
+#16 main forward, preserving both cooker kinds (sound-event 12, UI 13), CI steps
+and documentation. Run focused integration checks, push/open its PR into main,
+then require all 26 hosted gates on that exact head and current main before
+ready/merge. Do not treat previous-base local checks as final merge acceptance.
 
-#17 decision: bounded in-house immediate UI using existing renderer/input
-contracts. Cook Unicode localized text with existing Pillow FreeType/RAQM into
-atlases; menus/HUD/navigation are plain authored records. No additional live
-DOM/CSS runtime or per-frame text allocation. Developer ImGui stays separate.
-Read docs/design/ui.md for the selected scope and tests. The first real cooker
-test failed on absent ui asset kind (ui-cook-before.log, 510fe1cc). The cooker
-now passes its hashed document/atlas and localized source-reload check
-(ui-cook-first.log). It reuses FreeType/RAQM and BC7/KTX2, bounds records/atlases,
-and records the source font dependency. Schema checks also pass after supplying
-the documented private Go PATH (the initial invocation lacked Go). The next
-native probe fails on the missing engine/ui module (ui-native-before.log):
-localized records, focus skipping/wrap, slider bounds, safe-area containment and
-proportional 1080p/4K geometry, plus 1440p/ultrawide/4:3. a5c189aa records the
-missing native API; the bounded POD reader/layout/navigation now passes GCC and
-Clang/libc++ UBSan (ui-native-{first,clang}.log). The cooked Arabic advance is
-less than 80% of isolated codepoints, proving joining. Added the UI directory to
-lifetime analysis and the client source list. The boundary gate caught the local
-copy lambda named read (an OS-call reserved name); renamed it copyRecords.
-8e65ec16 implements the native core. The real-client acceptance now fails at
-missing ui_info on the pre-UI binary (ui-runtime-before.log), before any claimed
-visual or input acceptance. It exercises existing agent key events using actual
-PAD0 engine key names; no new input-test command is needed. The client adapter now builds and passes the real OpenArena 1080p sequence
-(ui-runtime-first.log); inspected main/Arabic/HUD captures show readable shaped
-text and live health. Existing key events drive navigation, cvar changes and
-actual binding storage. The cgame calls one typed HUD import; legacy content
-remains opted out. Format/types/boundaries and native ABI/shared-math checks pass.
-All three sizes pass for OpenArena (ui-runtime-{first,large}.log).
-The strengthened Quake 3 run passes all three sizes including pixel-identical
-renderer restart and returning from in-game controller options
-(ui-runtime-q3.log). The strengthened OpenArena run also passes all three sizes
-(ui-runtime-oa-final.log). MinGW and full tidy checks pass. Self-review's extra
--Wconversion/-Wshadow check exposed implicit UI pixel-to-float conversions;
-made these explicit for MSVC's warning gate without changing arithmetic. Keep
-the native probe warning check. Lifetime analysis passes all 1,276 compilation commands; tidy passes 1,334.
-Both compiler probes pass with conversion/shadow warnings, and all six 1080p
-OpenArena captures are byte-identical before/after the explicit casts
-(ui-runtime-casts.log). The rebuilt MinGW link remains in progress. Once it
-finishes, merge accepted #16 main forward and run final hosted #17 gates. No maintainer
-input is currently needed.
+#18 preparation is isolated on issue/18-entity-definitions in
+/home/matt/.cache/aftershock-modernization/entities-tree (still based on 0561e0f0).
+Commits through acd59b9e contain the initial JSON prefab cooker, bounded native
+lookup and test-first real pickup acceptance. The uncommitted game spawn adapter
+build currently fails at linking because its public header was included inside
+the game namespace; inspect game/module.cpp's existing public-header imports.
+No #18 PR yet. Finish #17 acceptance and merge current main forward before its
+final gates. Remaining #18 component coverage is documented in that branch.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Never install local system packages or copy/upload Quake paks. Never regenerate
-accepted goldens, touch the completed network driver, move known-good tags, or
-publish outside msetaro/aftershock. After #17 continue #18 through #24 (SDK
-dependency), #29 and #30 as tracked in #25.
+Continue #18 through #24 (SDK dependency), #29 and #30 according to #25. No
+maintainer input is currently needed; do not end at a checkpoint or CI wait.
+
+## #17 local verification before integrating accepted audio
+
+Decision: bounded in-house immediate UI over existing renderer/input contracts.
+Pillow FreeType/RAQM shapes localized runs offline; fixed POD records own menus,
+HUD layout and navigation. Developer ImGui remains separate. docs/design/ui.md
+records the text scope and library decision. Test-first commits
+510fe1cc/a5c189aa/f155772f precede cooker/native/client implementation.
+
+GCC and Clang/libc++ UBSan probes pass Arabic joining, focus/slider bounds and
+safe-area geometry at five aspect/resolution combinations. Real client acceptance
+passes main/options/rebinding/HUD at 1080p, 1440p and 4K with both content sets,
+including edited-source reload, pixel-identical vid_restart and return from
+in-game controller options. Controller events are injected through actual engine
+keys; no physical-device claim. Logs: ui-runtime-{q3,oa-final}.log and captures.
+
+73da8d04 makes pixel conversions explicit for Windows warning policy. Both new
+sources pass conversion/shadow diagnostics; all six 1080p captures remain
+byte-identical (ui-runtime-casts.log). Full tidy (1,334 configurations), lifetime
+(1,276 commands), MinGW rebuild, format/types/boundaries, ABI/shared math and
+workflow/affected contracts pass. Private ui-review.md records self-review.
+No accepted fixtures were regenerated, font binary committed, or paks copied.
 
 #16 extra self-review: a suspected capture-restart state problem did not
 reproduce. Four SDL dummy capture sessions correctly closed/reopened across

@@ -683,6 +683,8 @@ void FS_ResetLoadStack( void );
 int FS_GetFileList( const char *path, const char *extension, char *listbuf, int bufsize );
 
 fileHandle_t FS_FOpenFileWrite( const char *qpath );
+// Buffer remains owned by the caller until FS_FCloseFile; temporary contents are removed on close.
+fileHandle_t FS_OpenTemporaryFile( char *buffer, size_t capacity );
 fileHandle_t FS_FOpenFileAppend( const char *filename );
 // will properly create any needed paths and deal with separator character issues
 
@@ -1283,6 +1285,7 @@ void Sys_ShowIP( void );
 
 qboolean Sys_Mkdir( const char *path );
 FILE *Sys_FOpen( const char *ospath, const char *mode );
+FILE *Sys_OpenTemporaryFile( const char *ospath );
 qboolean Sys_ResetReadOnlyAttribute( const char *ospath );
 
 const char *Sys_Pwd( void );

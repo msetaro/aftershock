@@ -924,6 +924,8 @@ void CL_WritePacket( int repeat ) {
 		MSG_WriteString( &buf, clc.reliableCommands[index & ( MAX_RELIABLE_COMMANDS - 1 )] );
 	}
 
+	CL_WriteVoice( &buf );
+
 	// we want to send all the usercmds that were generated in the last
 	// few packet, so even if a couple packets are dropped in a row,
 	// all the cmds will make it to the server

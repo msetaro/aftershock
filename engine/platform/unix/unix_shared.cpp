@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <dirent.h>
 #include <unistd.h>
@@ -573,3 +574,18 @@ qboolean Sys_SetAffinityMask( const uint64_t mask ) {
 	}
 }
 #endif // USE_AFFINITY_MASK
+
+// Exclusive private storage, unlinked immediately and reclaimed by fclose.
+FILE *Sys_OpenTemporaryFile( const char *ospath ) {
+	const int fd = open( ospath, O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC, 0600 );
+	if ( fd < 0 )
+		return nullptr;
+	if ( unlink( ospath ) != 0 ) {
+		close( fd );
+		return nullptr;
+	}
+	FILE *stream = fdopen( fd, "w+b" );
+	if ( !stream )
+		close( fd );
+	return stream;
+}

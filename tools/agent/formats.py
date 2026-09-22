@@ -7,7 +7,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import best_match
 
 ROOT = Path(__file__).resolve().parents[2]
-KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'decal', 'post', 'ui', 'match-spec')
+KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'decal', 'post', 'ui', 'sound-event', 'match-spec')
 
 
 def obj(properties, required=None, extra=False):
@@ -63,8 +63,10 @@ def level_schema():
                   rules=obj({key:num(1,64000,True) for key in ('min_corridor_width','min_door_height','max_sightline','max_cover_gap')}),
                   rooms=array(room,1), connections=array(connection), spawns=array(spawn,1), cover=array(cover,1),
                   props=array(prop), pickups=array(obj(dict(classname=enum(*pickups),origin=vector()))),
-                  lighting=lighting, viewpoints=array(view,0,64))
-    legacy = obj(fields,[key for key in fields if key!='viewpoints'])
+                  lighting=lighting, viewpoints=array(view,0,64),
+                  audio_zones=array(obj(dict(mins=vector(integer=False),maxs=vector(integer=False),
+                                             wet=num(0,1),decay=num(.1,10),damping=num(0,.95))),0,32))
+    legacy = obj(fields,[key for key in fields if key not in ('viewpoints','audio_zones')])
     from tools.level.schema import version2
     return {'if':dict(properties=dict(version=dict(const=2)),required=['version']),
             'then':version2(legacy),'else':legacy}
@@ -145,6 +147,16 @@ def effect_schema():
     return obj(dict(version=dict(const=1),name=qpath(31),decal=qpath(),emitters=array(emitter,1,32)),['version','name','emitters'])
 
 
+def sound_event_schema():
+    layer = obj(dict(role=enum('mechanical','tail','distant'),sample=qpath(),gain=num(0,2),
+                     min_distance=num(0,65536),max_distance=num(1,65536)))
+    return obj(dict(version=dict(const=1),name=qpath(31),bus=enum('weapons','ambient','music','voice','ui'),
+                    group=num(0,15,True),priority=num(0,255,True),voice_limit=num(1,96,True),
+                    distance_model=enum('linear','inverse'),reference_distance=num(.01,65535),
+                    max_distance=num(1,65536),rolloff=num(0,16),doppler=dict(type='boolean'),
+                    occlusion=dict(type='boolean'),reverb_send=num(0,1),layers=array(layer,1,4)))
+
+
 def post_schema():
     return obj(dict(version=dict(const=1),name=qpath(31),lut=qpath(),exposure_ev=num(-12,12),
                     sharpen=num(0,1),vignette=num(0,1),grain=num(0,1),lut_strength=num(0,1),
@@ -186,7 +198,7 @@ def ui_schema():
 
 def schema(kind):
     schemas = dict(level=level_schema,weapon=weapon_schema,animation=animation_schema,material=material_schema,
-                   effect=effect_schema,decal=decal_schema,post=post_schema,ui=ui_schema,**{'match-spec':match_schema})
+                   effect=effect_schema,decal=decal_schema,post=post_schema,ui=ui_schema,**{'match-spec':match_schema,'sound-event':sound_event_schema})
     schema = schemas[kind]()
     schema['$schema'] = 'https://json-schema.org/draft/2020-12/schema'
     return schema
@@ -209,6 +221,11 @@ def describe(kind):
                        states=[dict(name='idle',clip='idle',loop=True)])
     elif kind == 'material':
         example = dict(alphaMode='OPAQUE')
+    elif kind == 'sound-event':
+        example = dict(version=1,name='rifle',bus='weapons',group=0,priority=100,voice_limit=8,
+                       distance_model='inverse',reference_distance=80,max_distance=4096,rolloff=1,
+                       doppler=True,occlusion=True,reverb_send=.25,layers=[
+                           dict(role='mechanical',sample='sound/rifle.wav',gain=1,min_distance=0,max_distance=4096)])
     elif kind == 'post':
         example = dict(version=1,name='filmic',exposure_ev=0)
     elif kind == 'decal':

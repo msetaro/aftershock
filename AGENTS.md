@@ -2,7 +2,7 @@
 
 Aftershock is Matt's fork of the Quake3e engine (upstream: ec-/Quake3e). The engine is now C++20
 (strict port merged 2026-09-14, PR #32). Vendored libraries under `third_party/libjpeg`, `third_party/libogg`,
-`third_party/libvorbis`, `third_party/libcurl`, `third_party/libsdl` and the `engine/platform/asm` sources stay C/assembly.
+`third_party/libvorbis`, `third_party/libcurl`, `third_party/libsdl`, `third_party/opus` and the `engine/platform/asm` sources stay C/assembly.
 
 ## Current phase: modernization
 
@@ -135,6 +135,10 @@ playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructi
   Each invocation/job owns its scratch root. Hosted compiler checks remain required.
 - Authored UI: `python3 tests/ui_framework.py` and
   `python3 tests/ui_runtime.py --binary CLIENT` (1080p, 1440p and 4K; both content sets).
+- Authored audio: `python3 tests/audio_events.py`, `python3 tests/audio_voice.py`,
+  `python3 tests/audio_runtime.py --binary CLIENT`,
+  `python3 tests/audio_weapons_runtime.py --binary CLIENT`, and
+  `python3 tests/voice_runtime.py --client CLIENT --server SERVER` (devtools client).
 - Cosmetic physics: `python3 tests/physics.py` and
   `python3 tests/physics_runtime.py --binary CLIENT` (both content sets supported).
 - Presentation controls: `python3 tests/fidelity_runtime.py --binary CLIENT` and

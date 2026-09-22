@@ -36,4 +36,4 @@ def version2(legacy):
         mode=enum('ffa','team','ctf')),['id','kind','points']),0,128)
     fields.update(version=dict(const=2),boundary=obj(dict(polygon=ring,holes=holes,floor=num(-32000,32000),ceiling=num(-32000,32000)),
                   ['polygon','floor','ceiling']),shapes=array(item,1))
-    return obj(fields,[key for key in fields if key not in ('viewpoints','intents','texture_scale')])
+    return obj(fields,[key for key in fields if key not in ('viewpoints','intents','texture_scale','audio_zones')])

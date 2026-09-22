@@ -99,7 +99,8 @@ separate static module namespaces and explicit lifecycle resets. The original GP
 source hashes and transformation history remain in `docs/native-game-import.json`.
 
 `third_party` owns vendored JPEG, Ogg, Vorbis, curl/SDL headers, Vulkan headers,
-minizip and zlib code. Existing C libraries stay C; the already-ported minizip and
+minizip, zlib, Jolt/joltc and Opus code. `cmake/Audio.cmake` builds pinned Opus
+as static C; codecs use prepared state and bounded sound queues. Existing C libraries stay C; the already-ported minizip and
 puff C++ files keep their language and lifetime-analysis coverage. Dependencies
 are not engine subsystems and keep their upstream API conventions.
 
