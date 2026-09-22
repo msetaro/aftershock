@@ -6,9 +6,11 @@ import (
 	"bytes"
 	"context"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"github.com/msetaro/aftershock/tools/match/contracts"
 	"io"
 	"net"
 	"net/http"
@@ -16,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -352,5 +355,156 @@ func TestBackendParties(t *testing.T) {
 	service.db = other
 	if call("GET", tokens[2], "", 200)["party"].(map[string]any)["id"] != second["id"] {
 		t.Fatal("party did not persist")
+	}
+}
+
+func TestBackendQueueRecovery(t *testing.T) {
+	db, err := openBackendDB(context.Background(), os.Getenv("BACKEND_TEST_DATABASE"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	udp, err := net.ListenPacket("udp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer udp.Close()
+	var matchID atomic.Value
+	matchID.Store("")
+	var ready atomic.Bool
+	udpDone := make(chan struct{})
+	go func() {
+		defer close(udpDone)
+		buffer := make([]byte, 4096)
+		for {
+			n, peer, err := udp.ReadFrom(buffer)
+			if err != nil {
+				return
+			}
+			fields := strings.Fields(string(buffer[:n]))
+			if len(fields) != 2 {
+				continue
+			}
+			id := ""
+			if ready.Load() {
+				id = matchID.Load().(string)
+			}
+			udp.WriteTo([]byte("\xff\xff\xff\xffinfoResponse\n\\challenge\\"+fields[1]+"\\mapname\\two_lane\\as_match\\"+id), peer)
+		}
+	}()
+	defer func() { udp.Close(); <-udpDone }()
+	var allocations atomic.Int32
+	var captured struct {
+		Match   contracts.MatchSpec `json:"match"`
+		JoinKey string              `json:"join_key"`
+		Token   string              `json:"token"`
+	}
+	var lock sync.Mutex
+	api := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/steam" {
+			ids := map[string]string{"2100": "3001", "2200": "3002"}
+			fmt.Fprintf(w, `{"response":{"params":{"result":"OK","steamid":"%s"}}}`, ids[r.URL.Query().Get("ticket")])
+			return
+		}
+		if r.Header.Get("Authorization") != "Bearer private-kube-token" {
+			http.Error(w, "not authorized", 401)
+			return
+		}
+		lock.Lock()
+		defer lock.Unlock()
+		if r.Method == "GET" && r.URL.Path == "/apis/agones.dev/v1/namespaces/backend-test/gameservers" {
+			items := []any{}
+			if allocations.Load() > 0 {
+				if r.URL.Query().Get("labelSelector") != "aftershock.dev/match="+captured.Match.ID {
+					t.Error("allocation recovery omitted exact match label")
+				}
+				items = append(items, map[string]any{"metadata": map[string]any{"name": "owned-game"}, "status": map[string]any{
+					"state": "Allocated", "address": "127.0.0.1", "ports": []any{map[string]any{"name": "game", "port": udp.LocalAddr().(*net.UDPAddr).Port}}}})
+			}
+			json.NewEncoder(w).Encode(map[string]any{"items": items})
+			return
+		}
+		if r.Method == "POST" && r.URL.Path == "/apis/allocation.agones.dev/v1/namespaces/backend-test/gameserverallocations" {
+			allocations.Add(1)
+			var request struct {
+				Spec struct {
+					Metadata struct{ Annotations, Labels map[string]string }
+				}
+			}
+			if json.NewDecoder(r.Body).Decode(&request) != nil || json.Unmarshal([]byte(request.Spec.Metadata.Annotations["aftershock.dev/match"]), &captured) != nil || captured.Match.Validate() != nil ||
+				request.Spec.Metadata.Labels["aftershock.dev/match"] != captured.Match.ID {
+				t.Error("invalid allocation contract")
+			}
+			matchID.Store(captured.Match.ID)
+			// The allocation committed, but its response was lost. Only recovery may follow.
+			http.Error(w, "lost allocation response", 503)
+			return
+		}
+		t.Error("unexpected cluster API", r.Method, r.URL.Path)
+		http.NotFound(w, r)
+	}))
+	defer api.Close()
+	service := &backendService{db: db, steamURL: api.URL + "/steam", steamKey: "private-test-key", appID: "12345", client: api.Client(),
+		kubeURL: api.URL, kubeToken: "private-kube-token", namespace: "backend-test", fleet: "aftershock", mapName: "two_lane", matchMinutes: 1}
+	call := func(method, path, token, body string, want int) map[string]any {
+		t.Helper()
+		r := httptest.NewRequest(method, "https://backend.test"+path, strings.NewReader(body))
+		if token != "" {
+			r.Header.Set("Authorization", "Bearer "+token)
+		}
+		w := httptest.NewRecorder()
+		service.ServeHTTP(w, r)
+		if w.Code != want {
+			t.Fatalf("%s %s: got %d want %d: %s", method, path, w.Code, want, w.Body.String())
+		}
+		var result map[string]any
+		if json.Unmarshal(w.Body.Bytes(), &result) != nil {
+			t.Fatal("invalid JSON response")
+		}
+		return result
+	}
+	one := call("POST", "/v1/login", "", `{"ticket":"2100"}`, 200)["token"].(string)
+	two := call("POST", "/v1/login", "", `{"ticket":"2200"}`, 200)["token"].(string)
+	party := call("POST", "/v1/party", one, `{}`, 200)["party"].(map[string]any)
+	call("PUT", "/v1/party", two, `{"invite_code":"`+party["invite_code"].(string)+`"}`, 200)
+	call("POST", "/v1/queue", two, `{"map":"two_lane","mode":0}`, 403)
+	call("POST", "/v1/queue", one, `{"map":"unknown","mode":0}`, 400)
+	call("POST", "/v1/queue", one, `{"map":"two_lane"}`, 400)
+	call("POST", "/v1/queue", one, `{"map":"two_lane","mode":0}`, 503)
+	call("DELETE", "/v1/party", one, `{}`, 409)
+	call("DELETE", "/v1/party", two, `{}`, 409)
+	pending := call("GET", "/v1/queue", one, "", 202)
+	if pending["state"] != "starting" {
+		t.Fatal("allocation bypassed authentication readiness")
+	}
+	ready.Store(true)
+	first := call("GET", "/v1/queue", one, "", 200)
+	second := call("GET", "/v1/queue", two, "", 200)
+	lock.Lock()
+	key, err := hex.DecodeString(captured.JoinKey)
+	expected := captured.Match
+	lock.Unlock()
+	if err != nil || len(key) != 32 || len(expected.ExpectedPlayers) != 2 {
+		t.Fatal("missing private signing material")
+	}
+	for index, assignment := range []map[string]any{first, second} {
+		claims, err := contracts.VerifyJoin(key, assignment["ticket"].(string), expected.ID, time.Now().Unix())
+		if err != nil || claims.PlayerID != []string{"3001", "3002"}[index] || assignment["address"] != udp.LocalAddr().String() {
+			t.Fatal("ticket identity/address mismatch", err)
+		}
+	}
+	if allocations.Load() != 1 {
+		t.Fatal("lost response allocated a second pod")
+	}
+	// Reload another replica and repeat POST: same assignment, newly issued nonce.
+	other, err := openBackendDB(context.Background(), os.Getenv("BACKEND_TEST_DATABASE"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer other.Close()
+	service.db = other
+	retry := call("POST", "/v1/queue", one, `{"map":"two_lane","mode":0}`, 200)
+	if retry["match_id"] != first["match_id"] || retry["ticket"] == first["ticket"] || allocations.Load() != 1 {
+		t.Fatal("restart lost assignment or reused ticket")
 	}
 }

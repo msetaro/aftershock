@@ -78,6 +78,22 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 queue recovery contract, test first
+
+The new real-database/TLS/UDP gate requires leader-owned group admission, a durable
+assignment before allocation, recovery after a committed-but-lost Agones response,
+exact configured-match readiness before issuing tickets, separate signed identities
+for each member and fresh nonces on repeat polls. It requires one allocation across
+replica restart and rejects party changes while assigned. It fails on missing queue
+configuration/API fields before implementation (backend-queue-before.log).
+
+Initial matchmaking decision: one existing party (or solo caller) allocates one pod
+for the owned test mode. This satisfies the first-game login/queue/join loop without
+a speculative skill matcher or additional queue service. The shared database owns
+membership and assignment; a later game rule can pool distinct parties when needed.
+Do not hold the global membership lock across allocation HTTP; use the per-match
+row lock and recover by the match label. Results remain read-only in #29.
+
 ## #29 persistent parties
 
 Explicit party create/join/leave now uses the shared database. Invite codes are
