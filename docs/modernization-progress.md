@@ -18,6 +18,16 @@ Maintainer ruling (2026-09-19): keep all future changes and PRs in
 repository. This replaces the earlier requirement to submit applicable #31 fixes
 upstream; historical upstream PR references below are completed past work.
 
+## Maintainer Steam deferral — 2026-09-22
+
+Steam SDK setup, provider implementation, authenticated ticket transport and
+live presence/invite acceptance move to follow-up #180 at the maintainer's
+request. #23 now completes the bounded existing-provider interface and null
+backend with deterministic-provider contract tests. Do not claim Steam support
+from those tests. This dependency no longer blocks modernization; continue #24's
+existing SDK dependency checkpoint, then #29 and #30. No SDK/account answer is
+needed for the current scope. #23 and tracking issue #25 record the same ruling.
+
 ## Next action
 
 Resume the active predecessor gates before any later issue can merge:
@@ -50,14 +60,13 @@ checkpoint continuation pass. Merge accepted #21 main forward before
 pushing/running final #22 gates.
 
 Draft PR179 preserves #23's bounded null/provider interface preparation at
-0bb8070e. Actual Steam integration is incomplete and requires a proper external
-Steamworks SDK, authorized AppID and logged-in test clients/designated recipient.
-Keep it draft. Preserve #21 -> #22 -> #23 merge order.
+0bb8070e. Actual Steam integration is deferred to #180. Keep the current interface PR
+draft until its current-main final gates pass. Preserve #21 -> #22 -> #23 merge order.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue through #24's SDK dependency, #29 and #30 per #25. The #23 Steam SDK/live-acceptance dependency needs maintainer input; finish the
-independent #21/#22 gates before stopping. Do not end at a CI wait.
+Continue through #24's SDK dependency, #29 and #30 per #25. The Steam dependency is deferred to #180; no maintainer input is needed.
+Do not end at a checkpoint or CI wait.
 
 ## #22 combined AI validation
 
