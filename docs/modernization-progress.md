@@ -72,7 +72,11 @@ time between frames must not inflate CPU duration, history must wrap at 240
 frames while retaining the peak, and a finished child of an abandoned parent must
 remain inspectable. The idle-duration assertion fails first
 (profiling-idle-before.log); finalize time at the last completed scope instead of
-the next frame boundary. Production work is still uncommitted.
+the next frame boundary. The correction passes GCC and Clang/libc++ developer-data probes
+(profiling-history-{gcc,clang}.log). The owner retains 240 POD frames, inclusive
+and self durations, parent indexes, drop counts and the worst complete frame.
+It uses existing explicit tokens and no dynamic allocation. Overlay/agent
+consumption and production scope coverage remain next.
 
 ## #21 main integration
 

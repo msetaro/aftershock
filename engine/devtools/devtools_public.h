@@ -8,7 +8,13 @@
 
 struct devCpuTiming_t {
 	char name[48];
+	int64_t microseconds, selfMicroseconds;
+	uint32_t parent;
+};
+struct devCpuFrame_t {
+	uint32_t serial, count, dropped;
 	int64_t microseconds;
+	devCpuTiming_t scopes[128];
 };
 struct devNetwork_t {
 	uint64_t bytes[2], packets[2], snapshots, predictions;
@@ -41,6 +47,10 @@ bool Sys_AgentWrite( const char *text, uint32_t length );
 bool DevTools_AgentRequest( const char *request, uint32_t length, char *response, uint32_t capacity );
 void DevTools_BeginFrame( bool enabled );
 uint32_t DevTools_CpuTimings( const devCpuTiming_t **timings );
+// Age zero is the latest completed frame; the bounded history holds 240 frames.
+const devCpuFrame_t *DevTools_CpuFrame( uint32_t age );
+const devCpuFrame_t *DevTools_CpuPeak();
+void DevTools_ClearCpuHistory();
 void DevTools_Packet( bool outgoing, uint32_t bytes );
 void DevTools_Snapshot( uint32_t bits, bool delta );
 const devNetwork_t *DevTools_Network( void );
