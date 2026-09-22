@@ -51,6 +51,19 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 perception/cover contract, test first
+
+The native probe requires sight cone plus supplied collision visibility,
+nearest-hostile selection with stable identity tie breaks, audio-model hearing
+through occlusion, exact memory expiry/copy continuation, and nearest reachable
+cover protected from the threat. It fails on absent perception_public.h/
+perception.cpp after existing navigation/behavior tests pass
+(navigation-perception-before.log). These helpers consume bounded trace facts;
+real game trace production and movement remain separate acceptance requirements.
+Before sharing audio math, retain original GCC -O2 spatial/event objects in the
+private cache for a before/after code-generation comparison. No audio model or
+accepted sound fixture change is intended.
+
 ## #21 isolated hierarchical behavior execution
 
 After 7f7a3f60's missing-runtime failure, fixed-capacity POD behavior/state records

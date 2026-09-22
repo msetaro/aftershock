@@ -101,3 +101,7 @@ behavior_probe = args.output/'behavior-probe'
 run([*shlex.split(args.cxx), *flags, '-Wall', '-Wextra', '-Werror',
      'tests/probes/behavior.cpp', 'engine/navigation/behavior.cpp', sha, '-o', behavior_probe])
 run([behavior_probe, asset])
+perception_probe = args.output/'perception-probe'
+run([*shlex.split(args.cxx), *flags, '-Wall', '-Wextra', '-Werror',
+     'tests/probes/perception.cpp', 'engine/navigation/perception.cpp', '-o', perception_probe])
+run([perception_probe])
