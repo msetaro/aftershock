@@ -8,6 +8,7 @@ import re
 import subprocess
 from check_boundaries import TOKENS, blank
 from run import ROOT, SCRATCH, run
+from cook import cook
 
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output',type=Path,default=SCRATCH/'aftershock-state')
@@ -95,6 +96,20 @@ level_fields.update(('clients','gentities','gentitySize','logFile','locationHead
                      'spawning','numSpawnVars','spawnVars','numSpawnVarChars','spawnVarChars'))
 assert level_fields==declared_members(native_body('level_locals_t')), 'level member needs state or lifetime ownership'
 print('PASS: every level member has a save description or explicit map/frame lifetime rule')
+composed=(ROOT/'game/game/g_composed.cpp').read_text()
+composed_body=composed.split('static struct composedState_t {',1)[1].split('} composed[',1)[0]
+composed_fields=set(re.findall(r'offsetof\( composedSave_t, (\w+) \)',composed)) - {'flags'}
+assert composed_fields | {'loopAnimation','once','loopSound'} == declared_members(composed_body)
+animation=(ROOT/'game/game/g_animation.cpp').read_text()
+actor_body=animation.split('} animationActors[',1)[0].rsplit('static struct {',1)[1]
+actor_fields=set(re.findall(r'offsetof\( animationActorSave_t, (\w+) \)',animation))
+assert actor_fields | {'state'} == declared_members(actor_body)
+rig_body=animation.split('} animationRigs[',1)[0].rsplit('static struct {',1)[1]
+assert declared_members(rig_body)=={'asset','storage','footHeight','rootYaw'}, 'animation rig ownership needs a save rule'
+animation_public=(ROOT/'engine/animation/animation_public.h').read_text()
+state_body=animation_public.split('struct animState_t {',1)[1].split('};',1)[0]
+assert set(re.findall(r'offsetof\( animState_t, (\w+) \)',animation_public))==declared_members(state_body)
+print('PASS: composed and animation state owners have complete checkpoint field coverage')
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'
@@ -128,3 +143,17 @@ for component in ('callbacks','references','composed'):
          f'tests/probes/state_{component}.cpp','engine/qcommon/state.cpp',sha,
          *([callbacks] if component=='references' else []),'-Wl,--gc-sections','-o',probe])
     run([probe])
+
+assets=args.output/'animation-assets'
+cook(ROOT/'tests/assets/animation/rigs.json',assets)
+native=args.output/'native-state.o'
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-ffunction-sections','-fdata-sections','-fsanitize=undefined','-fno-sanitize-recover=all',
+     '-DNATIVE_NAMESPACE=game','-DNATIVE_SOURCE="game/g_state.cpp"',
+     '-c','game/module.cpp','-o',native])
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-ffp-contract=off','-fno-fast-math','-Wall','-Wextra','-Werror',
+     '-ffunction-sections','-fdata-sections','-fsanitize=undefined','-fno-sanitize-recover=all',
+     'tests/probes/state_animation.cpp','engine/animation/animation.cpp','engine/render/tr_cooked.cpp',
+     'engine/qcommon/state.cpp',sha,native,'-Wl,--gc-sections','-o',probe])
+run([probe,assets/'animations/anim_body.asanim',assets/'animations/anim_rifle.asanim'])

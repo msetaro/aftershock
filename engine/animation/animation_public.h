@@ -2,6 +2,7 @@
 #define ANIMATION_PUBLIC_H
 
 #include <stddef.h>
+#include "../public/state_public.h"
 #include <stdint.h>
 #include <type_traits>
 
@@ -127,6 +128,18 @@ struct animState_t {
 	uint32_t blendStarted, blendDuration, lastTime, eventSequence;
 	uint32_t initialized;
 };
+inline constexpr stateField_t animationStateFields[] = {
+	{ "current", offsetof( animState_t, current ), 1, stateType_t::UInt32 },
+	{ "previous", offsetof( animState_t, previous ), 1, stateType_t::UInt32 },
+	{ "entered", offsetof( animState_t, entered ), 1, stateType_t::UInt32 },
+	{ "previousEntered", offsetof( animState_t, previousEntered ), 1, stateType_t::UInt32 },
+	{ "blendStarted", offsetof( animState_t, blendStarted ), 1, stateType_t::UInt32 },
+	{ "blendDuration", offsetof( animState_t, blendDuration ), 1, stateType_t::UInt32 },
+	{ "lastTime", offsetof( animState_t, lastTime ), 1, stateType_t::UInt32 },
+	{ "eventSequence", offsetof( animState_t, eventSequence ), 1, stateType_t::UInt32 },
+	{ "initialized", offsetof( animState_t, initialized ), 1, stateType_t::UInt32 },
+};
+inline constexpr stateSchema_t animationStateSchema = { "animation.state", 1, 1, sizeof( animState_t ), animationStateFields, 9 };
 struct animPose_t {
 	uint32_t jointCount;
 	animTransform_t local[ANIM_MAX_JOINTS];

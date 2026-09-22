@@ -36,6 +36,8 @@ struct gStatePools_t {
 	gitem_t *items;
 	int itemCount;
 };
+bool G_StatePoolsValid( const gStatePools_t &pools );
+int G_StateEntitySlot( const gentity_t *entity, const gStatePools_t &pools );
 struct gEntityRefs_t {
 	int32_t client, parent, nextTrain, prevTrain, target_ent, chain, enemy, activator, teamchain, teammaster;
 	char item[64];
@@ -87,4 +89,6 @@ bool G_WriteLevelState( stateWriter_t *writer, const level_locals_t &level, cons
 bool G_ReadLevelState( const stateReader_t &reader, const gStatePools_t &pools, level_locals_t *level, gLevelStrings_t *strings );
 bool G_WriteComposedState( stateWriter_t *writer );
 bool G_ReadComposedState( const stateReader_t &reader, bool apply );
+bool G_WriteAnimationState( stateWriter_t *writer, const gStatePools_t &pools );
+bool G_ReadAnimationState( const stateReader_t &reader, const gStatePools_t &pools, bool apply );
 #endif

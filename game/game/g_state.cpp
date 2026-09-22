@@ -1,7 +1,7 @@
 #include "g_local.h"
 #include "../../engine/public/state_replication_public.h"
 
-static bool ValidPools( const gStatePools_t &pools ) {
+bool G_StatePoolsValid( const gStatePools_t &pools ) {
 	return pools.entityCount >= 0 && pools.entityCount <= MAX_GENTITIES && ( !pools.entityCount || pools.entities ) &&
 		   pools.clientCount >= 0 && pools.clientCount <= MAX_CLIENTS && ( !pools.clientCount || pools.clients ) &&
 		   pools.itemCount >= 0 && pools.itemCount <= MAX_ITEMS && ( !pools.itemCount || pools.items );
@@ -15,6 +15,9 @@ static int Slot( const T *pointer, const T *pool, int count ) {
 		if ( pointer == &pool[i] )
 			return i;
 	return -2;
+}
+int G_StateEntitySlot( const gentity_t *entity, const gStatePools_t &pools ) {
+	return G_StatePoolsValid( pools ) ? Slot( entity, pools.entities, pools.entityCount ) : -2;
 }
 static const struct {
 	gentity_t *gentity_t::*entity;
@@ -31,7 +34,7 @@ static const struct {
 	{ &gentity_t::teammaster, &gEntityRefs_t::teammaster },
 };
 bool G_CaptureEntityRefs( const gentity_t &entity, const gStatePools_t &pools, gEntityRefs_t *references ) {
-	if ( !references || !ValidPools( pools ) )
+	if ( !references || !G_StatePoolsValid( pools ) )
 		return false;
 	gEntityRefs_t saved{};
 	saved.client = Slot( entity.client, pools.clients, pools.clientCount );
@@ -55,7 +58,7 @@ bool G_CaptureEntityRefs( const gentity_t &entity, const gStatePools_t &pools, g
 	return true;
 }
 bool G_RestoreEntityRefs( const gEntityRefs_t &references, const gStatePools_t &pools, gentity_t *entity ) {
-	if ( !entity || !ValidPools( pools ) || references.client < -1 || references.client >= pools.clientCount ||
+	if ( !entity || !G_StatePoolsValid( pools ) || references.client < -1 || references.client >= pools.clientCount ||
 		 !memchr( references.item, 0, sizeof( references.item ) ) )
 		return false;
 	auto restored = *entity;
@@ -241,7 +244,7 @@ bool G_WriteEntityState( stateWriter_t *writer, uint32_t slot, const gentity_t &
 	gEntityRefs_t refs;
 	gCallbackNames_t names;
 	gEntityStrings_t strings;
-	if ( !ValidPools( pools ) || slot >= uint32_t( pools.entityCount ) ||
+	if ( !G_StatePoolsValid( pools ) || slot >= uint32_t( pools.entityCount ) ||
 		 !G_CaptureEntityRefs( entity, pools, &refs ) || !G_CaptureCallbacks( entity, callbacks, &names ) || !G_CaptureEntityStrings( entity, &strings ) ) {
 		writer->failed = true;
 		return false;
@@ -256,7 +259,7 @@ bool G_WriteEntityState( stateWriter_t *writer, uint32_t slot, const gentity_t &
 }
 bool G_ReadEntityState( const stateReader_t &reader, uint32_t slot, const gStatePools_t &pools, const gSaveCallback_t *const *callbacks,
 	gentity_t *entity, gEntityStrings_t *strings ) {
-	if ( !entity || !strings || !ValidPools( pools ) || slot >= uint32_t( pools.entityCount ) )
+	if ( !entity || !strings || !G_StatePoolsValid( pools ) || slot >= uint32_t( pools.entityCount ) )
 		return false;
 	gentity_t restored{};
 	gEntityRefs_t refs;
@@ -360,7 +363,7 @@ bool G_WriteClientState( stateWriter_t *writer, uint32_t slot, const gclient_t &
 	if ( !writer )
 		return false;
 	// areabits is unused by the native game. Reject unexpected ownership instead of discarding it.
-	if ( !ValidPools( pools ) || slot >= MAX_CLIENTS || client.areabits ) {
+	if ( !G_StatePoolsValid( pools ) || slot >= MAX_CLIENTS || client.areabits ) {
 		writer->failed = true;
 		return false;
 	}
@@ -384,7 +387,7 @@ bool G_WriteClientState( stateWriter_t *writer, uint32_t slot, const gclient_t &
 		   State_Append( writer, clientRefsSchema, slot, &refs );
 }
 bool G_ReadClientState( const stateReader_t &reader, uint32_t slot, const gStatePools_t &pools, gclient_t *client ) {
-	if ( !client || !ValidPools( pools ) || slot >= MAX_CLIENTS )
+	if ( !client || !G_StatePoolsValid( pools ) || slot >= MAX_CLIENTS )
 		return false;
 	gclient_t restored{};
 	gClientRefs_t refs;
@@ -480,7 +483,7 @@ bool G_RestoreLevelStrings( const gLevelStrings_t &strings, char *storage, size_
 bool G_WriteLevelState( stateWriter_t *writer, const level_locals_t &level, const gStatePools_t &pools ) {
 	if ( !writer )
 		return false;
-	if ( !ValidPools( pools ) || level.spawning || level.gentities != pools.entities || level.clients != pools.clients ||
+	if ( !G_StatePoolsValid( pools ) || level.spawning || level.gentities != pools.entities || level.clients != pools.clients ||
 		 level.gentitySize != sizeof( gentity_t ) || level.num_entities < 0 || level.num_entities > pools.entityCount ||
 		 level.maxclients < 0 || level.maxclients > pools.clientCount ) {
 		writer->failed = true;
@@ -503,7 +506,7 @@ bool G_WriteLevelState( stateWriter_t *writer, const level_locals_t &level, cons
 	return State_Append( writer, gameLevelSchema, 0, &level ) && State_Append( writer, levelRefsSchema, 0, &refs ) && State_Append( writer, levelStringsSchema, 0, &strings );
 }
 bool G_ReadLevelState( const stateReader_t &reader, const gStatePools_t &pools, level_locals_t *level, gLevelStrings_t *strings ) {
-	if ( !level || !strings || !ValidPools( pools ) )
+	if ( !level || !strings || !G_StatePoolsValid( pools ) )
 		return false;
 	level_locals_t restored{};
 	gLevelRefs_t refs;

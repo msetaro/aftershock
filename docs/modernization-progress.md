@@ -52,6 +52,25 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 authored animation state
+
+Animation checkpoints retain rig hashes/calibration, actor clocks, manual inputs,
+parameters, state-machine event cursors, hit boxes and checked entity slots. Asset
+storage is reloaded by normal map setup and must match the recorded graph hash.
+animState_t uses one shared named description for subsequent animation users.
+The immutable archive is fully validated before a second pass applies actor state.
+GCC/Clang UBSan probes using the owned body/rifle graphs resume identical state,
+event and pose words, reject changed content and prove missing later actor records
+do not partially apply earlier actors (state-animation-{gcc,clang}.log). The
+client/server build passes. Source coverage accounts for all composed/animation
+members. No authoritative animation expression or accepted fixture changed.
+
+Remaining #19 integration includes weapon/rewind/other game globals, all bot state,
+entity-definition and editor state ownership, cvars/configstrings/content identity,
+server/client clocks and reconstruction, platform save routing, full-game migration
+and final gates. Continue from these owners; the common serializer and completed
+entity/client/level records do not need restarting.
+
 ## #19 composed side state
 
 Composed entity state now saves animation start/frame timing, trigger cooldowns,
