@@ -25,7 +25,8 @@ issue/16-audio-engine at 4c8dc002 in
 /home/matt/.cache/aftershock-modernization/audio-tree. PR171 targets main and
 remains draft until its final runtime gate succeeds. All 16 compiler legs in
 35673913679 and nine active regression jobs in 35673913655 passed; runtime is
-still running. Do not merge early. Recheck exact head/base/current main and all
+still running; it has passed delayed hitscan and is now compiling authored levels.
+Do not merge early. Recheck exact head/base/current main and all
 26 active gates immediately before ready/merge; use a merge commit. Main was
 0561e0f0446e96f6dca51f86bae56337d6cd23f5 at the last check. The previous accepted
 runtime took 57 minutes; waiting for it is not a maintainer blocker.
@@ -40,8 +41,10 @@ contracts. Cook Unicode localized text with existing Pillow FreeType/RAQM into
 atlases; menus/HUD/navigation are plain authored records. No additional live
 DOM/CSS runtime or per-frame text allocation. Developer ImGui stays separate.
 Read docs/design/ui.md for the selected scope and tests. The first real cooker
-test fails on absent ui asset kind (ui-cook-before.log); implement the cooker and
-native POD layout/navigation next, then real controller/rebinding/HUD acceptance
+test failed on absent ui asset kind (ui-cook-before.log, 510fe1cc). The cooker
+now passes its hashed document/atlas and localized source-reload check
+(ui-cook-first.log). It reuses FreeType/RAQM and BC7/KTX2, bounds records/atlases,
+and records the source font dependency. Implement native POD layout/navigation next, then real controller/rebinding/HUD acceptance
 at 1080p, 1440p and 4K. No maintainer input is currently needed.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
