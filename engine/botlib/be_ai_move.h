@@ -140,3 +140,6 @@ void BotShutdownMoveAI( void );
 #include "../public/state_public.h"
 bool Bot_WriteMoveState( stateWriter_t *writer );
 bool Bot_ReadMoveState( const stateReader_t &reader, bool apply );
+
+// Reconstruct exact saved handle slots in an empty pool.
+bool Bot_PrepareMoveState( const stateReader_t &reader );

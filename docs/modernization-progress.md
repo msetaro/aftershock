@@ -64,6 +64,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 movement-pool reconstruction
+
+Movement preparation validates every saved record before allocating exact saved
+handle slots into an empty pool. GCC and Clang/libc++ UBSan prove gaps, relocated
+storage and rejection of incomplete records without publication. Client/server
+build and focused tidy pass (state-move-reconstruct-{gcc,clang,build,tidy}.log).
+Character and movement construction are complete locally; shared/private weight,
+goal, weapon and chat reconstruction remain next. No accepted fixture changed.
+
 ## #19 exact character-pool reconstruction and stable owner gates
 
 At f8a4e000, the complete state suite passes on GCC and Clang/libc++ UBSan

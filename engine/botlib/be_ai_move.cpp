@@ -3710,25 +3710,44 @@ bool Bot_WriteMoveState( stateWriter_t *writer ) {
 		}
 	return true;
 }
+static bot_movestate_t savedMoveStates[MAX_CLIENTS + 1];
+static bool ReadMoveDraft( const stateReader_t &reader, movePoolSave_t *pool ) {
+	uint32_t version;
+	if ( !State_Find( reader, movePoolSchema, 0, pool, &version ) || !ValidMovePool( *pool ) )
+		return false;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+		if ( pool->present[i] &&
+			 ( !State_Find( reader, moveStateSchema, i, &savedMoveStates[i], &version ) || !ValidMoveState( savedMoveStates[i] ) ) )
+			return false;
+	return true;
+}
 bool Bot_ReadMoveState( const stateReader_t &reader, bool apply ) {
 	movePoolSave_t pool;
-	uint32_t version;
-	if ( !State_Find( reader, movePoolSchema, 0, &pool, &version ) || !ValidMovePool( pool ) || botmovestates[0] )
+	if ( botmovestates[0] || !ReadMoveDraft( reader, &pool ) )
 		return false;
-	// Checkpoint coordination recreates the saved handle slots before applying.
-	// Fixed command-only scratch avoids a large stack frame and per-frame allocation.
-	static bot_movestate_t saved[MAX_CLIENTS + 1];
-	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i ) {
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
 		if ( pool.present[i] != uint32_t( botmovestates[i] != nullptr ) )
 			return false;
-		if ( pool.present[i] && ( !State_Find( reader, moveStateSchema, i, &saved[i], &version ) || !ValidMoveState( saved[i] ) ) )
-			return false;
-	}
 	if ( apply ) {
 		memcpy( modeltypes, pool.models, sizeof( modeltypes ) );
 		for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
 			if ( pool.present[i] )
-				*botmovestates[i] = saved[i];
+				*botmovestates[i] = savedMoveStates[i];
 	}
+	return true;
+}
+bool Bot_PrepareMoveState( const stateReader_t &reader ) {
+	for ( auto *state : botmovestates )
+		if ( state )
+			return false;
+	movePoolSave_t pool;
+	if ( !ReadMoveDraft( reader, &pool ) )
+		return false;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+		if ( pool.present[i] ) {
+			botmovestates[i] = static_cast<bot_movestate_t *>( GetClearedMemory(sizeof(bot_movestate_t)));
+			*botmovestates[i] = savedMoveStates[i];
+		}
+	memcpy( modeltypes, pool.models, sizeof( modeltypes ) );
 	return true;
 }

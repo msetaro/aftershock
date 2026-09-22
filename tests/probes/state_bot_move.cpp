@@ -1,6 +1,12 @@
 #include "../../engine/botlib/be_ai_move.cpp"
 #include <assert.h>
 botlib_import_t botimport;
+static bot_movestate_t allocated[2];
+static int allocations;
+void *GetClearedMemory(size_t size) {
+	assert(size==sizeof(bot_movestate_t) && allocations<2);
+	return &allocated[allocations++];
+}
 int main() {
 	static bot_movestate_t original[2], restored[2];
 	original[0].client = original[0].entitynum = 3;
@@ -47,5 +53,24 @@ int main() {
 	restored[1].numavoidspots = MAX_AVOIDSPOTS + 1;
 	writer = { bytes, sizeof( bytes ) };
 	assert(!Bot_WriteMoveState(&writer) && !State_Finish(&writer));
+
+	restored[1].numavoidspots = 0;
+	writer = { bytes, sizeof( bytes ) };
+	assert(Bot_WriteMoveState(&writer));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	assert(!Bot_PrepareMoveState(reader) && allocations==0);
+	for ( auto &state : botmovestates )
+		state = nullptr;
+	assert(Bot_PrepareMoveState(reader) && allocations==2);
+	assert(botmovestates[1]==&allocated[0] && botmovestates[7]==&allocated[1] && !botmovestates[2]);
+	assert(!memcmp(botmovestates[1],&expected,sizeof(expected)) && modeltypes[12]==MODELTYPE_FUNC_PLAT);
+	writer = { bytes, sizeof( bytes ) };
+	assert(State_Append(&writer,movePoolSchema,0,&pool));
+	assert(State_Append(&writer,moveStateSchema,1,&saved));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	for ( auto &state : botmovestates )
+		state = nullptr;
+	assert(!Bot_PrepareMoveState(reader) && allocations==2 && !botmovestates[1]);
+	puts( "PASS: movement handles reconstruct exact saved slots only after all records validate" );
 	puts( "PASS: bot movement memory and avoidance continue identically after relocating handle storage" );
 }
