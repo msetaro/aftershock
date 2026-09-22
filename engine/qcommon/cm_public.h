@@ -75,3 +75,9 @@ void CM_DrawDebugSurface( void ( *drawPoly )( int color, int numPoints, float *p
 void CM_DeveloperSurfaces( const float *origin, float radius,
 	void ( *line )( const float *start, const float *end, uint32_t color ) );
 #endif
+
+// Restore after the same BSP is loaded, before restored snapshot visibility.
+struct stateWriter_t;
+struct stateReader_t;
+bool CM_WritePortalState( stateWriter_t *writer );
+bool CM_ReadPortalState( const stateReader_t &reader, bool apply );

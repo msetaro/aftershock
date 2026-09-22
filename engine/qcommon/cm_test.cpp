@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "cm_local.h"
+#include "../public/state_public.h"
 
 
 /*
@@ -508,4 +509,63 @@ qboolean CM_BoundsIntersectPoint( const vec3_t mins, const vec3_t maxs, const ve
 	}
 
 	return qtrue;
+}
+
+
+struct cmPortalHeader_t {
+	int32_t areas;
+	uint32_t checksum;
+};
+static constexpr stateField_t cmPortalHeaderFields[] = {
+	{ "areas", offsetof( cmPortalHeader_t, areas ), 1, stateType_t::Int32 },
+	{ "checksum", offsetof( cmPortalHeader_t, checksum ), 1, stateType_t::UInt32 }
+};
+static constexpr stateSchema_t cmPortalHeaderSchema = { "engine.portals", 1, 1, sizeof( cmPortalHeader_t ), cmPortalHeaderFields, 2 };
+static int32_t savedPortals[MAX_MAP_AREAS * MAX_MAP_AREAS];
+static bool ValidPortalState() {
+	if ( cm.numAreas < 1 || cm.numAreas > MAX_MAP_AREAS || !cm.areaPortals || !cm.areas )
+		return false;
+	for ( int a = 0; a < cm.numAreas; ++a )
+		for ( int b = 0; b < cm.numAreas; ++b )
+			if ( savedPortals[a * cm.numAreas + b] < 0 || savedPortals[a * cm.numAreas + b] != savedPortals[b * cm.numAreas + a] )
+				return false;
+	return true;
+}
+bool CM_WritePortalState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	if ( cm.numAreas < 1 || cm.numAreas > MAX_MAP_AREAS || !cm.areaPortals || !cm.areas ) {
+		writer->failed = true;
+		return false;
+	}
+	const uint32_t count = uint32_t( cm.numAreas * cm.numAreas );
+	memcpy( savedPortals, cm.areaPortals, count * sizeof( *savedPortals ) );
+	if ( !ValidPortalState() ) {
+		writer->failed = true;
+		return false;
+	}
+	const cmPortalHeader_t header{ cm.numAreas, cm.checksum };
+	const stateField_t field{ "references", 0, count, stateType_t::Int32 };
+	const stateSchema_t schema{ "engine.portalReferences", 1, 1, sizeof( savedPortals ), &field, 1 };
+	return State_Append( writer, cmPortalHeaderSchema, 0, &header ) && State_Append( writer, schema, 0, savedPortals );
+}
+bool CM_ReadPortalState( const stateReader_t &reader, bool apply ) {
+	cmPortalHeader_t header;
+	uint32_t version;
+	if ( !State_Find( reader, cmPortalHeaderSchema, 0, &header, &version ) || header.areas < 1 || header.areas > MAX_MAP_AREAS ||
+		 header.areas != cm.numAreas || header.checksum != cm.checksum )
+		return false;
+	const uint32_t count = uint32_t( header.areas * header.areas );
+	const stateField_t field{ "references", 0, count, stateType_t::Int32 };
+	const stateSchema_t schema{ "engine.portalReferences", 1, 1, sizeof( savedPortals ), &field, 1 };
+	if ( !State_Find( reader, schema, 0, savedPortals, &version ) || !ValidPortalState() )
+		return false;
+	if ( apply ) {
+		memcpy( cm.areaPortals, savedPortals, count * sizeof( *savedPortals ) );
+		// Flood labels are derived: rebuild from the restored reference counts.
+		memset( cm.areas, 0, size_t( cm.numAreas ) * sizeof( *cm.areas ) );
+		cm.floodvalid = 0;
+		CM_FloodAreaConnections();
+	}
+	return true;
 }

@@ -325,6 +325,11 @@ run([*shlex.split(args.cc),'-std=c99','-O2','-c','third_party/sha256/sha-256.c',
 run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections','-fsanitize=undefined',
      '-fno-sanitize-recover=all','-c','engine/qcommon/q_shared.cpp','-o',shared])
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+     '-fsanitize=undefined','-fno-sanitize-recover=all',
+     'tests/probes/state_portals.cpp','engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
+run([probe])
 for definitions in ([], ['-DSTATE_NATIVE_CACHE']):
     run([*shlex.split(args.cxx),*definitions,'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',

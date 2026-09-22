@@ -46,7 +46,7 @@ boundary are verified. Game-side bot actor/navigation/waypoint/scheduler/queue/t
 records are also complete. Character, movement, weight, goal, weapon and chat
 preparation rebuild saved slots locally. Native bot reconstruction, item/filter
 tables, arena accounting and bot/arena content identity are covered. Remaining
-work: semantic validation; coordinate prepared engine cvars and live
+work: coordinate prepared engine cvars and live
 server/client restore and both RNG streams; add the platform save-provider seam
 and frozen full-game N-to-N+1 OpenArena fixture. No partial checkpoint acceptance.
 Take the reproduced chat-shutdown boundary bug in a separate #31 PR before
@@ -66,6 +66,20 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 collision portal reconstruction
+
+The collision owner now records the BSP checksum, area count and symmetric portal
+reference matrix. Restore validates the entire matrix before mutation and rebuilds
+derived flood labels before snapshot visibility. GCC/Clang libc++ UBSan prove the
+same area bits and subsequent door-close sequence with multiple references, plus
+mismatched-map/count and invalid-matrix rejection. Client/server build, focused
+tidy and format/type/boundary checks pass (state-portals-*). This is additive
+checkpoint handling; ordinary collision and door arithmetic remain unchanged.
+Live restore still needs to call it before publishing the first snapshot.
+
+#31 prerequisite is draft PR174 at ec396fb4. Hosted build 35708802501 and
+regression 35708802542 are running; no merge before all 26 active gates pass.
 
 ## #19 gameplay draft validation; #31 cleanup prerequisite
 
