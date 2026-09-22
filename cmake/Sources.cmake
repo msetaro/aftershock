@@ -35,6 +35,7 @@ set(COMMON_SOURCES
   engine/qcommon/md4.cpp
   engine/qcommon/md5.cpp
   engine/qcommon/msg.cpp
+  engine/qcommon/state.cpp
   engine/qcommon/net_chan.cpp
   engine/qcommon/net_history.cpp
   engine/platform/net_ip.cpp

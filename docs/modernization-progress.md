@@ -37,9 +37,9 @@ Clang/libc++ UBSan, schema, format/types/boundaries and full tidy pass; full lif
 and MinGW checks are finishing. Merge accepted #17 main forward before final gates,
 then PR/merge #18 after all active hosted checks and self-review.
 
-#19 only has its first failing migration probe in this separate worktree,
+#19 has its initial field serializer and migration probe in this separate worktree,
 /home/matt/.cache/aftershock-modernization/state-tree, branch
-issue/19-state-serialization from current main. No state runtime is implemented.
+issue/19-state-serialization from current main. No game checkpoint integration is implemented.
 The pure named-field serializer can be implemented independently while earlier
 gates run; game/checkpoint integration follows accepted #18. Use typed POD fields
 with explicit schema versions and migrations. Full checkpoints must cover game/entity/client state, references,
@@ -50,6 +50,19 @@ filesystem/platform ownership. Read #19 before the remaining implementation.
 Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
+
+## #19 field serializer implementation
+
+The committed missing-API test (10c1bee0, introduction-version extension 26e2824d)
+now passes GCC and Clang/libc++ UBSan (state-{first,clang}.log). The small shared
+serializer emits a version/hash envelope and named typed fields, excluding native
+offsets and padding. It validates schema/record bounds, types, duplicates and
+required fields before mutating output. Added fields retain caller defaults until
+an explicit version migration; removed fields are consumed without publication.
+The probe preserves common bits through reordering/removal/addition and v2 reload.
+Storage is caller-owned and core state is trivial; no IO or allocation occurs.
+Production CMake and affected-test selection include the module. This is only the
+common format, not checkpoint/settings/editor/replication integration or acceptance.
 
 ## #19 initial migration test
 
