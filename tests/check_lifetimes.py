@@ -11,7 +11,7 @@ import subprocess
 from run import configure, compilation_commands
 
 ROOT = Path(__file__).resolve().parents[1]
-CORE = ('physics', 'animation', 'weapons', 'effects', 'qcommon', 'client', 'server', 'botlib', 'renderercommon',
+CORE = ('ui', 'physics', 'animation', 'weapons', 'effects', 'qcommon', 'client', 'server', 'botlib', 'renderercommon',
         'render', 'renderervk', 'rhi', 'devtools', 'sound', 'public')
 LOCATION = 'isExpansionInFileMatching("(^|/)(engine/(' + '|'.join(CORE) + ')/|game/|third_party/(minizip|zlib)/)")'
 # clang-query's AST dump marks VarDecl/ParmVarDecl with needsDestruction as

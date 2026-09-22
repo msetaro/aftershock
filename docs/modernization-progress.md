@@ -20,48 +20,70 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Continue #16 on issue/16-audio-engine in
-/home/matt/.cache/aftershock-modernization/audio-tree, branched from main
-0561e0f0446e96f6dca51f86bae56337d6cd23f5. #15 PR170 is merged; its tested and merged
-trees are identical. Do not redo the physics port, accepted fixtures or finished
-network-driver evidence. Spatial/HRTF and cooked-event components are implemented and tested; #16 draft PR171 targets main.
+#16 is accepted: PR171 merged into main as d2411083325edaa0213fa5680a63d6e8644f291e
+on 2026-09-22 UTC. Exact head 4c8dc002 passed all 16 compiler legs in 35673913679
+and all ten active regression jobs in 35673913655, including hosted playback,
+near/far weapon layers, voice reconnect, fixed/module demos and sanitized bots.
+Rechecked unchanged base 0561e0f0 and rollback tag before ready/merge. Private
+audio-final-gates.json records all 26 results. Monitor the merged-tree workflows.
+No accepted golden/demo or known-good tag changed.
 
-#16 decision: extend the in-house mixer and keep the existing SDL/native device
-backends. Reuse cooked PCM assets and weapon animation-notify deduplication. Add
-bounded POD spatial/DSP state, authored layered events, buses/groups/ducking,
-voice priorities/limits, native-CM occlusion, authored reverb volumes and streamed
-music/ambient. Keep legacy playback behavior unless an explicit authored feature
-selects the new path. The HRTF option will be an explicitly documented approximate
-spherical-head model, not a claim of individualized pinna calibration.
+#17 is locally implemented on issue/17-ui-framework in
+/home/matt/.cache/aftershock-modernization/ui-tree. 6593c9c3 merged accepted
+#16 main forward, preserving both cooker kinds (sound-event 12, UI 13), CI steps
+and documentation. Focused schema/native, format/types/boundaries, build and
+1080p runtime checks pass (ui-merged-{schema,native}.log, ui-with-audio.log).
+Draft PR172 is open into main. Hosted MSVC rejected std::min's initializer-list
+calls because Windows min/max macros expand them (ui-msvc-522f9904.log).
+Parenthesized the four standard-library call names to prevent macro expansion;
+no expression/value change. Rerun all gates on the new head. Require all 26 hosted gates on that exact head and current main before
+ready/merge. Do not treat previous-base local checks as final merge acceptance.
 
-The issue's VoIP premise needs care: current code has reserved Opus/Speex IDs and
-dormant SDL/meter/parser hooks, but no enabled Opus codec or CL_ParseVoip body.
-Complete a functional bounded Opus path and loopback proof; do not claim that an
-already-working voice implementation was preserved. Keep existing wire IDs and
-make capture explicit. Streaming must prove no new frame-time allocation: current
-pk3 rewind and legacy inflate allocate, so merely retaining a file handle is not
-sufficient. Private read-only findings and primary references are in
-/home/matt/.cache/aftershock-modernization/audio-research.md. A private SDL dummy
-output baseline passed; it does not establish any #16 feature.
-
-Authored map acoustics, reusable music/ambient streams, voice and real weapon
-near/far acceptance now pass. Next complete final regression/build gates and
-self-review, mark PR171 ready, and merge only after every active check succeeds.
-Prepared event registration/playback and both-content output checks now pass. Record failures before fixes. No maintainer input is currently needed.
-
-#15 is accepted and checked in #25: merged-tree build/publication 35658235970
-and all ten active regression jobs in 35658235841 passed, including runtime. This does not replace #16's own final
-checks against current main. One issue branch/PR, merge commit only, all required
-checks green; no external repository writes, no force pushes or tag changes.
+#18 preparation is isolated on issue/18-entity-definitions in
+/home/matt/.cache/aftershock-modernization/entities-tree (still based on 0561e0f0).
+Commits through acd59b9e contain the initial JSON prefab cooker, bounded native
+lookup and test-first real pickup acceptance. The uncommitted game spawn adapter
+initially failed linking because its public header was included inside the game
+namespace. Added it to game/module.cpp's existing global public-header imports;
+the initial OpenArena map/runtime pickup acceptance now passes
+(entities-runtime-second.log). The collection fixture no longer assigns a
+targetname, which correctly made the original pickup dormant until triggered.
+No #18 PR yet. Finish #17 acceptance and merge current main forward before its
+final gates. Remaining #18 component coverage is documented in that branch.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Reference hardware: RTX 3080 Ti / 595.91.07; run hardware benchmarks serially.
-Never install local system packages, copy game paks, or regenerate accepted goldens.
+Continue #18 through #24 (SDK dependency), #29 and #30 according to #25. No
+maintainer input is currently needed; do not end at a checkpoint or CI wait.
 
-After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
-#29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
-recorded below, and optional upscaling remains deferred.
+## #17 local verification before integrating accepted audio
+
+Decision: bounded in-house immediate UI over existing renderer/input contracts.
+Pillow FreeType/RAQM shapes localized runs offline; fixed POD records own menus,
+HUD layout and navigation. Developer ImGui remains separate. docs/design/ui.md
+records the text scope and library decision. Test-first commits
+510fe1cc/a5c189aa/f155772f precede cooker/native/client implementation.
+
+GCC and Clang/libc++ UBSan probes pass Arabic joining, focus/slider bounds and
+safe-area geometry at five aspect/resolution combinations. Real client acceptance
+passes main/options/rebinding/HUD at 1080p, 1440p and 4K with both content sets,
+including edited-source reload, pixel-identical vid_restart and return from
+in-game controller options. Controller events are injected through actual engine
+keys; no physical-device claim. Logs: ui-runtime-{q3,oa-final}.log and captures.
+
+73da8d04 makes pixel conversions explicit for Windows warning policy. Both new
+sources pass conversion/shadow diagnostics; all six 1080p captures remain
+byte-identical (ui-runtime-casts.log). Full tidy (1,334 configurations), lifetime
+(1,276 commands), MinGW rebuild, format/types/boundaries, ABI/shared math and
+workflow/affected contracts pass. Private ui-review.md records self-review.
+No accepted fixtures were regenerated, font binary committed, or paks copied.
+
+#16 extra self-review: a suspected capture-restart state problem did not
+reproduce. Four SDL dummy capture sessions correctly closed/reopened across
+sound/video restart with unchanged engine code. Private reproducer and log:
+audio-capture-restart-check.py and audio-capture-restart-before.log. No speculative
+engine fix was made. Source manifest, known-good tag and accepted fixtures remain
+unchanged; audio-self-review.md records the allocation/lifetime/boundary review.
 
 ## #16 weapon acceptance and final gates
 

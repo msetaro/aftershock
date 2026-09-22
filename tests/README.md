@@ -1545,3 +1545,34 @@ changes accepted fixtures. `physics_prop box`, `physics_prop grenade` and
 `physics_prop grenade drop` are local cosmetic commands; `physics_status` reports
 motion/storage. Development builds add the Physics panel and `cg_physicsDebug`
 collision bounds. Damage-bearing trajectories remain native weapon/CM state.
+
+## Authored UI (#17)
+
+`python3 tests/ui_framework.py` cooks `tests/assets/ui/shell.json` with the installed
+DejaVu Sans font and checks the native document, navigation, slider bounds, safe
+areas and proportional geometry with UBSan. Pass `--cc clang --cxx 'clang++
+-stdlib=libc++'` for the second compiler. Use the cooker's Python environment:
+Pillow must include FreeType/RAQM, and `--font PATH` selects another licensed source
+font. Hosted runners install `fonts-dejavu-core`. No font binary is committed.
+The Arabic joining check compares the shaped run against isolated codepoints.
+
+`python3 tests/ui_runtime.py --binary CLIENT` uses a development client and local
+Quake 3 content; hosted CI adds `--content openarena --data DATA`. It renders the
+same owned menu/options/HUD at 1920x1080, 2560x1440 and 3840x2160, sends controller
+button names through the engine's real key-event path, changes volume and actual
+bindings, cancels rebinding, switches English/Arabic, and reloads an edited source
+label, checks pixel-identical renderer restart, and returns from in-game options.
+PNGs and engine logs are retained; paks are only symlinked into temporary
+homes. This verifies controller mappings with injected events, not physical
+controller hardware. There are no new golden frames or regenerated classic demos.
+
+A cooker `ui` asset reads a UTF-8 JSON document plus its source font and emits
+`.asui` POD records and a BC7/KTX2 atlas. `tools/agent schema ui` documents the
+source format. Set `ui_document ui/shell.asui`, `ui_language en` (or `ar`) and
+`ui_safeArea 0.05`, then use `ui_reload`. In development, enable
+`dev_reloadAssets 1` before recooking to refresh the atlas too. `ui_info` reports
+live page/focus/locale/draw counters. Empty `ui_document` retains classic content.
+Arrows/d-pad/left stick navigate; Enter/A activates; Escape/B cancels or goes back;
+Start opens in-game options. Binding capture uses existing key storage. Cooked
+localized runs are shaped offline; dynamic numeric/key labels use atlas glyphs.
+Arbitrary runtime Unicode chat shaping is outside this menu/HUD implementation.
