@@ -54,6 +54,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #22 packet and field contract, test first
+
+Extend the same CPU/network probe with bounded packet history, timestamps/direction,
+exact compressed-bit accounting for transmitted entity/player fields and player
+arrays, reset and disabled instrumentation. Encode/decode real production deltas,
+require matching read/write field totals and identical bytes with telemetry off.
+This captures field payload/control bits, excluding message/header framing; it is
+not a second network serializer. Implementation follows the failing contract.
+
 ## #22 profile command contract, test first
 
 Extend the existing native command probe: select the retained peak, expose parent

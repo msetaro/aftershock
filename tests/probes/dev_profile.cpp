@@ -12,7 +12,74 @@ void QDECL Com_Error( errorParm_t, const char *, ... ) {
 	abort();
 }
 
+cvar_t *cl_shownet;
+void QDECL Com_Printf( const char *, ... ) {
+}
+void QDECL Com_DPrintf( const char *, ... ) {
+}
+
+static void networkFields() {
+	DevTools_BeginFrame( true );
+	DevTools_ClearNetwork();
+	for ( uint32_t i = 0; i < 300; ++i ) {
+		com_frameTime = (int)i;
+		DevTools_Packet( ( i & 1 ) != 0, i + 20 );
+	}
+	const auto *packet = DevTools_NetworkPacket( 0 );
+	assert( packet && packet->bytes == 319 && packet->outgoing && packet->milliseconds == 299 );
+	assert( DevTools_NetworkPacket( 255 )->bytes == 64 && !DevTools_NetworkPacket( 256 ) );
+	byte data[4096] = {}, disabled[4096] = {};
+	msg_t msg;
+	entityState_t baseline = {}, entity = {}, decodedEntity = {};
+	playerState_t playerBase = {}, player = {}, decodedPlayer = {};
+	entity.number = 3;
+	entity.pos.trTime = 123;
+	entity.pos.trBase[0] = 12.5f;
+	entity.weapon = 2;
+	player.commandTime = 55;
+	player.origin[0] = -1.5f;
+	player.stats[0] = 100;
+	player.ammo[2] = 19;
+	MSG_Init( &msg, data, sizeof( data ) );
+	MSG_WriteDeltaEntity( &msg, &baseline, &entity, qtrue );
+	MSG_WriteDeltaPlayerstate( &msg, &playerBase, &player );
+	const int size = msg.cursize, bits = msg.bit;
+	MSG_BeginReading( &msg );
+	assert( MSG_ReadBits( &msg, GENTITYNUM_BITS ) == 3 );
+	MSG_ReadDeltaEntity( &msg, &baseline, &decodedEntity, 3 );
+	MSG_ReadDeltaPlayerstate( &msg, &playerBase, &decodedPlayer );
+	assert( !memcmp( &entity, &decodedEntity, sizeof( entity ) ) );
+	assert( !memcmp( &player, &decodedPlayer, sizeof( player ) ) );
+	const devNetworkField_t *fields;
+	const uint32_t count = DevTools_NetworkFields( &fields );
+	uint64_t total = 0;
+	bool position = false, arrays = false;
+	for ( uint32_t i = 0; i < count; ++i ) {
+		if ( !fields[i].samples[0] && !fields[i].samples[1] )
+			continue;
+		assert( fields[i].bits[0] == fields[i].bits[1] && fields[i].samples[0] == fields[i].samples[1] );
+		total += fields[i].bits[0];
+		position |= !strcmp( fields[i].name, "entity.pos.trBase[0]" );
+		arrays |= !strcmp( fields[i].name, "player.ammo" );
+	}
+	assert( total > 0 && total < (uint32_t)bits && position && arrays );
+	DevTools_BeginFrame( false );
+	MSG_Init( &msg, disabled, sizeof( disabled ) );
+	MSG_WriteDeltaEntity( &msg, &baseline, &entity, qtrue );
+	MSG_WriteDeltaPlayerstate( &msg, &playerBase, &player );
+	assert( msg.cursize == size && msg.bit == bits && !memcmp( data, disabled, size ) );
+	uint64_t after = 0;
+	for ( uint32_t i = 0; i < count; ++i )
+		after += fields[i].bits[1];
+	assert( after == total );
+	DevTools_ClearNetwork();
+	assert( !DevTools_NetworkPacket( 0 ) && !DevTools_Network()->packets[0] );
+	DevTools_ClearCpuHistory();
+}
+
 int main() {
+	networkFields();
+	clockValue = 0;
 	const devCpuTiming_t *timings;
 	assert( Dev_BeginScope( "disabled" ) == UINT64_MAX );
 	DevTools_BeginFrame( true );
