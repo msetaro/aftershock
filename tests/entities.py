@@ -5,13 +5,16 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
+import shlex
 import struct
 import tempfile
 from cook import cook
-from run import ROOT, SCRATCH
+from run import ROOT, SCRATCH, run
 
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output',type=Path,default=SCRATCH/'aftershock-entities')
+parser.add_argument('--cc',default='gcc')
+parser.add_argument('--cxx',default='g++')
 args=parser.parse_args()
 with tempfile.TemporaryDirectory(prefix='aftershock-entities-') as temporary:
     source=Path(temporary)
@@ -43,4 +46,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-') as temporary:
     assert crate[1]['targetname']==small[1]['targetname']==('hooks','medical_crate')
     assert base[2:]==crate[2:]==small[2:]==(2,0)
     assert cook(project,args.output)['built']==[]
+    sha,probe=args.output/'sha.o',args.output/'probe'
+    run([*shlex.split(args.cc),'-std=c99','-O2','-c','third_party/sha256/sha-256.c','-o',sha])
+    run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror','-Wconversion','-Wshadow','-fsanitize=undefined','-fno-sanitize-recover=all',
+         'tests/probes/entities.cpp','engine/entities/entities.cpp',sha,'-o',probe])
+    run([probe,args.output/'entities/pickups.asent'])
 print('PASS: inherited pickup definitions, component metadata and derived replication policy')
