@@ -1,6 +1,8 @@
 #include "server.h"
 #include "identity_public.h"
 #include "../platform/runtime_public.h"
+#include "../qcommon/json.h"
+#include <charconv>
 #include <cstring>
 
 static struct {
@@ -9,6 +11,7 @@ static struct {
 	uint32_t count;
 } joinConfig;
 static joinReplay_t joinReplay;
+static bool joinRequired;
 
 bool SV_SetJoinConfig( const char *match, const char *key, const uint64_t *players, uint32_t count ) {
 	if ( !match || !key || !players || !count || count > 64 || !match[0] || strlen( match ) > 64 || strlen( key ) != 64 )
@@ -34,10 +37,11 @@ bool SV_SetJoinConfig( const char *match, const char *key, const uint64_t *playe
 	memcpy( joinConfig.key, key, 65 );
 	memcpy( joinConfig.players, players, count * sizeof( players[0] ) );
 	joinConfig.count = count;
+	joinRequired = true;
 	return true;
 }
 bool SV_JoinRequired() {
-	return joinConfig.count != 0;
+	return joinRequired;
 }
 static bool Expected( uint64_t player ) {
 	for ( uint32_t i = 0; i < joinConfig.count; ++i )
@@ -81,4 +85,77 @@ bool SV_JoinRetry( int clientNum, const joinClaims_t &claims, int challenge ) {
 	const auto *client = &svs.clients[clientNum];
 	return client->state == CS_CONNECTED && client->identityState == IDENTITY_VERIFIED && client->identityProvider == SERVICE_BACKEND &&
 		   client->identityId == claims.player && client->challenge == challenge && !memcmp( client->joinNonce, claims.nonce, sizeof( client->joinNonce ) );
+}
+
+// The controller writes this private file before opening admission. Never echo its contents.
+bool SV_LoadJoinConfig( const char *data, uint32_t size ) {
+	joinRequired = true;
+	if ( !data || !size || size > 8192 || !JSON_ValidateObject( data, data + size ) )
+		return false;
+	const char *end = data + size;
+	JSON_Whitespace( data, end );
+	++data;
+	uint32_t seen = 0, count = 0;
+	char match[65] = {}, key[65] = {};
+	uint64_t players[64] = {};
+	while ( data < end ) {
+		JSON_Whitespace( data, end );
+		if ( *data == '}' )
+			break;
+		char name[32];
+		if ( !JSON_ReadString( data, end, name, sizeof( name ) ) )
+			return false;
+		JSON_Whitespace( data, end );
+		++data; // Colon and delimiters were validated above.
+		JSON_Whitespace( data, end );
+		const char *value = data;
+		uint32_t field;
+		if ( !strcmp( name, "version" ) ) {
+			field = 1;
+			if ( *value != '1' || JSON_SkipValue( value, end ) != value + 1 )
+				return false;
+		} else if ( !strcmp( name, "match_id" ) || !strcmp( name, "join_key" ) ) {
+			field = !strcmp( name, "match_id" ) ? 2 : 4;
+			if ( !JSON_ReadString( value, end, field == 2 ? match : key, sizeof( match ) ) )
+				return false;
+		} else if ( !strcmp( name, "expected_players" ) ) {
+			field = 8;
+			const char *entries[64];
+			count = JSON_ArrayGetIndex( value, end, entries, 64 );
+			if ( !count || count > 64 )
+				return false;
+			for ( uint32_t i = 0; i < count; ++i ) {
+				char id[21];
+				if ( !JSON_ReadString( entries[i], end, id, sizeof( id ) ) || id[0] < '1' || id[0] > '9' )
+					return false;
+				const char *stop = id + strlen( id );
+				const auto result = std::from_chars( id, stop, players[i] );
+				if ( result.ec != std::errc{} || result.ptr != stop )
+					return false;
+			}
+		} else
+			return false;
+		if ( seen & field )
+			return false;
+		seen |= field;
+		data = JSON_SkipValue( data, end );
+		JSON_Whitespace( data, end );
+		if ( *data == ',' )
+			++data;
+	}
+	return seen == 15 && SV_SetJoinConfig( match, key, players, count );
+}
+void SV_JoinConfig_f() {
+	joinRequired = true;
+	fileHandle_t file = FS_INVALID_HANDLE;
+	const int size = FS_SV_FOpenFileRead( "match-join.json", &file );
+	char data[8192];
+	const bool read = file != FS_INVALID_HANDLE && size > 0 && size <= (int)sizeof( data ) && FS_Read( data, size, file ) == size;
+	if ( file != FS_INVALID_HANDLE )
+		FS_FCloseFile( file );
+	if ( !read || !SV_LoadJoinConfig( data, (uint32_t)size ) ) {
+		Com_Printf( "Join configuration rejected; authenticated admission remains required.\n" );
+		return;
+	}
+	Com_Printf( "Join configuration ready: %s\n", joinConfig.match );
 }

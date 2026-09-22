@@ -3,7 +3,6 @@
 #ifndef DEDICATED
 #include "../qcommon/keys_public.h"
 #endif
-#define JSON_IMPLEMENTATION
 #include "../qcommon/json.h"
 #include <charconv>
 #include <algorithm>
@@ -199,182 +198,6 @@ struct agentReply_t {
 	}
 };
 
-static void Agent_Whitespace( const char *&p, const char *end ) {
-	while ( p < end && ( *p == ' ' || *p == '\t' || *p == '\r' || *p == '\n' ) )
-		++p;
-}
-
-static bool Agent_Hex( const char *&p, const char *end, uint32_t &value ) {
-	if ( end - p < 4 )
-		return false;
-	value = 0;
-	for ( int i = 0; i < 4; ++i ) {
-		const char c = *p++;
-		const int digit = c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'f' ? c - 'a' + 10
-													   : c >= 'A' && c <= 'F'	? c - 'A' + 10
-																				: -1;
-		if ( digit < 0 )
-			return false;
-		value = value * 16 + (uint32_t)digit;
-	}
-	return true;
-}
-
-// The existing JSON helper locates members but deliberately leaves strings escaped.
-static bool Agent_String( const char *&p, const char *end, char *out, uint32_t capacity ) {
-	if ( !p || p >= end || *p++ != '"' )
-		return false;
-	uint32_t length = 0;
-	while ( p < end ) {
-		uint32_t c = (unsigned char)*p++;
-		if ( c == '"' ) {
-			if ( out )
-				out[length] = 0;
-			return true;
-		}
-		if ( c < 32 )
-			return false;
-		char bytes[4];
-		uint32_t count = 1;
-		bytes[0] = (char)c;
-		if ( c == '\\' ) {
-			if ( p == end )
-				return false;
-			c = (unsigned char)*p++;
-			switch ( c ) {
-			case '"':
-			case '\\':
-			case '/':
-				bytes[0] = (char)c;
-				break;
-			case 'b':
-				bytes[0] = '\b';
-				break;
-			case 'f':
-				bytes[0] = '\f';
-				break;
-			case 'n':
-				bytes[0] = '\n';
-				break;
-			case 'r':
-				bytes[0] = '\r';
-				break;
-			case 't':
-				bytes[0] = '\t';
-				break;
-			case 'u': {
-				if ( !Agent_Hex( p, end, c ) || !c )
-					return false; // Engine strings cannot contain embedded NUL.
-				if ( c >= 0xd800 && c <= 0xdbff ) {
-					uint32_t low;
-					if ( end - p < 6 || p[0] != '\\' || p[1] != 'u' )
-						return false;
-					p += 2;
-					if ( !Agent_Hex( p, end, low ) || low < 0xdc00 || low > 0xdfff )
-						return false;
-					c = 0x10000 + ( ( c - 0xd800 ) << 10 ) + low - 0xdc00;
-				} else if ( c >= 0xdc00 && c <= 0xdfff )
-					return false;
-				count = c < 0x80 ? 1 : c < 0x800 ? 2
-								   : c < 0x10000 ? 3
-												 : 4;
-				for ( uint32_t i = count - 1; i > 0; --i ) {
-					bytes[i] = (char)( 0x80 | ( c & 63 ) );
-					c >>= 6;
-				}
-				bytes[0] = (char)( c | ( count == 1 ? 0 : count == 2 ? 0xc0
-													  : count == 3	 ? 0xe0
-																	 : 0xf0 ) );
-				break;
-			}
-			default:
-				return false;
-			}
-		}
-		if ( out ) {
-			if ( count >= capacity - length )
-				return false;
-			memcpy( out + length, bytes, count );
-			length += count;
-		}
-	}
-	return false;
-}
-
-// Validate delimiters and cap nesting before the permissive JSON member helpers.
-static bool Agent_Value( const char *&p, const char *end, uint32_t depth ) {
-	Agent_Whitespace( p, end );
-	if ( p == end || depth > 16 )
-		return false;
-	if ( *p == '"' )
-		return Agent_String( p, end, nullptr, 0 );
-	if ( *p == '{' || *p == '[' ) {
-		const bool object = *p++ == '{';
-		const char close = object ? '}' : ']';
-		Agent_Whitespace( p, end );
-		if ( p < end && *p == close ) {
-			++p;
-			return true;
-		}
-		while ( p < end ) {
-			if ( object ) {
-				if ( !Agent_String( p, end, nullptr, 0 ) )
-					return false;
-				Agent_Whitespace( p, end );
-				if ( p == end || *p++ != ':' )
-					return false;
-			}
-			if ( !Agent_Value( p, end, depth + 1 ) )
-				return false;
-			Agent_Whitespace( p, end );
-			if ( p == end )
-				return false;
-			if ( *p == close ) {
-				++p;
-				return true;
-			}
-			if ( *p++ != ',' )
-				return false;
-			Agent_Whitespace( p, end );
-		}
-		return false;
-	}
-	static constexpr const char *literals[] = { "true", "false", "null" };
-	for ( const char *literal : literals ) {
-		const size_t length = strlen( literal );
-		if ( (size_t)( end - p ) >= length && !memcmp( p, literal, length ) ) {
-			p += length;
-			return true;
-		}
-	}
-	if ( *p == '-' )
-		++p;
-	if ( p == end || *p < '0' || *p > '9' )
-		return false;
-	if ( *p++ != '0' )
-		while ( p < end && *p >= '0' && *p <= '9' )
-			++p;
-	if ( p < end && *p == '.' ) {
-		++p;
-		const char *start = p;
-		while ( p < end && *p >= '0' && *p <= '9' )
-			++p;
-		if ( p == start )
-			return false;
-	}
-	if ( p < end && ( *p == 'e' || *p == 'E' ) ) {
-		++p;
-		if ( p < end && ( *p == '+' || *p == '-' ) )
-			++p;
-		const char *start = p;
-		while ( p < end && *p >= '0' && *p <= '9' )
-			++p;
-		if ( p == start )
-			return false;
-	}
-	return true;
-}
-
 template <typename T>
 static bool Agent_Integer( const char *request, const char *end, const char *name, T &value ) {
 	const char *p = JSON_ObjectGetNamedValue( request, end, name );
@@ -482,7 +305,7 @@ static void Agent_State( agentReply_t &reply ) {
 static bool Agent_Cvars( const char *request, const char *end, agentReply_t &reply ) {
 	char filter[128] = {};
 	const char *p = JSON_ObjectGetNamedValue( request, end, "filter" );
-	if ( p && !Agent_String( p, end, filter, sizeof( filter ) ) )
+	if ( p && !JSON_ReadString( p, end, filter, sizeof( filter ) ) )
 		return reply.Error( "invalid_argument", "$.filter", "Use a name or description substring shorter than 128 bytes." );
 	uint32_t offset = 0, limit = 16;
 	if ( ( JSON_ObjectGetNamedValue( request, end, "offset" ) && !Agent_Integer( request, end, "offset", offset ) ) || offset > 65535 ||
@@ -521,7 +344,7 @@ static bool Agent_Cvars( const char *request, const char *end, agentReply_t &rep
 static bool Agent_GraphTable( const char *request, const char *end, agentReply_t &reply ) {
 	char name[32];
 	const char *p = JSON_ObjectGetNamedValue( request, end, "section" );
-	if ( !Agent_String( p, end, name, sizeof( name ) ) )
+	if ( !JSON_ReadString( p, end, name, sizeof( name ) ) )
 		return reply.Error( "invalid_argument", "$.section", "Use parameters/states/transitions/conditions/events/nodes/masks/joints." );
 	const char *names[] = { "parameters", "states", "transitions", "conditions", "events", "nodes", "masks", "joints" };
 	const animSectionIndex_t sections[] = { ANIM_PARAMETERS, ANIM_STATES, ANIM_TRANSITIONS, ANIM_CONDITIONS, ANIM_EVENTS, ANIM_NODES, ANIM_MASKS, ANIM_JOINTS };
@@ -700,11 +523,11 @@ static bool Agent_Assets( const char *request, const char *end, agentReply_t &re
 		return reply.Error( "invalid_state", "$", "Step a rendered frame first." );
 	char kind[32], filter[128];
 	const char *p = JSON_ObjectGetNamedValue( request, end, "kind" );
-	if ( !Agent_String( p, end, kind, sizeof( kind ) ) || ( strcmp( kind, "images" ) && strcmp( kind, "materials" ) && strcmp( kind, "models" ) ) )
+	if ( !JSON_ReadString( p, end, kind, sizeof( kind ) ) || ( strcmp( kind, "images" ) && strcmp( kind, "materials" ) && strcmp( kind, "models" ) ) )
 		return reply.Error( "invalid_argument", "$.kind", "Use images/materials/models." );
 	p = JSON_ObjectGetNamedValue( request, end, "filter" );
 	filter[0] = 0;
-	if ( p && !Agent_String( p, end, filter, sizeof( filter ) ) )
+	if ( p && !JSON_ReadString( p, end, filter, sizeof( filter ) ) )
 		return reply.Error( "invalid_argument", "$.filter", "Use a name substring shorter than 128 bytes." );
 	uint32_t offset = 0, limit = 16;
 	if ( ( JSON_ObjectGetNamedValue( request, end, "offset" ) && !Agent_Integer( request, end, "offset", offset ) ) || offset > 65535 ||
@@ -1211,7 +1034,7 @@ static bool Agent_Entity( const char *op, const char *request, const char *end, 
 		char classname[64];
 		const char *p = JSON_ObjectGetNamedValue( request, end, "classname" );
 		float origin[3];
-		if ( !Agent_String( p, end, classname, sizeof( classname ) ) || !classname[0] )
+		if ( !JSON_ReadString( p, end, classname, sizeof( classname ) ) || !classname[0] )
 			return reply.Error( "invalid_argument", "$.classname", "Use a supported point-entity class shorter than 64 bytes." );
 		if ( !Agent_Number( request, end, "x", origin[0], -32752, 32752 ) || !Agent_Number( request, end, "y", origin[1], -32752, 32752 ) || !Agent_Number( request, end, "z", origin[2], -32752, 32752 ) )
 			return reply.Error( "invalid_argument", "$", "Provide finite x, y and z coordinates within [-32752,32752]." );
@@ -1251,7 +1074,7 @@ static bool Agent_Entity( const char *op, const char *request, const char *end, 
 	} else if ( !strcmp( op, "entity.get" ) || !strcmp( op, "entity.set" ) ) {
 		char key[128], value[1024];
 		const char *p = JSON_ObjectGetNamedValue( request, end, "key" );
-		if ( !Agent_String( p, end, key, sizeof( key ) ) )
+		if ( !JSON_ReadString( p, end, key, sizeof( key ) ) )
 			return reply.Error( "invalid_argument", "$.key", "Provide the name of an editable entity field." );
 		if ( !strcmp( op, "entity.get" ) ) {
 			if ( !tools->ReadField( (int)entity, key, value, sizeof( value ) ) )
@@ -1262,7 +1085,7 @@ static bool Agent_Entity( const char *op, const char *request, const char *end, 
 			return reply.valid;
 		}
 		p = JSON_ObjectGetNamedValue( request, end, "value" );
-		if ( !Agent_String( p, end, value, sizeof( value ) ) )
+		if ( !JSON_ReadString( p, end, value, sizeof( value ) ) )
 			return reply.Error( "invalid_argument", "$.value", "Provide a string shorter than 1024 bytes." );
 		if ( !tools->WriteField( (int)entity, key, value ) )
 			return reply.Error( "rejected", "$.value", "Check field type, entity mutability and local cheats." );
@@ -1283,11 +1106,9 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		return reply.Error( "invalid_request", "$", "Send one JSON object shorter than 524288 bytes." );
 	}
 	const char *end = request + length;
-	Agent_Whitespace( request, end );
+	JSON_Whitespace( request, end );
 	const char *p = request;
-	const bool parsed = p < end && *p == '{' && Agent_Value( p, end, 0 );
-	Agent_Whitespace( p, end );
-	if ( !parsed || p != end ) {
+	if ( !JSON_ValidateObject( request, end ) ) {
 		reply.Text( "null" );
 		return reply.Error( "invalid_request", "$", "Send a JSON object with valid strings and at most 16 nested containers." );
 	}
@@ -1304,7 +1125,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	reply.Text( integer );
 	char op[64], name[256], value[4096];
 	p = JSON_ObjectGetNamedValue( request, end, "op" );
-	if ( !Agent_String( p, end, op, sizeof( op ) ) )
+	if ( !JSON_ReadString( p, end, op, sizeof( op ) ) )
 		return reply.Error( "invalid_argument", "$.op", "Use a command name from hello." );
 	if ( !strcmp( op, "hello" ) ) {
 		reply.Text( ",\"ok\":true,\"result\":{\"protocol\":1,\"commands\":[\"hello\",\"effects\",\"effects.load\",\"effects.start\",\"effects.stop\",\"effects.edit\",\"decals\",\"decals.load\",\"decals.project\",\"decals.clear\",\"exec\",\"cvar.get\",\"cvar.set\",\"cvar.list\",\"cvar.select\",\"editor.filter\",\"session\",\"step\",\"map\",\"state\",\"input\",\"key\",\"usercmd\",\"camera\",\"panel\",\"world\",\"trace\",\"editor.state\",\"animation.load\",\"animation.set\",\"graph\",\"graph.table\",\"range\",\"actor\",\"assets\",\"asset.select\",\"material.set\",\"material.preview\",\"profile\",\"subscribe\",\"capture\",\"entity.list\",\"entity.pick\",\"entity.select\",\"entity.at_camera\",\"entity.reload\",\"entity.spawn\",\"entity.get\",\"entity.set\",\"entity.delete\",\"entity.save\"]}}" );
@@ -1318,7 +1139,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		uint32_t handle = 0;
 		if ( !strcmp( op, "decals.load" ) ) {
 			p = JSON_ObjectGetNamedValue( request, end, "path" );
-			if ( !Agent_String( p, end, name, MAX_QPATH ) )
+			if ( !JSON_ReadString( p, end, name, MAX_QPATH ) )
 				return reply.Error( "invalid_argument", "$.path", "Use a cooked .asdc qpath." );
 			handle = (uint32_t)renderer->RegisterDecal( name );
 			if ( !handle )
@@ -1369,7 +1190,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		uint32_t handle = 0;
 		if ( !strcmp( op, "effects.load" ) ) {
 			p = JSON_ObjectGetNamedValue( request, end, "path" );
-			if ( !Agent_String( p, end, name, MAX_QPATH ) )
+			if ( !JSON_ReadString( p, end, name, MAX_QPATH ) )
 				return reply.Error( "invalid_argument", "$.path", "Use a cooked .asfx qpath." );
 			handle = (uint32_t)renderer->RegisterEffect( name );
 			if ( !handle )
@@ -1437,7 +1258,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		bool accepted = false;
 		if ( !strcmp( op, "asset.select" ) ) {
 			p = JSON_ObjectGetNamedValue( request, end, "kind" );
-			if ( !Agent_String( p, end, name, sizeof( name ) ) )
+			if ( !JSON_ReadString( p, end, name, sizeof( name ) ) )
 				return reply.Error( "invalid_argument", "$.kind", "Use images/materials/models." );
 			accepted = DevTools_SelectAsset( name, (int)index );
 		} else if ( !strcmp( op, "material.preview" ) ) {
@@ -1464,7 +1285,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 #else
 		bool down;
 		p = JSON_ObjectGetNamedValue( request, end, "name" );
-		if ( !Agent_String( p, end, name, sizeof( name ) ) || !Agent_Bool( request, end, "down", down ) )
+		if ( !JSON_ReadString( p, end, name, sizeof( name ) ) || !Agent_Bool( request, end, "down", down ) )
 			return reply.Error( "invalid_argument", "$", "Use a key name (e.g. F8/ESCAPE) and boolean down." );
 		const int key = Key_StringToKeynum( name );
 		if ( key < 0 || key >= MAX_KEYS )
@@ -1491,11 +1312,11 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		if ( capacity < 1024 )
 			return false;
 		p = JSON_ObjectGetNamedValue( request, end, "action" );
-		if ( !Agent_String( p, end, name, sizeof( name ) ) )
+		if ( !JSON_ReadString( p, end, name, sizeof( name ) ) )
 			return reply.Error( "invalid_argument", "$.action", "Use inspect/target/select/fire/reload/melee/offhand/ads/attachments/restart/capture/close." );
 		p = JSON_ObjectGetNamedValue( request, end, "path" );
 		value[0] = 0;
-		if ( p && !Agent_String( p, end, value, MAX_QPATH ) )
+		if ( p && !JSON_ReadString( p, end, value, MAX_QPATH ) )
 			return reply.Error( "invalid_argument", "$.path", "Use a cooked weapon path shorter than 64 bytes." );
 		uint32_t number = 0;
 		if ( JSON_ObjectGetNamedValue( request, end, "value" ) && ( !Agent_Integer( request, end, "value", number ) || number > 255 ) )
@@ -1518,11 +1339,11 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 			return false;
 		static char text[65536];
 		p = JSON_ObjectGetNamedValue( request, end, "action" );
-		if ( !Agent_String( p, end, name, sizeof( name ) ) )
+		if ( !JSON_ReadString( p, end, name, sizeof( name ) ) )
 			return reply.Error( "invalid_argument", "$.action", "Use source/text/save/undo, or a supported preview action." );
 		p = JSON_ObjectGetNamedValue( request, end, "text" );
 		text[0] = 0;
-		if ( p && !Agent_String( p, end, text, sizeof( text ) ) )
+		if ( p && !JSON_ReadString( p, end, text, sizeof( text ) ) )
 			return reply.Error( "invalid_argument", "$.text", "Provide text shorter than 65536 UTF-8 bytes." );
 		float number = 0;
 		if ( ( !strcmp( name, "play" ) || !strcmp( name, "parameter" ) ) && !Agent_Number( request, end, "value", number, -1e30f, 1e30f ) )
@@ -1544,7 +1365,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		bool accepted = false;
 		if ( !strcmp( op, "panel" ) ) {
 			p = JSON_ObjectGetNamedValue( request, end, "name" );
-			if ( !Agent_String( p, end, name, sizeof( name ) ) )
+			if ( !JSON_ReadString( p, end, name, sizeof( name ) ) )
 				return reply.Error( "invalid_argument", "$.name", "Provide the case-sensitive panel name." );
 			accepted = DevTools_SelectPanel( name );
 		} else if ( !strcmp( op, "world" ) ) {
@@ -1556,17 +1377,17 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 			accepted = DevTools_SetWorld( collision, navigation, entities, radius );
 		} else if ( !strcmp( op, "animation.load" ) ) {
 			p = JSON_ObjectGetNamedValue( request, end, "path" );
-			if ( !Agent_String( p, end, name, MAX_QPATH ) )
+			if ( !JSON_ReadString( p, end, name, MAX_QPATH ) )
 				return reply.Error( "invalid_argument", "$.path", "Provide a model path shorter than 64 bytes." );
 			p = JSON_ObjectGetNamedValue( request, end, "skin" );
 			value[0] = 0;
-			if ( p && !Agent_String( p, end, value, MAX_QPATH ) )
+			if ( p && !JSON_ReadString( p, end, value, MAX_QPATH ) )
 				return reply.Error( "invalid_argument", "$.skin", "Provide an optional skin path shorter than 64 bytes." );
 			accepted = DevTools_LoadAnimation( name, value );
 		} else {
 			float number;
 			p = JSON_ObjectGetNamedValue( request, end, "field" );
-			if ( !Agent_String( p, end, name, sizeof( name ) ) || !Agent_Number( request, end, "value", number, -180, 16777215 ) )
+			if ( !JSON_ReadString( p, end, name, sizeof( name ) ) || !Agent_Number( request, end, "value", number, -180, 16777215 ) )
 				return reply.Error( "invalid_argument", "$", "Provide field (model/clip/frame/play/fps/yaw) and its numeric value." );
 			accepted = DevTools_SetAnimation( name, number );
 		}
@@ -1594,7 +1415,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		return reply.Error( "unsupported", "$", "Frame capture requires a client build." );
 #else
 		p = JSON_ObjectGetNamedValue( request, end, "name" );
-		if ( !Agent_String( p, end, name, 64 ) || !name[0] )
+		if ( !JSON_ReadString( p, end, name, 64 ) || !name[0] )
 			return reply.Error( "invalid_argument", "$.name", "Use a capture name shorter than 64 bytes." );
 		for ( const char *c = name; *c; ++c )
 			if ( !( ( *c >= 'a' && *c <= 'z' ) || ( *c >= 'A' && *c <= 'Z' ) || ( *c >= '0' && *c <= '9' ) || *c == '_' || *c == '-' ) )
@@ -1612,7 +1433,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 #endif
 	} else if ( !strcmp( op, "map" ) ) {
 		p = JSON_ObjectGetNamedValue( request, end, "name" );
-		if ( !Agent_String( p, end, name, MAX_QPATH ) || !name[0] || strstr( name, ".." ) )
+		if ( !JSON_ReadString( p, end, name, MAX_QPATH ) || !name[0] || strstr( name, ".." ) )
 			return reply.Error( "invalid_argument", "$.name", "Use an installed map name without an extension." );
 		for ( const char *c = name; *c; ++c )
 			if ( !( ( *c >= 'a' && *c <= 'z' ) || ( *c >= 'A' && *c <= 'Z' ) || ( *c >= '0' && *c <= '9' ) || *c == '_' || *c == '-' || *c == '/' ) )
@@ -1634,7 +1455,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		if ( !Agent_Vector( request, end, "start", start, -32752, 32752 ) || !Agent_Vector( request, end, "end", finish, -32752, 32752 ) )
 			return reply.Error( "invalid_argument", "$", "Provide start and end [x,y,z] within world bounds." );
 		p = JSON_ObjectGetNamedValue( request, end, "hull" );
-		if ( !Agent_String( p, end, name, sizeof( name ) ) || ( strcmp( name, "point" ) && strcmp( name, "player" ) ) )
+		if ( !JSON_ReadString( p, end, name, sizeof( name ) ) || ( strcmp( name, "point" ) && strcmp( name, "player" ) ) )
 			return reply.Error( "invalid_argument", "$.hull", "Choose point for solid sightlines or player for the standard player box and clip mask." );
 		const bool player = !strcmp( name, "player" );
 		if ( player ) {
@@ -1663,7 +1484,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		return reply.Error( "unsupported", "$", "Camera control requires a client build." );
 #else
 		p = JSON_ObjectGetNamedValue( request, end, "mode" );
-		if ( !Agent_String( p, end, name, sizeof( name ) ) || ( strcmp( name, "pose" ) && strcmp( name, "player" ) ) )
+		if ( !JSON_ReadString( p, end, name, sizeof( name ) ) || ( strcmp( name, "pose" ) && strcmp( name, "player" ) ) )
 			return reply.Error( "invalid_argument", "$.mode", "Choose player or pose." );
 		const bool pose = !strcmp( name, "pose" );
 		float origin[3]{}, angles[3]{};
@@ -1773,19 +1594,19 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 			return false;
 		if ( !strcmp( op, "cvar.select" ) ) {
 			p = JSON_ObjectGetNamedValue( request, end, "name" );
-			if ( !Agent_String( p, end, name, sizeof( name ) ) || !DevTools_SelectCvar( name ) )
+			if ( !JSON_ReadString( p, end, name, sizeof( name ) ) || !DevTools_SelectCvar( name ) )
 				return reply.Error( "invalid_argument", "$.name", "Select a registered cvar from cvar.list." );
 		} else {
 			p = JSON_ObjectGetNamedValue( request, end, "kind" );
 			const char *v = JSON_ObjectGetNamedValue( request, end, "value" );
-			if ( !Agent_String( p, end, name, sizeof( name ) ) || !Agent_String( v, end, value, 128 ) || !DevTools_Filter( name, value ) )
+			if ( !JSON_ReadString( p, end, name, sizeof( name ) ) || !JSON_ReadString( v, end, value, 128 ) || !DevTools_Filter( name, value ) )
 				return reply.Error( "invalid_argument", "$", "Use kind cvars/images/materials and a value shorter than 128 bytes." );
 		}
 		reply.Text( ",\"ok\":true,\"result\":{\"accepted\":true}}" );
 #endif
 	} else if ( !strcmp( op, "cvar.get" ) || !strcmp( op, "cvar.set" ) ) {
 		p = JSON_ObjectGetNamedValue( request, end, "name" );
-		if ( !Agent_String( p, end, name, sizeof( name ) ) || !name[0] )
+		if ( !JSON_ReadString( p, end, name, sizeof( name ) ) || !name[0] )
 			return reply.Error( "invalid_argument", "$.name", "Use an existing cvar name shorter than 256 bytes." );
 		const unsigned flags = Cvar_Flags( name );
 		if ( flags == CVAR_NONEXISTENT )
@@ -1798,7 +1619,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 			reply.Text( "}}" );
 		} else {
 			p = JSON_ObjectGetNamedValue( request, end, "value" );
-			if ( !Agent_String( p, end, value, sizeof( value ) ) )
+			if ( !JSON_ReadString( p, end, value, sizeof( value ) ) )
 				return reply.Error( "invalid_argument", "$.value", "Use a string shorter than 4096 bytes." );
 			if ( flags & ( CVAR_ROM | CVAR_INIT ) )
 				return reply.Error( "read_only", "$.name", "Choose a writable cvar; startup-only values belong in launch arguments." );
@@ -1812,7 +1633,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		}
 	} else if ( !strcmp( op, "exec" ) ) {
 		p = JSON_ObjectGetNamedValue( request, end, "command" );
-		if ( !Agent_String( p, end, value, sizeof( value ) - 1 ) || !value[0] )
+		if ( !JSON_ReadString( p, end, value, sizeof( value ) - 1 ) || !value[0] )
 			return reply.Error( "invalid_argument", "$.command", "Use a nonempty console command shorter than 4095 bytes." );
 		strcat( value, "\n" );
 		reply.Text( ",\"ok\":true,\"result\":{\"queued\":true}}" );

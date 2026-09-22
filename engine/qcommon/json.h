@@ -21,6 +21,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef JSON_H
 #define JSON_H
 
+#include <stdint.h>
+
+// Validate untrusted objects before using the member/array navigation helpers.
+bool JSON_ValidateObject( const char *data, const char *end );
+void JSON_Whitespace( const char *&data, const char *end );
+bool JSON_ReadString( const char *&data, const char *end, char *out, uint32_t capacity );
+const char *JSON_SkipValue( const char *data, const char *end );
+
 enum {
 	JSONTYPE_STRING, // string
 	JSONTYPE_OBJECT, // object
@@ -94,7 +102,6 @@ int JSON_ValueGetInt( const char *json, const char *jsonEnd );
 static const char *JSON_SkipSeparators( const char *json, const char *jsonEnd );
 static const char *JSON_SkipString( const char *json, const char *jsonEnd );
 static const char *JSON_SkipStruct( const char *json, const char *jsonEnd );
-static const char *JSON_SkipValue( const char *json, const char *jsonEnd );
 static const char *JSON_SkipValueAndSeparators( const char *json, const char *jsonEnd );
 
 #define IS_SEPARATOR( x )    ((x) == ' ' || (x) == '\t' || (x) == '\n' || (x) == '\r' || (x) == ',' || (x) == ':')
@@ -124,7 +131,7 @@ static const char *JSON_SkipStruct( const char *json, const char *jsonEnd ) {
 	return ( json + 1 > jsonEnd ) ? jsonEnd : json + 1;
 }
 
-static const char *JSON_SkipValue( const char *json, const char *jsonEnd ) {
+const char *JSON_SkipValue( const char *json, const char *jsonEnd ) {
 	if ( json >= jsonEnd )
 		return jsonEnd;
 	else if ( *json == '"' )

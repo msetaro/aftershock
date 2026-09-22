@@ -548,6 +548,8 @@ void SV_PollIdentities();
 // Trusted match configuration; network clients supply only the signed token.
 bool SV_SetJoinConfig( const char *match, const char *key, const uint64_t *players, uint32_t count );
 bool SV_JoinRequired();
+bool SV_LoadJoinConfig( const char *data, uint32_t size );
+void SV_JoinConfig_f();
 bool SV_ValidateJoin( const char *token, joinClaims_t *out );
 bool SV_ApplyJoin( int clientNum, const joinClaims_t &claims );
 // Caller additionally verifies the same peer address and qport.

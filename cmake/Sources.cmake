@@ -43,6 +43,7 @@ set(COMMON_SOURCES
   engine/qcommon/md5.cpp
   engine/qcommon/msg.cpp
   engine/qcommon/join.cpp
+  engine/qcommon/json.cpp
   engine/qcommon/state.cpp
   engine/qcommon/profile.cpp
   engine/qcommon/net_chan.cpp

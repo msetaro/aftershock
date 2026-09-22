@@ -79,6 +79,20 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 private join configuration
+
+The server console command joinconfig reads bounded match-join.json through the
+existing filesystem owner. Invalid initial input closes admission; invalid reload
+preserves the last valid configuration; same-match reload preserves replay history.
+Configuration accepts exactly the v1 match/key/expected-player fields, with unique
+keys and full-width canonical account IDs. Secrets are never printed. The existing
+agent JSON grammar/string helpers now have a shared qcommon implementation, retaining
+the same validation behavior and 16-level nesting bound for development requests.
+Both GCC and Clang UBSan backend/config and existing agent-protocol checks pass.
+The full developer client/server build, production-flags tidy for all three affected
+owners and format/type/boundary gates pass (backend-config-* and backend-json-agent-*
+logs in the private modernization cache). Live UDP admission is the next test-first step.
+
 ## #29 join configuration contract, test first
 
 Extend the existing backend server probe with private-file configuration checks:

@@ -22,7 +22,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-agent-protocol-', dir=scratc
     run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
          '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
          '-DAFTERSHOCK_DEVTOOLS', '-DUSE_VULKAN_API', '-ffunction-sections', '-fdata-sections',
-         'tests/probes/agent_protocol.cpp', 'engine/qcommon/q_shared.cpp',
+         'tests/probes/agent_protocol.cpp', 'engine/qcommon/q_shared.cpp', 'engine/qcommon/json.cpp',
          '-Wl,--gc-sections', '-o', binary])
     result = run([binary], capture_output=True, timeout=10)
     replies = [json.loads(line) for line in result.stdout.splitlines()]
