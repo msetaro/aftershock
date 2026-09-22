@@ -97,6 +97,7 @@ jobs:
           python3 -m venv ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/cook.py --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/packages.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           CC='${{ matrix.cc }}' CXX='${{ matrix.cxx }}' ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/materials.py
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/iqm_scale.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
@@ -323,6 +324,18 @@ jobs:
           python3 tests/protocol_runtime.py --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --other-server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-protocol-v2/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/netcode_runtime.py --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --snapshot-budget 48
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/netcode_runtime.py --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --weapons --client-fps 20 --snapshot-budget 256 --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-weapons-network
+      - name: Cooked packages, patch rendering and content roots
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/packages_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Package rendering and pure-session evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: content-packages
+          path: |
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-packages-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-packages-runtime/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-packages-runtime/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-packages-runtime/pure/*.log
       - name: Deterministic authored level and native bot paths
         run: |
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install -r tools/level/requirements.txt

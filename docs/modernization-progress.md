@@ -20,51 +20,44 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#16, #17 and #18 are accepted in PR171 (d2411083), PR172 (ebc03f37) and
-PR173 (2010b077), with exact-head and merged-tree gates green. The separate #31
-chat shutdown fix is now accepted in PR174, merge
-5caa2c1cc65cc590254bbd7aa3d0bd1e7b09e8ec (2026-09-22 10:25:57 UTC). All 26
-required checks passed exact head ec396fb4: build 35708802501 and regression
-35708802542. Fresh main/base, clean head, self-review and immutable known-good tag
-were checked before ready/merge. Merge tree equals the tested tree
-596db4b2d7eed779f988a59752b69522cc0e1f1b. Merged-tree build 35715942160 passed; regression 35715942143 failed on the existing netcode runtime timeout.
-Inspect retained diagnostics and resolve/rerun that gate before closing #31.
+#19 PR175 is merged at main b92b6ef5 after all 26 exact-head jobs passed; its
+merged build 35728186900 passed and regression 35728186799 is still running.
+Require merged acceptance before updating #25's checkbox or merging #20.
 
-#19 remains local in /home/matt/.cache/aftershock-modernization/state-tree,
-issue/19-state-serialization. Main including PR174 is merged forward at this
-checkpoint; additive affected-test/README and progress/bug-status conflicts are
-resolved without discarding #19 evidence. Full save/load now builds, with both
-compiler owner suites and focused/policy gates passing at their recorded heads.
-Real OpenArena local-player-plus-Sarge restore matches all 86 saved entity rows
-exactly after preserving actual spatial lists and snapped collision bounds.
-Local input clock ownership now also restores paused clock lead, timing flags,
-view angles, selected weapon/sensitivity and pending loopback input. Full OpenArena
-save/load passes exact entity restoration and identical player/bot continuation in
-both the same process and a fresh process seeded differently
-(state-client-clock-runtime.log). Quake 3 same/fresh-process continuation also passes (state-client-clock-q3.log). The frozen full-game v1 fixture now migrates into v2 and continues identically.
-Final runtime CI and command documentation are registered. Draft PR175 targets
-main; its first two hosted heads exposed MSVC/MinGW portability and legacy test
-adapter gaps, now corrected. Both full local unit command sets pass using their
-recorded passed prefixes plus resumed tails (state-unit-{gcc,clang}-suite/ and
-state-unit-*-resume*.log). Full tidy/lifetime, profile migration, both content
-sets' checkpoint continuation, legacy bot goldens and fixed replay frames pass.
-Combined correction db9a51db is in CI (build 35719871675, regression
-35719871602). MSVC flags the profile reader version output as potentially
-uninitialized (C4701); initialize it explicitly, rerun profile migration, then
-push and require all 26 checks on the new exact head, and
-recheck current main/base before ready/merge. Also finish PR174's rerun integration
-gate before closing #31. No partial checkpoint acceptance.
+#20 PR176 includes that main at b2c2ae5e. Self-review found possible signed overflow
+in the new modern-package relative-seek branch: on 64-bit-offset platforms,
+INT64_MAX plus a nonzero current position overflows before its bounds check.
+Test-first 8702f1d3 extends the existing allocation-counted package probe. The
+package owner now checks the signed offset against its bounded extent before
+addition; the filesystem delegates all modern-package seek origins to that owner.
+GCC and Clang/libc++ UBSan, all 16 changed-owner tidy configurations, format/type/
+boundary checks, client/server build and full OpenArena package runtime pass
+(content-seek-*.log). Invalid seeks retain position and allocate nothing.
+Push the new head and require all 26 fresh exact-head jobs plus accepted #19
+integration before self-review/readiness/merge. Do not reuse b2c2ae5e gates as
+final acceptance. No accepted content fixture changes.
 
-Named fields/archives, native entity/client/level owners, botlib reconstruction,
-cvar preparation/capacity, portal/spatial state, platform save routing, profiles
-and frozen profile v1 migration are implemented. Existing accepted goldens and
-fixtures are unchanged. Owner evidence follows below; private state-preflight.md
-has the inventory. Do not restart completed owners or the port.
+#21 remains isolated in navigation-tree (issue/21-ai-navigation), with tested
+cooking/routes/crowd/cover/stateless steering/behavior/perception and a failing
+native runtime patrol contract. Merge accepted #20 main forward before gameplay,
+ImGui and checkpoint integration. Continue the full roadmap; no maintainer input
+is needed and a CI wait is not a stopping point.
 
-Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
-Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
-needed now; continue through gates instead of ending at a checkpoint or CI wait.
+## #19 merge and #20 combined-tree checkpoint
+
+PR175 self-review is recorded at issue19 comment 5776614749. All 16 compiler and
+ten active regression jobs pass, including checkpoint/profile migration, native
+bot/replay goldens and sanitizer checks. The merge commit preserves exactly the
+tested tree. #19 is closed by the PR; #25's acceptance checkbox remains pending
+until the merged-tree gates complete. No accepted golden or fixture changed.
+
+The #20 forward merge retains package mounts/streaming, loose-user save storage,
+both state/package affected-test routing and both acceptance commands. Filesystem
+conflict is only the package header versus <cerrno> includes; both are needed.
+The combined client/server build and policy/test-routing checks pass. Runtime
+package/pure/render, profile and frozen checkpoint migration are running in that
+order. Push this merge for final hosted gates while these finish; neither the
+preliminary head nor a partial local result is final acceptance.
 
 ## #19 MSVC profile output initialization
 
@@ -1026,6 +1019,173 @@ The #19 branch merges this accepted main without rewriting history. Conflicts ar
 only additive test selection and progress prose; both feature entries are retained.
 Combined local checks and full game checkpoint implementation follow. This merge
 is not #19 acceptance. All accepted demos/goldens and rollback tags stay unchanged.
+
+## #20 first hosted feedback: optional engine root
+
+Draft PR176 at c95761ed passes all 16 hosted compiler builds (35724337548).
+Regression 35724337593 runtime fails before the new package test: the existing
+OpenArena bot golden contains one fewer search-path line. #20 unconditionally
+added the absent engine directory to legacy installs; gameplay/bot rows are
+unchanged. The failure reproduces locally (content-oa-bots-before.log).
+
+Only mount the optional engine directory when present, using existing platform
+file-stat access. Both unchanged OA bot goldens now pass, with hashes
+51d66d9a8104db0cbc972a48a7911e00ca410db6ce675af7665947bd95a7bef9 and
+0f2e6b686b63df73a054db39b886e7f82c5cf79078f3cbbf5cab0122ed87e3bd
+(content-oa-bots-after.log). Complete OA package/root/config/mod/render/pure checks
+also pass again, and all eight filesystem tidy configurations pass. No golden
+regeneration or gameplay edit. Push the correction and require new exact-head
+checks; current-base feedback remains preliminary until #19 main is merged forward.
+
+## #20 draft-feedback workflow decision
+
+Both complete local unit variants pass (content-unit-suite/suite-report.json
+ok:true, full:false because only unit jobs were selected). Linux/MinGW builds,
+full lifetime/tidy coverage, both-content package/pure/render acceptance, existing
+bot goldens and both fixed replays have passed. No accepted golden changed.
+
+Earlier notes kept #20 local while waiting for #19. With local acceptance complete,
+open a draft into current main for early hosted compiler feedback instead of
+waiting idle. This does not change merge order: #19 must merge first, then its
+current main must be merged forward into #20 and fresh final gates must pass.
+Any checks on the older base are preliminary evidence only. Self-review finds
+only #20 package/root/test/docs changes, no authoritative simulation edits, no
+new non-trivial core owners and no new per-read/seek allocations.
+
+## #20 CI evidence retention
+
+The runtime job retains only package logs, screenshots and size JSON, including
+pure-session logs; package contents and game archives are not uploaded. The
+AGENTS/tests/design acceptance commands include the dedicated server so the
+pure-session portion is explicit. GCC's complete unit-job variant passed; Clang
+is still running. PR174 integration has advanced beyond level authoring; PR175
+remains in its level-authoring step. Continue monitoring both, with no red/skipped
+required-check merge or main-base shortcut.
+
+## #20 offline/native limit agreement
+
+Self-review aligns offline mount limits with the native 64-package/65,536-visible-
+asset limits and uses a set for removal membership during writing. The complete
+functional package check still passes (content-native-final.log); artifact bytes
+and accepted fixtures are unchanged. GCC's full unit job variant has passed; the
+Clang/libc++ variant is running in content-unit-suite. No #20 PR is open yet.
+
+## #20 final local gate checkpoint
+
+Full lifetime analysis passes 1,320 production compilation commands/147 paths,
+including shipping/devtools, static/module and all controls. Tidy covers 1,382
+configurations with the separately recorded eight-filesystem recheck after the
+single tool crash. Fixed Q3 and OpenArena replay hashes remain exactly
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4 and
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+Evidence: content-lifetimes.log, content-tidy/results.json,
+content-tidy/recheck-results.json, content-demo.log, content-demo-oa.log.
+The runtime test also now proves that packaged autoexec/q3config entries do not
+replace loose user configuration; full OA package/pure/render acceptance passes
+again. The full local unit job variants run via tests/suite.py under
+content-unit-suite. PR175 and PR174 integration still await hosted runtime.
+
+## #20 filesystem implementation and local acceptance
+
+Native packages reuse the existing search-pack/hash/handle interface. File reads,
+seeks and explicit close use the platform stream; modern metadata is excluded
+from the legacy zip cache. Sorted independent/patch/DLC/mod mounts validate their
+composed SHA256 view. Removal entries stop lower package/loose lookup and listing.
+Reserved user configs keep the legacy archive exclusion. Existing pure checksums
+bind modern identity/metadata; missing modern artifacts require installation,
+while legacy pk3 downloading and reading retain their existing path.
+
+Engine data is under fs_enginepath/engine, game data under fs_basepath/game, writes
+under fs_homepath/active-game. Windows now uses the static OS application-data API
+for its user default, replacing the inactive optional profile path. Linux/macOS
+keep their existing home defaults. Missing home requires an explicit override,
+never an implicit install-directory write. Explicit portable equal-root launches
+remain supported. No simulation arithmetic or accepted fixture/golden changes.
+
+Both Quake 3 and OpenArena pass roots, patch/removal/DLC/mod precedence, filesystem
+restart, user writes, legacy gameplay and matching-package sv_pure client/server
+sessions (content-mount-final-q3.log, content-mount-oa.log). The actual owned
+character packages into 4,373 bytes; a 1,455-byte texture delta changes 1,518 native
+preview pixels in fresh clients. Screenshot reviewed. The first native mount run
+caught a missing legacy-cache exclusion; corrected within this unmerged feature.
+The test setup also needed normal console `set` for new cvars and session setup
+before stepping. Its corrected test fails the old binary specifically at the
+missing engine mount (content-mount-before.log).
+
+Linux client/server and MinGW client/server builds pass. Core unit golden plus
+one-ULP negative control and both Q3 bot hashes pass unchanged (content-unit.log,
+content-bots.log). Format/type/boundary and suite/affected/actionlint pass. Tidy's
+full run had one tool crash while files.cpp was being edited; after stabilizing
+that file, all eight of its production configurations pass (content-retidy.log).
+The original full report and separate recheck report are retained. Lifetime and
+fixed replay gates remain outstanding; no hosted acceptance is claimed.
+
+CI registers the package probe on both compilers and real OA package rendering/
+pure checks in runtime. AGENTS/tests docs and docs/design/packages.md describe
+commands, roots, mounting, limits and installer-only modern content. Keep #20
+local until #19 merges; final checks must include that current main.
+
+## #20 filesystem acceptance, test first
+
+The real-engine test packages owned configuration files in separate engine/game/
+user roots. It requires a base/patch view, tombstone hiding of lower loose files,
+additional DLC mounts, filesystem restart, user-only writes and playable legacy
+pk3 maps. The accepted binary fails at the absent engine package mount
+(content-mount-before.log). Commit the test before filesystem integration.
+Implementation may proceed while #19's last runtime job runs; #20 final gates
+must include accepted #19 main before its own PR can merge.
+
+## #20 native stream implementation
+
+The production reader validates fixed layouts, canonical metadata hashes and
+ordered patch identities, then verifies each complete asset before exposing bytes.
+Stored assets use 64-bit platform offset reads; compressed assets reuse puff with
+a bounded zone buffer. Read/seek do not allocate. Explicit close/free releases all
+resources. GCC and Clang/libc++ UBSan pass (content-native-after.log,
+content-native-clang.log). Raw DEFLATE packages measure 14,949 bytes for the base,
+2,077 for the one-texture delta and 460 for removal. No new dependency.
+The filesystem has not mounted these packages yet; this is not #20 acceptance.
+
+## #20 native stream contract, test first
+
+The package test now compiles the future native reader and platform file stream,
+requiring stored/compressed bytes to match cooked files, seek/tell accuracy,
+matching patch identities, removed entries, no read/seek zone allocations and
+complete handle/allocation release. Its initial compilation fails on absent
+package_public.h/package.cpp/sys_content_file.cpp (content-native-before.log).
+Commit this contract before implementing those owners.
+
+Inspection found that the engine ships puff, not a public incremental zlib API.
+Use raw DEFLATE through that existing decoder: compressed assets decode/hash once
+at open into a bounded buffer; stored assets stream through platform offsets.
+Audio can explicitly remain stored. The offline codec and format doc now agree,
+and the tool-side exact patch assertions still pass before native compilation.
+This changes only new, unaccepted #20 artifacts; no accepted fixtures are touched.
+
+## #20 offline package and manifest-diff implementation
+
+The writer uses Python's existing SHA256/zlib facilities, a fixed 128-byte header
+and index entries with 64-bit extents, per-asset uncompressed hashes and canonical
+JSON manifest. New/changed payloads and explicit removals form patches; required
+base and resulting identities bind each diff to the current mounted view.
+Stored and compressed assets coexist; source recipe manifests stay offline.
+Atomic publication preserves previous output on failure, and extraction refuses
+an existing destination. No new dependency or accepted asset/golden changes.
+
+The owned-content test passes reproducible packaging, exact texture patch and
+removal views. This is not native mount acceptance. The implementation/spec remain
+local until #19 is accepted and main is merged forward.
+
+## #20 first packaging acceptance test
+
+Reuse tests/cook.py's owned source generator and the actual cooker. Patch a
+separate texture source so exactly one cooked texture and its index/revision
+change. The delta must omit unchanged model/audio payloads and stay below half
+the full package size. Applying base plus patch must reproduce every cooked file
+hash; a following deletion patch must hide the removed configuration file.
+The first run fails on the missing packaging CLI after cooking succeeds.
+This is tool-side preparation only; platform streams, native mounts, precedence,
+directory separation and legacy compatibility remain required by #20.
 
 ## #18 hosted standard-library compatibility
 
