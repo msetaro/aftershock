@@ -25,6 +25,7 @@ int main() {
 	Dev_EndScope( outer );
 	Dev_EndScope( inner );
 	const uint64_t abandoned = Dev_BeginScope( "abandoned" );
+	clockValue = 1000; // Waiting between frames is not an executed CPU scope.
 	DevTools_BeginFrame( true );
 	assert( DevTools_CpuTimings( &timings ) == 2 );
 	assert( timings[0].microseconds == 50 && timings[1].microseconds == 20 );
@@ -76,4 +77,28 @@ int main() {
 	Dev_RewindReport( 100, 200, 0, 1 );
 	assert( network->rewindReports == 2 );
 	assert( network->bytes[0] == 120 && network->snapshots == 1 && network->predictions == 2 );
+	DevTools_ClearCpuHistory();
+	assert( !DevTools_CpuFrame( 0 ) && !DevTools_CpuPeak() );
+	DevTools_BeginFrame( true );
+	const uint64_t spike = Dev_BeginScope( "retained spike" );
+	clockValue += 100;
+	Dev_EndScope( spike );
+	DevTools_BeginFrame( true );
+	const uint32_t peakSerial = DevTools_CpuPeak()->serial;
+	for ( int i = 0; i < 300; ++i ) {
+		const uint64_t steady = Dev_BeginScope( "steady" );
+		++clockValue;
+		Dev_EndScope( steady );
+		DevTools_BeginFrame( true );
+	}
+	assert( DevTools_CpuFrame( 239 ) && !DevTools_CpuFrame( 240 ) );
+	assert( DevTools_CpuFrame( 0 )->microseconds == 1 );
+	assert( DevTools_CpuPeak()->serial == peakSerial && DevTools_CpuPeak()->microseconds == 100 );
+	Dev_BeginScope( "abandoned parent" );
+	const uint64_t survivor = Dev_BeginScope( "finished child" );
+	clockValue += 5;
+	Dev_EndScope( survivor );
+	DevTools_BeginFrame( true );
+	assert( DevTools_CpuTimings( &timings ) == 1 );
+	assert( timings[0].parent == UINT32_MAX && timings[0].selfMicroseconds == 5 );
 }

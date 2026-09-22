@@ -66,7 +66,13 @@ network controls remain. Actual overlay spike attribution without rebuilding is
 required before #22 acceptance; optional Tracy must not become a mandatory build
 dependency. The existing asset/memory probes pass, then the extended CPU probe fails on its
 missing parent/self-time/frame APIs (profiling-history-before.log). No #22
-production changes exist at this checkpoint; commit this contract first.
+production changes existed at that checkpoint (c4d6a9ff). The initial hierarchy
+implementation passes that contract. Extend it before completion: external idle
+time between frames must not inflate CPU duration, history must wrap at 240
+frames while retaining the peak, and a finished child of an abandoned parent must
+remain inspectable. The idle-duration assertion fails first
+(profiling-idle-before.log); finalize time at the last completed scope instead of
+the next frame boundary. Production work is still uncommitted.
 
 ## #21 main integration
 
