@@ -35,8 +35,11 @@ GCC/Clang state probes, entity probes, client/server build, profile migration an
 all three entity runtime scenarios pass (private state-entities-*.log). Implement
 full single-player checkpoint integration from committed failing
 tests/checkpoint_runtime.py. Entity, client and level draft records now round-trip
-with typed callbacks, checked references and nullable strings. Remaining work includes subsystem/bot records,
-gameplay validation, live restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
+with typed callbacks, checked references and nullable strings. Composed, authored
+animation/weapon, rewind, utility/spawn-generation, combat, team and podium owners
+also have validated local checkpoint records. Remaining work: definition/editor
+state, other game globals and all bot owners, gameplay validation, live
+restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
 
 Completed local #19 support: named/versioned fields with bounded strings and
 schema/slot archives; shared entity/player/usercmd descriptions; profiles restoring
@@ -51,6 +54,20 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 utility, combat, team and podium state
+
+Checkpoint records retain shader remaps, the death-animation cycle, team flag and
+capture clocks, neutral obelisk and victory-podium references. The function-local
+nextRewindSpawn counter is now owner-local so saves retain it; the increment and
+zero-skip expressions are unchanged. A restored UINT32_MAX counter produces the
+same next entity, with both GCC and Clang UBSan. Invalid enums, references and
+incomplete remap archives reject before application. Dead remaps after reset are
+not serialized. Tests initially combined legacy translation units and hit repeated
+header declarations; separate owner probes correct the harness. Both compiler
+probes pass (state-small-globals-{gcc,clang}.log), as do the utility probes,
+client/server build and focused tidy (state-globals-build.log and -tidy.log).
+Full #19 checkpoint coordination remains open. No accepted fixture changed.
 
 ## #19 rewind history state
 

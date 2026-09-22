@@ -363,8 +363,9 @@ float vectoyaw( const vec3_t vec ) {
 }
 
 
+static uint32_t nextRewindSpawn;
+
 void G_InitGentity( gentity_t *e ) {
-	static uint32_t nextRewindSpawn;
 	e->rewindSpawn = ++nextRewindSpawn;
 	if ( !e->rewindSpawn )
 		e->rewindSpawn = ++nextRewindSpawn;
@@ -679,4 +680,64 @@ extern const gSaveCallback_t saveCallbacks_g_utils[] = {
 	{ .name = "G_FreeEntity", .think = G_FreeEntity },
 	{ nullptr }
 };
+#endif
+
+#ifdef __cplusplus
+struct utilitySave_t {
+	uint32_t nextSpawn;
+	int32_t remaps;
+};
+static_assert( sizeof( utilitySave_t ) == 8 );
+static constexpr stateField_t utilityFields[] = {
+	{ "nextSpawn", offsetof( utilitySave_t, nextSpawn ), 1, stateType_t::UInt32 },
+	{ "remaps", offsetof( utilitySave_t, remaps ), 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t utilitySchema = { "game.utilities", 1, 1, sizeof( utilitySave_t ), utilityFields, 2 };
+static constexpr stateField_t remapFields[] = {
+	{ "oldShader", offsetof( shaderRemap_t, oldShader ), MAX_QPATH, stateType_t::String },
+	{ "newShader", offsetof( shaderRemap_t, newShader ), MAX_QPATH, stateType_t::String },
+	{ "timeOffset", offsetof( shaderRemap_t, timeOffset ), 1, stateType_t::Float32 }
+};
+static constexpr stateSchema_t remapSchema = { "game.shaderRemap", 1, 1, sizeof( shaderRemap_t ), remapFields, 3 };
+static bool ValidSavedRemap( const shaderRemap_t &remap ) {
+	return memchr( remap.oldShader, 0, sizeof( remap.oldShader ) ) &&
+		   memchr( remap.newShader, 0, sizeof( remap.newShader ) ) && std::isfinite( remap.timeOffset );
+}
+bool G_WriteUtilityState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	if ( remapCount < 0 || remapCount > MAX_SHADER_REMAPS ) {
+		writer->failed = true;
+		return false;
+	}
+	const utilitySave_t saved{ nextRewindSpawn, remapCount };
+	if ( !State_Append( writer, utilitySchema, 0, &saved ) )
+		return false;
+	for ( int i = 0; i < remapCount; ++i ) {
+		if ( !ValidSavedRemap( remappedShaders[i] ) ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( !State_Append( writer, remapSchema, uint32_t( i ), &remappedShaders[i] ) )
+			return false;
+	}
+	return true;
+}
+bool G_ReadUtilityState( const stateReader_t &reader, bool apply ) {
+	utilitySave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, utilitySchema, 0, &saved, &version ) || saved.remaps < 0 || saved.remaps > MAX_SHADER_REMAPS )
+		return false;
+	shaderRemap_t remaps[MAX_SHADER_REMAPS]{};
+	for ( int i = 0; i < saved.remaps; ++i ) {
+		if ( !State_Find( reader, remapSchema, uint32_t( i ), &remaps[i], &version ) || !ValidSavedRemap( remaps[i] ) )
+			return false;
+	}
+	if ( apply ) {
+		nextRewindSpawn = saved.nextSpawn;
+		remapCount = saved.remaps;
+		memcpy( remappedShaders, remaps, sizeof( remaps ) );
+	}
+	return true;
+}
 #endif

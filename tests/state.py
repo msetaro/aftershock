@@ -129,6 +129,15 @@ rewind=(ROOT/'game/game/g_rewind.cpp').read_text()
 rewind_entities=rewind.split('} rewindEntities[',1)[0].rsplit('static struct {',1)[1]
 assert declared_members(rewind_entities)=={'spawn','playerSpawn','teleport','generation'}
 print('PASS: rewind ownership accounts for live history, generations, report clocks and frame-local scratch')
+team=(ROOT/'game/game/g_team.cpp').read_text()
+team_body=team.split('typedef struct teamgame_s {',1)[1].split('} teamgame_t;',1)[0]
+team_fields=set(re.findall(r'offsetof\( teamSave_t, (\w+) \)',team))-{'neutral'}
+assert team_fields==declared_members(team_body), 'team owner needs a saved field description'
+utilities=(ROOT/'game/game/g_utils.cpp').read_text()
+remap_body=utilities.split('} shaderRemap_t;',1)[0].rsplit('typedef struct {',1)[1]
+assert set(re.findall(r'offsetof\( shaderRemap_t, (\w+) \)',utilities))==declared_members(remap_body)
+print('PASS: team and shader remap records describe every persistent owner field')
+
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'
@@ -155,7 +164,7 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-ffunction-sections','-fdata-sections','-fsanitize=undefined','-fno-sanitize-recover=all',
      '-DNATIVE_NAMESPACE=game','-DNATIVE_SOURCE="game/g_callbacks.cpp"',
      '-c','game/module.cpp','-o',callbacks])
-for component in ('callbacks','references','composed'):
+for component in ('callbacks','references','composed','utilities'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',
@@ -194,3 +203,11 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      'tests/probes/state_rewind.cpp','engine/qcommon/net_history.cpp',
      'engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
 run([probe])
+
+for component in ('COMBAT','TEAM','PODIUM'):
+    run([*shlex.split(args.cxx),f'-DSTATE_{component}','-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+         '-fsanitize=undefined','-fno-sanitize-recover=all',
+         'tests/probes/state_globals.cpp','engine/qcommon/state.cpp',sha,native,
+         '-Wl,--gc-sections','-o',probe])
+    run([probe])

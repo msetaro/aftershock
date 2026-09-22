@@ -381,3 +381,38 @@ extern const gSaveCallback_t saveCallbacks_g_arenas[] = {
 	{ nullptr }
 };
 #endif
+
+#ifdef __cplusplus
+struct podiumSave_t {
+	int32_t slots[3];
+};
+static_assert( sizeof( podiumSave_t ) == 12 );
+static constexpr stateField_t podiumFields[] = { { "slots", 0, 3, stateType_t::Int32 } };
+static constexpr stateSchema_t podiumSchema = { "game.podium", 1, 1, sizeof( podiumSave_t ), podiumFields, 1 };
+bool G_WritePodiumState( stateWriter_t *writer, const gStatePools_t &pools ) {
+	if ( !writer )
+		return false;
+	const podiumSave_t saved{ { G_StateEntitySlot( podium1, pools ), G_StateEntitySlot( podium2, pools ), G_StateEntitySlot( podium3, pools ) } };
+	for ( int slot : saved.slots )
+		if ( slot == -2 ) {
+			writer->failed = true;
+			return false;
+		}
+	return State_Append( writer, podiumSchema, 0, &saved );
+}
+bool G_ReadPodiumState( const stateReader_t &reader, const gStatePools_t &pools, bool apply ) {
+	podiumSave_t saved;
+	uint32_t version;
+	if ( !G_StatePoolsValid( pools ) || !State_Find( reader, podiumSchema, 0, &saved, &version ) )
+		return false;
+	for ( int slot : saved.slots )
+		if ( slot < -1 || slot >= pools.entityCount )
+			return false;
+	if ( apply ) {
+		podium1 = saved.slots[0] < 0 ? nullptr : &pools.entities[saved.slots[0]];
+		podium2 = saved.slots[1] < 0 ? nullptr : &pools.entities[saved.slots[1]];
+		podium3 = saved.slots[2] < 0 ? nullptr : &pools.entities[saved.slots[2]];
+	}
+	return true;
+}
+#endif

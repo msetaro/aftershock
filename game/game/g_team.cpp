@@ -1479,3 +1479,58 @@ extern const gSaveCallback_t saveCallbacks_g_team[] = {
 	{ nullptr }
 };
 #endif
+
+#ifdef __cplusplus
+struct teamSave_t {
+	float last_flag_capture;
+	int32_t last_capture_team;
+	uint32_t redStatus, blueStatus, flagStatus;
+	int32_t redTakenTime, blueTakenTime, redObeliskAttackedTime, blueObeliskAttackedTime;
+	int32_t neutral;
+};
+static_assert( sizeof( teamgame_t ) == 36 && sizeof( teamSave_t ) == 40 );
+static constexpr stateField_t teamSaveFields[] = {
+	{ "last_flag_capture", offsetof( teamSave_t, last_flag_capture ), 1, stateType_t::Float32 },
+	{ "last_capture_team", offsetof( teamSave_t, last_capture_team ), 1, stateType_t::Int32 },
+	{ "redStatus", offsetof( teamSave_t, redStatus ), 1, stateType_t::UInt32 },
+	{ "blueStatus", offsetof( teamSave_t, blueStatus ), 1, stateType_t::UInt32 },
+	{ "flagStatus", offsetof( teamSave_t, flagStatus ), 1, stateType_t::UInt32 },
+	{ "redTakenTime", offsetof( teamSave_t, redTakenTime ), 1, stateType_t::Int32 },
+	{ "blueTakenTime", offsetof( teamSave_t, blueTakenTime ), 1, stateType_t::Int32 },
+	{ "redObeliskAttackedTime", offsetof( teamSave_t, redObeliskAttackedTime ), 1, stateType_t::Int32 },
+	{ "blueObeliskAttackedTime", offsetof( teamSave_t, blueObeliskAttackedTime ), 1, stateType_t::Int32 },
+	{ "neutral", offsetof( teamSave_t, neutral ), 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t teamSaveSchema = { "game.team", 1, 1, sizeof( teamSave_t ), teamSaveFields, 10 };
+static bool ValidSavedTeam( const teamSave_t &saved, const gStatePools_t &pools ) {
+	return G_StatePoolsValid( pools ) && saved.neutral >= -1 && saved.neutral < pools.entityCount &&
+		   std::isfinite( saved.last_flag_capture ) && saved.last_capture_team >= TEAM_FREE && saved.last_capture_team <= TEAM_BLUE &&
+		   uint32_t( saved.redStatus ) <= FLAG_DROPPED && uint32_t( saved.blueStatus ) <= FLAG_DROPPED && uint32_t( saved.flagStatus ) <= FLAG_DROPPED;
+}
+bool G_WriteTeamState( stateWriter_t *writer, const gStatePools_t &pools ) {
+	if ( !writer )
+		return false;
+	const teamSave_t saved{ teamgame.last_flag_capture, teamgame.last_capture_team,
+		uint32_t( teamgame.redStatus ), uint32_t( teamgame.blueStatus ), uint32_t( teamgame.flagStatus ),
+		teamgame.redTakenTime, teamgame.blueTakenTime, teamgame.redObeliskAttackedTime, teamgame.blueObeliskAttackedTime,
+		G_StateEntitySlot( neutralObelisk, pools ) };
+	if ( !ValidSavedTeam( saved, pools ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, teamSaveSchema, 0, &saved );
+}
+bool G_ReadTeamState( const stateReader_t &reader, const gStatePools_t &pools, bool apply ) {
+	teamSave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, teamSaveSchema, 0, &saved, &version ) || !ValidSavedTeam( saved, pools ) )
+		return false;
+	if ( apply ) {
+		teamgame = { saved.last_flag_capture, saved.last_capture_team,
+			flagStatus_t( saved.redStatus ), flagStatus_t( saved.blueStatus ), flagStatus_t( saved.flagStatus ),
+			saved.redTakenTime, saved.blueTakenTime, saved.redObeliskAttackedTime, saved.blueObeliskAttackedTime };
+		neutralObelisk = saved.neutral < 0 ? nullptr : &pools.entities[saved.neutral];
+	}
+	return true;
+}
+#endif
