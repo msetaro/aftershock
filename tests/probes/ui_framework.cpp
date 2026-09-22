@@ -9,11 +9,11 @@ int main( int argc, char **argv ) {
 	FILE *file = fopen( argv[1], "rb" );
 	assert( file );
 	static unsigned char bytes[65536];
-	const size_t size = fread( bytes, 1, sizeof( bytes ), file );
+	const size_t fileSize = fread( bytes, 1, sizeof( bytes ), file );
 	assert( feof( file ) );
 	fclose( file );
 	static uiDocument_t document;
-	assert( UI_ReadDocument( bytes, size, &document ) );
+	assert( UI_ReadDocument( bytes, fileSize, &document ) );
 	assert( document.header.pageCount == 3 && document.header.itemCount == 10 );
 	assert( document.header.textCount == 8 && document.header.localeCount == 2 );
 	assert( document.header.glyphCount == 95 );
@@ -43,9 +43,9 @@ int main( int argc, char **argv ) {
 		for ( uint32_t i = 0; i < document.header.itemCount; ++i ) {
 			uiRectangle_t rectangle;
 			assert( UI_Layout( document, document.items[i], size[0], size[1], .05f, &rectangle ) );
-			assert( rectangle.x >= size[0] * .05f - .01f && rectangle.y >= size[1] * .05f - .01f );
-			assert( rectangle.x + rectangle.width <= size[0] * .95f + .01f );
-			assert( rectangle.y + rectangle.height <= size[1] * .95f + .01f );
+			assert( rectangle.x >= float( size[0] ) * .05f - .01f && rectangle.y >= float( size[1] ) * .05f - .01f );
+			assert( rectangle.x + rectangle.width <= float( size[0] ) * .95f + .01f );
+			assert( rectangle.y + rectangle.height <= float( size[1] ) * .95f + .01f );
 			assert( rectangle.scale > 0 );
 		}
 	}

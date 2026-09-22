@@ -83,14 +83,14 @@ static void Quad( float x, float y, float width, float height, const float color
 	re.DrawStretchPic( x, y, width, height, 0, 0, 1, 1, cls.whiteShader );
 }
 static void Run( const uiTextRun_t &run, float x, float y, float scale ) {
-	re.DrawStretchPic( x, y, run.width * .5f * scale, run.height * .5f * scale,
-		float( run.x ) / document.header.atlasWidth, float( run.y ) / document.header.atlasHeight,
-		float( run.x + run.width ) / document.header.atlasWidth, float( run.y + run.height ) / document.header.atlasHeight, atlas );
+	re.DrawStretchPic( x, y, float( run.width ) * .5f * scale, float( run.height ) * .5f * scale,
+		float( run.x ) / float( document.header.atlasWidth ), float( run.y ) / float( document.header.atlasHeight ),
+		float( run.x + run.width ) / float( document.header.atlasWidth ), float( run.y + run.height ) / float( document.header.atlasHeight ), atlas );
 }
 static void Label( uint32_t text, const uiRectangle_t &rectangle, bool rtl ) {
 	const auto &run = document.runs[Locale() * document.header.textCount + text];
-	const float scale = std::min( { rectangle.scale, rectangle.width * 2 / run.width, rectangle.height * 2 / run.height } );
-	const float width = run.width * .5f * scale, height = run.height * .5f * scale;
+	const float scale = std::min( { rectangle.scale, rectangle.width * 2 / float( run.width ), rectangle.height * 2 / float( run.height ) } );
+	const float width = float( run.width ) * .5f * scale, height = float( run.height ) * .5f * scale;
 	Run( run, rectangle.x + ( rtl ? rectangle.width - width : 0 ), rectangle.y + ( rectangle.height - height ) * .5f, scale );
 }
 static void Characters( const char *text, const uiRectangle_t &rectangle ) {

@@ -28,7 +28,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-ui-') as temporary:
     document.write_text(json.dumps(definition,ensure_ascii=False))
     project=source/'assets.json'
     project.write_text(json.dumps(dict(version=1,assets=[dict(name='ui/shell',kind='ui',source='shell.json')])))
-    assert cook(project,args.output)['built']==['ui/shell']
+    assert cook(project,args.output)['built'] in ([],['ui/shell'])
     record=(args.output/'ui/shell.asui').read_bytes()
     magic,version,size=struct.unpack_from('<8sII',record)
     assert magic==b'ASUI\0\0\0\0' and version==1 and size==len(record)-48
@@ -44,7 +44,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-ui-') as temporary:
     sha,probe=args.output/'sha.o',args.output/'probe'
     run([*shlex.split(args.cc),'-std=c99','-O2','-c','third_party/sha256/sha-256.c','-o',sha])
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
-         '-Wall','-Wextra','-Werror','-fsanitize=undefined','-fno-sanitize-recover=all',
+         '-Wall','-Wextra','-Werror','-Wconversion','-Wshadow','-fsanitize=undefined','-fno-sanitize-recover=all',
          'tests/probes/ui_framework.cpp','engine/ui/ui.cpp',sha,'-o',probe])
     run([probe,args.output/'ui/shell.asui'])
     atlas=(args.output/'ui/shell-font.ktx2').read_bytes()

@@ -65,8 +65,11 @@ remains opted out. Format/types/boundaries and native ABI/shared-math checks pas
 All three sizes pass for OpenArena (ui-runtime-{first,large}.log).
 The strengthened Quake 3 run passes all three sizes including pixel-identical
 renderer restart and returning from in-game controller options
-(ui-runtime-q3.log). Repeat the strengthened sequence for OpenArena; finish
-lifetime/tidy and MinGW checks,
+(ui-runtime-q3.log). The strengthened OpenArena run also passes all three sizes
+(ui-runtime-oa-final.log). MinGW and full tidy checks pass. Self-review's extra
+-Wconversion/-Wshadow check exposed implicit UI pixel-to-float conversions;
+made these explicit for MSVC's warning gate without changing arithmetic. Keep
+the native probe warning check. Finish lifetime analysis and rebuilt UI checks,
 then merge accepted #16 main forward and run final hosted gates. No maintainer
 input is currently needed.
 

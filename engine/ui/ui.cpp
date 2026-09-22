@@ -191,11 +191,12 @@ float UI_Nudge( const uiItem_t &item, float value, int direction ) {
 bool UI_Layout( const uiDocument_t &document, const uiItem_t &item, int width, int height, float safeArea, uiRectangle_t *rectangle ) {
 	if ( !rectangle || width < 1 || height < 1 || !Range( safeArea, 0, .2f ) )
 		return false;
-	const float left = width * safeArea, top = height * safeArea;
-	const float availableWidth = width - 2 * left, availableHeight = height - 2 * top;
+	const float viewportWidth = float( width ), viewportHeight = float( height );
+	const float left = viewportWidth * safeArea, top = viewportHeight * safeArea;
+	const float availableWidth = viewportWidth - 2 * left, availableHeight = viewportHeight - 2 * top;
 	const float scale = std::min( availableWidth / document.header.canvas[0], availableHeight / document.header.canvas[1] );
 	const float w = std::min( item.rect[2] * scale, availableWidth ), h = std::min( item.rect[3] * scale, availableHeight );
-	*rectangle = { std::clamp( left + availableWidth * item.anchor[0] + item.rect[0] * scale, left, width - left - w ),
-		std::clamp( top + availableHeight * item.anchor[1] + item.rect[1] * scale, top, height - top - h ), w, h, scale };
+	*rectangle = { std::clamp( left + availableWidth * item.anchor[0] + item.rect[0] * scale, left, viewportWidth - left - w ),
+		std::clamp( top + availableHeight * item.anchor[1] + item.rect[1] * scale, top, viewportHeight - top - h ), w, h, scale };
 	return true;
 }
