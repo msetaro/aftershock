@@ -20,6 +20,21 @@ args = parser.parse_args()
 args.output = args.output.resolve()
 os.environ['CXX'] = args.cxx
 args.output.mkdir(parents=True, exist_ok=True)
+# Simulate a dependency edit in memory; never modify production source files.
+run([sys.executable, '-c', """
+import runpy, sys
+from pathlib import Path
+from unittest.mock import patch
+sys.path.insert(0, 'tools/cook')
+owner = runpy.run_path('tools/cook/__main__.py')['tool_hash']
+original = Path.read_bytes
+before = owner()
+for name in ('engine/qcommon/cm_local.h', 'engine/qcommon/qfiles_public.h', 'engine/platform/file_types_public.h'):
+    target = Path(name).resolve()
+    with patch.object(Path, 'read_bytes', lambda path: original(path) + (b'\\n' if path.resolve() == target else b'')):
+        assert owner() != before, 'cook cache missed collision header: ' + name
+print('PASS: collision header dependencies invalidate the cooker cache')
+"""])
 source = args.output/'source'
 source.mkdir(exist_ok=True)
 with (args.output/'level.log').open('w') as log:

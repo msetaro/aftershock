@@ -54,6 +54,14 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 cooker header dependency contract, test first
+
+Final review of the actual Ninja dependency records finds 12 engine headers in
+the new collision cooker, but its content-hash input list only included one.
+Extend the existing navigation test to simulate changed collision/platform header
+bytes in memory and require tool-hash invalidation. No production file or accepted
+fixture is modified. Add the verified header dependencies before final acceptance.
+
 ## #21 actual q3dm17 acceptance
 
 The final private native run passes (navigation-q3-combat5.log and
