@@ -52,6 +52,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 optional owner lookup
+
+After e6ba42de's failing contract, State_Find can optionally report whether the
+named slot exists even when its schema is rejected. Existing callers retain
+identical behavior. The engine/native field/migration probes pass under GCC and
+Clang UBSan (navigation-state-core.log), including missing versus invalid owner
+records. This supports pre-AI fixture migration without changing old schemas or
+regenerating fixtures. Full AI owner/cvar continuation is still being connected.
+
 ## #21 checkpoint migration presence contract, test first
 
 The new AI owner needs an explicit absent-record migration for frozen pre-AI
