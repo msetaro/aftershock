@@ -78,6 +78,23 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 HTTPS service entry point
+
+The match binary now has a backend mode with explicit TLS certificate/key, canonical
+AppID, private publisher-key file, trusted weapon catalog and database configuration.
+Production defaults use the documented Steam HTTPS endpoint; the optional additional
+CA file supports the private acceptance PKI without disabling verification. Request
+and header sizes/deadlines are bounded. Health checks the database, and fixed service
+labels expose request/error totals and duration sums. JSON request logs include only
+service/status/duration, never paths, query strings, headers or bodies. Shutdown
+waits for bounded in-flight requests before closing the database pool.
+
+The real PostgreSQL/HTTPS lifecycle gate passes (backend-services-https/contracts.log):
+private trust setup, actual TLS login, expected metrics and graceful shutdown, together
+with all earlier persistent owner/replay/redirect/concurrency checks. Full Go race and
+vet checks pass. The server process is not yet a complete backend deployment: parties,
+queue/Agones, read-only results, native client HTTPS/UI and kind acceptance remain.
+
 ## #29 HTTPS process contract, test first
 
 Extend the real-database gate to start the actual service entry point with private

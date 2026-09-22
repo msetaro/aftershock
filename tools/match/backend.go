@@ -4,14 +4,21 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 	"unicode"
 	"unicode/utf8"
@@ -64,6 +71,8 @@ type backendService struct {
 	steamURL, steamKey, appID string
 	client                    *http.Client
 	catalog                   map[string]bool
+	logger                    *slog.Logger
+	metrics                   [6]struct{ requests, errors, nanos atomic.Uint64 }
 }
 
 func backendJSON(w http.ResponseWriter, status int, value any) {
@@ -193,10 +202,26 @@ VALUES($1,$2,$3,$4) ON CONFLICT(exchange_hash) DO NOTHING RETURNING token_hash`,
 	}
 	backendJSON(w, 200, map[string]any{"version": 1, "player_id": player, "token": token, "expires": expires.Unix()})
 }
-func (b *backendService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (b *backendService) handle(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 	r = r.WithContext(ctx)
+	if r.Method == "GET" && r.URL.Path == "/healthz" {
+		if b.db.PingContext(ctx) != nil {
+			backendError(w, 503, "unavailable")
+		} else {
+			backendJSON(w, 200, map[string]bool{"ready": true})
+		}
+		return
+	}
+	if r.Method == "GET" && r.URL.Path == "/metrics" {
+		w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+		for i, name := range backendMetricNames {
+			fmt.Fprintf(w, "aftershock_backend_requests_total{service=%q} %d\naftershock_backend_errors_total{service=%q} %d\naftershock_backend_duration_seconds_sum{service=%q} %.9f\n",
+				name, b.metrics[i].requests.Load(), name, b.metrics[i].errors.Load(), name, float64(b.metrics[i].nanos.Load())/1e9)
+		}
+		return
+	}
 	if r.URL.Path == "/v1/login" && r.Method == "POST" {
 		b.login(w, r)
 		return
@@ -256,4 +281,132 @@ func (b *backendService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		backendError(w, 404, "not_found")
 	}
+}
+
+var backendMetricNames = [...]string{"auth", "profile", "party", "queue", "results", "other"}
+
+type backendResponse struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *backendResponse) WriteHeader(status int) {
+	if w.status == 0 {
+		w.status = status
+		w.ResponseWriter.WriteHeader(status)
+	}
+}
+func (w *backendResponse) Write(data []byte) (int, error) {
+	if w.status == 0 {
+		w.WriteHeader(http.StatusOK)
+	}
+	return w.ResponseWriter.Write(data)
+}
+func (b *backendService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	index := 5
+	switch r.URL.Path {
+	case "/v1/login", "/v1/logout":
+		index = 0
+	case "/v1/profile":
+		index = 1
+	case "/v1/party":
+		index = 2
+	case "/v1/queue":
+		index = 3
+	case "/v1/results", "/v1/leaderboard":
+		index = 4
+	}
+	start := time.Now()
+	response := &backendResponse{ResponseWriter: w}
+	b.handle(response, r)
+	duration := time.Since(start)
+	b.metrics[index].requests.Add(1)
+	b.metrics[index].nanos.Add(uint64(duration.Nanoseconds()))
+	if response.status >= 400 {
+		b.metrics[index].errors.Add(1)
+	}
+	if b.logger != nil {
+		b.logger.Info("request", "service", backendMetricNames[index], "status", response.status, "duration_ms", duration.Milliseconds())
+	}
+}
+func serveBackend(ctx context.Context) error {
+	if os.Getenv("BACKEND_TLS_CERT") == "" || os.Getenv("BACKEND_TLS_KEY") == "" {
+		return errors.New("BACKEND_TLS_CERT and BACKEND_TLS_KEY are required")
+	}
+	appID := os.Getenv("BACKEND_APP_ID")
+	id, err := strconv.ParseUint(appID, 10, 32)
+	if err != nil || id == 0 || strconv.FormatUint(id, 10) != appID {
+		return errors.New("a canonical BACKEND_APP_ID is required")
+	}
+	secret, err := os.Open(os.Getenv("BACKEND_STEAM_KEY_FILE"))
+	if err != nil {
+		return errors.New("BACKEND_STEAM_KEY_FILE is required")
+	}
+	key, err := io.ReadAll(io.LimitReader(secret, 4097))
+	secret.Close()
+	if err != nil || len(key) > 4096 || strings.TrimSpace(string(key)) == "" {
+		return errors.New("invalid publisher key file")
+	}
+	var weapons []string
+	if err := readJSON(os.Getenv("BACKEND_CATALOG"), &weapons); err != nil || len(weapons) < 1 || len(weapons) > 256 {
+		return errors.New("BACKEND_CATALOG must contain 1..256 weapon paths")
+	}
+	catalog := make(map[string]bool, len(weapons))
+	for _, name := range weapons {
+		catalog[name] = true
+	}
+	for _, name := range weapons {
+		if (contracts.Loadout{Version: 1, Primary: name, Secondary: name}).Validate(catalog) != nil {
+			return errors.New("invalid weapon catalog")
+		}
+	}
+	roots, err := x509.SystemCertPool()
+	if err != nil {
+		return errors.New("system trust roots unavailable")
+	}
+	if path := os.Getenv("BACKEND_CA_FILE"); path != "" {
+		data, err := os.ReadFile(path)
+		if err != nil || !roots.AppendCertsFromPEM(data) {
+			return errors.New("invalid BACKEND_CA_FILE")
+		}
+	}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, RootCAs: roots}
+	defer transport.CloseIdleConnections()
+	endpoint := env("BACKEND_STEAM_URL", "https://partner.steam-api.com/ISteamUserAuth/AuthenticateUserTicket/v1/")
+	parsedURL, err := url.Parse(endpoint)
+	if err != nil || parsedURL.Scheme != "https" || parsedURL.Host == "" || parsedURL.User != nil || parsedURL.RawQuery != "" || parsedURL.Fragment != "" {
+		return errors.New("invalid HTTPS Steam endpoint")
+	}
+	startup, cancel := context.WithTimeout(ctx, 15*time.Second)
+	db, err := openBackendDB(startup, os.Getenv("BACKEND_DATABASE"))
+	cancel()
+	if err != nil {
+		return errors.New("backend database initialization failed")
+	}
+	defer db.Close()
+	service := &backendService{db: db, steamURL: endpoint, steamKey: strings.TrimSpace(string(key)), appID: appID, catalog: catalog,
+		client: &http.Client{Transport: transport, Timeout: 5 * time.Second}, logger: slog.New(slog.NewJSONHandler(os.Stdout, nil))}
+	server := &http.Server{Addr: env("BACKEND_LISTEN", ":8443"), Handler: service, ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout: 10 * time.Second, WriteTimeout: 10 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 8192, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
+	stopped, shutdown := make(chan struct{}), make(chan struct{})
+	go func() {
+		defer close(shutdown)
+		select {
+		case <-ctx.Done():
+			deadline, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if server.Shutdown(deadline) != nil {
+				server.Close()
+			}
+		case <-stopped:
+		}
+	}()
+	err = server.ListenAndServeTLS(os.Getenv("BACKEND_TLS_CERT"), os.Getenv("BACKEND_TLS_KEY"))
+	close(stopped)
+	<-shutdown
+	if errors.Is(err, http.ErrServerClosed) {
+		return nil
+	}
+	return err
 }
