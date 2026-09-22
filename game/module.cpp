@@ -12,6 +12,9 @@
 #include <time.h>
 #include <ctype.h>
 #include <limits.h>
+#include "../engine/navigation/navigation_public.h"
+#include "../engine/navigation/behavior_public.h"
+#include "../engine/navigation/perception_public.h"
 #include "../engine/entities/entities_public.h"
 #include "../engine/physics/physics_public.h"
 #include "../engine/animation/animation_public.h"

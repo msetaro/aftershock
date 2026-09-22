@@ -39,22 +39,24 @@ optimized sound object bytes remain identical. Require all 26 final-head checks
 and integrated #20 acceptance before readiness/self-merge. Recheck current
 main/base/head immediately before merge; preserve merge commits only.
 
-This is issue/22-profiling in profiling-tree, branched from main 13106135.
-CPU history/hierarchy/peak selection, packet/field inspection, arena/shutdown
-reports and renderer counters are implemented in existing owners. OpenArena
-runtime acceptance passes: a 317.081 ms renderer-restart frame attributes
-309.749 ms to events/commands and is selected in the actual overlay (reviewed
-profiling-runtime/runtime/profile.png). Command, both-compiler data and policy
-checks pass; shipping msg.o/common.o are byte-identical to main. No accepted
-fixture changes. Finish full policy, both-content/module runtime and regression
-validation, then merge accepted #21 main forward before final #22 PR/gates.
-Optional Tracy is deferred: built-in bounded capture satisfies the issue's gate
-without a mandatory dependency. Preserve merge order while doing isolated work.
+This is issue/22-profiling in profiling-tree. Draft PR178's original head
+7ab6ab9f passes all 16 compiler legs and nine regression jobs; runtime remains
+running. All local profiling gates pass. Merge the final #21 branch 2cefd7e3
+locally to validate the combined developer owners while PR177 finishes; the
+production files merge automatically, and both issues' progress evidence is
+retained. This does not accept #21 or replace the required final current-main
+merge. Rebuild and exercise the combined overlay and AI controller, then merge
+accepted #21 main forward before pushing/running final #22 gates.
+
+Draft PR179 preserves #23's bounded null/provider interface preparation at
+0bb8070e. Actual Steam integration is incomplete and requires a proper external
+Steamworks SDK, authorized AppID and logged-in test clients/designated recipient.
+Keep it draft. Preserve #21 -> #22 -> #23 merge order.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
-currently needed. Do not end at a checkpoint or CI wait.
+Continue through #24's SDK dependency, #29 and #30 per #25. The #23 Steam SDK/live-acceptance dependency needs maintainer input; finish the
+independent #21/#22 gates before stopping. Do not end at a CI wait.
 
 ## #22 local gate evidence
 
@@ -68,7 +70,7 @@ developer renderer modules pass (profiling-runtime-modules.log), as does the
 unchanged OpenArena fixed replay 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
 The unchanged Quake 3 fixed replay also passes
 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
-Lifetime analysis remains in progress. Final
+Lifetime analysis passes 1356 commands across 151 paths. Final
 UI review gives the plot its full labeled row and accounts for frame padding,
 so click-to-retain indexes the plotted area instead of including the label width.
 The final plot owner passes both static/module tidy configurations and a fresh
@@ -147,6 +149,37 @@ the next frame boundary. The correction passes GCC and Clang/libc++ developer-da
 and self durations, parent indexes, drop counts and the worst complete frame.
 It uses existing explicit tokens and no dynamic allocation. Overlay/agent
 consumption and production scope coverage remain next.
+
+## #21 Windows public-header macro contract, test first
+
+Corrected head d24ba4f4 reaches the developer client compilation and exposes
+Windows min/max macro expansion inside the new shared sound-distance header
+(C2589/C2059). Add the hostile-header condition to the existing audio spatial
+probe before correcting the shared helper. Both actual callers (authored audio
+and AI hearing) remain on the same implementation. Parenthesizing the function
+name prevents macro expansion without changing arithmetic; GCC optimized
+snd_spatial.o is byte-identical before/after. Both compiler spatial probes and
+the complete developer client/server rebuild pass. The same hosted run then
+reaches retained C99 bot/team-leader probes: new bool declarations require
+stdbool.h when g_local.h is consumed as C. Add that conditional standard include
+and verify bot byte conversion on GCC/Clang plus the team-leader check. All
+remaining hosted native probe steps also pass on both compiler configurations
+(navigation-native-tail.log). No accepted golden changes. Push the corrected
+head and require every fresh required check before readiness/merge.
+
+## #21 hosted portability and cold tool setup
+
+Head 9fd94edb fails MSVC C4244 on two integer ternaries assigned/passed as
+floats. Use exact float constants (0/1 and 8/16), preserving values. Both hosted
+unit legs fail preparing the owned compiled level. Reproducing with a clean
+cook-only Python venv and an unextracted pinned archive confirms the missing
+level-tool Python dependency. Install the existing tools/level/requirements.txt
+and libarchive-dev on those CI runners, matching runtime setup. The navigation
+driver now prints its saved level log when compilation fails. No local system
+packages or accepted fixtures change. Clean-cache full navigation cooking/native
+checks pass after the dependency install (navigation-cold-after.log). Client/server
+rebuild, format/types, workflow lint and all four native-controller tidy/lifetime
+configurations pass. Fresh hosted checks remain required before PR177 can merge.
 
 ## #21 main integration
 

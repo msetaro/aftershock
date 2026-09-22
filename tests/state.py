@@ -291,7 +291,7 @@ print('PASS: BSP text and parsed entity-pair ownership is immutable and verified
 
 
 
-for file in ('g_main','ai_main','ai_dmq3','g_bot','g_animation','g_data_weapons','g_rewind'):
+for file in ('g_main','ai_main','ai_dmq3','g_bot','g_animation','g_data_weapons','g_rewind','g_navigation'):
     source=(ROOT/f'game/game/{file}.cpp').read_text()
     cvars=set()
     for declarations in re.findall(r'^(?:static )?vmCvar_t ([^;]+);',source,re.M):
@@ -301,7 +301,7 @@ for file in ('g_main','ai_main','ai_dmq3','g_bot','g_animation','g_data_weapons'
 print('PASS: every persistent native-game cvar has named checkpoint ownership; handles remain process-local')
 main_source=(ROOT/'game/game/g_main.cpp').read_text().split('static cvarTable_t gameCvarTable[]',1)[1].split('};',1)[0]
 selected=set(re.findall(r'\{\s*(?:&\w+|NULL),\s*"([^"]+)"',main_source))
-for file in ('ai_main','ai_dmq3','g_bot','g_animation','g_data_weapons','g_rewind'):
+for file in ('ai_main','ai_dmq3','g_bot','g_animation','g_data_weapons','g_rewind','g_navigation'):
     bindings=(ROOT/f'game/game/{file}.cpp').read_text().split('static const gCachedCvar_t saved',1)[1].split('};',1)[0]
     selected.update(re.findall(r'"([^"]+)"',bindings))
 extra=(ROOT/'game/game/g_state.cpp').read_text().split('static const char *const names[]',1)[1].split('};',1)[0]

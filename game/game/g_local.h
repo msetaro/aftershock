@@ -22,14 +22,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 // g_local.h -- local definitions for game module
 
+#ifndef __cplusplus
+#include <stdbool.h> // Retained C regression probes consume this header.
+#endif
 #include "../bg/q_shared.h"
 #include "../../engine/public/bg_public.h"
 #include "../../engine/public/g_public.h"
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "../../engine/public/dev_game_public.h"
+bool G_DevAI( int owner, devAIState_t *state );
 bool G_DevWeapon( int owner, int hand, devWeaponState_t *state );
 bool G_DevAnimation( int owner, int rig, devAnimationState_t *state );
 #endif
+
+void G_InitNavigation();
+bool G_NavigationEnabled();
+void G_NavigationNoise( int owner );
+void G_ShutdownNavigation();
+bool G_NavigationFrame( int time );
 
 //==================================================================
 
@@ -983,6 +993,7 @@ int trap_GeneticParentsAndChildSelection( int numranks, float *ranks, int *paren
 void trap_SnapVector( float *v );
 
 void G_InitWeapons( void );
+bool G_WeaponNeedsReload( int owner );
 void G_WeaponAttachmentCommand( int owner );
 void G_ClearWeaponActor( int owner );
 void G_RemoveWeaponProjectiles( int owner );

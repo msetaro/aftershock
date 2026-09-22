@@ -1,3 +1,11 @@
+// Windows headers can define min/max before this shared public header.
+#include <algorithm>
+#include <stdint.h>
+#define min( a, b ) windows_min_macro_must_not_expand
+#define max( a, b ) windows_max_macro_must_not_expand
+#include "../../engine/sound/sound_model_public.h"
+#undef min
+#undef max
 #include "../../engine/sound/snd_spatial.h"
 #include <assert.h>
 #include <cmath>

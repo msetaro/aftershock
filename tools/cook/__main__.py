@@ -21,6 +21,8 @@ import effect
 import post
 import entities
 import ui
+import navigation
+import behavior
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -43,6 +45,11 @@ def tool_hash():
     paths.extend(vendor / name for name in ('bc7enc.cpp', 'bc7enc.h', 'provenance.json'))
     paths.extend(p for p in (ROOT / 'third_party/meshoptimizer').rglob('*') if p.is_file())
     paths.extend(ROOT / path for path in ('cmake/Sources.cmake', 'tools/shaders/build.py', 'engine/renderervk/shaders/manifest.json', 'tools/agent/formats.py'))
+    paths.extend(p for p in (ROOT / 'third_party/recast').rglob('*') if p.is_file())
+    paths.extend(ROOT / 'engine/qcommon' / name for name in ('cm_load.cpp','cm_patch.cpp','cm_physics.cpp','cm_polylib.cpp','cm_test.cpp','q_math.cpp','q_shared.cpp','md4.cpp','state.cpp',
+        'cm_local.h','cm_patch.h','cm_polylib.h','cm_public.h','q_shared.h','qcommon_public.h','qfiles_public.h','surfaceflags_public.h'))
+    paths.extend(ROOT / path for path in ('engine/public/state_public.h','engine/public/assert_public.h',
+        'engine/platform/file_types_public.h','engine/platform/platform_public.h','third_party/sha256/sha-256.c','third_party/sha256/sha-256.h'))
     for codec in ('libogg', 'libvorbis'):
         paths.extend(p for p in (ROOT / 'third_party' / codec).rglob('*') if p.suffix in ('.c', '.h'))
     return digest(b''.join(str(p.relative_to(ROOT)).encode() + b'\0' + p.read_bytes() for p in sorted(paths)))
@@ -112,7 +119,7 @@ def cook(project, output):
 
             source = below(root, asset['source'])
             try:
-                if asset['kind'] in ('weapon', 'animation', 'material', 'effect', 'decal', 'post', 'entities', 'ui', 'sound-event'):
+                if asset['kind'] in ('weapon', 'animation', 'material', 'effect', 'decal', 'post', 'entities', 'ui', 'sound-event', 'navigation', 'behavior'):
                     validate_format(asset['kind'], json.loads(read(source)), source)
                 if asset['kind'] == 'model':
                     payloads = model.cook(source, name, asset, read)
@@ -121,6 +128,10 @@ def cook(project, output):
                     payloads = animation.cook(source, name, asset, read, models)
                 elif asset['kind'] == 'weapon':
                     payloads = weapon.cook(source, name, read)
+                elif asset['kind'] == 'behavior':
+                    payloads = behavior.cook(source, name, read)
+                elif asset['kind'] == 'navigation':
+                    payloads = navigation.cook(source, name, read)
                 elif asset['kind'] == 'entities':
                     payloads = entities.cook(source, name, read)
                 elif asset['kind'] == 'ui':
@@ -170,7 +181,7 @@ def cook(project, output):
     if len(resources) > 4096:
         raise ValueError('project exceeds the 4096-resource development index limit')
     index = bytearray(struct.pack('<I', len(resources)))
-    kinds = {'.iqm': 1, '.ktx2': 2, '.asmat': 3, '.wav': 4, '.asspv': 5, '.asanim': 6, '.asweapon': 7, '.asfx': 8, '.aslod': 9, '.asdc': 10, '.aspost': 11, '.asevt': 12, '.asui': 13, '.asent': 14}
+    kinds = {'.iqm': 1, '.ktx2': 2, '.asmat': 3, '.wav': 4, '.asspv': 5, '.asanim': 6, '.asweapon': 7, '.asfx': 8, '.aslod': 9, '.asdc': 10, '.aspost': 11, '.asevt': 12, '.asui': 13, '.asent': 14, '.asnav': 15, '.asai': 16}
     for path, hashed in sorted(resources.items()):
         size = below(output, path).stat().st_size
         index.extend(struct.pack('<64s32sII', path.encode(), bytes.fromhex(hashed), size, kinds[Path(path).suffix]))

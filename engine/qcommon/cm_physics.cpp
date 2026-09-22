@@ -14,7 +14,7 @@ static bool CM_PhysicsWinding( winding_t *winding, bool ( *triangle )( void *, c
 	FreeWinding( winding );
 	return accepted;
 }
-bool CM_PhysicsTriangles( bool ( *triangle )( void *, const float *, const float *, const float * ), void *context ) {
+bool CM_PhysicsTriangles( bool ( *triangle )( void *, const float *, const float *, const float * ), void *context, int contentsMask ) {
 	if ( !triangle || !cm.numLeafs )
 		return false;
 	auto *brushes = static_cast<byte *>( Hunk_AllocateTempMemory( size_t( cm.numBrushes ) + size_t( cm.numSurfaces ) ) );
@@ -38,7 +38,7 @@ bool CM_PhysicsTriangles( bool ( *triangle )( void *, const float *, const float
 	bool accepted = true;
 	for ( int i = 0; i < cm.numBrushes && accepted; ++i ) {
 		const auto &brush = cm.brushes[i];
-		if ( !brushes[i] || !( brush.contents & CONTENTS_SOLID ) )
+		if ( !brushes[i] || !( brush.contents & contentsMask ) )
 			continue;
 		for ( int side = 0; side < brush.numsides && accepted; ++side ) {
 			const auto *plane = brush.sides[side].plane;
@@ -55,7 +55,7 @@ bool CM_PhysicsTriangles( bool ( *triangle )( void *, const float *, const float
 		}
 	}
 	for ( int i = 0; i < cm.numSurfaces && accepted; ++i ) {
-		if ( !surfaces[i] || !cm.surfaces[i] || !( cm.surfaces[i]->contents & CONTENTS_SOLID ) )
+		if ( !surfaces[i] || !cm.surfaces[i] || !( cm.surfaces[i]->contents & contentsMask ) )
 			continue;
 		const auto *patch = cm.surfaces[i]->pc;
 		for ( int f = 0; f < patch->numFacets && accepted; ++f ) {
@@ -76,4 +76,7 @@ bool CM_PhysicsTriangles( bool ( *triangle )( void *, const float *, const float
 	}
 	Hunk_FreeTempMemory( brushes );
 	return accepted;
+}
+bool CM_PhysicsTriangles( bool ( *triangle )( void *, const float *, const float *, const float * ), void *context ) {
+	return CM_PhysicsTriangles( triangle, context, CONTENTS_SOLID );
 }

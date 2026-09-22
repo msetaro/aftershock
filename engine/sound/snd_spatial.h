@@ -2,12 +2,7 @@
 #ifndef SND_SPATIAL_H
 #define SND_SPATIAL_H
 
-#include <stdint.h>
-
-enum sDistanceModel_t : uint32_t {
-	S_DISTANCE_LINEAR,
-	S_DISTANCE_INVERSE
-};
+#include "sound_model_public.h"
 
 struct sSpatialInput_t {
 	float offset[3]; // Source minus listener, in engine inches.
