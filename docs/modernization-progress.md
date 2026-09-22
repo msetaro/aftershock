@@ -39,7 +39,7 @@ with typed callbacks, checked references and nullable strings. Composed, authore
 animation/weapon, rewind, utility/spawn-generation, combat, team and podium owners
 also have validated local checkpoint records. Definition/editor state restores
 against matching map registry topology. Remaining work: other game globals and
-botlib AAS geometry/settings/routing ownership (input/movement, goal/item, weight, weapon, character cache, chat content/timers, libvars, global clocks/map identity, AAS entity/spatial links and chat queue
+botlib reconstruction and remaining parser/content ownership (input/movement, goal/item, weight, weapon, character cache, chat content/timers, libvars, global clocks/map identity, AAS entity/spatial links and chat queue
 and game map-navigation, actor, activation, waypoint, scheduler,
 queue and team draft records are complete), gameplay validation, live
 restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
@@ -57,6 +57,21 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 AAS routing cache ownership
+
+Routing checkpoints retain cache metadata, 16-bit travel times, reachability
+choices, per-bucket list order and oldest-to-newest eviction order. They verify
+rebuilt reverse links, intra-area travel times, portal maximum times, travel flags
+and reachability pass-area lists before replacing caches. Synchronous update
+scratch must have no in-list work; stale scratch pointers are never serialized.
+Explicit ceilings are 4,096 caches, 65,536 travel entries per cache and 256 MiB of
+cache allocations; excess rejects. Pointer lookup is bounded quadratic command
+work, documented in source. GCC/Clang libc++ UBSan prove cache-hit payload, exact
+bucket/LRU order and same-next-eviction after fresh allocation; changed derived
+routing, missing final records and over-wide travel times leave current caches
+unchanged (state-aas-routing-{gcc,clang}.log). World/settings build and focused
+tidy also pass. Full live reconstruction/coordination is still open.
 
 ## #19 AAS world clocks, geometry and physics settings
 

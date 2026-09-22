@@ -57,10 +57,10 @@ def declared_members(body):
         if callback:
             fields.add(callback[1])
             continue
-        match=re.fullmatch(r'(?:(?:struct|const|union)\s+)?\w+\s+([\s\S]+)',declaration)
+        match=re.fullmatch(r'(?:(?:struct|const|union)\s+)?(?:unsigned\s+short(?:\s+int)?|\w+)\s+([\s\S]+)',declaration)
         assert match, f'unclassified native declaration: {declaration}'
         for declarator in match[1].split(','):
-            member=re.fullmatch(r'\s*\*?\s*(\w+)(?:\[\w+\])*\s*',declarator)
+            member=re.fullmatch(r'\s*\**\s*(\w+)(?:\[\w+\])*\s*',declarator)
             assert member, f'unclassified native member: {declaration}'
             fields.add(member[1])
     return fields
@@ -254,6 +254,20 @@ aas_move=(ROOT/'engine/botlib/be_aas_move.cpp').read_text()
 body=aas_def.split('typedef struct aas_settings_s {',1)[1].split('} aas_settings_t;',1)[0]
 assert set(re.findall(r'offsetof\( aas_settings_t, (\w+) \)',aas_move))==declared_members(body)
 print('PASS: every AAS physics setting has a named checkpoint field')
+body=aas_def.split('typedef struct aas_routingcache_s {',1)[1].split('} aas_routingcache_t;',1)[0]
+assert declared_members(body)=={'type','time','size','cluster','areanum','origin','starttraveltime','travelflags','prev','next','time_prev','time_next','reachabilities','traveltimes'}
+# Cache size/inline data pointers are reconstructed, list time order is the record
+# slot order, and synchronous routing-update work memory is dead outside queries.
+body=aas_def.split('typedef struct aas_routingupdate_s {',1)[1].split('} aas_routingupdate_t;',1)[0]
+assert declared_members(body)=={'cluster','areanum','start','tmptraveltime','areatraveltimes','inlist','next','prev'}
+world_body=aas_def.split('typedef struct aas_s {',1)[1].split('} aas_t;',1)[0]
+world_scalars={'loaded','initialized','savefile','bspchecksum','time','numframes','filename','mapname','numreachabilityareas','reachabilitytime','maxentities','maxclients','frameroutingupdates'}
+world_geometry={'numbboxes','bboxes','numvertexes','vertexes','numplanes','planes','numedges','edges','edgeindexsize','edgeindex','numfaces','faces','faceindexsize','faceindex','numareas','areas','numareasettings','areasettings','reachabilitysize','reachability','numnodes','nodes','numportals','portals','portalindexsize','portalindex','numclusters','clusters'}
+world_spatial={'linkheap','linkheapsize','freelinks','arealinkedentities','entities'}
+world_routing={'travelflagfortype','areacontentstravelflags','areaupdate','portalupdate','reversedreachability','areatraveltimes','clusterareacache','portalcache','oldestcache','newestcache','portalmaxtraveltimes','reachabilityareaindex','reachabilityareas'}
+assert world_scalars | world_geometry | world_spatial | world_routing==declared_members(world_body)
+print('PASS: AAS world/cache members have scalar, geometry, spatial, derived-routing or synchronous scratch ownership')
+
 
 
 
@@ -376,7 +390,7 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wl,--gc-sections','-o',probe])
 run([probe])
 
-for component in ('input','move','weights','characters','chat_queue','chat_content','libvars','interface','aas_entities','aas_links','aas_world','aas_settings'):
+for component in ('input','move','weights','characters','chat_queue','chat_content','libvars','interface','aas_entities','aas_links','aas_world','aas_settings','aas_routing'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',
