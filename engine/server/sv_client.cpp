@@ -658,6 +658,14 @@ void SV_DirectConnect( const netadr_t *from ) {
 		}
 	}
 
+	if ( SV_CheckpointLoading() ) {
+		const int slot = SV_CheckpointClientSlot();
+		if ( from->type != NA_LOOPBACK || slot < 0 )
+			return;
+		newcl = &svs.clients[slot];
+		goto gotnewcl;
+	}
+
 	// if there is already a slot for this ip, reuse it
 	for ( i = 0, cl = svs.clients; i < sv.maxclients; i++, cl++ ) {
 		if ( cl->state == CS_FREE ) {
@@ -778,7 +786,7 @@ gotnewcl:
 	}
 
 	// get the game a chance to reject this connection or modify the userinfo
-	denied = Game_ClientConnect( clientNum, qtrue, qfalse ); // firstTime = qtrue
+	denied = SV_CheckpointConnect( newcl ) ? nullptr : Game_ClientConnect( clientNum, qtrue, qfalse ); // firstTime = qtrue
 	if ( denied ) {
 		const char *str = (const char *)denied;
 
@@ -1178,7 +1186,8 @@ void SV_ClientEnterWorld( client_t *client ) {
 	client->lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately
 
 	// call the game begin function
-	Game_ClientBegin( clientNum );
+	if ( !SV_CheckpointEnter( client ) )
+		Game_ClientBegin( clientNum );
 }
 
 
@@ -1839,6 +1848,8 @@ SV_UpdateUserinfo_f
 ==================
 */
 static void SV_UpdateUserinfo_f( client_t *cl ) {
+	if ( SV_CheckpointLoading() )
+		return;
 	const char *info;
 
 	info = Cmd_Argv( 1 );
@@ -2028,7 +2039,8 @@ qboolean SV_ExecuteClientCommand( client_t *cl, const char *s ) {
 		// pass unknown strings to the game
 		if ( !ucmd->name && sv.state == SS_GAME && cl->state >= CS_PRIMED ) {
 			Cmd_Args_Sanitize( "\n\r" );
-			Game_ClientCommand( (int)( cl - svs.clients ) );
+			if ( !SV_CheckpointLoading() )
+				Game_ClientCommand( (int)( cl - svs.clients ) );
 		}
 	}
 
@@ -2084,6 +2096,8 @@ Also called by bot code
 ==================
 */
 void SV_ClientThink( client_t *cl, usercmd_t *cmd ) {
+	if ( SV_CheckpointLoading() )
+		return;
 	cl->lastUsercmd = *cmd;
 
 	if ( cl->state != CS_ACTIVE ) {

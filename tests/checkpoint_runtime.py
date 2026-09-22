@@ -23,6 +23,19 @@ def execute(engine,command):
     engine.request('exec',command=command)
     engine.step(2)
 
+def load(engine,path):
+    before=engine.log_path.read_text(errors='replace').count('Game loaded: ')
+    engine.request('exec',command='loadgame '+path)
+    # The local transport must reconnect, but the saved world stays frozen until
+    # its first snapshot is installed. Completion consumes no simulation tick.
+    for _ in range(200):
+        engine.step(1)
+        log=engine.log_path.read_text(errors='replace')
+        if log.count('Game loaded: ')>before:
+            return
+        assert 'Checkpoint owner reconstruction failed' not in log, log[-4000:]
+    raise AssertionError('checkpoint reconnect did not finish: '+log[-4000:])
+
 def toggle_pause(engine):
     engine.request('key',name='ESCAPE',down=True)
     engine.request('key',name='ESCAPE',down=False)
@@ -63,7 +76,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-checkpoint-') as temporary:
             engine.step(25)
             continued=entities(engine)
             assert continued!=before, 'bot and simulation must advance after the save'
-            execute(engine,'loadgame saves/acceptance.000.asstate')
+            load(engine,'saves/acceptance.000.asstate')
             assert entities(engine)==before, 'load must restore the paused world and bot slots exactly'
             toggle_pause(engine)
             engine.step(25)
@@ -74,7 +87,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-checkpoint-') as temporary:
     with Engine(args.binary,args.data,args.content,home=home) as engine:
         try:
             engine.request('session',dt=20,seed=123)
-            execute(engine,'loadgame saves/acceptance.000.asstate')
+            load(engine,'saves/acceptance.000.asstate')
             assert entities(engine)==before, 'fresh process must rebuild map, references and paused state'
             toggle_pause(engine)
             engine.step(25)

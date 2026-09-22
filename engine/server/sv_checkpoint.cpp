@@ -5,6 +5,9 @@
 #include "../public/state_replication_public.h"
 #include <cmath>
 
+extern botlib_export_t *botlib_export;
+extern int bot_enable;
+
 // ponytail: explicit saves use a bounded 64 MiB buffer; revisit only if measured
 // full-game captures exceed it. No allocation occurs on the ordinary frame path.
 static constexpr size_t CHECKPOINT_CAPACITY = 64 * 1024 * 1024;
@@ -61,6 +64,46 @@ static const char *const checkpointCvars[] = {
 	"sv_minRate", "sv_maxRate", "sv_lanForceRate", "sv_padPackets", "sv_levelTimeReset",
 	"cm_noAreas", "cm_noCurves", "cm_playerCurveClip", "timescale", "cl_paused", "sv_paused"
 };
+static struct {
+	void *data;
+	stateReader_t reader;
+	checkpointHeader_t header;
+	checkpointClient_t clients[MAX_CLIENTS];
+	usercmd_t commands[MAX_CLIENTS];
+	uint32_t started;
+	bool ready, sent;
+	char path[MAX_QPATH];
+} checkpointLoad;
+
+bool SV_CheckpointLoading() {
+	return checkpointLoad.data != nullptr;
+}
+void SV_ClearCheckpoint() {
+	if ( checkpointLoad.data )
+		Z_Free( checkpointLoad.data );
+	checkpointLoad = {};
+}
+int SV_CheckpointClientSlot() {
+	return checkpointLoad.ready ? checkpointLoad.header.localClient : -1;
+}
+bool SV_CheckpointConnect( client_t *client ) {
+	const int slot = SV_CheckpointClientSlot();
+	if ( slot < 0 || client != &svs.clients[slot] || client->netchan.remoteAddress.type != NA_LOOPBACK )
+		return false;
+	const auto &saved = checkpointLoad.clients[slot];
+	Q_strncpyz( client->userinfo, saved.userinfo, sizeof( client->userinfo ) );
+	Q_strncpyz( client->name, saved.name, sizeof( client->name ) );
+	client->ping = saved.ping;
+	client->rate = saved.rate;
+	client->snapshotMsec = saved.snapshotMsec;
+	return true;
+}
+bool SV_CheckpointEnter( client_t *client ) {
+	if ( !SV_CheckpointConnect( client ) )
+		return false;
+	client->lastUsercmd = checkpointLoad.commands[checkpointLoad.header.localClient];
+	return true;
+}
 static bool CheckpointPath( const char *name, bool map ) {
 	if ( !memchr( name, 0, MAX_QPATH ) || ( map && !name[0] ) || name[0] == '/' || strstr( name, ".." ) )
 		return false;
@@ -126,7 +169,7 @@ static bool ReadServerCheckpoint( const stateReader_t &reader, checkpointHeader_
 	return true;
 }
 static bool CheckpointHeader( checkpointHeader_t *header ) {
-	if ( !com_sv_running->integer || sv.state != SS_GAME || sv.restarting || com_dedicated->integer ||
+	if ( SV_CheckpointLoading() || !com_sv_running->integer || sv.state != SS_GAME || sv.restarting || com_dedicated->integer ||
 		 sv.maxclients < 1 || sv.maxclients > MAX_CLIENTS || !svs.clients )
 		return false;
 	*header = {};
@@ -232,4 +275,176 @@ static bool SaveCheckpoint( const char *name ) {
 void SV_SaveGame_f() {
 	if ( Cmd_Argc() != 2 || !SaveCheckpoint( Cmd_Argv( 1 ) ) )
 		Com_Printf( "Usage: savegame NAME (one active local player; immutable numbered revisions)\n" );
+}
+
+static bool RestoreCheckpointCvars( bool prepare ) {
+	const auto &reader = checkpointLoad.reader;
+	for ( uint32_t i = 0; i < ARRAY_LEN( checkpointCvars ); ++i )
+		if ( !Cvar_ReadState( reader, "engine.serverCvars", i, checkpointCvars[i], true, prepare ) )
+			return false;
+	return Game_ReadCheckpointCvars( &reader, prepare ? 2 : 1 ) != 0;
+}
+static bool RestoreCheckpointServer() {
+	const auto &reader = checkpointLoad.reader;
+	const auto &header = checkpointLoad.header;
+	uint32_t version;
+	sv.time = header.time;
+	svs.time = header.serverTime;
+	sv.timeResidual = header.residual;
+	sv.restartTime = header.restartTime;
+	for ( int i = 0; i < header.maxclients; ++i ) {
+		auto &saved = checkpointLoad.clients[i];
+		if ( !State_Find( reader, checkpointClientSchema, uint32_t( i ), &saved, &version ) ||
+			 !State_Find( reader, checkpointCommandSchema, uint32_t( i ), &checkpointLoad.commands[i], &version ) )
+			return false;
+		if ( !saved.bot )
+			continue;
+		auto &client = svs.clients[i];
+		client.state = CS_ACTIVE;
+		client.netchan.remoteAddress.type = NA_BOT;
+		client.gentity = SV_GentityNum( i );
+		client.lastPacketTime = svs.time;
+		client.lastSnapshotTime = svs.time - 9999;
+		client.lastUsercmd = checkpointLoad.commands[i];
+		client.ping = saved.ping;
+		client.rate = saved.rate;
+		client.snapshotMsec = saved.snapshotMsec;
+		client.country = "BOT";
+		Q_strncpyz( client.userinfo, saved.userinfo, sizeof( client.userinfo ) );
+		Q_strncpyz( client.name, saved.name, sizeof( client.name ) );
+	}
+	char value[MAX_GAMESTATE_CHARS];
+	const stateField_t field{ "value", 0, sizeof( value ), stateType_t::String };
+	const stateSchema_t schema{ "engine.configstring", 1, 1, sizeof( value ), &field, 1 };
+	for ( uint32_t i = 0; i < MAX_CONFIGSTRINGS; ++i ) {
+		if ( !State_Find( reader, schema, i, value, &version ) )
+			return false;
+		// Keep the newly negotiated server ID and pure-content transport context.
+		if ( i != CS_SYSTEMINFO )
+			SV_SetConfigstring( int( i ), value );
+	}
+	SV_ClearWorld();
+	Com_Memset( sv.svEntities, 0, sizeof( sv.svEntities ) );
+	Com_Memset( sv.baselineUsed, 0, sizeof( sv.baselineUsed ) );
+	for ( uint32_t i = 0; i < MAX_GENTITIES; ++i ) {
+		svEntity_t saved{};
+		if ( !State_Find( reader, checkpointInterestSchema, i, &saved, &version ) )
+			return false;
+		sv.svEntities[i].replicationPriority = saved.replicationPriority;
+		sv.svEntities[i].interestRadius = saved.interestRadius;
+	}
+	Game_LinkCheckpointEntities();
+	SV_CreateBaseline();
+	return CM_ReadPortalState( reader, true );
+}
+static bool LoadCheckpoint( const char *path ) {
+	if ( com_dedicated->integer || SV_CheckpointLoading() || strncmp( path, "saves/", 6 ) )
+		return false;
+	checkpointHeader_t current;
+	if ( com_sv_running->integer && !CheckpointHeader( &current ) )
+		return false;
+	const int length = Sys_ReadSave( path, nullptr, 0 );
+	if ( length <= 0 || size_t( length ) > CHECKPOINT_CAPACITY )
+		return false;
+	void *data = Z_Malloc( size_t( length ) );
+	stateReader_t reader;
+	checkpointHeader_t header;
+	const bool valid = Sys_ReadSave( path, data, length ) == length && State_Open( data, size_t( length ), &reader ) &&
+					   ReadServerCheckpoint( reader, &header ) && !strcmp( header.game, Cvar_VariableString( "fs_game" ) ) &&
+					   Cvar_CheckStateCapacity( reader, ValidateCheckpointCvars ) && Cvar_ReadServerState( reader, false );
+	if ( !valid ) {
+		Z_Free( data );
+		return false;
+	}
+	char mapPath[MAX_QPATH + 16];
+	Com_sprintf( mapPath, sizeof( mapPath ), "maps/%s.bsp", header.map );
+	if ( FS_ReadFile( mapPath, nullptr ) <= 0 ) {
+		Z_Free( data );
+		return false;
+	}
+	qRandomState_t random;
+	uint32_t version;
+	const auto previousRandom = Q_GetRandomState();
+	const bool compatible = State_Find( reader, checkpointRandomSchema, 0, &random, &version ) && Q_RestoreRandomState( &random );
+	const bool preserved = Q_RestoreRandomState( &previousRandom ) != 0;
+	if ( !compatible || !preserved ) {
+		Z_Free( data );
+		return false;
+	}
+	SV_Shutdown( "Loading checkpoint" );
+	checkpointLoad.data = data;
+	checkpointLoad.reader = reader;
+	checkpointLoad.header = header;
+	Q_strncpyz( checkpointLoad.path, path, sizeof( checkpointLoad.path ) );
+	if ( !RestoreCheckpointCvars( true ) || !BotLib_PrepareSettings( reader ) ) {
+		SV_ClearCheckpoint();
+		return false;
+	}
+	// Normal map initialization builds content owners, but no gameplay frame or
+	// automatic bot spawn may run before the recorded world replaces the defaults.
+	SV_SpawnServer( header.map, qtrue );
+	if ( sv.maxclients != header.maxclients || sv_mapChecksum->integer != header.checksum || sv.pure != header.pure ) {
+		SV_Shutdown( "Checkpoint map context differs" );
+		return false;
+	}
+	if ( bot_enable ) {
+		for ( int i = 0; i < 1000 && !botlib_export->aas.AAS_Initialized(); ++i )
+			if ( botlib_export->BotLibStartFrame( 0 ) )
+				break;
+	}
+	const uint32_t now = uint32_t( Sys_Milliseconds() );
+	if ( !BotLib_PrepareState( reader, now ) || !Game_ReadCheckpoint( &reader, 0 ) || !CM_ReadPortalState( reader, false ) ||
+		 !Game_ReadCheckpoint( &reader, 1 ) || !BotLib_ReadState( reader, now, true ) || !RestoreCheckpointServer() ) {
+		SV_Shutdown( "Checkpoint owner reconstruction failed" );
+		return false;
+	}
+	Cvar_Set( "cl_paused", "0" );
+	Cvar_Set( "sv_paused", "0" );
+	checkpointLoad.started = uint32_t( Sys_Milliseconds() );
+	checkpointLoad.ready = true;
+	return true;
+}
+void SV_LoadGame_f() {
+	if ( Cmd_Argc() != 2 || !LoadCheckpoint( Cmd_Argv( 1 ) ) )
+		Com_Printf( "Usage: loadgame saves/NAME.REVISION.asstate (matching installed content required)\n" );
+}
+bool SV_CheckpointFrame() {
+	if ( !SV_CheckpointLoading() )
+		return false;
+	if ( !checkpointLoad.ready )
+		return true;
+	if ( uint32_t( Sys_Milliseconds() ) - checkpointLoad.started > 120000 ) {
+		SV_Shutdown( "Checkpoint local reconnect timed out" );
+		return true;
+	}
+	auto &client = svs.clients[checkpointLoad.header.localClient];
+	if ( client.state != CS_ACTIVE )
+		return true;
+	if ( !checkpointLoad.sent ) {
+		SV_IssueNewSnapshot();
+		SV_SendClientMessages();
+		checkpointLoad.sent = true;
+		return true;
+	}
+#ifndef DEDICATED
+	if ( !CL_CheckpointReady() )
+		return true;
+	const auto &reader = checkpointLoad.reader;
+	qRandomState_t random;
+	uint32_t version;
+	if ( !BotLib_ReadState( reader, uint32_t( Sys_Milliseconds() ), true ) ||
+		 !RestoreCheckpointCvars( false ) || !Cvar_ReadServerState( reader, true ) ||
+		 !State_Find( reader, checkpointRandomSchema, 0, &random, &version ) ) {
+		SV_Shutdown( "Checkpoint final state rejected" );
+		return true;
+	}
+	CL_RestoreCheckpointInput( checkpointLoad.commands[checkpointLoad.header.localClient], Cvar_VariableIntegerValue( "cl_paused" ) != 0 );
+	if ( !Game_RestoreCheckpointRandom( &reader ) || !Q_RestoreRandomState( &random ) ) {
+		SV_Shutdown( "Checkpoint random stream is incompatible" );
+		return true;
+	}
+	Com_Printf( "Game loaded: %s\n", checkpointLoad.path );
+	SV_ClearCheckpoint();
+#endif
+	return true;
 }

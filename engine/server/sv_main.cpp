@@ -1282,6 +1282,8 @@ happen before SV_Frame is called
 ==================
 */
 void SV_Frame( int msec ) {
+	if ( SV_CheckpointFrame() )
+		return;
 	int frameMsec;
 	int startTime;
 	int i;

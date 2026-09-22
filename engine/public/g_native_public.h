@@ -20,6 +20,7 @@ int GameImport_FS_Seek( int f, int64_t offset, int origin );
 void GameImport_SendConsoleCommand( int exec_when, const char *text );
 void GameImport_Cvar_Register( void *cvar, const char *var_name, const char *value, int flags );
 void GameImport_Cvar_Update( void *cvar );
+int GameImport_LoadingCheckpoint( void );
 int GameImport_ValidateBotHandles( int character, int move, int goal, int weapon, int chat );
 int GameImport_WriteCvarState( void *writer, const char *group, uint32_t slot, const char *name );
 int GameImport_ReadCvarState( const void *reader, const char *group, uint32_t slot, const char *name, int apply, int removable );

@@ -67,6 +67,27 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 first live restore coordinator
+
+The local load coordinator now builds and passes native ABI, focused tidy and
+policy checks. Both full GCC/Clang libc++ UBSan state suites pass
+(state-load-full-{gcc,clang}.log). The coordinator validates engine records and
+cvar capacity before shutdown, loads matching content without gameplay startup
+frames or automatic bots, reconstructs native/botlib owners, spatial links,
+configstrings and baselines, then reconnects only the recorded local human slot.
+Simulation/input remain frozen through its first snapshot. Final cvar/input and
+RNG restoration happens after client startup; bot cache ages exclude reconnect
+latency. Errors discard the fresh world and shutdown releases pending archive data.
+
+Full runtime acceptance is now being exercised; no success is claimed yet. Its
+handshake wait steps only the frozen connection, ending on explicit completion.
+This small local-player-plus-one-bot case does not reach the separately reproduced
+MAX_CLIENTS shutdown boundary, so it can run independently while PR174 checks
+continue. #31 must still merge green and be merged forward before #19 acceptance;
+repeat final gates on that combined tree. The original prerequisite ordering was
+conservative; no #31 fix is copied into this branch. N-to-N+1 fullgame fixture and
+final hosted gates remain unfinished.
+
 ## #19 server record preflight
 
 Server capture now round-trips and validates its complete engine records: bounded

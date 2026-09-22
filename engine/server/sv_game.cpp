@@ -1170,3 +1170,7 @@ int GameImport_GetPlayerIdentity( int clientNum, uint64_t *id ) {
 int GameImport_ValidateBotHandles( int character, int move, int goal, int weapon, int chat ) {
 	return BotLib_HasActorState( character, move, goal, weapon, chat );
 }
+
+int GameImport_LoadingCheckpoint( void ) {
+	return SV_CheckpointLoading();
+}

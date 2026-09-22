@@ -971,6 +971,8 @@ void G_InitBots( qboolean restart ) {
 	G_LoadArenas();
 
 	trap_Cvar_Register( &bot_minplayers, "bot_minplayers", "0", CVAR_SERVERINFO );
+	if ( GameImport_LoadingCheckpoint() )
+		return;
 
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
 		trap_GetServerinfo( serverinfo, sizeof( serverinfo ) );

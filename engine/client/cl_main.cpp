@@ -5077,3 +5077,18 @@ bool CL_AgentPlayer( playerState_t *player ) {
 	return true;
 }
 #endif
+
+// A checkpoint rebuilds authoritative state before this fresh local connection.
+bool CL_CheckpointReady() {
+	return cls.state == CA_ACTIVE && cl.snap.valid;
+}
+void CL_RestoreCheckpointInput( const usercmd_t &command, bool paused ) {
+	cl.serverTime = cl.oldServerTime = command.serverTime;
+	cl.serverTimeDelta = command.serverTime - cls.realtime;
+	for ( auto &queued : cl.cmds )
+		queued = command;
+	for ( int i = 0; i < 3; ++i )
+		cl.viewangles[i] = float( SHORT2ANGLE( command.angles[i] ) );
+	if ( paused )
+		NativeUI_SetActiveMenu( UIMENU_INGAME );
+}
