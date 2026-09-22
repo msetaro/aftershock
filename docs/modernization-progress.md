@@ -58,6 +58,20 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 AAS world clocks, geometry and physics settings
+
+World records retain clocks, frame counters, initialization bookkeeping and
+per-area disabled bits against a digest of all loaded geometry/cluster arrays.
+The digest masks the dynamic disabled bit and omits the two reachability-record
+tail padding bytes, so pointer relocation and padding cannot change identity.
+Capture requires a fully initialized AAS map and the same 65,536-area ceiling as
+spatial links. All AAS physics settings have named float descriptors and finite
+validation. GCC and Clang/libc++ UBSan verify changed geometry/content rejection,
+missing disabled-area records, clock restore, tail-padding independence and
+bit-identical AAS_HorizontalVelocityForJump results after settings restore
+(state-aas-world-{gcc,clang}.log). Routing caches must be restored with world state
+before navigation resumes; their owner and the full coordinator remain open.
+
 ## #19 AAS entity history and spatial links
 
 AAS entity records preserve history even for entities invalidated this frame;

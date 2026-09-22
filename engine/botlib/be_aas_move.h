@@ -69,3 +69,7 @@ void AAS_SetMovedir( vec3_t angles, vec3_t movedir );
 int AAS_DropToFloor( vec3_t origin, vec3_t mins, vec3_t maxs );
 //
 void AAS_InitSettings( void );
+
+#include "../public/state_public.h"
+bool AAS_WriteSettingsState( stateWriter_t *writer );
+bool AAS_ReadSettingsState( const stateReader_t &reader, bool apply );
