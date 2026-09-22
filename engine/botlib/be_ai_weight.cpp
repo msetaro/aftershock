@@ -1039,3 +1039,48 @@ bool Bot_ReadWeightCacheState( const stateReader_t &reader, bool apply ) {
 				return false;
 	return true;
 }
+
+// Reuse the normal content loader without publishing its lowest-free cache slot.
+// The command coordinator restores parser state after all content is prepared.
+bool Bot_CreateWeightState( const stateReader_t &reader, uint32_t slot, weightconfig_t **output ) {
+	if ( !output || *output )
+		return false;
+	weightIdentitySave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, weightIdentitySchema, slot, &saved, &version ) )
+		return false;
+	if ( !saved.present )
+		return Bot_ReadWeightState( reader, slot, nullptr, false );
+	if ( saved.present != 1 || saved.nodes > MAX_SAVED_WEIGHT_NODES || !saved.filename[0] )
+		return false;
+	auto *reload = LibVarGet( "bot_reloadcharacters" );
+	if ( !reload )
+		return false;
+	const float previous = reload->value;
+	reload->value = 1;
+	auto *config = ReadWeightConfig( saved.filename );
+	reload->value = previous;
+	if ( !config )
+		return false;
+	if ( !Bot_ReadWeightState( reader, slot, config, true ) ) {
+		FreeWeightConfig2( config );
+		return false;
+	}
+	*output = config;
+	return true;
+}
+bool Bot_PrepareWeightCacheState( const stateReader_t &reader ) {
+	for ( const auto *config : weightFileList )
+		if ( config )
+			return false;
+	weightconfig_t *draft[MAX_WEIGHT_FILES] = {};
+	for ( uint32_t i = 0; i < MAX_WEIGHT_FILES; ++i )
+		if ( !Bot_CreateWeightState( reader, i, &draft[i] ) ) {
+			for ( auto *config : draft )
+				if ( config )
+					FreeWeightConfig2( config );
+			return false;
+		}
+	memcpy( weightFileList, draft, sizeof( draft ) );
+	return true;
+}

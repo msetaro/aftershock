@@ -398,12 +398,13 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wl,--gc-sections','-o',probe])
 run([probe])
 
-for component in ('input','move','weights','characters','chat_queue','chat_content','libvars','interface','aas_entities','aas_links','aas_world','aas_settings','aas_routing','bsp_content','parser'):
+for component in ('input','move','weights','weight_prepare','characters','chat_queue','chat_content','libvars','interface','aas_entities','aas_links','aas_world','aas_settings','aas_routing','bsp_content','parser'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',
          f'tests/probes/state_bot_{component}.cpp',
-         *(['engine/botlib/l_script.cpp'] if component=='parser' else []),
+         *(['engine/botlib/l_script.cpp'] if component in ('parser','weight_prepare') else []),
+         *(['engine/botlib/l_precomp.cpp'] if component=='weight_prepare' else []),
          'engine/qcommon/state.cpp',sha,
          '-Wl,--gc-sections','-o',probe])
     run([probe])

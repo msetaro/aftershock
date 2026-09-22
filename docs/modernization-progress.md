@@ -64,6 +64,20 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 shared and private weight reconstruction
+
+Weight preparation reuses ReadWeightConfig in its existing private-load mode,
+restores the libvar's cached value on return, verifies the saved topology, and
+applies learned values. The shared cache publishes only after all slots succeed;
+failed staging frees its allocations. Parser search-folder restoration must run
+after all content loading. The new test first failed on missing preparation APIs
+(state-weight-prepare-before.log), then passed with the real script/precompiler
+and fixed owned source on GCC and Clang/libc++ UBSan. It covers saved cache gaps,
+private ownership, unchanged libvar fields, changed content and missing final
+records with no leaked allocations. Build and focused tidy pass
+(state-weight-prepare-{gcc,clang,build,tidy}.log). Goal/weapon/chat preparation and
+full live coordination remain; no accepted fixture changed.
+
 ## #19 movement-pool reconstruction
 
 Movement preparation validates every saved record before allocating exact saved
