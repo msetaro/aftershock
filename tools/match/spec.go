@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strconv"
 
@@ -10,14 +13,16 @@ import (
 )
 
 type spec struct {
-	ID        string `json:"id"`
-	Map       string `json:"map"`
-	Mode      int    `json:"mode"`
-	FragLimit int    `json:"frag_limit"`
-	TimeLimit int    `json:"time_limit"`
-	Players   int    `json:"players"`
-	Password  string `json:"password"`
-	Token     string `json:"token"`
+	ID              string   `json:"id"`
+	Map             string   `json:"map"`
+	Mode            int      `json:"mode"`
+	FragLimit       int      `json:"frag_limit"`
+	TimeLimit       int      `json:"time_limit"`
+	Players         int      `json:"players"`
+	Password        string   `json:"password"`
+	Token           string   `json:"token"`
+	JoinKey         string   `json:"join_key,omitempty"`
+	ExpectedPlayers []string `json:"expected_players,omitempty"`
 }
 
 var identifier = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,64}$`)
@@ -28,13 +33,58 @@ func strictJSON(data []byte, out any) error {
 }
 
 func decodeSpec(data []byte) (spec, error) {
+	// Backend allocations carry the public v1 contract plus private pod credentials.
+	var allocation struct {
+		Match   json.RawMessage `json:"match"`
+		JoinKey string          `json:"join_key"`
+		Token   string          `json:"token"`
+	}
+	if err := strictJSON(data, &allocation); err == nil && len(allocation.Match) != 0 {
+		m, err := contracts.DecodeMatchSpec(allocation.Match)
+		if err != nil {
+			return spec{}, err
+		}
+		s := spec{ID: m.ID, Map: m.Map, Mode: m.Mode, Players: m.Slots,
+			FragLimit: m.Rules.FragLimit, TimeLimit: m.Rules.TimeLimit,
+			JoinKey: allocation.JoinKey, ExpectedPlayers: m.ExpectedPlayers, Token: allocation.Token}
+		if s.JoinKey == "" {
+			return spec{}, errors.New("allocation requires a join key")
+		}
+		return s, s.validate()
+	}
+	// Retain the original #28 password format and the private persisted pod format.
 	var s spec
 	if err := strictJSON(data, &s); err != nil {
 		return s, err
 	}
 	return s, s.validate()
 }
+func writeJoinConfig(home string, s spec) error {
+	if err := s.validate(); err != nil {
+		return err
+	}
+	if s.JoinKey == "" {
+		return nil
+	}
+	return writeJSON(filepath.Join(home, "match-join.json"), struct {
+		Version int      `json:"version"`
+		Match   string   `json:"match_id"`
+		Key     string   `json:"join_key"`
+		Players []string `json:"expected_players"`
+	}{1, s.ID, s.JoinKey, s.ExpectedPlayers})
+}
 func (s spec) validate() error {
+	if s.JoinKey != "" {
+		key, err := hex.DecodeString(s.JoinKey)
+		if err != nil || len(key) != 32 || hex.EncodeToString(key) != s.JoinKey || s.Password != "" || !secret.MatchString(s.Token) {
+			return errors.New("invalid private allocation credentials")
+		}
+		return (contracts.MatchSpec{Version: 1, ID: s.ID, Map: s.Map, Mode: s.Mode, Slots: s.Players,
+			Rules: contracts.Rules{FragLimit: s.FragLimit, TimeLimit: s.TimeLimit}, ExpectedPlayers: s.ExpectedPlayers}).Validate()
+	}
+	if len(s.ExpectedPlayers) != 0 {
+		return errors.New("expected players require signed admission")
+	}
 	if !identifier.MatchString(s.ID) || !identifier.MatchString(s.Map) || len(s.Map) > 48 || !secret.MatchString(s.Password) || !secret.MatchString(s.Token) ||
 		s.Mode < 0 || s.Mode > 4 || s.Players < 1 || s.Players > 64 || s.FragLimit < 0 || s.FragLimit > 10000 || s.TimeLimit < 0 || s.TimeLimit > 1440 || s.FragLimit+s.TimeLimit == 0 {
 		return errors.New("invalid match identifier, password/token, mode, limits or player count")
@@ -73,6 +123,9 @@ func serverArgs(s spec, content, home, game string, port int, warm bool) ([]stri
 		set("timelimit", "0")
 	}
 	set("capturelimit", "0")
+	if s.JoinKey != "" {
+		args = append(args, "+joinconfig")
+	}
 	return append(args, "+map", s.Map), nil
 }
 

@@ -43,6 +43,9 @@ bool SV_SetJoinConfig( const char *match, const char *key, const uint64_t *playe
 bool SV_JoinRequired() {
 	return joinRequired;
 }
+const char *SV_JoinMatch() {
+	return joinConfig.match;
+}
 static bool Expected( uint64_t player ) {
 	for ( uint32_t i = 0; i < joinConfig.count; ++i )
 		if ( joinConfig.players[i] == player )

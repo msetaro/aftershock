@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import hmac
+import http.server
 import json
 import os
 from pathlib import Path
@@ -10,11 +11,13 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from run import ROOT, SCRATCH, run
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--server', type=Path, required=True)
+parser.add_argument('--controller', type=Path, help='also verify a warm allocation through the real controller')
 parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-backend-join')
 args = parser.parse_args()
 args.output = args.output.resolve()
@@ -125,4 +128,54 @@ with tempfile.TemporaryDirectory(prefix='aftershock-backend-join-', dir=SCRATCH)
                     server.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     server.kill(); server.wait(timeout=5)
+    if args.controller:
+        # A local SDK endpoint delivers an owned allocation; the actual controller and
+        # dedicated server must load authentication before reporting allocation ready.
+        allocation = dict(match=dict(version=1, id='match-1', map='two_lane', mode=0, slots=4,
+                          rules=dict(frag_limit=20, time_limit=10), expected_players=['18446744073709551615']),
+                          join_key=key.hex(), token='local-ingest-secret')
+        class SDK(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):
+                self.rfile.read(int(self.headers.get('Content-Length', '0')))
+                self.send_response(200); self.end_headers(); self.wfile.write(b'{}')
+            def do_GET(self):
+                self.send_response(200); self.end_headers()
+                self.wfile.write(json.dumps(dict(object_meta=dict(annotations={'aftershock.dev/match':json.dumps(allocation)}),
+                                                 status=dict(state='Allocated'))).encode())
+            def log_message(self, *_):
+                pass
+        sdk = http.server.ThreadingHTTPServer(('127.0.0.1', 0), SDK)
+        worker = threading.Thread(target=sdk.serve_forever)
+        worker.start()
+        home = root/'controller-home'
+        log = args.output/'controller.log'
+        environment = dict(os.environ, MATCH_HOME=str(home), MATCH_CONTENT=str(root/'content'), MATCH_GAME='aftershock',
+                           MATCH_SERVER=str(args.server.resolve()), MATCH_PORT=str(address[1]), MATCH_MAP='two_lane',
+                           AGONES_SDK_HTTP_PORT=str(sdk.server_port))
+        try:
+            with log.open('w') as out:
+                server = subprocess.Popen([str(args.controller.resolve()), 'run'], env=environment,
+                                          stdout=out, stderr=subprocess.STDOUT)
+                try:
+                    wait_log('allocated match=match-1')
+                    output = log.read_text(errors='replace')
+                    assert output.index('Join configuration ready: match-1') < output.index('allocated match=match-1')
+                    assert (home/'match-join.json').stat().st_mode & 0o777 == 0o600
+                    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+                        client.bind(('127.0.0.1', 0))
+                        denied, _ = connect(client)
+                        assert 'Join ticket rejected' in denied
+                        signed = ticket(start=int(time.time()), nonce='ad'*16)
+                        reply, _ = connect(client, signed)
+                        assert reply.startswith('connectResponse '), reply
+                        assert key.hex() not in log.read_text() and signed not in log.read_text()
+                finally:
+                    if server.poll() is None:
+                        server.terminate()
+                        try: server.wait(timeout=10)
+                        except subprocess.TimeoutExpired:
+                            server.kill(); server.wait(timeout=5)
+        finally:
+            sdk.shutdown(); sdk.server_close(); worker.join(timeout=5)
+        print('PASS: real controller warm allocation waits for configured signed admission')
 print('PASS: actual UDP admission, expected players, lost-response retry, endpoint binding and replay rejection')

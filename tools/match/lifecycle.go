@@ -32,7 +32,7 @@ func randomID() string {
 	}
 	return hex.EncodeToString(b[:])
 }
-func probe(address, mapName string) error {
+func probeMatch(address, mapName, matchID string) error {
 	connection, err := net.DialTimeout("udp", address, time.Second)
 	if err != nil {
 		return err
@@ -52,8 +52,12 @@ func probe(address, mapName string) error {
 	if !strings.HasPrefix(value, "\xff\xff\xff\xffinfoResponse\n") || !strings.Contains(value, "\\challenge\\"+nonce) || !strings.Contains(value, "\\mapname\\"+mapName+"\\") {
 		return errors.New("server has not loaded the requested map")
 	}
+	if matchID != "" && !strings.Contains(value+"\\", "\\as_match\\"+matchID+"\\") {
+		return errors.New("server has not loaded the requested join configuration")
+	}
 	return nil
 }
+func probe(address, mapName string) error { return probeMatch(address, mapName, "") }
 func sdk(ctx context.Context, method, path string, out any) error {
 	port, err := strconv.Atoi(env("AGONES_SDK_HTTP_PORT", "9358"))
 	if err != nil || port < 1024 || port > 65535 {
@@ -123,6 +127,9 @@ func runServer(ctx context.Context) error {
 		return err
 	}
 	if !agones {
+		if err = writeJoinConfig(home, s); err != nil {
+			return err
+		}
 		if err = writeJSON(filepath.Join(home, "match.json"), s); err != nil {
 			return err
 		}
@@ -159,7 +166,7 @@ func runServer(ctx context.Context) error {
 	}()
 	address := "127.0.0.1:" + strconv.Itoa(port)
 	deadline := time.Now().Add(time.Minute)
-	ready, allocated := false, !agones
+	ready, allocated, configured := false, !agones, !agones
 	var processError error
 	for {
 		select {
@@ -170,8 +177,12 @@ func runServer(ctx context.Context) error {
 			return ctx.Err()
 		case <-time.After(time.Second):
 		}
-		if err = probe(address, s.Map); err != nil {
-			if !ready && time.Now().After(deadline) {
+		matchID := ""
+		if configured && s.JoinKey != "" {
+			matchID = s.ID
+		}
+		if err = probeMatch(address, s.Map, matchID); err != nil {
+			if (!ready || !allocated) && time.Now().After(deadline) {
 				return errors.New("server readiness timed out")
 			}
 			continue
@@ -190,7 +201,11 @@ func runServer(ctx context.Context) error {
 				ready = true
 				fmt.Println("Agones Ready after loaded-map UDP probe")
 			}
-			if !allocated {
+			if configured && !allocated {
+				allocated = true
+				fmt.Printf("allocated match=%s\n", s.ID)
+			}
+			if !configured {
 				var gs struct {
 					ObjectMeta struct {
 						Annotations map[string]string `json:"annotations"`
@@ -213,15 +228,21 @@ func runServer(ctx context.Context) error {
 				if s.Map != env("MATCH_MAP", "two_lane") {
 					return errors.New("allocated map differs from warm Fleet map")
 				}
+				if err = writeJoinConfig(home, s); err != nil {
+					return err
+				}
 				if err = writeJSON(filepath.Join(home, "match.json"), s); err != nil {
 					return err
 				}
-				commands := fmt.Sprintf("set g_password %s\nset sv_maxclients %d\nset g_gametype %d\nset fraglimit %d\nset timelimit %d\nmap %s\n", s.Password, s.Players, s.Mode, s.FragLimit, s.TimeLimit, s.Map)
+				commands := fmt.Sprintf("set g_password \"%s\"\nset sv_maxclients %d\nset g_gametype %d\nset fraglimit %d\nset timelimit %d\nmap %s\n", s.Password, s.Players, s.Mode, s.FragLimit, s.TimeLimit, s.Map)
+				if s.JoinKey != "" {
+					commands = "joinconfig\n" + commands
+				}
 				if _, err = io.WriteString(stdin, commands); err != nil {
 					return err
 				}
-				allocated = true
-				fmt.Printf("allocated match=%s\n", s.ID)
+				configured = true
+				deadline = time.Now().Add(time.Minute)
 			}
 		} else if !ready {
 			ready = true

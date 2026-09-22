@@ -278,3 +278,31 @@ func TestBackendAllocation(t *testing.T) {
 		t.Fatal("private persisted spec cannot be revalidated", err)
 	}
 }
+
+func TestJoinReadiness(t *testing.T) {
+	for _, configured := range []string{"", "other", "backend-1"} {
+		socket, err := net.ListenPacket("udp", "127.0.0.1:0")
+		if err != nil {
+			t.Fatal(err)
+		}
+		done := make(chan error, 1)
+		go func() {
+			buffer := make([]byte, 4096)
+			socket.SetDeadline(time.Now().Add(2 * time.Second))
+			n, peer, err := socket.ReadFrom(buffer)
+			if err == nil {
+				fields := strings.Fields(string(buffer[:n]))
+				_, err = socket.WriteTo([]byte("\xff\xff\xff\xffinfoResponse\n\\challenge\\"+fields[1]+"\\mapname\\two_lane\\as_match\\"+configured), peer)
+			}
+			done <- err
+		}()
+		err = probeMatch(socket.LocalAddr().String(), "two_lane", "backend-1")
+		if e := <-done; e != nil {
+			t.Fatal(e)
+		}
+		socket.Close()
+		if (err == nil) != (configured == "backend-1") {
+			t.Fatal("readiness ignored match authentication", configured, err)
+		}
+	}
+}

@@ -62,22 +62,48 @@ Resume the active predecessor gates before any later issue can merge:
 All 26 exact-head and integrated jobs pass (merged build 35757322676 and regression
 35757322732). Merge tree c14c33d3 equals the tested head; issue #21 and #25 are updated.
 
-#22 draft PR178 final head b23ef158 includes that accepted main. Build 35757405874
-passes all 16 compiler jobs; regression 35757405820 has only runtime pending.
-Local combined AI/profiling gates pass. Require all 26 final checks, fresh main/base/
-head/tag verification and self-review before merging, then check the merged tree.
+#22 PR178 merged as main aa96932abb13f761d0a71dde89f95d33893a45c8 at
+2026-09-22 18:28:14 UTC after all 26 exact-head jobs passed on b23ef158. Final
+self-review and current-main/base/head/tag checks pass; merge tree 309bac591a8225478a52321b0205a547f885a996
+matches the tested tree. Integrated build 35767363858/regression 35767363841 are running.
 
-#23 draft PR179 remote head 0bb8070e has passed the initial 16 builds and nine
-regression jobs. The remaining initial runtime was cancelled as superseded.
-Local services-tree b38ae7be includes AI/profiling preparation and Steam deferral
-#180. Merge accepted #22 main, push and run all fresh final gates before merging.
-Only the bounded interface/null and deterministic-provider contract scope is due
-now; Steam SDK/provider/transport/live acceptance is explicitly deferred to #180.
+#23 draft PR179 final head 1f395716 includes merged #22 main aa96932a. Combined
+GCC/Clang UBSan services, identity/discovery, format and affected/suite catalog
+checks pass. Final build 35767480303/regression 35767480297 are running; require all
+26 jobs and integrated #22 acceptance, then fresh main/head/base/tag checks and
+self-review before merge. Steam integration/live acceptance is deferred to #180.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
+
+## #29 controller authenticated allocation
+
+The controller consumes the v1 MatchSpec inside a private allocation envelope,
+writes its join key/expected players through the existing atomic 0600 file writer,
+and loads join configuration before clearing the warm-server password. Its existing
+loaded-map UDP readiness probe now also checks the configured match ID; writing
+stdin alone never marks a backend allocation ready. Legacy #28 password specs and
+private persisted-spec revalidation remain supported. The match image now copies
+the new shared contracts package explicitly.
+Full Go race tests, including invalid private allocations and wrong/missing match
+readiness, pass. The real warm controller/dedicated server gate passes with a local
+SDK endpoint, followed by unsigned rejection/signed admission. Existing legacy
+controller -> engine -> shipper -> durable stub completion also passes. The complete
+match image builds as aftershock-match:issue29; production tidy and format/type/
+boundary checks pass. Evidence: backend-allocation-after.log, backend-controller.log,
+backend-legacy-controller.log, backend-container-build.log. No accepted fixtures changed.
+
+Next persistent-tier decision: reuse Go net/http and database/sql, with PostgreSQL
+for shared durable profile/session/party/queue state across HPA replicas. Use pgx's
+existing database/sql driver rather than an ORM or custom protocol. Primary references:
+https://github.com/jackc/pgx/wiki/Getting-started-with-pgx-through-database-sql and
+https://www.postgresql.org/docs/18/transaction-iso.html. Driver metadata resolves to
+v5.11.0; the reviewed postgres:18-bookworm manifest is
+sha256:3725f4e2499eef5134592b3b4ab79a543ed7f8e533b05b5b637af926630f6650 (18.6).
+No database service/driver implementation is added yet; write its failing integration
+contract next. #29 remains read-only for match results; durable match writes stay #30.
 
 ## #29 controller allocation contract, test first
 

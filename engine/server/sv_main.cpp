@@ -800,6 +800,9 @@ static void SVC_Info( const netadr_t *from ) {
 		Info_SetValueForKey( infostring, "game", gamedir );
 	}
 
+	if ( SV_JoinRequired() )
+		Info_SetValueForKey( infostring, "as_match", SV_JoinMatch() );
+
 	NET_OutOfBandPrint( NS_SERVER, from, "infoResponse\n%s", infostring );
 }
 

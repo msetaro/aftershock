@@ -20,6 +20,7 @@ WORKDIR /source
 COPY tools/match/go.mod tools/match/go.sum ./
 RUN go mod download
 COPY tools/match/*.go ./
+COPY tools/match/contracts/ contracts/
 RUN CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /match . && mkdir /empty && touch /empty/.keep
 
 FROM gcr.io/distroless/cc-debian12:nonroot@sha256:9dac0a79194e45a7da0158a9c6da57b217585af0786db3845d1f0ec1a0dd182f
