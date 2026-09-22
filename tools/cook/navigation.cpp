@@ -132,7 +132,7 @@ int main( int argc, char **argv ) {
 						 fabsf( link.start[i] ) <= 131072 && fabsf( link.end[i] ) <= 131072,
 				"link coordinates" );
 		Require( std::isfinite( link.radius ) && link.radius > 0 && link.radius <= 256 && link.bidirectional <= 1 &&
-					 link.kind >= 1 && link.kind <= 3 && link.id,
+					 link.kind >= 1 && link.kind <= 4 && link.id,
 			"link settings" );
 	}
 	int checksum = 0;
@@ -173,7 +173,7 @@ int main( int argc, char **argv ) {
 	rcContourSet contours;
 	Require( rcBuildContours( &context, compact, config.maxSimplificationError, config.maxEdgeLen, contours ), "contours" );
 	rcPolyMesh polygons;
-	Require( rcBuildPolyMesh( &context, contours, config.maxVertsPerPoly, polygons ) && polygons.npolys > 0 && polygons.npolys <= 32768, "polygons" );
+	Require( rcBuildPolyMesh( &context, contours, config.maxVertsPerPoly, polygons ) && polygons.npolys > 0 && polygons.npolys <= 32768 - int( parameters.links ) && polygons.nverts < 65535 - 2 * int( parameters.links ), "polygons and off-mesh vertex capacity" );
 	rcPolyMeshDetail detail;
 	Require( rcBuildPolyMeshDetail( &context, polygons, compact, config.detailSampleDist, config.detailSampleMaxError, detail ), "detail" );
 	for ( int i = 0; i < polygons.npolys; ++i ) {
@@ -226,7 +226,7 @@ int main( int argc, char **argv ) {
 	create.buildBvTree = true;
 	unsigned char *data = nullptr;
 	int size = 0;
-	Require( dtCreateNavMeshData( &create, &data, &size ) && size > 0 && size <= 16 * 1024 * 1024, "Detour tile" );
+	Require( dtCreateNavMeshData( &create, &data, &size ) && size > 0 && size <= 16 * 1024 * 1024 - 112, "Detour tile plus envelope capacity" );
 	FILE *output = fopen( argv[3], "wb" );
 	Require( output && fwrite( data, 1, size_t( size ), output ) == size_t( size ) && fclose( output ) == 0, "output" );
 	dtFree( data );

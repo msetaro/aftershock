@@ -108,7 +108,7 @@ static bool TileValid( const uint8_t *data, size_t size, const navFileHeader_t &
 		const bool link = i >= h.offMeshBase;
 		if ( poly.vertCount < ( link ? 2 : 3 ) || poly.vertCount > ( link ? 2 : DT_VERTS_PER_POLYGON ) ||
 			 poly.getType() != ( link ? DT_POLYTYPE_OFFMESH_CONNECTION : DT_POLYTYPE_GROUND ) ||
-			 poly.flags != ( link ? 2 : 1 ) || poly.getArea() > 3 )
+			 poly.flags != ( link ? 2 : 1 ) || ( link ? ( poly.getArea() < NAV_LINK_JUMP || poly.getArea() > NAV_LINK_LAUNCH ) : poly.getArea() != 0 ) )
 			return false;
 		for ( int j = 0; j < poly.vertCount; ++j )
 			if ( poly.verts[j] >= h.vertCount || poly.neis[j] > h.detailMeshCount )
@@ -258,6 +258,10 @@ bool Nav_Path( navWorld_t *world, const float start[3], const float end[3], bool
 		if ( !link )
 			break;
 		out->points[out->count - 1].link = link->userId;
+		unsigned char kind;
+		if ( dtStatusFailed( world->mesh->getPolyArea( corridor[next], &kind ) ) )
+			return false;
+		out->points[out->count - 1].kind = navLinkKind_t( kind );
 		std::memcpy( a, landing, sizeof( a ) );
 		first = next + 1;
 	}

@@ -52,6 +52,22 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 off-mesh action metadata and observed pad link
+
+After 6bf8f3b9's failing test, native waypoints expose the cooked jump/drop/door/
+launch action alongside the authored ID. The added launch kind represents an
+existing map impulse rather than synthesizing a gameplay jump. Both compiler
+UBSan drivers pass ordinary-jump and incrementally recooked launch cases. Cooker
+limits now reserve capacity for off-mesh polygons/vertices and the outer envelope,
+so accepted output stays within the native tile/file bounds.
+
+A private link for the observed q3dm17 *5 pad increases complete spawn-pair routes
+from 24 to 27 (83 still partial). All 11 steering queries and 531 cover candidates
+remain available with zero tick allocations (navigation-q3-launch-{cook,query}.log).
+The derived assets and trajectory stay private. This is route/action preparation;
+actual native bot movement, pad execution, combat and checkpoint continuation
+are still required and no #21 PR is open.
+
 ## #21 off-mesh action identity, test first
 
 A private current-main client observation confirms q3dm17's *5 jump pad lands

@@ -4,9 +4,15 @@
 #include <stdint.h>
 
 constexpr uint32_t NAV_MAX_POINTS = 256;
+enum navLinkKind_t : uint32_t { NAV_LINK_NONE,
+	NAV_LINK_JUMP,
+	NAV_LINK_DROP,
+	NAV_LINK_DOOR,
+	NAV_LINK_LAUNCH };
 struct navPoint_t {
 	float position[3];
 	uint32_t link; // Authored off-mesh ID at the beginning of that segment, or zero.
+	navLinkKind_t kind;
 };
 struct navPath_t {
 	navPoint_t points[NAV_MAX_POINTS];

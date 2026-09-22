@@ -233,7 +233,7 @@ def navigation_schema():
     agent = obj(dict(radius=num(.125,128), height=num(8,256), climb=num(0,255), slope=num(.1,84.9)))
     link = obj(dict(id=num(1,4294967295,True), start=vector(-131072,131072,False),
                     end=vector(-131072,131072,False), radius=num(.125,256),
-                    bidirectional=dict(type='boolean'), kind=enum('jump','drop','door')))
+                    bidirectional=dict(type='boolean'), kind=enum('jump','drop','door','launch')))
     return obj(dict(version=dict(const=1), collision=qpath(), agent=agent,
                     cell_size=num(1,32), cell_height=num(.5,16), links=array(link,0,256)))
 

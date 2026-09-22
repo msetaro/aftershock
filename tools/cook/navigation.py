@@ -25,7 +25,7 @@ def cook(path, name, read):
     parameters = bytearray(struct.pack('<6fI', *values, len(links)))
     for link in links:
         parameters.extend(struct.pack('<7f3I', *link['start'], *link['end'], link['radius'],
-                                      int(link['bidirectional']), ('jump', 'drop', 'door').index(link['kind'])+1, link['id']))
+                                      int(link['bidirectional']), ('jump', 'drop', 'door', 'launch').index(link['kind'])+1, link['id']))
     vendor = texture.ROOT/'third_party/recast'
     provenance = json.loads((vendor/'provenance.json').read_text())
     for source_path, expected in provenance['files'].items():
