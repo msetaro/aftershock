@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "q_shared.h"
 #include "qcommon_public.h"
 #include "voice_public.h"
+#ifdef AFTERSHOCK_DEVTOOLS
+#include "../devtools/devtools_public.h"
+#endif
 
 static int pcount[256];
 
@@ -688,6 +691,9 @@ typedef struct {
 } netField_t;
 
 #include "replication.inc"
+#ifdef AFTERSHOCK_DEVTOOLS
+static_assert( ARRAY_LEN( entityStateFields ) <= 64 && ARRAY_LEN( playerStateFields ) <= 60 );
+#endif
 
 const char *MSG_ReplicationSchema( void ) {
 	return replicationSchema;
@@ -772,11 +778,18 @@ void MSG_WriteDeltaEntity( msg_t *msg, const entityState_t *from, const entitySt
 	MSG_WriteByte( msg, lc ); // # of changes
 
 	for ( i = 0, field = entityStateFields; i < lc; i++, field++ ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+		const int fieldStart = msg->bit;
+#endif
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
 
 		if ( *fromF == *toF ) {
 			MSG_WriteBits( msg, 0, 1 ); // no change
+
+#ifdef AFTERSHOCK_DEVTOOLS
+			DevTools_NetworkField( true, false, (uint32_t)i, field->name, msg->bit - fieldStart );
+#endif
 			continue;
 		}
 
@@ -811,6 +824,9 @@ void MSG_WriteDeltaEntity( msg_t *msg, const entityState_t *from, const entitySt
 				MSG_WriteBits( msg, *toF, field->bits );
 			}
 		}
+#ifdef AFTERSHOCK_DEVTOOLS
+		DevTools_NetworkField( true, false, (uint32_t)i, field->name, msg->bit - fieldStart );
+#endif
 	}
 }
 
@@ -888,6 +904,9 @@ void MSG_ReadDeltaEntity( msg_t *msg, const entityState_t *from, entityState_t *
 #endif
 
 	for ( i = 0, field = entityStateFields; i < lc; i++, field++ ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+		const int fieldStart = msg->bit;
+#endif
 		fromF = (const int *)( (const byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
 
@@ -930,6 +949,9 @@ void MSG_ReadDeltaEntity( msg_t *msg, const entityState_t *from, entityState_t *
 			}
 			//			pcount[i]++;
 		}
+#ifdef AFTERSHOCK_DEVTOOLS
+		DevTools_NetworkField( false, false, (uint32_t)i, field->name, msg->bit - fieldStart );
+#endif
 	}
 	for ( i = lc, field = &entityStateFields[lc]; i < numFields; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
@@ -994,11 +1016,18 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 	MSG_WriteByte( msg, lc ); // # of changes
 
 	for ( i = 0, field = playerStateFields; i < lc; i++, field++ ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+		const int fieldStart = msg->bit;
+#endif
 		fromF = (const int *)( (byte *)from + field->offset );
 		toF = (const int *)( (byte *)to + field->offset );
 
 		if ( *fromF == *toF ) {
 			MSG_WriteBits( msg, 0, 1 ); // no change
+
+#ifdef AFTERSHOCK_DEVTOOLS
+			DevTools_NetworkField( true, true, (uint32_t)i, field->name, msg->bit - fieldStart );
+#endif
 			continue;
 		}
 
@@ -1024,6 +1053,9 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 			// integer
 			MSG_WriteBits( msg, *toF, field->bits );
 		}
+#ifdef AFTERSHOCK_DEVTOOLS
+		DevTools_NetworkField( true, true, (uint32_t)i, field->name, msg->bit - fieldStart );
+#endif
 	}
 
 
@@ -1061,6 +1093,9 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 	}
 	MSG_WriteBits( msg, 1, 1 ); // changed
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	const int arrayStart0 = msg->bit;
+#endif
 	if ( statsbits ) {
 		MSG_WriteBits( msg, 1, 1 ); // changed
 		MSG_WriteBits( msg, statsbits, MAX_STATS );
@@ -1070,8 +1105,14 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 	} else {
 		MSG_WriteBits( msg, 0, 1 ); // no change
 	}
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_NetworkField( true, true, 60, "stats", msg->bit - arrayStart0 );
+#endif
 
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	const int arrayStart1 = msg->bit;
+#endif
 	if ( persistantbits ) {
 		MSG_WriteBits( msg, 1, 1 ); // changed
 		MSG_WriteBits( msg, persistantbits, MAX_PERSISTANT );
@@ -1081,8 +1122,14 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 	} else {
 		MSG_WriteBits( msg, 0, 1 ); // no change
 	}
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_NetworkField( true, true, 61, "persistant", msg->bit - arrayStart1 );
+#endif
 
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	const int arrayStart2 = msg->bit;
+#endif
 	if ( ammobits ) {
 		MSG_WriteBits( msg, 1, 1 ); // changed
 		MSG_WriteBits( msg, ammobits, MAX_WEAPONS );
@@ -1092,8 +1139,14 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 	} else {
 		MSG_WriteBits( msg, 0, 1 ); // no change
 	}
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_NetworkField( true, true, 62, "ammo", msg->bit - arrayStart2 );
+#endif
 
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	const int arrayStart3 = msg->bit;
+#endif
 	if ( powerupbits ) {
 		MSG_WriteBits( msg, 1, 1 ); // changed
 		MSG_WriteBits( msg, powerupbits, MAX_POWERUPS );
@@ -1103,6 +1156,9 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 	} else {
 		MSG_WriteBits( msg, 0, 1 ); // no change
 	}
+#ifdef AFTERSHOCK_DEVTOOLS
+	DevTools_NetworkField( true, true, 63, "powerups", msg->bit - arrayStart3 );
+#endif
 }
 
 
@@ -1156,6 +1212,9 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 	}
 
 	for ( i = 0, field = playerStateFields; i < lc; i++, field++ ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+		const int fieldStart = msg->bit;
+#endif
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
 
@@ -1189,6 +1248,9 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 				}
 			}
 		}
+#ifdef AFTERSHOCK_DEVTOOLS
+		DevTools_NetworkField( false, true, (uint32_t)i, field->name, msg->bit - fieldStart );
+#endif
 	}
 	for ( i = lc, field = &playerStateFields[lc]; i < numFields; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
@@ -1200,6 +1262,9 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 
 	// read the arrays
 	if ( MSG_ReadBits( msg, 1 ) ) {
+#ifdef AFTERSHOCK_DEVTOOLS
+		const int arrayStart0 = msg->bit;
+#endif
 		// parse stats
 		if ( MSG_ReadBits( msg, 1 ) ) {
 			LOG( "PS_STATS" );
@@ -1210,7 +1275,13 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 				}
 			}
 		}
+#ifdef AFTERSHOCK_DEVTOOLS
+		DevTools_NetworkField( false, true, 60, "stats", msg->bit - arrayStart0 );
+#endif
 
+#ifdef AFTERSHOCK_DEVTOOLS
+		const int arrayStart1 = msg->bit;
+#endif
 		// parse persistant stats
 		if ( MSG_ReadBits( msg, 1 ) ) {
 			LOG( "PS_PERSISTANT" );
@@ -1221,7 +1292,13 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 				}
 			}
 		}
+#ifdef AFTERSHOCK_DEVTOOLS
+		DevTools_NetworkField( false, true, 61, "persistant", msg->bit - arrayStart1 );
+#endif
 
+#ifdef AFTERSHOCK_DEVTOOLS
+		const int arrayStart2 = msg->bit;
+#endif
 		// parse ammo
 		if ( MSG_ReadBits( msg, 1 ) ) {
 			LOG( "PS_AMMO" );
@@ -1232,7 +1309,13 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 				}
 			}
 		}
+#ifdef AFTERSHOCK_DEVTOOLS
+		DevTools_NetworkField( false, true, 62, "ammo", msg->bit - arrayStart2 );
+#endif
 
+#ifdef AFTERSHOCK_DEVTOOLS
+		const int arrayStart3 = msg->bit;
+#endif
 		// parse powerups
 		if ( MSG_ReadBits( msg, 1 ) ) {
 			LOG( "PS_POWERUPS" );
@@ -1243,6 +1326,9 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 				}
 			}
 		}
+#ifdef AFTERSHOCK_DEVTOOLS
+		DevTools_NetworkField( false, true, 63, "powerups", msg->bit - arrayStart3 );
+#endif
 	}
 
 	if ( print ) {

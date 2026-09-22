@@ -612,6 +612,7 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 			break;
 
 		case EV_FIRE_WEAPON:
+			G_NavigationNoise( ent->s.number );
 			FireWeapon( ent );
 			break;
 

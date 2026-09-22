@@ -162,7 +162,12 @@ int main() {
 	if ( version == 1 )
 		savedCurrent.armor = 25;
 	assert( savedCurrent.health == 73 && savedCurrent.armor == 25 && savedCurrent.identity == previous.identity );
-	assert( !State_Find( reader, currentSchema, 20, &savedCurrent, &version ) );
+	// Optional new owners must distinguish an old save's absent record from an
+	// existing record that fails schema validation; only absence may migrate.
+	bool present = true;
+	assert( !State_Find( reader, currentSchema, 20, &savedCurrent, &version, &present ) && !present );
+	assert( !State_Find( reader, smallSchema, 19, &savedCurrent, &version, &present ) && present );
+	assert( State_Find( reader, currentSchema, 19, &savedCurrent, &version, &present ) && present );
 	assert( !State_Append( &writer, previousSchema, 7, &previous ) && !State_Finish( &writer ) );
 	archive[archiveSize - 1] ^= 1;
 	assert( !State_Open( archive, archiveSize, &reader ) );

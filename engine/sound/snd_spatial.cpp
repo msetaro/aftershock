@@ -80,12 +80,7 @@ bool S_CalculateSpatial( const sSpatialInput_t &input, sSpatialOutput_t *output 
 		}
 	}
 	pan = std::clamp( pan, -1.0, 1.0 );
-	const double beyond = std::max( 0.0, distance - input.referenceDistance );
-	double gain;
-	if ( input.model == S_DISTANCE_LINEAR )
-		gain = std::max( 0.0, 1.0 - input.rolloff * beyond / ( double( input.maxDistance ) - input.referenceDistance ) );
-	else
-		gain = input.referenceDistance / ( input.referenceDistance + input.rolloff * beyond );
+	const double gain = S_DistanceGain( distance, input.referenceDistance, input.maxDistance, input.rolloff, input.model );
 	output->left = float( gain * std::sqrt( ( 1.0 - pan ) * 0.5 ) );
 	output->right = float( gain * std::sqrt( ( 1.0 + pan ) * 0.5 ) );
 	// Clamp radial velocities before division so sonic crossings stay finite.

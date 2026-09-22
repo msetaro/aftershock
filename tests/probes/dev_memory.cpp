@@ -1,7 +1,6 @@
 // Traverse real zone lists, including segment separators and free blocks.
 #include "../../engine/qcommon/common.cpp"
 #include <assert.h>
-
 int main() {
 	memzone_t zone = {};
 	memblock_t blocks[4] = {};
@@ -25,6 +24,7 @@ int main() {
 	assert( memory.bytes[TAG_FREE] == 128 && memory.bytes[TAG_DEVTOOLS] == 256 );
 	assert( !strcmp( memory.names[TAG_DEVTOOLS], "DEVTOOLS" ) );
 	assert( memory.hunkTotal == 1000 && memory.hunkPermanent == 400 && memory.hunkTemporary == 100 && memory.hunkFree == 500 );
+	assert( memory.hunkBytes[0] == 100 && memory.hunkBytes[1] == 300 && memory.hunkBytes[2] == 100 && memory.hunkBytes[3] == 0 );
 	mainzone = nullptr;
 	Com_DeveloperMemory( &memory );
 	assert( memory.bytes[TAG_GENERAL] == 0 && memory.blocks[TAG_GENERAL] == 0 );

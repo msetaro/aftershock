@@ -31,8 +31,8 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 ## Next action
 
 
-Active isolated preparation is issue/29-backend-services in backend-tree, branched
-from main 13106135 while the earlier required checks finish. Preserve merge order
+Active work is issue/29-backend-services in backend-tree. Accepted main aa96932a
+(#21/#22) is merged forward; production files merge automatically. Preserve merge order
 #21 -> #22 -> #23, record #24's existing SDK dependency, then #29 -> #30. #180 owns
 the maintainer-deferred Steam SDK/live acceptance and does not block this work.
 The #29 issue and existing Go match controller/spec, identity lifecycle and
@@ -45,8 +45,10 @@ tests also pass after moving its unchanged bounded JSON decoder into the shared
 contract package. The native verifier and nonce store now pass both compiler UBSan probes, using
 the same Python signature oracle and correctly signed invalid-claim controls.
 Server identity/connect, persistent authentication/profile/parties and durable queue
-recovery now pass their local tests. Next: read-only results and verified account
-attribution, native HTTPS/UI, deployment and real client/kind acceptance.
+recovery, verified result attribution, read-only results and native HTTPS transport
+now pass their local tests. Next: harden ambiguous allocation recovery, then native
+login/queue/profile UI, deployment and real client/kind acceptance. #23 remains
+unmerged while its final required runtime job runs; merge it only after all gates.
 
 Resume the active predecessor gates before any later issue can merge:
 - #31 PR174 is fully accepted on main 5caa2c1c; #31 is closed again.
@@ -560,6 +562,15 @@ and never reenters Com_Error. Real Steam acceptance still needs an authorized Ap
 running logged-in clients and a designated invite recipient; do not invent them.
 References: https://partner.steamgames.com/doc/sdk/api and the ISteamUser and
 ISteamMatchmaking API pages. No external repository writes were performed.
+
+## #21 merge and #22 final-main integration
+
+PR177 is merged after all 26 exact-head required checks pass. Main 7c24808f has
+the same c14c33d3 tree as tested head 2cefd7e3. The immutable rollback tag remains
+unchanged. #22 merges that main forward before its final hosted gate; production
+content is unchanged from the previously validated local AI/profiling combination.
+The merged-main #21 workflow still must pass before #22 can merge. Issue #21's
+final self-review is comment 5780532779. No accepted fixtures changed.
 
 ## #22 combined AI validation
 

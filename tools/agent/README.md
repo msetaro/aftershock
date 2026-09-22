@@ -46,7 +46,12 @@ world position, entity number or classname; entity targets use live bounds.
 kills, errors, asserts, warnings and `p99_ms`. Frame times measure the actual host,
 so choose performance limits for the runner; simulation still uses fixed dt.
 
-`report.json` retains per-step results, final profile/state, events and PNG paths.
+`report.json` retains per-step results, final profile/state, events and PNG paths. The
+`profile` request also accepts `age` (0..239), `peak: true`, `select: true` and
+`reset: true`. Selection drives the overlay's retained CPU hierarchy. Reset clears
+CPU history/selection and network counters. Results include parent/self scope
+costs, frame history, render/memory counters, the latest 64 datagram records and
+compressed delta-field bit totals; see tests/README.md for accounting boundaries.
 The process exits 1 and retains an error path/hint plus `engine.log` on a playtest
 failure. Invalid scripts fail before launch with file/path/type diagnostics.
 Build output is in `build.log`. Each launch has a private home and automatic

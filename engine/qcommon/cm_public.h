@@ -67,6 +67,8 @@ int CM_WriteAreaBits( byte *buffer, int area );
 // Load-time solid world triangles; excludes inline models. Callback false stops
 // export cleanly (for a caller capacity limit). Never used by native CM traces.
 bool CM_PhysicsTriangles( bool ( *triangle )( void *context, const float *a, const float *b, const float *c ), void *context );
+// Offline navigation also requests player-clip geometry through the same exporter.
+bool CM_PhysicsTriangles( bool ( *triangle )( void *context, const float *a, const float *b, const float *c ), void *context, int contentsMask );
 
 // cm_patch.c
 void CM_DrawDebugSurface( void ( *drawPoly )( int color, int numPoints, float *points ) );

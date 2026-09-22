@@ -14,6 +14,14 @@ static struct {
 } weaponActors[MAX_CLIENTS];
 static vmCvar_t weaponTrace;
 
+bool G_WeaponNeedsReload( int owner ) {
+	if ( owner < 0 || owner >= level.maxclients || !weaponActors[owner].active )
+		return false;
+	const auto &actor = weaponActors[owner];
+	const auto &state = actor.inventory[0][actor.selected[0]];
+	return !state.magazine && state.reserve && state.reloadStage == WEAPON_NO_STAGE;
+}
+
 #ifdef AFTERSHOCK_DEVTOOLS
 bool G_DevWeapon( int owner, int hand, devWeaponState_t *out ) {
 	if ( owner < 0 || owner >= level.maxclients || hand < 0 || hand > 1 || !weaponActors[owner].active )
@@ -392,6 +400,8 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 				WeaponNotify( player, hand, selected, notifies.items[i] );
 			for ( uint32_t i = 0; i < events.count; ++i ) {
 				const auto &event = events.items[i];
+				if ( event.kind == WEAPON_SHOT )
+					G_NavigationNoise( owner );
 				if ( event.kind == WEAPON_MELEE_EVENT || ( event.kind == WEAPON_SHOT && definition->ballistics == WEAPON_HITSCAN ) )
 					WeaponHit( player, definition, event, selected );
 				else if ( event.kind == WEAPON_SHOT )

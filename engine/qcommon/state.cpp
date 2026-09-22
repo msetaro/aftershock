@@ -271,7 +271,9 @@ bool State_Open( const void *data, size_t size, stateReader_t *reader ) {
 	*reader = { data, size, records };
 	return true;
 }
-bool State_Find( const stateReader_t &reader, const stateSchema_t &schema, uint32_t slot, void *object, uint32_t *sourceVersion ) {
+bool State_Find( const stateReader_t &reader, const stateSchema_t &schema, uint32_t slot, void *object, uint32_t *sourceVersion, bool *present ) {
+	if ( present )
+		*present = false;
 	if ( !reader.data || reader.records > ARCHIVE_RECORDS || !Schema( schema ) )
 		return false;
 	// ponytail: linear lookup for bounded explicit saves; add a caller-owned index if load time warrants it.
@@ -282,8 +284,11 @@ bool State_Find( const stateReader_t &reader, const stateSchema_t &schema, uint3
 		stateHeader_t header;
 		if ( !ArchiveEntry( bytes, reader.size, offset, &entry, &header ) )
 			return false;
-		if ( entry.slot == slot && !strcmp( header.name, schema.name ) )
+		if ( entry.slot == slot && !strcmp( header.name, schema.name ) ) {
+			if ( present )
+				*present = true;
 			return State_Read( schema, bytes + offset + sizeof( entry ), entry.size, object, sourceVersion );
+		}
 		offset += sizeof( entry ) + entry.size;
 	}
 	return false;
