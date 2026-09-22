@@ -100,3 +100,7 @@ int BotAllocWeaponState( void );
 void BotFreeWeaponState( int weaponstate );
 //resets the whole weapon state
 void BotResetWeaponState( int weaponstate );
+
+#include "../public/state_public.h"
+bool Bot_WriteWeaponState( stateWriter_t *writer );
+bool Bot_ReadWeaponState( const stateReader_t &reader, bool apply );

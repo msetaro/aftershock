@@ -58,6 +58,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 bot weapon-weight ownership
+
+Weapon-pool checkpoints verify pointer-free weapon/projectile descriptors and the
+weapon-to-weight index map, retain shared cache-slot references and restore private
+weight values. The loaded descriptors have explicit no-padding size assertions.
+GCC and Clang/libc++ UBSan prove the same best-weapon choice after relocation and
+reject changed definitions, changed indices and missing values before mutation
+(state-bot-weapons-{gcc,clang}.log). Build and focused tidy pass. Character/chat,
+immutable location/camp identity, AAS/libvars and full reconstruction remain open.
+
 ## #19 bot level-item allocation state
 
 Level-item checkpoints retain live payload, doubly linked live order, free-list

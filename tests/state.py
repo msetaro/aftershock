@@ -192,6 +192,11 @@ print('PASS: botlib goal stack, avoidance and content-pointer ownership cover ev
 level_item_body=goal_source.split('typedef struct levelitem_s {',1)[1].split('} levelitem_t;',1)[0]
 assert set(re.findall(r'offsetof\( levelItemsSave_t, (\w+) \)',goal_source))==declared_members(level_item_body)
 print('PASS: level-item payload and list-link ownership cover every native member')
+weapon_source=(ROOT/'engine/botlib/be_ai_weap.cpp').read_text()
+weapon_state=weapon_source.split('typedef struct bot_weaponstate_s {',1)[1].split('} bot_weaponstate_t;',1)[0]
+assert declared_members(weapon_state)=={'weaponweightconfig','weaponweightindex'}
+print('PASS: botlib weapon state retains weight ownership and immutable index/content identity')
+
 
 
 
@@ -314,9 +319,10 @@ for component in ('input','move','weights'):
          '-Wl,--gc-sections','-o',probe])
     run([probe])
 
-run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
-     '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
-     '-fsanitize=undefined','-fno-sanitize-recover=all',
-     'tests/probes/state_bot_goals.cpp','engine/botlib/be_ai_weight.cpp','engine/qcommon/state.cpp',sha,
-     '-Wl,--gc-sections','-o',probe])
-run([probe])
+for component in ('goals','weapons'):
+    run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+         '-fsanitize=undefined','-fno-sanitize-recover=all',
+         f'tests/probes/state_bot_{component}.cpp','engine/botlib/be_ai_weight.cpp','engine/qcommon/state.cpp',sha,
+         '-Wl,--gc-sections','-o',probe])
+    run([probe])
