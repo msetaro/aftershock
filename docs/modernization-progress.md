@@ -34,20 +34,36 @@ the main merge. Require all26 final hosted checks on e0c6a57d, then exact head/b
 main/tag recheck, self-review and merge. No accepted fixture regeneration.
 
 #19 is local in /home/matt/.cache/aftershock-modernization/state-tree,
-issue/19-state-serialization. Merge accepted UI main forward at this checkpoint.
+issue/19-state-serialization, with accepted UI main merged at 38847576.
 The common named-field serializer is implemented through a8195301; explicit
 added/removed/reordered-field migration and UInt64 identity preservation pass GCC
 and Clang/libc++ UBSan. Focused tidy, MinGW/aarch64 compile and format/types/
-boundaries pass for the initial module. The initial settings/bindings profile now passes real clients on both content
-sets; no game checkpoint or editor workspace integration is implemented. Continue
-independent editor test-first work
-while #18 gates run; merge accepted #18 main before game checkpoint integration.
+boundaries pass for the initial module. Settings/bindings and editor workspace
+profiles now pass real clients on both content sets, including a frozen version-1
+profile migration. Continue shared replication metadata test-first work while #18
+gates run; merge accepted #18 main before game checkpoint integration.
 Private state-preflight.md records the full-state source inventory. No native
 pointer dumps or partial checkpoint acceptance.
 
 Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
+
+## #19 workspace implementation and migration verification
+
+The committed workspace failure a12b78a8 now passes on both content sets
+(profile-editor-first.log, profile-editor-q3.log). Version 2 adds named fields for
+panel, selected cvar, filters, window layout and world-display preferences through
+the same serializer. ImGui's existing memory settings API handles window layout;
+no parallel layout format or OS access is added. Version 1 explicitly initializes
+the new fields to Console, empty selection/filters/layout, disabled overlays and a
+512-unit radius. Shipping/dedicated builds can read and ignore editor preferences.
+
+Client/server build and format/types/boundaries pass. The runtime test checks
+same-process restoration, fresh-process bindings/settings and the immutable v1
+fixture. All data remains bounded POD; no per-frame allocation is introduced.
+Full game checkpoints, shared entity/replication metadata and hosted final gates
+are still outstanding; this is not #19 acceptance.
 
 ## #19 editor/profile migration test before implementation
 

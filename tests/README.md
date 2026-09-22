@@ -1591,5 +1591,8 @@ Existing latched settings still require their usual restart. Earlier revisions
 are preserved, private cvars/CD keys are excluded, and legacy configuration
 files remain supported. Version 1 supports 2048 cvars and 512 bindings with
 1023-byte values; oversized settings reject the save rather than truncate.
-Runtime evidence contains logs only. Editor workspace and full game checkpoints
+Version 2 also saves the developer panel, selected cvar, filters, world-display
+preferences and up to 4095 bytes of ImGui window layout. Version-1 files migrate
+with explicit workspace defaults; the frozen original file and provenance are in
+`tests/assets/state`. Runtime evidence contains logs only. Full game checkpoints
 are still pending; these tests alone do not complete #19.
