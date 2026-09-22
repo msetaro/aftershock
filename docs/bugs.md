@@ -1041,3 +1041,24 @@ leaving duplicate YAML keys in create-testing and update-release. Build workflow
 .github/workflows/build.yml` at that commit (duplicate keys at lines 194/222).
 The issue branch removes only the redundant blocks; full required gates and actual
 merged publication are pending. #158 stays open until that publication succeeds.
+
+## #31: bot chat shutdown skips the final handle
+
+Fixed on issue/31-bot-chat-shutdown; hosted acceptance pending. Discovered during #19 checkpoint reconstruction. BotAllocChatState and
+BotFreeChatState use 1..MAX_CLIENTS inclusive, but BotShutdownChatAI scans
+0..MAX_CLIENTS-1. A fully allocated pool retains handle 64 after shutdown, so
+next setup cannot allocate the complete pool and the retained actor can refer
+to already-freed chat/console data.
+
+Reproducer: `python3 tests/bot_chat_shutdown.py` (also `--cxx
+'clang++ -stdlib=libc++'`). The probe calls the real allocator and shutdown,
+with test memory/libvar services, and requires every slot empty, zero outstanding
+allocations, safe repeated shutdown and three complete pool reuses. Before the
+fix both compilers fail with `shutdown retained chat handle 64`. No active
+known-bugs or UBSan suppression entry exists for this shutdown correctness bug.
+
+The first shutdown loop now visits 1..MAX_CLIENTS, matching the allocation/free
+contract; the distinct zero-based chat-cache loop is unchanged. Both compiler
+ASan/UBSan probes pass after the fix. No simulation or frame golden is affected,
+so no accepted golden is regenerated. No suppression or expected-failure entry
+needs removal. Full hosted builds/regression remain the merge gate.

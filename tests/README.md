@@ -1597,3 +1597,9 @@ Arrows/d-pad/left stick navigate; Enter/A activates; Escape/B cancels or goes ba
 Start opens in-game options. Binding capture uses existing key storage. Cooked
 localized runs are shaped offline; dynamic numeric/key labels use atlas glyphs.
 Arbitrary runtime Unicode chat shaping is outside this menu/HUD implementation.
+
+`python3 tests/bot_chat_shutdown.py` checks the real bot chat allocation and
+shutdown paths with ASan/UBSan. All 64 handles must be freed, repeated shutdown
+must be harmless, and the whole pool must be reusable for three cycles. Pass
+`--cxx 'clang++ -stdlib=libc++'` for the second compiler. This #31 regression is
+asset-independent and runs in both CI unit legs and the local full-suite catalog.

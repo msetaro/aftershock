@@ -20,34 +20,36 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#17 accepted in PR172, merge ebc03f37c1393f13cb1d33355eda53a9caf911f7 on
-2026-09-22 UTC. All 26 active gates passed exact head fcfd6507 (build 35679134924,
-regression 35679134926); head/base/current main and known-good tag were rechecked
-immediately before ready/merge. Private ui-final-gates.json records the results.
-Monitor new main build 35682880734/regression 35682880730. #16 is accepted in
-PR171 (d2411083); both merged-tree workflows 35678588496/35678588538 pass.
+#18 accepted in PR173, merge 2010b07737dcf98a87b37f3b6092d7ecee167c18.
+All 26 active gates passed exact head e0c6a57d (build 35683155301,
+regression 35683155256). Merged-tree build 35687912038 and regression
+35687912012 both pass. #17 and #16 are also accepted; no CI wait remains.
 
-#18 draft PR173 uses issue/18-entity-definitions in
-/home/matt/.cache/aftershock-modernization/entities-tree. affbea66 merges accepted UI main
-forward, preserving both asset kinds/schemas and all CI checks. Local integration
-passes: GCC/Clang entity probes, UI probe, all schemas, format/types/boundaries,
-combined client/server build, full OpenArena entity sequence and 1080p UI runtime
-(entities-ui-*.log). Push this checkpoint for final hosted checks. Previous
-5e666dff passes all 16 compiler legs in 35682073149; regression 35682073081 is
-superseded and cancelled for this merge. Initial cb84dadb failed old libc++ floating
-from_chars and is not acceptance; strtof with fixed-decimal/range validation fixes
-that portability issue. Both-content component/editor/flag acceptance, full
-lifetime/tidy and unchanged classic bot/replay gates pass locally before this merge.
-Require all 26 active jobs on the final head including ebc03f37, then recheck main,
-self-review, ready and merge with a merge commit. No accepted fixture regeneration.
+Fix the chat shutdown last-handle defect in the separate #31 branch
+issue/31-bot-chat-shutdown, worktree
+/home/matt/.cache/aftershock-modernization/bot-chat-shutdown-tree.
+Test-first commit 4fd1ae34 reproduces the defect under GCC and Clang/libc++
+ASan/UBSan: shutdown retains chat handle 64. The allocation/free API uses handles
+1..MAX_CLIENTS; the shutdown loop incorrectly visits 0..MAX_CLIENTS-1. This must
+land before #19's full checkpoint reload uses normal botlib shutdown.
+The one-line loop correction now passes both ASan/UBSan compilers, including
+three full allocation/shutdown cycles and repeated empty shutdown. CI unit jobs
+and the local suite catalog include the regression; affected-path selection,
+format/type/boundary checks and workflow syntax all pass locally. Self-review:
+only the handle bounds change in production, no OS calls, lifetime/allocation or
+FP changes; no golden or suppression changes. Push the branch and require all
+26 active hosted gates with current main before self-merging.
 
-#19 isolated preparation is in /home/matt/.cache/aftershock-modernization/state-tree,
-issue/19-state-serialization from main d2411083, local head a8195301. The common
-named-field serializer and added/removed/reordered-field migration pass GCC and
-Clang/libc++ UBSan, including 64-bit identities. No full checkpoint/settings/editor
-integration is implemented. Merge accepted #18 main before that integration.
-Private state-preflight.md records the source inventory and remaining full-state
-requirements; no partial checkpoint acceptance.
+#19 remains isolated in /home/matt/.cache/aftershock-modernization/state-tree,
+issue/19-state-serialization, local head af8fb76c including main 2010b077.
+Named-field archive, profile migration, both RNG streams, native and botlib owner
+serialization/reconstruction, cvar preparation and gameplay draft validators are
+implemented and locally checked. Full GCC/Clang owner suites pass at b9baccf4;
+latest semantic validators pass both UBSan compilers, client/server build and
+focused tidy/policy. Aggregate live checkpoint coordination, save/load commands,
+fullgame migration fixture and runtime acceptance remain unfinished. Continue
+those after this #31 prerequisite; do not claim partial checkpoint acceptance.
+Detailed owner evidence and remaining work are on that branch's progress file.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
