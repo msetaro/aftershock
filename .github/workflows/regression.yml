@@ -131,6 +131,7 @@ jobs:
           python3 tests/rewind.py --cxx '${{ matrix.cxx }}'
           python3 tests/replication_policy.py --cxx '${{ matrix.cxx }}'
           python3 tests/identity.py --cxx '${{ matrix.cxx }}'
+          python3 tests/services.py --cxx '${{ matrix.cxx }}'
           python3 tests/native_pure.py --cxx '${{ matrix.cxx }}'
           python3 tests/devtools_data.py --cxx '${{ matrix.cxx }}'
       - name: Structured local developer command contract

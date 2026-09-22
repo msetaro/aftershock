@@ -35,6 +35,7 @@ python3 tests/protocol.py
 python3 tests/rewind.py
 python3 tests/replication_policy.py
 python3 tests/identity.py
+python3 tests/services.py
 python3 tests/rhi.py
 python3 tests/render_graph.py
 python3 tests/shadow_views.py
@@ -119,6 +120,16 @@ reused slot. Ticket buffers are borrowed only during Begin (2048-byte maximum).
 The provider must copy them and never log them, reenter the engine or call
 `Com_Error`. Installation is immutable once used. SDK callbacks are queued by the
 platform backend for bounded main-thread polling.
+
+`python3 tests/services.py` checks the same bounded user/ticket, presence,
+lobby/invite, achievement, cloud-file and workshop interface with an absent
+provider and an installed deterministic provider under UBSan. Lobby completion
+must match the current request generation; leaving invalidates pending results,
+and an invite is reported without joining. Cloud filenames are flat, with a
+64 MiB per-call limit; workshop enumeration is bounded to 256 entries. Callbacks
+are optional and absent operations return unavailable. These tests do not prove
+Steam SDK integration or live Steam presence/invites. That acceptance requires a
+proper external Steamworks SDK, an authorized AppID and logged-in test clients.
 
 `engine/server/identity_public.h` binds ticket submission to a connection token
 obtained from the server-owned connection context, never a peer-supplied token.

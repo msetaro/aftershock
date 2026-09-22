@@ -52,14 +52,36 @@ identity lifecycle are reviewed. Extend that small function-table boundary with
 identity/ticket, presence, lobby/invite, achievements, cloud and workshop calls;
 keep the absent provider anonymous and unavailable. No second service framework.
 Start with null/provider interface contracts, then the Steam adapter and engine
-integration. No #23 production changes yet. Preserve #21 -> #22 -> #23 merge order
+integration. The bounded wrappers and GCC/Clang contract tests now pass; no
+Steam adapter or ticket transport is implemented yet. Preserve #21 -> #22 -> #23 merge order
 and integrate accepted main before final checks. SDK/provider tests must not be
 reported as an actual Steam rich-presence/invite acceptance run.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
-currently needed. Do not end at a checkpoint or CI wait.
+Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam gate needs a proper Steamworks SDK path, authorized AppID and
+logged-in test clients with a designated invite recipient. Continue the independent
+#21/#22 gates; do not end at a checkpoint or CI wait.
+
+## #23 bounded service implementation
+
+The existing provider table now exposes optional user/ticket, presence,
+lobby/invite, achievements, cloud-file and workshop operations. The absent
+provider stays anonymous/unavailable. Inputs and copied POD outputs are checked;
+lobby request generations reject superseded/duplicate/late completions. Invites
+never join automatically. No allocation, OS call, simulation or wire-layout
+change is introduced. A fixed uint32_t event enum permits defined validation of
+unknown provider event values under UBSan; the first implementation's unspecified
+underlying enum triggered UBSan before its rejecting switch.
+
+GCC and Clang/libc++ service probes and existing authenticated-identity/UI
+discovery probes pass (services-{gcc,clang}.log and
+services-identity-{gcc,clang}.log). Format (577 files), fixed-width policy (439)
+and boundaries (440) pass. The new probe is included in both CI unit variants,
+the workflow-derived local suite, affected-path selection and verification docs.
+No accepted fixture is modified. This is interface preparation, not completed
+Steam integration; SDK adapter, ticket transport and actual presence/invite
+acceptance remain outstanding.
 
 ## #23 service interface contract, test first
 

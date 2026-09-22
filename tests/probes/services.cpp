@@ -6,6 +6,8 @@
 static bool badOutput;
 static uint32_t calls, cancels;
 static uint64_t lobbyRequest;
+static serviceEvent_t queuedEvent;
+static bool useQueuedEvent;
 static bool User( serviceUser_t *out ) {
 	*out = { SERVICE_STEAM, 123, "test player" };
 	if ( badOutput )
@@ -48,7 +50,7 @@ static bool Invite( uint64_t user ) {
 	return true;
 }
 static bool Event( serviceEvent_t *out ) {
-	*out = { SERVICE_LOBBY_READY, lobbyRequest, 456, 0, true };
+	*out = useQueuedEvent ? queuedEvent : serviceEvent_t{ SERVICE_LOBBY_READY, lobbyRequest, 456, 0, true };
 	if ( badOutput )
 		out->type = (serviceEventType_t)99;
 	return true;
@@ -147,6 +149,29 @@ int main() {
 	assert( Sys_CloudRead( "../profile", data, sizeof( data ) ) == -1 );
 	assert( !Sys_LocalUser( nullptr ) && !Sys_PollTicket( nullptr ) && !Sys_PollServiceEvent( nullptr ) );
 	assert( !Sys_WorkshopItem( 0, nullptr ) && calls == before );
+	// A replaced request or late completion after leaving cannot activate a lobby.
+	useQueuedEvent = true;
+	const uint64_t first = Sys_CreateLobby( 8, true );
+	const uint64_t second = Sys_JoinLobby( 456 );
+	assert( first && second && first != second );
+	serviceEvent_t result;
+	queuedEvent = { SERVICE_LOBBY_READY, first, 456, 0, true };
+	assert( !Sys_PollServiceEvent( &result ) && !result.lobby && !Sys_InviteToLobby( 789 ) );
+	queuedEvent.request = second;
+	assert( Sys_PollServiceEvent( &result ) && Sys_InviteToLobby( 789 ) );
+	assert( !Sys_PollServiceEvent( &result ) ); // Duplicate completion.
+	queuedEvent = { SERVICE_LOBBY_LEFT, 0, 999, 0, true };
+	assert( !Sys_PollServiceEvent( &result ) && Sys_InviteToLobby( 789 ) );
+	queuedEvent.lobby = 456;
+	assert( Sys_PollServiceEvent( &result ) && !Sys_InviteToLobby( 789 ) );
+	queuedEvent = { SERVICE_LOBBY_INVITE, 0, 999, 789, true };
+	assert( Sys_PollServiceEvent( &result ) && !Sys_InviteToLobby( 789 ) ); // Invite is not a join.
+	queuedEvent = { SERVICE_LOBBY_READY, Sys_CreateLobby( 8, true ), 456, 0, true };
+	Sys_LeaveLobby();
+	assert( !Sys_PollServiceEvent( &result ) && !Sys_InviteToLobby( 789 ) );
+	queuedEvent = { SERVICE_LOBBY_READY, Sys_CreateLobby( 8, true ), 0, 0, false };
+	assert( Sys_PollServiceEvent( &result ) && !result.accepted && !Sys_InviteToLobby( 789 ) );
+	useQueuedEvent = false;
 	badOutput = true;
 	serviceUser_t user;
 	serviceTicket_t ticket;
