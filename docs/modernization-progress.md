@@ -79,7 +79,10 @@ discovery probes pass (services-{gcc,clang}.log and
 services-identity-{gcc,clang}.log). Format (577 files), fixed-width policy (439)
 and boundaries (440) pass. The new probe is included in both CI unit variants,
 the workflow-derived local suite, affected-path selection and verification docs.
-No accepted fixture is modified. This is interface preparation, not completed
+Affected-path selection, suite catalog, isolation policy and workflow lint also
+pass. Targeted clang-tidy reports only advisory enum-size findings (four existing
+enums and the explicit-width event enum). All new result records are checked as
+trivially copyable. No accepted fixture is modified. This is interface preparation, not completed
 Steam integration; SDK adapter, ticket transport and actual presence/invite
 acceptance remain outstanding.
 

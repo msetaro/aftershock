@@ -2,6 +2,10 @@
 #include <assert.h>
 #include <cstring>
 #include <cstdio>
+#include <type_traits>
+
+static_assert( std::is_trivially_copyable_v<serviceUser_t> && std::is_trivially_copyable_v<serviceTicket_t> &&
+			   std::is_trivially_copyable_v<serviceEvent_t> && std::is_trivially_copyable_v<serviceWorkshopItem_t> );
 
 static bool badOutput;
 static uint32_t calls, cancels;
