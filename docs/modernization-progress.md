@@ -61,6 +61,11 @@ cover for six seconds beyond arrival: target acquisition must expire, while
 protection against the stored last-known threat remains true. The current client
 fails that exact assertion (navigation-cover-memory-before.log). Reuse the
 already checkpointed sense position; no new owner or movement change is needed.
+Test-first e6ebaa21 fails before the two-line correction; the full owned combat
+and same/fresh checkpoint run now passes (navigation-cover-memory-after.log).
+GCC/Clang units retain hash 8d44421dfd5f31912bb7ffc942c6f0e1f32cd9a445e1dbcf38b658f555598ede.
+Full pre-correction tidy passed 1446 configurations; recheck the changed game
+owner after this final correction. Lifetimes and the remaining legacy gates run.
 
 ## #21 launch-trigger continuation contract, test first
 

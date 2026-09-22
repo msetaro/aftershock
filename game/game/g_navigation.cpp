@@ -165,8 +165,8 @@ bool G_NavigationFrame( int time ) {
 			VectorCopy( player.origin, feet );
 			feet[2] += entity.r.mins[2];
 			actor.observation = NavigationSense( owner, elapsed, &actor.sense );
-			actor.covered = actor.action == AI_COVER && actor.path.count && actor.cursor.point == actor.path.count && actor.observation.target >= 0 &&
-							NavigationProtected( owner, feet, actor.observation.position );
+			actor.covered = actor.action == AI_COVER && actor.path.count && actor.cursor.point == actor.path.count &&
+							NavigationProtected( owner, feet, actor.sense.position );
 			const aiInputs_t observations = { actor.observation.visible, actor.observation.heard, actor.covered,
 				fminf( 1, float( entity.health ) / 100 ), actor.observation.target >= 0 ? Distance( feet, actor.observation.position ) : 0 };
 			const auto action = AI_UpdateBehavior( navigationBehavior, observations, elapsed, &actor.behavior );
