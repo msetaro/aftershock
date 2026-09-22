@@ -12,7 +12,7 @@ from run import ROOT
 
 invalid = {'level': ('version', 0), 'weapon': ('interval_ms', 0),
            'animation': ('states', []), 'material': ('alphaMode', 'invalid'),
-           'effect': ('emitters', []), 'decal': ('size', [0,0,0]), 'match-spec': ('players', 0)}
+           'sound-event': ('layers', []), 'effect': ('emitters', []), 'decal': ('size', [0,0,0]), 'match-spec': ('players', 0)}
 with tempfile.TemporaryDirectory(prefix='aftershock-formats-', dir=os.environ.get('AFTERSHOCK_SCRATCH')) as temporary:
     for kind, (key, value) in invalid.items():
         description = subprocess.run([sys.executable, 'tools/agent', 'describe', kind], cwd=ROOT,
@@ -33,7 +33,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-formats-', dir=os.environ.ge
         assert result.returncode == 1, result.stdout
         error = json.loads(result.stderr)['error']
         assert error['file'] == str(source) and key in error['path'] and error['hint'], error
-        if kind in ('weapon', 'animation', 'material', 'level', 'effect', 'decal'):
+        if kind in ('weapon', 'animation', 'material', 'level', 'effect', 'decal', 'sound-event'):
             if kind == 'level':
                 command = [sys.executable, 'tools/level', str(source), '--map-only', '--output', str(Path(temporary)/'level-output')]
             else:

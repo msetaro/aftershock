@@ -22,12 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../../qcommon/q_shared.h"
 #include "../../qcommon/qcommon_public.h"
+#include <io.h> // Read CRT declarations before win_local.h maps legacy POSIX names.
 #include "win_local.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <direct.h>
-#include <io.h>
 #include <conio.h>
 #include <intrin.h>
 
@@ -232,3 +232,20 @@ qboolean Sys_SetAffinityMask( const uint64_t mask ) {
 	return qfalse;
 }
 #endif // USE_AFFINITY_MASK
+
+// Unlike CRT tmpfile(), this uses the caller's writable home directory.
+FILE *Sys_OpenTemporaryFile( const char *ospath ) {
+	HANDLE handle = CreateFileA( ospath, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_NEW,
+		FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, nullptr );
+	if ( handle == INVALID_HANDLE_VALUE )
+		return nullptr;
+	const int fd = _open_osfhandle( (intptr_t)handle, _O_RDWR | _O_BINARY );
+	if ( fd < 0 ) {
+		CloseHandle( handle );
+		return nullptr;
+	}
+	FILE *stream = _fdopen( fd, "w+b" );
+	if ( !stream )
+		_close( fd );
+	return stream;
+}

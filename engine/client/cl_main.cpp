@@ -1195,6 +1195,7 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 	}
 
 	cl_disconnecting = qtrue;
+	CL_VoiceReset();
 
 	// Stop demo recording
 	if ( clc.demorecording ) {
@@ -3878,6 +3879,7 @@ void CL_Init( void ) {
 	cls.realtime = 0;
 
 	CL_InitInput();
+	CL_VoiceInit();
 #ifdef AFTERSHOCK_DEVTOOLS
 	DevTools_Init();
 #endif
@@ -4090,6 +4092,7 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 
 	noGameRestart = quit;
 	CL_Disconnect( qfalse );
+	CL_VoiceShutdown();
 
 	// clear and mute all sounds until next registration
 	S_DisableSounds();

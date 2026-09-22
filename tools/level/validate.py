@@ -108,11 +108,24 @@ def prop_asset(prop, assets, y_up=False):
     return path
 
 
+def audio_specs(zones):
+    require(isinstance(zones,list) and len(zones)<=32, 'audio zones require at most 32 volumes')
+    for zone in zones:
+        fields(zone,('mins','maxs','wet','decay','damping'))
+        vector(zone['mins'],integer=False)
+        vector(zone['maxs'],integer=False)
+        require(all(a<b for a,b in zip(zone['mins'],zone['maxs'])), 'audio zone bounds must have positive size')
+        number(zone['wet'],0,1,False)
+        number(zone['decay'],.1,10,False)
+        number(zone['damping'],0,.95,False)
+
+
 def validate(level, assets):
     if level.get('version')==2:
         from polygons import validate as validate_polygons
         return validate_polygons(level,assets)
-    fields(level, ('version','name','materials','rules','rooms','connections','spawns','cover','props','pickups','lighting'), ('viewpoints',))
+    audio_specs(level.get('audio_zones',[]))
+    fields(level, ('version','name','materials','rules','rooms','connections','spawns','cover','props','pickups','lighting'), ('viewpoints','audio_zones'))
     require(type(level['version']) is int and level['version']==1, 'level version must be 1')
     require(isinstance(level['name'],str) and re.fullmatch(r'[a-z][a-z0-9_]{0,31}',level['name']), 'invalid map name')
     fields(level['materials'], ('floor','wall','trim','cover','prop','sky'))

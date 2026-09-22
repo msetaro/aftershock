@@ -45,6 +45,8 @@ extern cvar_t *s_device;
 
 #define _snd_strerror snd_strerror
 #define _snd_pcm_open snd_pcm_open
+#define _snd_pcm_readi snd_pcm_readi
+#define _snd_pcm_set_params snd_pcm_set_params
 #define _snd_pcm_drain snd_pcm_drain
 #define _snd_pcm_drop snd_pcm_drop
 #define _snd_pcm_close snd_pcm_close
@@ -103,6 +105,8 @@ static int ( *_pthread_create )( pthread_t *thread, const pthread_attr_t *attr, 
 
 static void *a_lib = NULL;
 
+static snd_pcm_sframes_t ( *_snd_pcm_readi )( snd_pcm_t *, void *, snd_pcm_uframes_t );
+static int ( *_snd_pcm_set_params )( snd_pcm_t *, snd_pcm_format_t, snd_pcm_access_t, unsigned int, unsigned int, int, unsigned int );
 static const char *( *_snd_strerror )( int errnum );
 static int ( *_snd_pcm_open )( snd_pcm_t **pcm, const char *name, snd_pcm_stream_t stream, int mode );
 static int ( *_snd_pcm_drain )( snd_pcm_t *pcm );
@@ -161,6 +165,8 @@ sym_t t_list[] = {
 };
 
 sym_t a_list[] = {
+	{ (void **)&_snd_pcm_readi, "snd_pcm_readi" },
+	{ (void **)&_snd_pcm_set_params, "snd_pcm_set_params" },
 	{ (void **)&_snd_strerror, "snd_strerror" },
 	{ (void **)&_snd_pcm_open, "snd_pcm_open" },
 	{ (void **)&_snd_pcm_drain, "snd_pcm_drain" },
@@ -601,6 +607,46 @@ __fail:
 }
 
 
+static snd_pcm_t *voiceCapture;
+
+bool SNDDMA_StartVoiceCapture() {
+	if ( voiceCapture )
+		return true;
+	if ( !snd_inited )
+		return false;
+	const char *device = Cvar_Get( "s_captureDevice", "", CVAR_ARCHIVE )->string;
+	if ( _snd_pcm_open( &voiceCapture, *device ? device : "default", SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK ) < 0 ) {
+		voiceCapture = nullptr;
+		return false;
+	}
+	if ( _snd_pcm_set_params( voiceCapture, SND_PCM_FORMAT_S16_LE, SND_PCM_ACCESS_RW_INTERLEAVED, 1, 48000, 1, 100000 ) < 0 ||
+		 _snd_pcm_start( voiceCapture ) < 0 ) {
+		SNDDMA_StopVoiceCapture();
+		return false;
+	}
+	Com_Printf( "Voice capture device opened (ALSA)\n" );
+	return true;
+}
+
+int SNDDMA_ReadVoiceCapture( int16_t *samples, int capacity ) {
+	if ( !voiceCapture || !samples || capacity < 1 || capacity > 2880 )
+		return 0;
+	const snd_pcm_sframes_t count = _snd_pcm_readi( voiceCapture, samples, snd_pcm_uframes_t( capacity ) );
+	if ( count == -EPIPE ) {
+		_snd_pcm_prepare( voiceCapture );
+		_snd_pcm_start( voiceCapture );
+	}
+	return count > 0 && count <= capacity ? int( count ) : 0;
+}
+
+void SNDDMA_StopVoiceCapture() {
+	if ( voiceCapture ) {
+		_snd_pcm_close( voiceCapture );
+		voiceCapture = nullptr;
+		Com_Printf( "Voice capture device closed (ALSA)\n" );
+	}
+}
+
 qboolean SNDDMA_Init( void ) {
 	//Com_Printf( "...trying ASYNC mode\n" );
 	//if ( !setup_ALSA( SND_MODE_ASYNC ) )
@@ -619,6 +665,7 @@ qboolean SNDDMA_Init( void ) {
 
 
 void SNDDMA_Shutdown( void ) {
+	SNDDMA_StopVoiceCapture();
 	if ( snd_inited == qfalse )
 		return;
 
@@ -1258,6 +1305,7 @@ int SNDDMA_GetDMAPos( void ) {
 
 
 void SNDDMA_Shutdown( void ) {
+	SNDDMA_StopVoiceCapture();
 	if ( dma.buffer ) {
 		munmap( dma.buffer, map_size );
 		dma.buffer = NULL;
@@ -1287,3 +1335,14 @@ void SNDDMA_BeginPainting( void ) {
 }
 
 #endif // !defined (__linux__)
+
+#if !defined( __linux__ )
+bool SNDDMA_StartVoiceCapture() {
+	return false;
+}
+int SNDDMA_ReadVoiceCapture( int16_t *, int ) {
+	return 0;
+}
+void SNDDMA_StopVoiceCapture() {
+}
+#endif

@@ -307,6 +307,82 @@ and an empty base. File/cvar/UI operations are isolated by test stubs. Explicit
 `python3 tests/download.py --regenerate` creates the reviewed URL golden; CI never
 regenerates it. `--cc` and `--cxx` select the compiler as in the unit driver.
 
+`python3 tests/audio_events.py` checks `sound-event` cooking: a four-layer fixed
+record with mechanical/tail/distant roles, per-layer distance ranges, mix bus,
+group/priority/voice limit, attenuation, Doppler/occlusion flags and reverb send.
+Use `python3 tools/agent describe sound-event` for the source schema. Cooked
+`.asevt` records use the existing hashed envelope and resource-index kind 12.
+`python3 tests/audio_runtime.py --binary CLIENT` cooks an owned tone/event,
+plays it through SDL dummy output, and checks repeated cache reuse and HRTF voice
+retirement. Both content sets are supported. Authored `.asevt` paths work through
+ordinary sound registration and existing weapon notify paths; `s_hrtf` and
+`s_headRadius` control the optional headphone model. `s_busWeapons`,
+`s_busAmbient`, `s_busMusic`, `s_busVoice`, and `s_busUI` control authored bus
+volumes. Voice activity ducks music/ambient with a 5 ms attack and 250 ms release.
+`s_audioInfo` reports prepared storage and mixed output. Registration retains at
+most 128 events, 512 PCM resources and 64 MiB until sound shutdown (16 MiB per
+resource); registration rejects exhausted capacity. Ordinary sound paths retain
+the legacy behavior. The runtime check also compiles an owned room with `audio_zones`, checks a
+nonzero wet tail indoors and dry output outside, and verifies a native wall trace.
+Each optional zone contains `mins`, `maxs`, `wet` (0–1), `decay` (0.1–10 seconds),
+and `damping` (0–0.95); up to 32 zones are supported, first matching zone wins.
+`s_event path.asevt x y z` plays at a world position. Occlusion uses at most eight
+round-robin static-world traces per spatial update, with a smoothed low-pass/gain
+response; moving entity occluders are outside this implementation. `s_stream SLOT music|ambient sound/path.wav LOOP` prepares and starts a stereo
+stream (slots 0–3, loop 0/1); `s_streamStop SLOT` stops it while retaining its
+prepared file. `s_streamInfo` reports preparations, bytes, buffers, reads/loops
+and failures. Each slot decodes at preparation into an automatically removed
+private PCM file, capped at 256 MiB. Playback uses a fixed 16 KiB PCM block and
+4 KiB stdio buffer per slot; loops never reopen the compressed pk3 source.
+`s_stop`, map changes and sound shutdown close all streams. Reads are synchronous;
+this removes playback allocation but does not promise freedom from storage stalls.
+The runtime check packs its owned tone into a compressed pk3 and checks simultaneous
+music/ambient loops, restart reuse and one-shot retirement. Stereo streams share
+bus gains and voice ducking. `python3 tests/audio_streams.py` verifies exclusive
+temporary storage, reusable buffering and cleanup with GCC/Clang UBSan.
+Voice uses pinned Opus 1.6.1 (static C, upstream notices installed with the client).
+`python3 tests/audio_voice.py` checks real 20/60 ms encode/decode, retained wire
+fields, duplicate/truncated packet rejection, bounded loss concealment and queues;
+linker interposition rejects malloc/calloc/realloc during codec/mix calls.
+`python3 tests/voice_runtime.py --client CLIENT --server SERVER` uses a devtools
+client and dedicated server with two real voice peers and synthesized owned PCM.
+It verifies received speech reaches the voice bus without opening a microphone,
+including a second fresh speaker reusing the same server client slot.
+`voip_test N` is a devtools-only, cheat-server command for that synthetic input.
+
+`python3 tests/audio_weapons_runtime.py --binary CLIENT` fires an owned cooked
+weapon through two ordinary clients on private displays. Real remote animation
+notifies must play mechanical/tail layers nearby and only the distant layer far
+away; the authored room has a wet tail and outdoors is dry. `s_audioInfo` reports
+nonzero mixed sample counts per layer role. The test uses terminal console input
+to synchronize phases, and supports both installed content sets.
+
+`sv_voip 1` (engine systeminfo) enables bounded relay to clients advertising `cl_voip 1`.
+`bind v +voiprecord` provides push-to-talk; `cl_voipSend` defaults to 0. Capture
+opens only during an explicit send request and closes on release/disconnect/shutdown.
+`cl_voipShowMeter` displays the live input level; `cl_voipTarget -1` sends directly
+to all enabled clients (0–63 selects one), and `voip_mute CLIENT 0|1` controls local
+per-speaker playback. `s_busVoice` controls voice gain and its music/ambient duck.
+`s_voiceInfo` reports codec/queue counters. Speex IDs remain reserved and their
+packets are consumed without decoding. Direct voice uses the existing Opus fields;
+team/proximity policy is not implemented. Legacy live servers without the voice
+capability do not receive the new messages.
+
+Capture uses SDL's fixed callback ring, native ALSA, or Windows wave input with
+8 prepared buffers. `s_captureDevice` selects an SDL/ALSA device name or Windows
+numeric input index; empty uses the platform default. The legacy non-Linux OSS
+backend reports capture unavailable. `python3 tests/capture.py` exercises SDL's
+dummy device and bounded overflow/reopen; `tests/audio.py` also checks ALSA null
+capture. These do not claim testing a physical microphone or a Windows input device.
+
+`python3 tests/audio_spatial.py` checks the authored-audio spatial component
+with UBSan (also accepts `--cxx 'clang++ -stdlib=libc++'`). It covers stereo
+placement, linear/inverse attenuation, radial Doppler, invalid-input rejection,
+and the optional spherical-head filter's impulse delay, head shadow, mirrored
+placement and DC stability at 8–192 kHz. The bounded filter follows the head
+component of Brown/Duda (1998); it does not model individual pinnae or elevation.
+These component checks complement the real-client playback test.
+
 `python3 tests/audio.py` verifies the native ALSA callbacks have pthread-compatible
 types, submits samples through both MMAP and DIRECT paths to ALSA's `null` output,
 and joins both threads. It needs ALSA development files (`libasound2-dev` on Ubuntu)

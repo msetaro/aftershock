@@ -375,6 +375,7 @@ static void CL_CM_LoadMap( const char *mapname ) {
 
 	buf = CM_LoadMap( mapname, (qboolean)1, &checksum );
 	CL_InitPhysicsMap();
+	S_LoadWorldAudio();
 	if ( buf ) {
 		// we need this memory for a renderer module later
 		// Hunk_FreeTempMemory( buf );

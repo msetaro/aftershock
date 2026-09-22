@@ -894,22 +894,14 @@ void CL_ParseServerMessage( msg_t *msg ) {
 				return;
 			CL_ParseDownload( msg );
 			break;
-		case svc_voipSpeex: // ioq3 extension
+		case svc_voipSpeex: // Legacy packets are consumed, never decoded as Opus.
 			clc.dm68compat = qfalse;
-#ifdef USE_VOIP
-			CL_ParseVoip( msg, qtrue );
+			CL_ParseVoice( msg, true );
 			break;
-#else
-			return;
-#endif
-		case svc_voipOpus: // ioq3 extension
+		case svc_voipOpus:
 			clc.dm68compat = qfalse;
-#ifdef USE_VOIP
-			CL_ParseVoip( msg, !clc.voipEnabled );
+			CL_ParseVoice( msg, false );
 			break;
-#else
-			return;
-#endif
 		}
 	}
 }

@@ -323,6 +323,9 @@ static sfxHandle_t S_Base_RegisterSound( const char *name, qboolean compressed )
 		return 0;
 	}
 
+	if ( COM_CompareExtension( name, ".asevt" ) )
+		return S_AuthoredRegister( name );
+
 	sfx = S_FindName( name );
 	if ( !sfx ) {
 		return 0;
@@ -466,6 +469,11 @@ static void S_Base_StartSound( const vec3_t origin, int entityNum, int entchanne
 		Com_Error( ERR_DROP, "S_StartSound: bad entitynum %i", entityNum );
 	}
 
+	if ( S_AuthoredHandle( sfxHandle ) ) {
+		S_AuthoredStart( origin, entityNum, sfxHandle );
+		return;
+	}
+
 	if ( sfxHandle < 0 || sfxHandle >= s_numSfx ) {
 		Com_Printf( S_COLOR_YELLOW "S_StartSound: handle %i out of range\n", sfxHandle );
 		return;
@@ -603,7 +611,7 @@ static void S_Base_StartLocalSound( sfxHandle_t sfxHandle, int channelNum ) {
 		return;
 	}
 
-	if ( sfxHandle < 0 || sfxHandle >= s_numSfx ) {
+	if ( !S_AuthoredHandle( sfxHandle ) && ( sfxHandle < 0 || sfxHandle >= s_numSfx ) ) {
 		Com_Printf( S_COLOR_YELLOW "S_StartLocalSound: handle %i out of range\n", sfxHandle );
 		return;
 	}
@@ -632,6 +640,7 @@ static void S_Base_ClearSoundBuffer( void ) {
 	numLoopChannels = 0;
 
 	S_ChannelSetup();
+	S_AuthoredClear();
 
 	s_rawend = 0;
 
@@ -999,6 +1008,7 @@ void S_Base_UpdateEntityPosition( int entityNum, const vec3_t origin ) {
 		Com_Error( ERR_DROP, "S_UpdateEntityPosition: bad entitynum %i", entityNum );
 	}
 	VectorCopy( origin, loopSounds[entityNum].origin );
+	S_AuthoredEntityPosition( entityNum, origin );
 }
 
 
@@ -1027,6 +1037,7 @@ void S_Base_Respatialize( int entityNum, const vec3_t head, vec3_t axis[3], int 
 	VectorCopy( axis[0], listener_axis[0] );
 	VectorCopy( axis[1], listener_axis[1] );
 	VectorCopy( axis[2], listener_axis[2] );
+	S_AuthoredRespatialize( entityNum, head, axis );
 
 	// update spatialization for dynamic sounds
 	ch = s_channels;
@@ -1417,6 +1428,7 @@ static void S_Base_Shutdown( void ) {
 	}
 
 	SNDDMA_Shutdown();
+	S_AuthoredShutdown();
 
 	// release sound buffers only when switching to dedicated
 	// to avoid redundant reallocation at client restart
@@ -1489,6 +1501,7 @@ qboolean S_Base_Init( soundInterface_t *si ) {
 	r = SNDDMA_Init();
 
 	if ( r ) {
+		S_AuthoredInit();
 		s_soundStarted = qtrue;
 		s_soundMuted = qtrue;
 		//		s_numSfx = 0;

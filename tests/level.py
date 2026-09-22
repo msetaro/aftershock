@@ -60,6 +60,13 @@ with tempfile.TemporaryDirectory(prefix='aftershock-level-') as temporary:
     a = compile_level(source, folder / 'a')
     b = compile_level(source, folder / 'b')
     assert a == b, 'MAP output depends on the output directory or run'
+    acoustic = copy.deepcopy(source)
+    acoustic['audio_zones'] = [dict(mins=[-256,-256,0],maxs=[256,256,192],wet=.5,decay=.6,damping=.3)]
+    room = compile_level(acoustic, folder / 'acoustic')
+    metadata = b'"audio_zone_0" "-256 -256 0 256 256 192 0.5 0.6 0.3"\n'
+    assert metadata in room['map'] and room['map'].replace(metadata,b'') == a['map']
+    acoustic['audio_zones'][0]['maxs'][0] = -300
+    compile_level(acoustic, folder / 'invalid-acoustic', 'audio zone bounds')
     sidecar=folder/'assets/textures'/(source['materials']['wall']+'.asmat')
     sidecar.write_bytes(b'ignored by the version-1 contract')
     assert compile_level(source,folder/'legacy-sidecar')==a, 'v2 material discovery changed v1 output'

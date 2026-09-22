@@ -567,6 +567,8 @@ void S_PaintChannels( int endtime ) {
 			} while ( ltime - end < 0 );
 		}
 
+		S_AuthoredPaint( paintbuffer, end - s_paintedtime, snd_vol * ( 127.0f / 256.0f ) );
+
 		// transfer out according to DMA format
 		S_TransferPaintBuffer( end, buffer );
 		s_paintedtime = end;

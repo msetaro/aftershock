@@ -1291,9 +1291,43 @@ fileHandle_t FS_FOpenFileWrite( const char *filename ) {
 
 /*
 ===========
-FS_FOpenFileAppend
+FS_OpenTemporaryFile
 ===========
 */
+fileHandle_t FS_OpenTemporaryFile( char *buffer, size_t capacity ) {
+	if ( !fs_searchpaths || !buffer || capacity < 512 || capacity > 65536 )
+		return FS_INVALID_HANDLE;
+	byte random[16];
+	if ( !Sys_RandomBytes( random, sizeof( random ) ) )
+		return FS_INVALID_HANDLE;
+	static const char digits[] = "0123456789abcdef";
+	char suffix[33];
+	for ( size_t i = 0; i < sizeof( random ); ++i ) {
+		suffix[i * 2] = digits[random[i] >> 4];
+		suffix[i * 2 + 1] = digits[random[i] & 15];
+	}
+	suffix[32] = 0;
+	char name[64], path[MAX_OSPATH];
+	Com_sprintf( name, sizeof( name ), "stream-cache/%s.tmp", suffix );
+	Q_strncpyz( path, FS_BuildOSPath( fs_homepath->string, fs_gamedir, name ), sizeof( path ) );
+	if ( FS_CreatePath( path ) )
+		return FS_INVALID_HANDLE;
+	const fileHandle_t handle = FS_HandleForFile();
+	FILE *stream = Sys_OpenTemporaryFile( path );
+	if ( !stream )
+		return FS_INVALID_HANDLE;
+	if ( setvbuf( stream, buffer, _IOFBF, capacity ) != 0 ) {
+		fclose( stream );
+		return FS_INVALID_HANDLE;
+	}
+	auto &file = fsh[handle];
+	file = {};
+	FS_InitHandle( &file );
+	file.handleFiles.file.o = stream;
+	Q_strncpyz( file.name, name, sizeof( file.name ) );
+	return handle;
+}
+
 fileHandle_t FS_FOpenFileAppend( const char *filename ) {
 	char *ospath;
 	fileHandleData_t *fd;
