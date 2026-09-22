@@ -38,8 +38,9 @@ issue/19-state-serialization. Merge accepted UI main forward at this checkpoint.
 The common named-field serializer is implemented through a8195301; explicit
 added/removed/reordered-field migration and UInt64 identity preservation pass GCC
 and Clang/libc++ UBSan. Focused tidy, MinGW/aarch64 compile and format/types/
-boundaries pass for the initial module. No game checkpoint, settings or editor
-integration is implemented. Continue independent settings/editor test-first work
+boundaries pass for the initial module. The initial settings/bindings profile now passes real clients on both content
+sets; no game checkpoint or editor workspace integration is implemented. Continue
+independent editor test-first work
 while #18 gates run; merge accepted #18 main before game checkpoint integration.
 Private state-preflight.md records the full-state source inventory. No native
 pointer dumps or partial checkpoint acceptance.
@@ -47,6 +48,24 @@ pointer dumps or partial checkpoint acceptance.
 Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
+
+## #19 settings profile implementation
+
+The committed real-client failure 63fcdb68 now passes with both content sets
+(profile-first.log, profile-q3.log), including a fresh process and byte-identical
+older revision. saveprofile/loadprofile use the shared named-field envelope,
+archive cvar values (including latched values), stable key names and existing
+filesystem/binding services. Private cvars/CD keys are excluded. Version-1 record
+capacities are fixed, strings/counts/names/keys/registry capacity are checked before
+applying values, and existing readonly/latch behavior is respected. Numbered user
+files never overwrite an earlier revision. Legacy q3config.cfg remains readable.
+
+Temporary profile/file buffers use the existing zone allocator only during an
+explicit command and are freed afterward; no per-frame allocation or new OS access.
+The fixed tables use under 5 MiB per revision. Initial build corrections supplied
+the existing shared-type include and actual Cvar_Flags API name. Client/server
+build, format/types/boundaries pass. Editor workspace and full checkpoint state
+remain required, and this is not #19 acceptance.
 
 ## #19 profile test before implementation
 

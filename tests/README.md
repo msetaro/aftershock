@@ -1576,3 +1576,20 @@ Arrows/d-pad/left stick navigate; Enter/A activates; Escape/B cancels or goes ba
 Start opens in-game options. Binding capture uses existing key storage. Cooked
 localized runs are shaped offline; dynamic numeric/key labels use atlas glyphs.
 Arbitrary runtime Unicode chat shaping is outside this menu/HUD implementation.
+
+## Versioned state and settings (#19 in progress)
+
+`python3 tests/state.py` checks named typed POD serialization and explicit
+version migration under UBSan, including field removal/addition/reordering and
+64-bit identities. Pass `--cc clang --cxx 'clang++ -stdlib=libc++'` for libc++.
+
+`python3 tests/profile_runtime.py --binary CLIENT` checks archived settings and
+real key bindings in an isolated devtools client home. Use `--content openarena
+--data PATH` for OpenArena. `saveprofile NAME` writes a new numbered
+`profiles/NAME.NNN.asstate`; `loadprofile PATH` restores a selected revision.
+Existing latched settings still require their usual restart. Earlier revisions
+are preserved, private cvars/CD keys are excluded, and legacy configuration
+files remain supported. Version 1 supports 2048 cvars and 512 bindings with
+1023-byte values; oversized settings reject the save rather than truncate.
+Runtime evidence contains logs only. Editor workspace and full game checkpoints
+are still pending; these tests alone do not complete #19.

@@ -66,7 +66,7 @@ static int64_t generateHashValue( const char *fname ) {
 Cvar_ValidateName
 ============
 */
-static qboolean Cvar_ValidateName( const char *name ) {
+qboolean Cvar_ValidateName( const char *name ) {
 	const char *s;
 	int c;
 
@@ -2050,8 +2050,9 @@ void Cvar_Init( void ) {
 	Cmd_AddCommand( "cvar_trim", Cvar_Trim_f );
 }
 
-#ifdef AFTERSHOCK_DEVTOOLS
 const cvar_t *Cvar_First( void ) {
 	return cvar_vars;
 }
-#endif
+int Cvar_Capacity( void ) {
+	return MAX_CVARS;
+}

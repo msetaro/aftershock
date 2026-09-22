@@ -3340,6 +3340,7 @@ void Com_Init( char *commandLine ) {
 
 	// done early so bind command exists
 	Com_InitKeyCommands();
+	Com_InitProfileCommands();
 
 	FS_InitFilesystem();
 

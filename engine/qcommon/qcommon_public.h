@@ -563,6 +563,10 @@ qboolean Cvar_Command( void );
 // command.  Returns true if the command was a variable reference that
 // was handled. (print or change)
 
+const cvar_t *Cvar_First( void );
+int Cvar_Capacity( void );
+qboolean Cvar_ValidateName( const char *name );
+void Com_InitProfileCommands();
 void Cvar_WriteVariables( fileHandle_t f );
 // writes lines containing "set variable value" for all variables
 // with the archive flag set to true.
@@ -1341,7 +1345,6 @@ int HuffmanGetSymbol( unsigned int *symbol, const byte *buffer, int bitIndex );
 #ifdef AFTERSHOCK_DEVTOOLS
 void Z_InitDevMemory( void );
 size_t Z_DevMemoryUsed( void );
-const cvar_t *Cvar_First( void );
 #endif
 
 #endif // _QCOMMON_H_
