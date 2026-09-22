@@ -58,6 +58,18 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 botlib globals and immutable map information
+
+Botlib records now retain the global clock and developer setting against matching
+initialized client/entity dimensions. Map locations and camp spots are verified
+by hashes of named, pointer-free fields in list order. They are reloaded from map
+content, not copied as pointer-bearing records. GCC and Clang/libc++ UBSan pass
+relocation, changed content/dimensions and cyclic-map-list rejection
+(state-bot-global-map-{gcc,clang}.log); build and focused tidy pass.
+AAS inventory confirms entity spatial-link ordering, disabled routing areas and
+routing cache contents/order need explicit ownership; cold cache regeneration
+alone is not yet proven to preserve continuation.
+
 ## #19 named bot variables and combined verification
 
 Libvar checkpoints retain name/value strings, flags, modified bits, cached numeric

@@ -231,6 +231,15 @@ libvar_header=(ROOT/'engine/botlib/l_libvar.h').read_text()
 body=libvar_header.split('typedef struct libvar_s {',1)[1].split('} libvar_t;',1)[0]
 assert declared_members(body)=={'name','string','flags','modified','value','next'}
 print('PASS: bot variables retain named payload, flags, cached numeric values and list order')
+interface_header=(ROOT/'engine/botlib/be_interface.h').read_text()
+body=interface_header.split('typedef struct botlib_globals_s {',1)[1].split('} botlib_globals_t;',1)[0]
+interface_source=(ROOT/'engine/botlib/be_interface.cpp').read_text()
+assert set(re.findall(r'offsetof\( botlibGlobalSave_t, globals\.(\w+) \)',interface_source))==declared_members(body)
+for tag,name in (('maplocation_s','maplocation_t'),('campspot_s','campspot_t')):
+    body=goal_source.split('typedef struct '+tag+' {',1)[1].split('} '+name+';',1)[0]
+    assert set(re.findall(r'offsetof\( '+name+r', (\w+) \)',goal_source)) | {'next'}==declared_members(body)
+print('PASS: botlib global clocks and immutable map-location/camp descriptors have complete field ownership')
+
 
 
 
@@ -350,7 +359,7 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wl,--gc-sections','-o',probe])
 run([probe])
 
-for component in ('input','move','weights','characters','chat_queue','chat_content','libvars'):
+for component in ('input','move','weights','characters','chat_queue','chat_content','libvars','interface'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',
@@ -358,7 +367,7 @@ for component in ('input','move','weights','characters','chat_queue','chat_conte
          '-Wl,--gc-sections','-o',probe])
     run([probe])
 
-for component in ('goals','weapons'):
+for component in ('goals','weapons','goal_map'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',

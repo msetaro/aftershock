@@ -51,6 +51,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_ai_chat.h"
 #include "be_ai_char.h"
 #include "be_ai_gen.h"
+#include <cmath>
 
 //library globals in a structure
 botlib_globals_t botlibglobals;
@@ -852,4 +853,60 @@ botlib_export_t *GetBotLibAPI( int apiVersion, botlib_import_t *import ) {
 	be_botlib_export.Test = BotExportTest;
 
 	return &be_botlib_export;
+}
+
+struct botlibGlobalSave_t {
+	botlib_globals_t globals;
+	int32_t setup, developer;
+};
+static constexpr stateField_t botlibGlobalFields[] = {
+	{ "initialized", offsetof( botlibGlobalSave_t, globals.botlibsetup ), 1, stateType_t::Int32 },
+	{ "maxentities", offsetof( botlibGlobalSave_t, globals.maxentities ), 1, stateType_t::Int32 },
+	{ "maxclients", offsetof( botlibGlobalSave_t, globals.maxclients ), 1, stateType_t::Int32 },
+	{ "time", offsetof( botlibGlobalSave_t, globals.time ), 1, stateType_t::Float32 },
+	{ "setup", offsetof( botlibGlobalSave_t, setup ), 1, stateType_t::Int32 },
+	{ "developer", offsetof( botlibGlobalSave_t, developer ), 1, stateType_t::Int32 },
+#ifdef DEBUG
+	{ "debug", offsetof( botlibGlobalSave_t, globals.debug ), 1, stateType_t::UInt32 },
+	{ "goalareanum", offsetof( botlibGlobalSave_t, globals.goalareanum ), 1, stateType_t::Int32 },
+	{ "goalorigin", offsetof( botlibGlobalSave_t, globals.goalorigin ), 3, stateType_t::Float32 },
+	{ "runai", offsetof( botlibGlobalSave_t, globals.runai ), 1, stateType_t::Int32 },
+#endif
+};
+static constexpr stateSchema_t botlibGlobalSchema = { "botlib.globals", 1, 1, sizeof( botlibGlobalSave_t ), botlibGlobalFields, sizeof( botlibGlobalFields ) / sizeof( *botlibGlobalFields ) };
+static bool ValidBotlibGlobals( const botlibGlobalSave_t &saved ) {
+	if ( saved.setup != botlibsetup || saved.globals.botlibsetup != botlibglobals.botlibsetup || saved.setup != saved.globals.botlibsetup ||
+		 saved.setup < 0 || saved.setup > 1 || saved.globals.maxentities != botlibglobals.maxentities || saved.globals.maxclients != botlibglobals.maxclients ||
+		 saved.globals.maxentities < 0 || saved.globals.maxentities > MAX_GENTITIES || saved.globals.maxclients < 0 || saved.globals.maxclients > MAX_CLIENTS ||
+		 !std::isfinite( saved.globals.time ) )
+		return false;
+#ifdef DEBUG
+	if ( uint32_t( saved.globals.debug ) > 1 || saved.globals.goalareanum < 0 )
+		return false;
+	for ( float value : saved.globals.goalorigin )
+		if ( !std::isfinite( value ) )
+			return false;
+#endif
+	return true;
+}
+bool BotLib_WriteGlobalState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	const botlibGlobalSave_t saved{ botlibglobals, botlibsetup, botDeveloper };
+	if ( !ValidBotlibGlobals( saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, botlibGlobalSchema, 0, &saved );
+}
+bool BotLib_ReadGlobalState( const stateReader_t &reader, bool apply ) {
+	botlibGlobalSave_t saved{};
+	uint32_t version;
+	if ( !State_Find( reader, botlibGlobalSchema, 0, &saved, &version ) || !ValidBotlibGlobals( saved ) )
+		return false;
+	if ( apply ) {
+		botlibglobals = saved.globals;
+		botDeveloper = saved.developer;
+	}
+	return true;
 }

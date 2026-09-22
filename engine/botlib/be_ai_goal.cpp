@@ -2082,3 +2082,71 @@ bool Bot_ReadLevelItemState( const stateReader_t &reader, bool apply ) {
 	}
 	return true;
 }
+
+static constexpr stateField_t mapLocationFields[] = {
+	{ "origin", offsetof( maplocation_t, origin ), 3, stateType_t::Float32 },
+	{ "areanum", offsetof( maplocation_t, areanum ), 1, stateType_t::Int32 },
+	{ "name", offsetof( maplocation_t, name ), MAX_EPAIRKEY, stateType_t::String }
+};
+static constexpr stateSchema_t mapLocationSchema = { "botlib.mapLocation", 1, 1, sizeof( maplocation_t ), mapLocationFields, 3 };
+static constexpr stateField_t campSpotFields[] = {
+	{ "origin", offsetof( campspot_t, origin ), 3, stateType_t::Float32 },
+	{ "areanum", offsetof( campspot_t, areanum ), 1, stateType_t::Int32 },
+	{ "name", offsetof( campspot_t, name ), MAX_EPAIRKEY, stateType_t::String },
+	{ "range", offsetof( campspot_t, range ), 1, stateType_t::Float32 },
+	{ "weight", offsetof( campspot_t, weight ), 1, stateType_t::Float32 },
+	{ "wait", offsetof( campspot_t, wait ), 1, stateType_t::Float32 },
+	{ "random", offsetof( campspot_t, random ), 1, stateType_t::Float32 }
+};
+static constexpr stateSchema_t campSpotSchema = { "botlib.campSpot", 1, 1, sizeof( campspot_t ), campSpotFields, 7 };
+static constexpr stateField_t goalMapHashField = { "hash", 0, 32, stateType_t::Bytes };
+static constexpr stateSchema_t goalMapHashSchema = { "botlib.goalMap", 1, 1, 32, &goalMapHashField, 1 };
+static bool GoalMapHash( uint8_t *digest ) {
+	Sha_256 hash;
+	sha_256_init( &hash, digest );
+	unsigned char bytes[2048];
+	uint32_t count = 0;
+	for ( auto *location = maplocations; location; location = location->next ) {
+		if ( ++count > MAX_SAVED_LEVEL_ITEMS || location->areanum < 0 )
+			return false;
+		for ( float value : location->origin )
+			if ( !std::isfinite( value ) )
+				return false;
+		const size_t size = State_Write( mapLocationSchema, location, bytes, sizeof( bytes ) );
+		if ( !size )
+			return false;
+		sha_256_write( &hash, bytes, size );
+	}
+	sha_256_write( &hash, &count, sizeof( count ) );
+	count = 0;
+	for ( auto *camp = campspots; camp; camp = camp->next ) {
+		if ( ++count > MAX_SAVED_LEVEL_ITEMS || camp->areanum <= 0 || !std::isfinite( camp->range ) || !std::isfinite( camp->weight ) ||
+			 !std::isfinite( camp->wait ) || !std::isfinite( camp->random ) )
+			return false;
+		for ( float value : camp->origin )
+			if ( !std::isfinite( value ) )
+				return false;
+		const size_t size = State_Write( campSpotSchema, camp, bytes, sizeof( bytes ) );
+		if ( !size )
+			return false;
+		sha_256_write( &hash, bytes, size );
+	}
+	sha_256_write( &hash, &count, sizeof( count ) );
+	sha_256_close( &hash );
+	return true;
+}
+bool Bot_WriteGoalMapState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	uint8_t digest[32];
+	if ( !GoalMapHash( digest ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, goalMapHashSchema, 0, digest );
+}
+bool Bot_ReadGoalMapState( const stateReader_t &reader ) {
+	uint8_t saved[32], loaded[32];
+	uint32_t version;
+	return State_Find( reader, goalMapHashSchema, 0, saved, &version ) && GoalMapHash( loaded ) && !memcmp( saved, loaded, sizeof( saved ) );
+}

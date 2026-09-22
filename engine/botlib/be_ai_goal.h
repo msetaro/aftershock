@@ -122,3 +122,6 @@ bool Bot_ReadGoalState( const stateReader_t &reader, bool apply );
 
 bool Bot_WriteLevelItemState( stateWriter_t *writer );
 bool Bot_ReadLevelItemState( const stateReader_t &reader, bool apply );
+
+bool Bot_WriteGoalMapState( stateWriter_t *writer );
+bool Bot_ReadGoalMapState( const stateReader_t &reader );
