@@ -19,7 +19,7 @@ The cooker already emits these paths. Its source-recipe `*.manifest.json` files
 are omitted; runtime payloads, `cook.index` and `cook.revision` are included.
 Individual assets are bounded to 256 MiB and a package to 65,536 index entries;
 archive offsets and extents are 64-bit. `--store` can repeat to select uncompressed
-assets. Other assets use a zlib stream only when it saves bytes. There is no
+assets. Other assets use a raw DEFLATE stream only when it saves bytes. There is no
 wall-clock metadata, so unchanged inputs and options produce identical archives.
 
 The writer publishes a complete temporary file with an atomic replacement. It
@@ -50,7 +50,7 @@ and offset assertions.
 | 72 | uncompressed size | uint64 |
 | 80 | stored size | uint64 |
 | 88 | SHA256 of uncompressed bytes | 32 bytes |
-| 120 | codec: 0 stored, 1 zlib | uint32 |
+| 120 | codec: 0 stored, 1 raw DEFLATE | uint32 |
 | 124 | flags: 0 asset, 1 removal | uint32 |
 
 Entries are strictly sorted by qpath. Payloads immediately follow the index in
@@ -79,3 +79,11 @@ rules and preserve the existing pure-content restrictions.
 The initial test uses the owned cooker fixture, changes exactly one texture,
 checks the small delta, then applies a separate configuration-file removal.
 No proprietary game assets or accepted regression fixtures are packaged.
+
+The native decoder reuses the shipped `puff` implementation. Compressed assets
+are decoded and hash-checked once at open, then read/seek from their bounded
+buffer; uncompressed assets use platform file reads and 64-bit offsets. Both
+paths must verify hashes before exposing bytes. Keep streaming audio stored via
+`--store 'sounds/*'`. Add an incremental decoder only if measured compressed
+stream sizes make per-open buffering unsuitable; no new compression library is
+needed for current cooked assets.

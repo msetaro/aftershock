@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -13,6 +14,8 @@ from cook import cook, source_assets
 from run import ROOT, SCRATCH
 
 parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--cc', default='gcc')
+parser.add_argument('--cxx', default='g++')
 parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-packages')
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
@@ -84,3 +87,12 @@ with tempfile.TemporaryDirectory(dir=args.output) as temporary:
 package('verify', base, patch, removed)
 print(f'Package bytes: base={base.stat().st_size}, texture delta={patch.stat().st_size}, removal={removed.stat().st_size}')
 print('PASS: one reproducible cooked pack, small one-texture delta, exact layered view and explicit removal')
+
+sha = args.output/'sha256.o'
+subprocess.run([*shlex.split(args.cc), '-std=c99', '-O2', '-c', 'third_party/sha256/sha-256.c', '-o', str(sha)], cwd=ROOT, check=True)
+probe = args.output/'native-package'
+subprocess.run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+                '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+                'tests/probes/packages.cpp', 'engine/qcommon/package.cpp', 'engine/platform/sys_content_file.cpp',
+                'third_party/zlib/puff.cpp', str(sha), '-o', str(probe)], cwd=ROOT, check=True)
+subprocess.run([str(probe), str(base), str(patch), str(removed), str(cooked)], cwd=ROOT, check=True)

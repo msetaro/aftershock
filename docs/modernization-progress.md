@@ -41,13 +41,30 @@ and an explicit removed-file entry. No accepted source, golden or fixture change
 The initial failing check is committed at 40322427. The offline writer now passes
 (content-first-after.log): base 15,063 bytes, texture delta 2,089, removal 460.
 Its v1 format, content identity, compression and patch rules are documented in
-docs/design/packages.md. Add native/platform stream and mount acceptance tests
-before runtime implementation, on top of accepted #19 main. Do not merge #20 before #19.
+docs/design/packages.md. The native/platform stream contract now fails before implementation. Implement
+those owners next; filesystem mounting/runtime acceptance follows on top of
+accepted #19 main. Do not merge #20 before #19.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
 is currently needed. Do not end at a checkpoint or CI wait.
+
+## #20 native stream contract, test first
+
+The package test now compiles the future native reader and platform file stream,
+requiring stored/compressed bytes to match cooked files, seek/tell accuracy,
+matching patch identities, removed entries, no read/seek zone allocations and
+complete handle/allocation release. Its initial compilation fails on absent
+package_public.h/package.cpp/sys_content_file.cpp (content-native-before.log).
+Commit this contract before implementing those owners.
+
+Inspection found that the engine ships puff, not a public incremental zlib API.
+Use raw DEFLATE through that existing decoder: compressed assets decode/hash once
+at open into a bounded buffer; stored assets stream through platform offsets.
+Audio can explicitly remain stored. The offline codec and format doc now agree,
+and the tool-side exact patch assertions still pass before native compilation.
+This changes only new, unaccepted #20 artifacts; no accepted fixtures are touched.
 
 ## #20 offline package and manifest-diff implementation
 

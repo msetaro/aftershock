@@ -70,7 +70,7 @@ def metadata(path):
     result = json.loads(manifest)
     expected = dict(version=1, identity=target.hex(), base=None if base == bytes(32) else base.hex(),
                     assets={name: row['sha256'] for name, row in rows.items() if not row['removed']}, removed=removed)
-    if result != expected:
+    if result != expected or json.dumps(result, sort_keys=True, separators=(',', ':')).encode() != manifest:
         raise ValueError('manifest and native index differ')
     return result, rows
 
@@ -82,7 +82,7 @@ def payload(path, row):
     if len(data) != row['stored']:
         raise ValueError('incomplete asset payload')
     if row['codec']:
-        decoder = zlib.decompressobj()
+        decoder = zlib.decompressobj(-15)
         data = decoder.decompress(data, row['size']+1)
         if not decoder.eof or decoder.unused_data or decoder.unconsumed_tail:
             raise ValueError('invalid compressed asset extent')
@@ -153,7 +153,7 @@ def build(root, output, bases, store):
                 data = files[name].read_bytes()
                 if len(data) > MAX_ASSET or digest(data).hex() != assets[name]:
                     raise ValueError('asset changed while packaging: '+name)
-                compressed = data if any(files[name].relative_to(root).match(pattern) for pattern in store) else zlib.compress(data, 9)
+                compressed = data if any(files[name].relative_to(root).match(pattern) for pattern in store) else zlib.compress(data, 9, wbits=-15)
                 codec = int(len(compressed) < len(data))
                 stored = compressed if codec else data
                 index.extend(ENTRY.pack(name.encode(), stream.tell(), len(data), len(stored), bytes.fromhex(assets[name]), codec, 0))
