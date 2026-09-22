@@ -30,11 +30,11 @@ regression 35687912012; neither is acceptance evidence until it passes.
 
 #19 is local in /home/matt/.cache/aftershock-modernization/state-tree,
 issue/19-state-serialization. Accepted #18 main is merged forward at this checkpoint.
-Resolve only the additive affected-test lists and progress history, retaining both
-issues' entries. Run combined state/entity probes, client/server build and profile/
-entity runtime; then implement full single-player checkpoint integration from the
-committed failing tests/checkpoint_runtime.py. Shared entity-definition metadata,
-all game/client/bot/subsystem records, callback/reference restoration, clocks and
+Additive affected-test and progress conflicts are resolved in 57c0589d. Combined
+GCC/Clang state probes, entity probes, client/server build, profile migration and
+all three entity runtime scenarios pass (private state-entities-*.log). Implement
+full single-player checkpoint integration from the
+committed failing tests/checkpoint_runtime.py. All game/client/bot/subsystem records, callback/reference restoration, clocks and
 both RNG states remain required. No partial checkpoint acceptance.
 
 Completed local #19 support: named/versioned fields with bounded strings and
@@ -50,6 +50,16 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 entity definitions share the named state format
+
+The existing definition header, prefab and component-field POD records now expose
+stateSchema_t descriptions beside their declarations. Edited pickup definitions
+and composed model/collision/damage/audio definitions round-trip through the same
+versioned archive used by replication state, then pass the existing cooked reader.
+GCC and Clang/libc++ UBSan pass (entity-state-{gcc,clang}.log); the missing-metadata
+probe failed first (entity-state-before.log). ASENT bytes and accepted assets do
+not change. This completes shared metadata, not full savegame integration.
 
 ## #18 acceptance and #19 main merge
 

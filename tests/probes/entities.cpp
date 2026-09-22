@@ -3,6 +3,32 @@
 #include <stdio.h>
 #include <string.h>
 
+static void CheckState( const entityDefinitions_t &definitions ) {
+	static unsigned char archive[1048576], cooked[524288];
+	static entityDefinitions_t restored;
+	stateWriter_t writer{ archive, sizeof( archive ) };
+	assert( State_Append( &writer, entityDefinitionHeaderSchema, 0, &definitions.header ) );
+	for ( uint32_t i = 0; i < definitions.header.count; ++i )
+		assert( State_Append( &writer, entityDefinitionSchema, i, &definitions.definitions[i] ) );
+	for ( uint32_t i = 0; i < definitions.header.fieldCount; ++i )
+		assert( State_Append( &writer, entityDefinitionFieldSchema, i, &definitions.fields[i] ) );
+	const size_t size = State_Finish( &writer );
+	stateReader_t reader;
+	assert( size && State_Open( archive, size, &reader ) );
+	uint32_t version;
+	assert( State_Find( reader, entityDefinitionHeaderSchema, 0, &restored.header, &version ) && version == 1 );
+	assert( restored.header.count == definitions.header.count && restored.header.fieldCount == definitions.header.fieldCount );
+	for ( uint32_t i = 0; i < restored.header.count; ++i )
+		assert( State_Find( reader, entityDefinitionSchema, i, &restored.definitions[i], &version ) && version == 1 );
+	for ( uint32_t i = 0; i < restored.header.fieldCount; ++i )
+		assert( State_Find( reader, entityDefinitionFieldSchema, i, &restored.fields[i], &version ) && version == 1 );
+	assert( !memcmp( &definitions.header, &restored.header, sizeof( definitions.header ) ) );
+	assert( !memcmp( definitions.definitions, restored.definitions, definitions.header.count * sizeof( entityDefinition_t ) ) );
+	assert( !memcmp( definitions.fields, restored.fields, definitions.header.fieldCount * sizeof( entityDefinitionField_t ) ) );
+	const size_t cookedSize = Entity_WriteDefinitions( restored, cooked, sizeof( cooked ) );
+	assert( cookedSize && Entity_ReadDefinitions( cooked, cookedSize, &restored ) );
+}
+
 int main( int argc, char **argv ) {
 	assert( argc == 3 );
 	FILE *file = fopen( argv[1], "rb" );
@@ -37,6 +63,7 @@ int main( int argc, char **argv ) {
 	crate = Entity_FindDefinition( definitions, "medical_crate" );
 	assert( crate && !strcmp( Entity_Field( definitions, *crate, "count" )->value, "92" ) );
 	assert( crate->priority == 3 && crate->radius == 128.5f );
+	CheckState( definitions );
 	file = fopen( argv[2], "rb" );
 	assert( file );
 	const size_t composedSize = fread( bytes, 1, sizeof( bytes ), file );
@@ -54,5 +81,7 @@ int main( int argc, char **argv ) {
 		const auto *field = Entity_Field( definitions, *composed, property[0] );
 		assert( field && !strcmp( field->value, property[1] ) );
 	}
+	CheckState( definitions );
+	puts( "PASS: named state records preserve edited prefab and component definitions" );
 	puts( "PASS: native prefab lookup, inherited pickup/transform and replication metadata" );
 }
