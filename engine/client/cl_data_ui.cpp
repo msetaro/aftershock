@@ -89,7 +89,7 @@ static void Run( const uiTextRun_t &run, float x, float y, float scale ) {
 }
 static void Label( uint32_t text, const uiRectangle_t &rectangle, bool rtl ) {
 	const auto &run = document.runs[Locale() * document.header.textCount + text];
-	const float scale = std::min( { rectangle.scale, rectangle.width * 2 / float( run.width ), rectangle.height * 2 / float( run.height ) } );
+	const float scale = (std::min)( { rectangle.scale, rectangle.width * 2 / float( run.width ), rectangle.height * 2 / float( run.height ) } );
 	const float width = float( run.width ) * .5f * scale, height = float( run.height ) * .5f * scale;
 	Run( run, rectangle.x + ( rtl ? rectangle.width - width : 0 ), rectangle.y + ( rectangle.height - height ) * .5f, scale );
 }
@@ -98,7 +98,7 @@ static void Characters( const char *text, const uiRectangle_t &rectangle ) {
 	float advance = 0;
 	for ( const auto *p = (const unsigned char *)text; *p; ++p )
 		advance += glyphs[( *p >= 32 && *p < 127 ? *p : '?' ) - 32].advance;
-	const float scale = std::min( { rectangle.scale, rectangle.height / 40, rectangle.width / std::max( 1.0f, advance ) } );
+	const float scale = (std::min)( { rectangle.scale, rectangle.height / 40, rectangle.width / (std::max)( 1.0f, advance ) } );
 	float x = rectangle.x + rectangle.width - advance * scale;
 	const float baseline = rectangle.y + ( rectangle.height + 24 * scale ) * .5f;
 	for ( const auto *p = (const unsigned char *)text; *p; ++p ) {
@@ -127,7 +127,7 @@ static void DrawPage( uint32_t pageIndex, const int values[5] ) {
 			const float focused[4] = { .16f, .28f, .38f, 1 }, normal[4] = { .055f, .075f, .095f, 1 };
 			Quad( rectangle.x, rectangle.y, rectangle.width, rectangle.height, i == state.focus ? focused : normal );
 			rectangle.x += 16 * rectangle.scale;
-			rectangle.width = std::max( 1.0f, rectangle.width - 32 * rectangle.scale );
+			rectangle.width = (std::max)( 1.0f, rectangle.width - 32 * rectangle.scale );
 		}
 		re.SetColor( item.color );
 		if ( item.kind == UI_VALUE ) {

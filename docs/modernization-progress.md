@@ -33,7 +33,10 @@ No accepted golden/demo or known-good tag changed.
 #16 main forward, preserving both cooker kinds (sound-event 12, UI 13), CI steps
 and documentation. Focused schema/native, format/types/boundaries, build and
 1080p runtime checks pass (ui-merged-{schema,native}.log, ui-with-audio.log).
-Draft PR172 is open into main. Require all 26 hosted gates on that exact head and current main before
+Draft PR172 is open into main. Hosted MSVC rejected std::min's initializer-list
+calls because Windows min/max macros expand them (ui-msvc-522f9904.log).
+Parenthesized the four standard-library call names to prevent macro expansion;
+no expression/value change. Rerun all gates on the new head. Require all 26 hosted gates on that exact head and current main before
 ready/merge. Do not treat previous-base local checks as final merge acceptance.
 
 #18 preparation is isolated on issue/18-entity-definitions in
