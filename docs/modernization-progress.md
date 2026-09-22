@@ -79,6 +79,14 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 HTTPS results consumer contract, test first
+
+The real-database integration gate now requires the player-facing service to read
+results through verified TLS gRPC with its separate reader credential, reject
+client-selected account IDs, expose only the session owner's history, and release
+completed assignments. Wrong reader credentials must report unavailable. It fails
+on absent backend reader wiring before implementation (backend-results-https-before.log).
+
 ## #29 acknowledged results read API
 
 The existing development ingest owner now exposes an authenticated read-only gRPC
