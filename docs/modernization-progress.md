@@ -20,48 +20,45 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-Continue #16 on issue/16-audio-engine in
-/home/matt/.cache/aftershock-modernization/audio-tree, branched from main
-0561e0f0446e96f6dca51f86bae56337d6cd23f5. #15 PR170 is merged; its tested and merged
-trees are identical. Do not redo the physics port, accepted fixtures or finished
-network-driver evidence. Spatial/HRTF and cooked-event components are implemented and tested; #16 draft PR171 targets main.
+#16 is accepted in PR171, merge d2411083325edaa0213fa5680a63d6e8644f291e.
+All 26 exact-head gates passed; merged-tree build 35678588496 passes and
+regression 35678588538 still runs its final runtime job.
 
-#16 decision: extend the in-house mixer and keep the existing SDL/native device
-backends. Reuse cooked PCM assets and weapon animation-notify deduplication. Add
-bounded POD spatial/DSP state, authored layered events, buses/groups/ducking,
-voice priorities/limits, native-CM occlusion, authored reverb volumes and streamed
-music/ambient. Keep legacy playback behavior unless an explicit authored feature
-selects the new path. The HRTF option will be an explicitly documented approximate
-spherical-head model, not a claim of individualized pinna calibration.
+#17 is draft PR172, head fcfd6507759a56ec3255b063883ce43f4f8158df in
+/home/matt/.cache/aftershock-modernization/ui-tree. Build 35679134924 passes all
+16 legs; regression 35679134926 has nine active jobs green, runtime pending.
+After all 26 pass, recheck exact head/base/current main and known-good tag, then
+ready/merge with a merge commit. Do not merge a red/skipped required check.
 
-The issue's VoIP premise needs care: current code has reserved Opus/Speex IDs and
-dormant SDL/meter/parser hooks, but no enabled Opus codec or CL_ParseVoip body.
-Complete a functional bounded Opus path and loopback proof; do not claim that an
-already-working voice implementation was preserved. Keep existing wire IDs and
-make capture explicit. Streaming must prove no new frame-time allocation: current
-pk3 rewind and legacy inflate allocate, so merely retaining a file handle is not
-sufficient. Private read-only findings and primary references are in
-/home/matt/.cache/aftershock-modernization/audio-research.md. A private SDL dummy
-output baseline passed; it does not establish any #16 feature.
+#18 is local at 731bd28d in /home/matt/.cache/aftershock-modernization/entities-tree.
+JSON prefabs, composed runtime components and generic inspector edits/save/reload
+pass both content sets. Fixed Quake 3 replay/restart frames are unchanged. GCC and
+Clang/libc++ UBSan, schema, format/types/boundaries and full tidy pass; full lifetime
+and MinGW checks are finishing. Merge accepted #17 main forward before final gates,
+then PR/merge #18 after all active hosted checks and self-review.
 
-Authored map acoustics, reusable music/ambient streams, voice and real weapon
-near/far acceptance now pass. Next complete final regression/build gates and
-self-review, mark PR171 ready, and merge only after every active check succeeds.
-Prepared event registration/playback and both-content output checks now pass. Record failures before fixes. No maintainer input is currently needed.
+#19 only has its first failing migration probe in this separate worktree,
+/home/matt/.cache/aftershock-modernization/state-tree, branch
+issue/19-state-serialization from current main. No state runtime is implemented.
+After #18 integration, use named typed POD fields with explicit schema versions
+and migrations. Full checkpoints must cover game/entity/client state, references,
+callbacks and supporting subsystem state; no raw native-pointer dump or partial
+checkpoint acceptance. Settings/bindings and developer state must use existing
+filesystem/platform ownership. Read #19 before the remaining implementation.
 
-#15 is accepted and checked in #25: merged-tree build/publication 35658235970
-and all ten active regression jobs in 35658235841 passed, including runtime. This does not replace #16's own final
-checks against current main. One issue branch/PR, merge commit only, all required
-checks green; no external repository writes, no force pushes or tag changes.
+Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
+leaves this repository, accepted goldens and rollback tags stay unchanged. No
+maintainer input is needed at this checkpoint; do not end for a CI wait.
 
-Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
-Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Reference hardware: RTX 3080 Ti / 595.91.07; run hardware benchmarks serially.
-Never install local system packages, copy game paks, or regenerate accepted goldens.
+## #19 initial migration test
 
-After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
-#29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
-recorded below, and optional upscaling remains deferred.
+`tests/state.py` compiles the bounded POD serializer probe under strict conversion/
+shadow diagnostics and UBSan. Version 1 contains health, a removed item field,
+position and name; version 2 reorders fields, removes that item and adds armor.
+It requires bit-preserved common values, an explicit armor-default migration,
+and a version-2 round trip. The initial command fails on the absent
+engine/public/state_public.h and engine/qcommon/state.cpp (state-before.log).
+This test fixes only the serialization contract; it is not full savegame acceptance.
 
 ## #16 weapon acceptance and final gates
 
