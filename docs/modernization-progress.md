@@ -78,6 +78,14 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 party contract, test first
+
+The real-database gate now requires persistent explicit-code party create/join/leave,
+leader disbanding, revoked old codes and one-party-per-account membership across
+concurrent replica attempts. It fails with the absent party endpoint before its
+implementation (backend-parties-before/contracts.log). Codes are returned for an
+explicit user action; no invitations or messages are sent to other accounts.
+
 ## #29 HTTPS service entry point
 
 The match binary now has a backend mode with explicit TLS certificate/key, canonical

@@ -239,3 +239,102 @@ func TestBackendHTTPS(t *testing.T) {
 		t.Fatal("missing bounded service metrics", err)
 	}
 }
+
+func TestBackendParties(t *testing.T) {
+	db, err := openBackendDB(context.Background(), os.Getenv("BACKEND_TEST_DATABASE"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	steam := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ids := map[string]string{"1100": "1001", "1200": "1002", "1300": "1003", "1400": "1004"}
+		id := ids[r.URL.Query().Get("ticket")]
+		fmt.Fprintf(w, `{"response":{"params":{"result":"OK","steamid":"%s"}}}`, id)
+	}))
+	defer steam.Close()
+	service := &backendService{db: db, steamURL: steam.URL, steamKey: "private-test-key", appID: "12345", client: steam.Client()}
+	call := func(method, token, body string, want int) map[string]any {
+		t.Helper()
+		r := httptest.NewRequest(method, "https://backend.test/v1/party", strings.NewReader(body))
+		r.Header.Set("Authorization", "Bearer "+token)
+		w := httptest.NewRecorder()
+		service.ServeHTTP(w, r)
+		if w.Code != want {
+			t.Fatalf("party %s: got %d want %d: %s", method, w.Code, want, w.Body.String())
+		}
+		var result map[string]any
+		if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
+			t.Fatal(err)
+		}
+		return result
+	}
+	tokens := make([]string, 4)
+	for i, ticket := range []string{"1100", "1200", "1300", "1400"} {
+		r := httptest.NewRequest("POST", "https://backend.test/v1/login", strings.NewReader(`{"ticket":"`+ticket+`"}`))
+		w := httptest.NewRecorder()
+		service.ServeHTTP(w, r)
+		var result map[string]any
+		if json.Unmarshal(w.Body.Bytes(), &result) != nil || w.Code != 200 {
+			t.Fatal("party login failed", w.Code)
+		}
+		tokens[i] = result["token"].(string)
+	}
+	if call("GET", tokens[0], "", 200)["party"] != nil {
+		t.Fatal("unexpected initial membership")
+	}
+	first := call("POST", tokens[0], `{}`, 200)["party"].(map[string]any)
+	code := first["invite_code"].(string)
+	if len(code) != 32 || first["leader"] != "1001" || len(first["members"].([]any)) != 1 {
+		t.Fatal(first)
+	}
+	call("POST", tokens[0], `{}`, 409)
+	call("PUT", tokens[1], `{"invite_code":"`+strings.Repeat("0", 32)+`"}`, 403)
+	joined := call("PUT", tokens[1], `{"invite_code":"`+code+`"}`, 200)["party"].(map[string]any)
+	if joined["id"] != first["id"] || len(joined["members"].([]any)) != 2 {
+		t.Fatal(joined)
+	}
+	call("POST", tokens[1], `{}`, 409)
+	second := call("POST", tokens[2], `{}`, 200)["party"].(map[string]any)
+	// Two replicas cannot place one account in two parties.
+	results := make(chan int, 2)
+	for _, invite := range []string{code, second["invite_code"].(string)} {
+		go func(invite string) {
+			r := httptest.NewRequest("PUT", "https://backend.test/v1/party", strings.NewReader(`{"invite_code":"`+invite+`"}`))
+			r.Header.Set("Authorization", "Bearer "+tokens[3])
+			w := httptest.NewRecorder()
+			service.ServeHTTP(w, r)
+			results <- w.Code
+		}(invite)
+	}
+	accepted, rejected := 0, 0
+	for range 2 {
+		switch <-results {
+		case 200:
+			accepted++
+		case 409:
+			rejected++
+		}
+	}
+	if accepted != 1 || rejected != 1 {
+		t.Fatal("concurrent party membership escaped uniqueness")
+	}
+	call("DELETE", tokens[1], `{}`, 200)
+	if call("GET", tokens[1], "", 200)["party"] != nil {
+		t.Fatal("leave retained membership")
+	}
+	call("DELETE", tokens[0], `{}`, 200)
+	call("PUT", tokens[1], `{"invite_code":"`+code+`"}`, 403)
+	if call("GET", tokens[0], "", 200)["party"] != nil {
+		t.Fatal("leader leave retained party")
+	}
+	// Reload through another pool: membership belongs to the shared database.
+	other, err := openBackendDB(context.Background(), os.Getenv("BACKEND_TEST_DATABASE"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer other.Close()
+	service.db = other
+	if call("GET", tokens[2], "", 200)["party"].(map[string]any)["id"] != second["id"] {
+		t.Fatal("party did not persist")
+	}
+}
