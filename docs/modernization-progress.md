@@ -79,6 +79,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 live admission contract, test first
+
+The new backend_join_runtime.py launches our dedicated server on loopback with owned
+content and encodes connect packets with the production Huffman implementation.
+It requires fail-closed initial configuration, expected-player/time/signature checks,
+identical lost-response retries, peer binding, rejection after disconnect/reload and
+fresh-ticket reconnect. It also checks logs/userinfo do not retain credentials.
+Before connection wiring, the test fails because an anonymous connect receives
+connectResponse despite failed join configuration (backend-udp-before.log).
+
 ## #29 private join configuration
 
 The server console command joinconfig reads bounded match-join.json through the
