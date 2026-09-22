@@ -82,6 +82,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 authored backend menu validation
+
+The UI schema, cooker and native document validator now accept a fixed backend
+button action set and six public profile/status values. Action targets are a closed
+list, never arbitrary console commands. The new owned menu cooks and its native
+probe passes; altered bytecode with an injected target is rejected even with a valid
+content hash (backend-ui-after.log). Existing localized UI cook/native checks also
+pass (backend-existing-ui.log). Layouts and existing asset version/representation
+remain unchanged. The live client action binding still needs implementation.
+
 ## #29 authored backend UI contract, test first
 
 A new owned menu source contains sign-in, queue, profile, results and sign-out
