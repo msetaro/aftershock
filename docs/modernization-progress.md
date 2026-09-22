@@ -29,9 +29,11 @@ audio-final-gates.json records all 26 results. Monitor the merged-tree workflows
 No accepted golden/demo or known-good tag changed.
 
 #17 is locally implemented on issue/17-ui-framework in
-/home/matt/.cache/aftershock-modernization/ui-tree. Current step: merge accepted
+/home/matt/.cache/aftershock-modernization/ui-tree. 6593c9c3 merged accepted
 #16 main forward, preserving both cooker kinds (sound-event 12, UI 13), CI steps
-and documentation. Run focused integration checks, push/open its PR into main,
+and documentation. Focused schema/native, format/types/boundaries, build and
+1080p runtime checks pass (ui-merged-{schema,native}.log, ui-with-audio.log).
+Current step: push/open its PR into main,
 then require all 26 hosted gates on that exact head and current main before
 ready/merge. Do not treat previous-base local checks as final merge acceptance.
 
@@ -39,8 +41,9 @@ ready/merge. Do not treat previous-base local checks as final merge acceptance.
 /home/matt/.cache/aftershock-modernization/entities-tree (still based on 0561e0f0).
 Commits through acd59b9e contain the initial JSON prefab cooker, bounded native
 lookup and test-first real pickup acceptance. The uncommitted game spawn adapter
-build currently fails at linking because its public header was included inside
-the game namespace; inspect game/module.cpp's existing public-header imports.
+initially failed linking because its public header was included inside the game
+namespace. Added it to game/module.cpp's existing global public-header imports;
+rebuild and real pickup acceptance are now running.
 No #18 PR yet. Finish #17 acceptance and merge current main forward before its
 final gates. Remaining #18 component coverage is documented in that branch.
 
