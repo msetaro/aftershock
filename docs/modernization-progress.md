@@ -32,7 +32,8 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 Machine migration checkpoint, 2026-09-22: the maintainer is moving Ironforge;
 this thread, worktrees and private build caches will be lost. Resume from the
-remote `issue/29-backend-services` branch, not the retired modernization branch.
+remote `issue/29-backend-services` branch in draft [PR181](https://github.com/msetaro/aftershock/pull/181),
+not the retired modernization branch.
 Read [the migration handoff](modernization-handoff.md) first; it records the exact
 remaining work, reproducible checks and intentionally incomplete integration.
 The historical sections below remain evidence, not fresh instructions to repeat work.

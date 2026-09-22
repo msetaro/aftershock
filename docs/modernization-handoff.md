@@ -7,7 +7,8 @@ All work stays in **msetaro/aftershock**; use explicit repository arguments with
 
 ## Restore and resume
 
-Clone the repository, fetch origin, and check out `issue/29-backend-services`.
+Clone the repository, fetch origin, and check out `issue/29-backend-services`
+([draft PR181](https://github.com/msetaro/aftershock/pull/181)).
 The branch contains every local #29 implementation/test-first commit, including the
 final intentionally failing heartbeat test. Do not restart this work from main.
 The previous worktrees and `/home/matt/.cache/aftershock-modernization` are disposable;
