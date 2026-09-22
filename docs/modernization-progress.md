@@ -44,8 +44,9 @@ with an independent Python signature oracle. Existing match-controller Go race
 tests also pass after moving its unchanged bounded JSON decoder into the shared
 contract package. The native verifier and nonce store now pass both compiler UBSan probes, using
 the same Python signature oracle and correctly signed invalid-claim controls.
-Next: server identity/connect integration tests, persistent backend services and
-real client/kind acceptance.
+Server identity/connect, persistent authentication/profile/parties and durable queue
+recovery now pass their local tests. Next: read-only results and verified account
+attribution, native HTTPS/UI, deployment and real client/kind acceptance.
 
 Resume the active predecessor gates before any later issue can merge:
 - #31 PR174 is fully accepted on main 5caa2c1c; #31 is closed again.
@@ -77,6 +78,23 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
+
+## #29 durable queue and allocation recovery
+
+The database commits expected-player membership and a private per-match key before
+calling Agones. A per-match row lock serializes allocation attempts; the match label
+recovers an allocation after its response is lost. Party edits cannot change an active
+assignment. Tickets are issued only after the existing UDP probe confirms both the
+loaded map and configured match ID, with each authenticated member's own identity
+and a fresh nonce. Cluster HTTPS trust and service-account credentials are explicit;
+redirects and unbounded responses are refused.
+
+The real PostgreSQL/TLS/UDP recovery test passes, including a committed allocation
+whose first response is lost, delayed engine readiness, two member identities,
+replica restart and exactly one allocation POST (backend-queue/contracts.log).
+The full Go race suite and vet pass. Next: verified account attribution and read-only
+results, native HTTPS/UI, deployment and real kind acceptance. Queue cancellation
+and production ingestion are not implemented at this checkpoint; #30 owns ingestion.
 
 ## #29 queue recovery contract, test first
 

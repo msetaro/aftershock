@@ -418,7 +418,7 @@ func TestBackendQueueRecovery(t *testing.T) {
 				if r.URL.Query().Get("labelSelector") != "aftershock.dev/match="+captured.Match.ID {
 					t.Error("allocation recovery omitted exact match label")
 				}
-				items = append(items, map[string]any{"metadata": map[string]any{"name": "owned-game"}, "status": map[string]any{
+				items = append(items, map[string]any{"metadata": map[string]any{"name": "owned-game", "labels": map[string]string{"aftershock.dev/match": captured.Match.ID}}, "status": map[string]any{
 					"state": "Allocated", "address": "127.0.0.1", "ports": []any{map[string]any{"name": "game", "port": udp.LocalAddr().(*net.UDPAddr).Port}}}})
 			}
 			json.NewEncoder(w).Encode(map[string]any{"items": items})

@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -64,7 +65,21 @@ CREATE TABLE IF NOT EXISTS backend_party_members (
  player_id text PRIMARY KEY REFERENCES backend_profiles(player_id),
  party_id text NOT NULL REFERENCES backend_parties(id) ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS backend_party_members_party ON backend_party_members(party_id);`)
+CREATE INDEX IF NOT EXISTS backend_party_members_party ON backend_party_members(party_id);
+CREATE TABLE IF NOT EXISTS backend_matches (
+ id text PRIMARY KEY, leader text NOT NULL REFERENCES backend_profiles(player_id),
+ spec jsonb NOT NULL, join_key text NOT NULL CHECK (length(join_key)=64),
+ ingest_token text NOT NULL CHECK (length(ingest_token)=64),
+ state text NOT NULL DEFAULT 'queued' CHECK (state IN ('queued','allocated','complete')),
+ address text NOT NULL DEFAULT '', server_name text NOT NULL DEFAULT '',
+ created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS backend_match_members (
+ match_id text NOT NULL REFERENCES backend_matches(id),
+ player_id text NOT NULL REFERENCES backend_profiles(player_id), active boolean NOT NULL DEFAULT true,
+ PRIMARY KEY(match_id,player_id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS backend_match_members_active ON backend_match_members(player_id) WHERE active;`)
 		if err == nil {
 			err = tx.Commit()
 		}
@@ -77,12 +92,14 @@ CREATE INDEX IF NOT EXISTS backend_party_members_party ON backend_party_members(
 }
 
 type backendService struct {
-	db                        *sql.DB
-	steamURL, steamKey, appID string
-	client                    *http.Client
-	catalog                   map[string]bool
-	logger                    *slog.Logger
-	metrics                   [6]struct{ requests, errors, nanos atomic.Uint64 }
+	kubeURL, kubeToken, namespace, fleet, mapName string
+	matchMinutes                                  int
+	db                                            *sql.DB
+	steamURL, steamKey, appID                     string
+	client                                        *http.Client
+	catalog                                       map[string]bool
+	logger                                        *slog.Logger
+	metrics                                       [6]struct{ requests, errors, nanos atomic.Uint64 }
 }
 
 func backendJSON(w http.ResponseWriter, status int, value any) {
@@ -252,6 +269,8 @@ func (b *backendService) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch {
+	case r.URL.Path == "/v1/queue":
+		b.queue(w, r, player)
 	case r.URL.Path == "/v1/party":
 		b.party(w, r, player)
 	case r.URL.Path == "/v1/logout" && r.Method == "POST":
@@ -382,6 +401,37 @@ func serveBackend(ctx context.Context) error {
 			return errors.New("invalid BACKEND_CA_FILE")
 		}
 	}
+	namespace, kubeURL, kubeToken := os.Getenv("BACKEND_NAMESPACE"), "", ""
+	fleet, mapName := env("BACKEND_FLEET", "aftershock"), env("BACKEND_MAP", "two_lane")
+	minutes, err := strconv.Atoi(env("BACKEND_MATCH_MINUTES", "10"))
+	if err != nil || minutes < 1 || minutes > 1440 || !identifier.MatchString(mapName) || len(mapName) > 48 {
+		return errors.New("invalid match map/duration")
+	}
+	if namespace != "" {
+		dns := regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$`)
+		if !dns.MatchString(namespace) || !dns.MatchString(fleet) {
+			return errors.New("invalid cluster namespace/Fleet")
+		}
+		kubeURL = env("BACKEND_KUBE_URL", "https://kubernetes.default.svc")
+		parsed, err := url.Parse(kubeURL)
+		if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
+			return errors.New("invalid HTTPS cluster endpoint")
+		}
+		credential, err := os.Open(env("BACKEND_KUBE_TOKEN_FILE", "/var/run/secrets/kubernetes.io/serviceaccount/token"))
+		if err != nil {
+			return errors.New("cluster credential unavailable")
+		}
+		data, err := io.ReadAll(io.LimitReader(credential, 16385))
+		credential.Close()
+		if err != nil || len(data) > 16384 || strings.TrimSpace(string(data)) == "" {
+			return errors.New("invalid cluster credential")
+		}
+		kubeToken = strings.TrimSpace(string(data))
+		data, err = os.ReadFile(env("BACKEND_KUBE_CA_FILE", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"))
+		if err != nil || !roots.AppendCertsFromPEM(data) {
+			return errors.New("cluster trust roots unavailable")
+		}
+	}
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, RootCAs: roots}
 	defer transport.CloseIdleConnections()
@@ -397,7 +447,8 @@ func serveBackend(ctx context.Context) error {
 		return errors.New("backend database initialization failed")
 	}
 	defer db.Close()
-	service := &backendService{db: db, steamURL: endpoint, steamKey: strings.TrimSpace(string(key)), appID: appID, catalog: catalog,
+	service := &backendService{kubeURL: kubeURL, kubeToken: kubeToken, namespace: namespace, fleet: fleet, mapName: mapName, matchMinutes: minutes,
+		db: db, steamURL: endpoint, steamKey: strings.TrimSpace(string(key)), appID: appID, catalog: catalog,
 		client: &http.Client{Transport: transport, Timeout: 5 * time.Second}, logger: slog.New(slog.NewJSONHandler(os.Stdout, nil))}
 	server := &http.Server{Addr: env("BACKEND_LISTEN", ":8443"), Handler: service, ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout: 10 * time.Second, WriteTimeout: 10 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 8192, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
@@ -481,6 +532,15 @@ func (b *backendService) party(w http.ResponseWriter, r *http.Request, player st
 			backendError(w, 503, "unavailable")
 			return
 		}
+		var assigned bool
+		if err = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM backend_match_members WHERE player_id=$1 AND active)", player).Scan(&assigned); err != nil {
+			backendError(w, 503, "unavailable")
+			return
+		}
+		if assigned {
+			backendError(w, 409, "match_assigned")
+			return
+		}
 		var current string
 		err = tx.QueryRowContext(ctx, "SELECT party_id FROM backend_party_members WHERE player_id=$1", player).Scan(&current)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -503,6 +563,13 @@ func (b *backendService) party(w http.ResponseWriter, r *http.Request, player st
 			err = tx.QueryRowContext(ctx, "SELECT id FROM backend_parties WHERE invite_hash=$1", digest([]byte(input.InviteCode))).Scan(&target)
 			if errors.Is(err, sql.ErrNoRows) {
 				backendError(w, 403, "invalid_invite")
+				return
+			}
+			if err == nil {
+				err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM backend_party_members p JOIN backend_match_members m ON m.player_id=p.player_id WHERE p.party_id=$1 AND m.active)`, target).Scan(&assigned)
+			}
+			if err == nil && assigned {
+				backendError(w, 409, "match_assigned")
 				return
 			}
 			var count int
