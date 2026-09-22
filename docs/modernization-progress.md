@@ -54,7 +54,11 @@ Clang/libc++ UBSan (ui-native-{first,clang}.log). The cooked Arabic advance is
 less than 80% of isolated codepoints, proving joining. Added the UI directory to
 lifetime analysis and the client source list. The boundary gate caught the local
 copy lambda named read (an OS-call reserved name); renamed it copyRecords.
-Next implement the real client menu/controller/rebinding/HUD adapter, then real controller/rebinding/HUD acceptance
+8e65ec16 implements the native core. The real-client acceptance now fails at
+missing ui_info on the pre-UI binary (ui-runtime-before.log), before any claimed
+visual or input acceptance. It exercises existing agent key events using actual
+PAD0 engine key names; no new input-test command is needed. Next implement the
+client menu/controller/rebinding/HUD adapter, then real controller/rebinding/HUD acceptance
 at 1080p, 1440p and 4K. No maintainer input is currently needed.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
