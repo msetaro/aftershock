@@ -48,6 +48,23 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue #18 through #24 (SDK dependency), #29 and #30 per #25. No maintainer
 input is currently needed. Do not end at a checkpoint or CI wait.
 
+## #18 alias compatibility review
+
+The completed local checks at 731bd28d pass: full tidy 1,358 configurations,
+lifetimes 1,300 commands/144 paths, MinGW client/server, both-content editor and
+composed acceptance, and unchanged fixed Quake 3 replay/restart hashes
+(entities-{tidy,lifetimes,mingw-build,demo,editor-q3}.log). Self-review then found
+a gap in the new alias feature: legacy CTF and path/target callbacks compare
+native classname strings. Keeping the authored alias in that field breaks those
+callbacks. The added real flag-prefab test fails enemy pickup as expected
+(entities-flags-before.log). Preserve native identity in the existing field and
+keep prefab identity separately for generic inspection. This is a correction to
+unmerged #18 code, not a change to the accepted classic callbacks.
+
+#19 test-only preparation is 10c1bee0 in the separate state-tree worktree, branched
+from main. Its named-field added/removed/reordered migration test fails on the
+missing serializer. No checkpoint implementation or #19 acceptance is claimed.
+
 ## #18 generic inspector and serialization
 
 9b40aebb records the missing generic native editing/serialization API and real

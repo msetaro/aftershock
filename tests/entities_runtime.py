@@ -205,3 +205,48 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-runtime-') as tempo
             print('PASS: cooked model animation, solid collision, trigger damage/target hooks, sound emission and destructible health')
         finally:
             shutil.copyfile(engine.log_path,args.output/'components.log')
+    # Legacy callbacks also identify entities by native classname (CTF flags).
+    flags=dict(version=1,name='flag_definitions',definitions=[
+        dict(id='red_banner',native='team_CTF_redflag',components={}),
+        dict(id='blue_banner',native='team_CTF_blueflag',components={})])
+    (source/'flags.json').write_text(json.dumps(flags))
+    project.write_text(json.dumps(dict(version=1,assets=[dict(name='entities/flags',kind='entities',source='flags.json')])))
+    cook(project,base)
+    (base/'maps/flags.ent').write_text('''{
+"classname" "worldspawn"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-160 -160 48"
+}
+{
+"classname" "red_banner"
+"origin" "-128 0 48"
+}
+{
+"classname" "blue_banner"
+"origin" "128 0 48"
+}
+''')
+    with Engine(args.binary,args.data,args.content,home=home,
+                arguments=['+set','g_entityDefinitions','entities/flags.asent','+set','g_gametype','4']) as engine:
+        try:
+            engine.request('session',dt=20,seed=18)
+            engine.request('cvar.set',name='dev_entityFile',value='maps/flags.ent')
+            engine.request('cvar.set',name='dev_loadEntities',value='1')
+            engine.request('map',name='two_lane')
+            engine.step(50)
+            def flag(name):
+                return next(row for row in engine.request('entity.list')['entities'] if row['classname']==name)
+            assert flag('red_banner')['linked'] and flag('blue_banner')['linked']
+            engine.request('exec',command='team red')
+            engine.step(260)
+            engine.request('exec',command='setviewpos 128 0 32 0')
+            engine.step(10)
+            assert not flag('blue_banner')['linked'], 'native flag pickup must recognize a prefab alias'
+            engine.request('exec',command='setviewpos -128 0 32 0')
+            engine.step(10)
+            assert flag('blue_banner')['linked'], 'capture must restore the aliased flag through native classname lookup'
+            print('PASS: prefab flag aliases retain native pickup and capture behavior')
+        finally:
+            shutil.copyfile(engine.log_path,args.output/'flags.log')
