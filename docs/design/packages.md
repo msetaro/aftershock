@@ -1,8 +1,8 @@
 # Content packages (#20)
 
-Implementation checkpoint: the offline writer/reader and patch test are available.
-Native mounts and platform streams remain acceptance work; this document describes
-the format they must consume. Existing pk3 reading stays available.
+The offline writer and native platform-stream reader share this versioned format.
+Filesystem mounts preserve legacy pk3 reading and the existing pure protocol.
+The package is an install artifact; no game-code module or runtime loader is added.
 
 ## Commands
 
@@ -73,8 +73,9 @@ identities. A mismatched base fails before extraction. Repeating `--base` suppli
 a chain or composed baseline. The offline view mounts inputs in argument order;
 later independent packages override earlier entries, while patches must match
 the exact current view. This supports separate DLC/mod packages without rewriting
-base content. Native mount precedence and data-root policy must agree with these
-rules and preserve the existing pure-content restrictions.
+base content. Native mounts use the same composed identity and preserve existing pure-content
+restrictions. Mount validation runs at startup and after a pure-server reorder;
+missing bases or incorrect order fail explicitly.
 
 The initial test uses the owned cooker fixture, changes exactly one texture,
 checks the small delta, then applies a separate configuration-file removal.
@@ -87,3 +88,52 @@ paths must verify hashes before exposing bytes. Keep streaming audio stored via
 `--store 'sounds/*'`. Add an incremental decoder only if measured compressed
 stream sizes make per-open buffering unsuitable; no new compression library is
 needed for current cooked assets.
+
+## Directories and precedence
+
+The three roots are selected at process startup on every supported platform:
+
+| Data | Root | Layout and writes |
+| --- | --- | --- |
+| Engine | `fs_enginepath`, default `fs_basepath` | `<root>/engine/`; read only |
+| Game | `fs_basepath` | `<root>/<fs_basegame>/` and `<root>/<fs_game>/`; read only |
+| User | `fs_homepath` | `<root>/<active-game>/`; configs, saves, captures and downloaded legacy content |
+
+User defaults retain Linux `~/.q3a` and macOS `~/Library/Application Support/Quake3`.
+Windows now uses the OS application-data directory's `Quake3` subdirectory. If
+no user directory is available, startup requires an explicit `fs_homepath` rather
+than writing into the install root. Launchers may explicitly select roots;
+legacy portable launches with equal roots remain supported.
+
+Search precedence is the existing filesystem order: active mod above base games,
+user above installed game data within each game, engine packages last. Archives
+are ahead of loose directories. Within one directory, `.aspack` archives follow
+legacy pk3/pk3dir mounts and sort by filename; later names win. Use ordered names
+such as `00-base.aspack`, `10-patch.aspack`, `20-dlc.aspack`. Independent DLC/mod
+packages may replace matching names. A patch's repeated `--base` inputs must be
+the complete lower modern-package view in that order, including engine packages;
+legacy pk3/loose files are excluded from that identity. A removal hides lower
+packages and loose fallback. `autoexec.cfg` and `q3config.cfg` retain the legacy
+archive exclusion so user configuration is not replaced by packaged settings.
+At most 64 modern packages and 65,536 visible modern assets may be mounted.
+
+The legacy pure handshake carries checksums derived from modern content and
+metadata identities; asset bytes still receive SHA256 verification at open.
+Modern packages must be installed together with their required bases. Missing
+modern packages produce an explicit install error; the legacy pk3 downloader
+does not rename or transfer this new artifact type. Version 1 provides integrity,
+not publisher authentication. Do not edit mounted packages in place: publish a
+new package and restart the filesystem/session. Stored assets retain an open
+platform stream after verification; compressed assets retain a bounded decoded
+buffer until close. Filesystem reads and seeks allocate no zone memory.
+
+## Acceptance
+
+`python3 tests/packages.py` checks reproducible actual cooked content, manifest
+diffs, removals, per-asset hashes, native read/seek and complete resource release.
+`python3 tests/packages_runtime.py --binary CLIENT` checks separate roots,
+patch/removal/DLC/mod precedence, restarts, user writes and legacy gameplay. It
+also cooks the owned character into one package and proves a small texture-only
+delta changes the rendered preview in a fresh client. The same command accepts
+`--content openarena --data PATH` for hosted CI. No accepted game demo or golden
+is regenerated, and neither test packages installed third-party game content.

@@ -11,7 +11,7 @@ import time
 from run import ROOT, SCRATCH
 
 # These are asset-independent entry points with no required binary arguments.
-FAST = ('bot_chat_shutdown', 'agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
+FAST = ('packages', 'bot_chat_shutdown', 'agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
         'animation', 'entities', 'physics', 'ui_framework', 'audio_spatial', 'audio_events', 'audio_streams', 'audio_voice', 'capture', 'weapons', 'effects', 'effects_reference', 'post', 'temporal', 'lod', 'streaming', 'native_math', 'native_shared', 'replication',
         'protocol', 'rewind', 'replication_policy', 'identity', 'rhi', 'render_graph',
         'shadow_views', 'probes', 'materials', 'cook', 'level', 'lighting',
@@ -23,6 +23,7 @@ COMMANDS['unit'] = [sys.executable, 'tests/run.py', 'unit', '--negative-control'
 COMMANDS['match_go'] = ['go', '-C', 'tools/match', 'test', '-race', './...']
 # Prefix matches compose: a cooker animation edit needs both cooker and animation checks.
 RULES = (
+    (('engine/qcommon/package', 'engine/platform/sys_content_file.cpp', 'tools/package.py', 'tests/packages'), ('packages',)),
     (('engine/botlib/be_ai_chat.cpp',), ('bot_chat_shutdown',)),
     (('engine/entities/', 'tools/cook/entities', 'tests/entities', 'tests/probes/entities', 'tests/assets/entities/'), ('entities',)),
     (('engine/ui/', 'engine/client/cl_data_ui', 'tools/cook/ui', 'tests/ui_framework', 'tests/probes/ui_framework', 'tests/assets/ui/'), ('ui_framework',)),

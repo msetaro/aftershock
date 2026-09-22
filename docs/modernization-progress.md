@@ -26,8 +26,8 @@ attempt 2) is still running after an earlier advancing-gameplay timeout.
 
 #19 is draft PR175, branch issue/19-state-serialization in the sibling state-tree.
 Its full save/load and both frozen migrations work, local unit command sets and
-both-content bot/replay goldens pass. Current hosted head 312048f0 passes all 16 builds and eight active regression
-jobs; lifetime/runtime remain in progress. The MSVC initialization correction
+both-content bot/replay goldens pass. Current hosted head 312048f0 passes all 16 builds and nine active regression
+jobs; only runtime remains in progress. The MSVC initialization correction
 and profile migration pass. Require all 26 exact-head checks
 and current main/base before merge, then merged-tree gates. The state-tree progress
 file is authoritative for the complete #19 evidence; do not redo its owners.
@@ -41,14 +41,56 @@ and an explicit removed-file entry. No accepted source, golden or fixture change
 The initial failing check is committed at 40322427. The offline writer now passes
 (content-first-after.log): base 15,063 bytes, texture delta 2,089, removal 460.
 Its v1 format, content identity, compression and patch rules are documented in
-docs/design/packages.md. The native/platform stream contract now passes GCC and Clang/libc++ UBSan.
-Filesystem mounting/runtime acceptance follows on top of
-accepted #19 main. Do not merge #20 before #19.
+docs/design/packages.md. The native/platform stream contract passes GCC and Clang/libc++ UBSan.
+Filesystem mounting and both-content runtime acceptance now pass, including
+rendered texture deltas and pure client/server sessions. Finish lifetime/replay
+checks, merge accepted #19 main forward, then open #20 with its full hosted gates.
+Do not merge #20 before #19.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
 is currently needed. Do not end at a checkpoint or CI wait.
+
+## #20 filesystem implementation and local acceptance
+
+Native packages reuse the existing search-pack/hash/handle interface. File reads,
+seeks and explicit close use the platform stream; modern metadata is excluded
+from the legacy zip cache. Sorted independent/patch/DLC/mod mounts validate their
+composed SHA256 view. Removal entries stop lower package/loose lookup and listing.
+Reserved user configs keep the legacy archive exclusion. Existing pure checksums
+bind modern identity/metadata; missing modern artifacts require installation,
+while legacy pk3 downloading and reading retain their existing path.
+
+Engine data is under fs_enginepath/engine, game data under fs_basepath/game, writes
+under fs_homepath/active-game. Windows now uses the static OS application-data API
+for its user default, replacing the inactive optional profile path. Linux/macOS
+keep their existing home defaults. Missing home requires an explicit override,
+never an implicit install-directory write. Explicit portable equal-root launches
+remain supported. No simulation arithmetic or accepted fixture/golden changes.
+
+Both Quake 3 and OpenArena pass roots, patch/removal/DLC/mod precedence, filesystem
+restart, user writes, legacy gameplay and matching-package sv_pure client/server
+sessions (content-mount-final-q3.log, content-mount-oa.log). The actual owned
+character packages into 4,373 bytes; a 1,455-byte texture delta changes 1,518 native
+preview pixels in fresh clients. Screenshot reviewed. The first native mount run
+caught a missing legacy-cache exclusion; corrected within this unmerged feature.
+The test setup also needed normal console `set` for new cvars and session setup
+before stepping. Its corrected test fails the old binary specifically at the
+missing engine mount (content-mount-before.log).
+
+Linux client/server and MinGW client/server builds pass. Core unit golden plus
+one-ULP negative control and both Q3 bot hashes pass unchanged (content-unit.log,
+content-bots.log). Format/type/boundary and suite/affected/actionlint pass. Tidy's
+full run had one tool crash while files.cpp was being edited; after stabilizing
+that file, all eight of its production configurations pass (content-retidy.log).
+The original full report and separate recheck report are retained. Lifetime and
+fixed replay gates remain outstanding; no hosted acceptance is claimed.
+
+CI registers the package probe on both compilers and real OA package rendering/
+pure checks in runtime. AGENTS/tests docs and docs/design/packages.md describe
+commands, roots, mounting, limits and installer-only modern content. Keep #20
+local until #19 merges; final checks must include that current main.
 
 ## #20 filesystem acceptance, test first
 

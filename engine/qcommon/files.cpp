@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "q_shared.h"
 #include "qcommon_public.h"
 #include "filesystem_public.h"
+#include "package_public.h"
 #include "../../third_party/minizip/unzip.h"
 
 /*
@@ -244,6 +245,7 @@ typedef struct fileInPack_s {
 	decltype( unz_file_info::uncompressed_size ) pos; // minizip file info position
 	decltype( unz_file_info::uncompressed_size ) size; // minizip file size
 	struct fileInPack_s *next; // next file in the hash bucket
+	bool removed; // modern package tombstone
 } fileInPack_t;
 
 typedef struct pack_s {
@@ -251,6 +253,7 @@ typedef struct pack_s {
 	char *pakBasename; // pak0
 	const char *pakGamename; // baseq3
 	unzFile handle; // handle to zip file
+	package_t *package; // modern package, never part of the legacy zip cache
 	int checksum; // regular checksum
 	int pure_checksum; // checksum for pure
 	int numfiles; // number of files in pk3
@@ -317,6 +320,7 @@ static cvar_t *fs_apppath;
 static cvar_t *fs_steampath;
 
 static cvar_t *fs_basepath;
+static cvar_t *fs_enginepath;
 static cvar_t *fs_basegame;
 static cvar_t *fs_copyfiles;
 static cvar_t *fs_gamedirvar;
@@ -333,6 +337,7 @@ static int fs_packFiles; // total number of files in all loaded packs
 
 static int fs_pk3dirCount; // total number of pk3 directories in searchpath
 static int fs_packCount; // total number of packs in searchpath
+static bool fs_hasPackages;
 static int fs_dirCount; // total number of directories in searchpath
 
 static int fs_checksumFeed;
@@ -352,6 +357,7 @@ typedef struct {
 	qfile_ut handleFiles;
 	qboolean handleSync;
 	qboolean zipFile;
+	packageStream_t *packageStream;
 	int zipFilePos;
 	int zipFileLen;
 	char name[MAX_ZPATH];
@@ -477,7 +483,7 @@ static FILE *FS_FileForHandle( fileHandle_t f ) {
 	if ( f <= 0 || f >= MAX_FILE_HANDLES ) {
 		Com_Error( ERR_DROP, "FS_FileForHandle: out of range" );
 	}
-	if ( fsh[f].zipFile ) {
+	if ( fsh[f].zipFile || fsh[f].packageStream ) {
 		Com_Error( ERR_DROP, "FS_FileForHandle: can't get FILE on zip file" );
 	}
 	if ( !fsh[f].handleFiles.file.o ) {
@@ -1186,7 +1192,9 @@ void FS_FCloseFile( fileHandle_t f ) {
 
 	fd = &fsh[f];
 
-	if ( fd->zipFile && fd->pak ) {
+	if ( fd->packageStream ) {
+		Package_CloseAsset( fd->packageStream );
+	} else if ( fd->zipFile && fd->pak ) {
 		// pak file
 		unzCloseCurrentFile( fd->handleFiles.file.z );
 		if ( fd->handleFiles.unique ) {
@@ -1522,6 +1530,11 @@ static int FS_OpenFileInPak( fileHandle_t *file, pack_t *pak, fileInPack_t *pakF
 	unz_s *zfi;
 	FILE *temp;
 
+	if ( pakFile->removed ) {
+		*file = FS_INVALID_HANDLE;
+		return -1;
+	}
+
 	// mark the pak as having been referenced and mark specifics on cgame and ui
 	// these are loaded from all pk3s
 	// from every pk3 file.
@@ -1540,6 +1553,25 @@ static int FS_OpenFileInPak( fileHandle_t *file, pack_t *pak, fileInPack_t *pakF
 		if ( !( pak->referenced & FS_QAGAME_REF ) && !strcmp( pakFile->name + 3, "qagame.qvm" ) ) {
 			pak->referenced |= FS_QAGAME_REF;
 		}
+	}
+
+	if ( pak->package ) {
+		const fileHandle_t handle = FS_HandleForFile();
+		auto *stream = Package_OpenAsset( pak->package, uint32_t( pakFile->pos ) );
+		if ( !stream ) {
+			*file = FS_INVALID_HANDLE;
+			Com_Printf( S_COLOR_RED "Package asset verification failed: %s@%s\n", pak->pakFilename, pakFile->name );
+			return -1;
+		}
+		f = &fsh[handle];
+		FS_InitHandle( f );
+		f->packageStream = stream;
+		f->handleFiles.file.v = stream;
+		f->zipFileLen = int( pakFile->size );
+		f->pakIndex = fs_lastPakIndex = pak->index;
+		Q_strncpyz( f->name, pakFile->name, sizeof( f->name ) );
+		*file = handle;
+		return int( pakFile->size );
 	}
 
 	if ( !pak->handle ) {
@@ -1687,7 +1719,7 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 					// case and separator insensitive comparisons
 					if ( !FS_FilenameCompare( pakFile->name, filename ) ) {
 						// found it!
-						return pakFile->size;
+						return pakFile->removed ? -1 : int( pakFile->size );
 					}
 					pakFile = pakFile->next;
 				} while ( pakFile != NULL );
@@ -1806,7 +1838,8 @@ void FS_TouchFileInPak( const char *filename, int refbits ) {
 			do {
 				// case and separator insensitive comparisons
 				if ( !FS_FilenameCompare( pakFile->name, filename ) ) {
-					pak->referenced |= refbits;
+					if ( !pakFile->removed )
+						pak->referenced |= refbits;
 					return;
 				}
 				pakFile = pakFile->next;
@@ -1949,6 +1982,9 @@ int FS_Read( void *buffer, int len, fileHandle_t f ) {
 	buf = (byte *)buffer;
 	fs_readCount += len;
 
+	if ( fsh[f].packageStream )
+		return Package_ReadAsset( fsh[f].packageStream, buffer, len );
+
 	if ( !fsh[f].zipFile ) {
 		remaining = len;
 		tries = 0;
@@ -2062,6 +2098,16 @@ int FS_Seek( fileHandle_t f, fsOffset_t offset, fsOrigin_t origin ) {
 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
 	}
 
+	if ( fsh[f].packageStream ) {
+		int64_t position = offset;
+		if ( origin == FS_SEEK_CUR )
+			position += int64_t( Package_TellAsset( fsh[f].packageStream ) );
+		else if ( origin == FS_SEEK_END )
+			position += fsh[f].zipFileLen;
+		else if ( origin != FS_SEEK_SET )
+			Com_Error( ERR_FATAL, "Bad origin in FS_Seek" );
+		return position >= 0 && Package_SeekAsset( fsh[f].packageStream, uint64_t( position ) ) ? 0 : -1;
+	}
 	if ( fsh[f].zipFile == qtrue ) {
 		//FIXME: this is really, really crappy
 		//(but better than what was here before)
@@ -2200,6 +2246,8 @@ qboolean FS_FileIsInPAK( const char *filename, int *pChecksum, char *pakName ) {
 			do {
 				// case and separator insensitive comparisons
 				if ( !FS_FilenameCompare( pakFile->name, filename ) ) {
+					if ( pakFile->removed )
+						return qfalse;
 					if ( pChecksum ) {
 						*pChecksum = pak->pure_checksum;
 					}
@@ -2960,7 +3008,7 @@ static qboolean FS_SaveCache( void ) {
 	FS_WriteCacheHeader( f );
 
 	while ( sp != NULL ) {
-		if ( sp->pack ) {
+		if ( sp->pack && !sp->pack->package ) {
 			FS_SavePackToFile( sp->pack, f );
 		}
 		sp = sp->next;
@@ -3228,6 +3276,7 @@ Frees a pak structure and releases all associated resources
 =================
 */
 static void FS_FreePak( pack_t *pak ) {
+	Package_Free( pak->package );
 	if ( pak->handle ) {
 #ifdef USE_HANDLE_CACHE
 		if ( pak->next_h )
@@ -3393,6 +3442,21 @@ Returns a unique list of files that match the given criteria
 from all search paths
 ===============
 */
+static bool FS_PackageRemoved( const char *name ) {
+	if ( !fs_hasPackages )
+		return false;
+	const int64_t fullHash = FS_HashFileName( name, 0U );
+	for ( const auto *search = fs_searchpaths; search; search = search->next ) {
+		const auto *pak = search->pack;
+		if ( !pak || !FS_PakIsPure( pak ) )
+			continue;
+		for ( const auto *entry = pak->hashTable[fullHash & ( pak->hashSize - 1 )]; entry; entry = entry->next )
+			if ( !FS_FilenameCompare( entry->name, name ) )
+				return entry->removed;
+	}
+	return false;
+}
+
 static char **FS_ListFilteredFiles( const char *path, const char *extension, const char *filter, int *numfiles, int flags ) {
 	int nfiles;
 	char **listCopy;
@@ -3464,6 +3528,8 @@ static char **FS_ListFilteredFiles( const char *path, const char *extension, con
 
 				// check for directory match
 				name = buildBuffer[i].name;
+				if ( buildBuffer[i].removed || FS_PackageRemoved( name ) )
+					continue;
 				//
 				if ( filter ) {
 					// case insensitive
@@ -3522,6 +3588,8 @@ static char **FS_ListFilteredFiles( const char *path, const char *extension, con
 			for ( i = 0; i < numSysFiles; i++ ) {
 				// unique the match
 				name = sysFiles[i];
+				if ( FS_PackageRemoved( filter || !*path ? name : va( "%s/%s", path, name ) ) )
+					continue;
 				length = (int)( strlen( name ) );
 				if ( search->policy != DIR_STATIC && FS_BannedPakFile( name ) ) {
 					continue;
@@ -4184,6 +4252,71 @@ Sets fs_gamedir, adds the directory to the head of the path,
 then loads the zip headers
 ================
 */
+static pack_t *FS_LoadPackage( const char *filename ) {
+	package_t *package = Package_Load( filename );
+	if ( !package )
+		Com_Error( ERR_FATAL, "Invalid content package: %s", filename );
+	const int count = int( package->header.count );
+	const int hashSize = int( FS_PakHashSize( count ) );
+	const char *basename = strrchr( filename, PATH_SEP );
+	basename = basename ? basename + 1 : filename;
+	const size_t size = sizeof( pack_t ) + size_t( hashSize ) * sizeof( fileInPack_t * ) + size_t( count ) * sizeof( fileInPack_t ) + strlen( basename ) + 1;
+	auto *pak = static_cast<pack_t *>( Z_TagMalloc( size, TAG_PACK ) );
+	Com_Memset( pak, 0, size );
+	pak->package = package;
+	pak->numfiles = 0;
+	pak->hashSize = hashSize;
+	pak->hashTable = reinterpret_cast<fileInPack_t **>( pak + 1 );
+	pak->buildBuffer = reinterpret_cast<fileInPack_t *>( pak->hashTable + hashSize );
+	pak->pakFilename = package->path;
+	pak->pakBasename = reinterpret_cast<char *>( pak->buildBuffer + count );
+	strcpy( pak->pakBasename, basename ); // Keep .aspack to distinguish installer content from pk3 downloads.
+	for ( int i = 0; i < count; ++i ) {
+		const auto &asset = package->entries[i];
+		if ( FS_BannedPakFile( asset.name ) )
+			continue;
+		auto &entry = pak->buildBuffer[pak->numfiles++];
+		entry.name = package->entries[i].name;
+		entry.pos = i;
+		entry.size = decltype( entry.size )( asset.size );
+		entry.removed = asset.flags != 0;
+		const int64_t hash = FS_HashFileName( entry.name, hashSize );
+		entry.next = pak->hashTable[hash];
+		pak->hashTable[hash] = &entry;
+	}
+	// Existing pure protocol carries 32-bit checksums. Bind both manifest metadata
+	// and the resulting content identity; SHA256 still verifies every asset read.
+	uint32_t checksums[17];
+	checksums[0] = uint32_t( LittleLong( fs_checksumFeed ) );
+	memcpy( checksums + 1, package->header.identity, 32 );
+	memcpy( checksums + 9, package->header.metadataHash, 32 );
+	pak->checksum = LittleLong( Com_BlockChecksum( checksums + 1, 64 ) );
+	pak->pure_checksum = LittleLong( Com_BlockChecksum( checksums, sizeof( checksums ) ) );
+	return pak;
+}
+
+static void FS_ValidatePackages( void ) {
+	package_t *packages[64];
+	uint32_t count = 0;
+	for ( const auto *search = fs_searchpaths; search; search = search->next ) {
+		if ( !search->pack || !search->pack->package || !FS_PakIsPure( search->pack ) )
+			continue;
+		if ( count == ARRAY_LEN( packages ) )
+			Com_Error( ERR_FATAL, "Too many content packages (maximum 64)" );
+		packages[count++] = search->pack->package;
+	}
+	if ( !count )
+		return;
+	for ( uint32_t i = 0; i < count / 2; ++i ) {
+		auto *swap = packages[i];
+		packages[i] = packages[count - i - 1];
+		packages[count - i - 1] = swap;
+	}
+	uint8_t identity[32];
+	if ( !Package_ValidateMounts( packages, count, identity ) )
+		Com_Error( ERR_FATAL, "Content patch base or result identity does not match mount order" );
+}
+
 static void FS_AddGameDirectory( const char *path, const char *dir ) {
 	const searchpath_t *sp;
 	int len;
@@ -4340,6 +4473,25 @@ static void FS_AddGameDirectory( const char *path, const char *dir ) {
 		}
 	}
 
+	// Modern packages follow legacy archives within each directory. Later names
+	// take precedence; manifests bind patches to the exact lower modern view.
+	int packageCount = 0;
+	char **packages = Sys_ListFiles( curpath, ".aspack", NULL, &packageCount, 0 );
+	if ( packageCount >= 2 )
+		FS_SortFileList( packages, packageCount - 1 );
+	for ( int i = 0; i < packageCount; ++i ) {
+		pak = FS_LoadPackage( FS_BuildOSPath( path, dir, packages[i] ) );
+		fs_hasPackages = true;
+		pak->pakGamename = gamedir;
+		pak->index = fs_packCount++;
+		fs_packFiles += pak->numfiles;
+		search = static_cast<searchpath_t *>( Z_TagMalloc( sizeof( searchpath_t ), TAG_SEARCH_PACK ) );
+		Com_Memset( search, 0, sizeof( *search ) );
+		search->pack = pak;
+		search->next = fs_searchpaths;
+		fs_searchpaths = search;
+	}
+	Sys_FreeFileList( packages );
 	// done
 	Sys_FreeFileList( pakdirs );
 	Sys_FreeFileList( pakfiles );
@@ -4444,6 +4596,13 @@ qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring ) {
 		if ( !havepak && fs_serverReferencedPakNames[i] && *fs_serverReferencedPakNames[i] ) {
 			// Don't got it
 
+			if ( FS_IsExt( fs_serverReferencedPakNames[i], ".aspack", int( strlen( fs_serverReferencedPakNames[i] ) ) ) ) {
+				if ( dlstring )
+					Com_Error( ERR_DROP, "Install required content package: %s", fs_serverReferencedPakNames[i] );
+				Q_strcat( neededpaks, len, fs_serverReferencedPakNames[i] );
+				Q_strcat( neededpaks, len, " (install package)\n" );
+				continue;
+			}
 			if ( dlstring ) {
 				// We need this to make sure we won't hit the end of the buffer or the server could
 				// overwrite non-pk3 files on clients by writing so much crap into neededpaks that
@@ -4533,6 +4692,12 @@ void FS_Shutdown( qboolean closemfp ) {
 
 		if ( p->pack ) {
 #ifdef USE_PK3_CACHE
+			if ( p->pack->package ) {
+				FS_FreePak( p->pack );
+				p->pack = nullptr;
+				Z_Free( p );
+				continue;
+			}
 #ifdef USE_HANDLE_CACHE
 			if ( p->pack->next_h )
 				FS_RemoveFromHandleList( p->pack );
@@ -4552,6 +4717,7 @@ void FS_Shutdown( qboolean closemfp ) {
 
 	fs_pk3dirCount = 0;
 	fs_packCount = 0;
+	fs_hasPackages = false;
 	fs_dirCount = 0;
 
 	Cmd_RemoveCommand( "path" );
@@ -4768,11 +4934,12 @@ static void FS_Startup( void ) {
 #endif
 
 	homePath = Sys_DefaultHomePath();
-	if ( homePath == NULL || homePath[0] == '\0' ) {
-		homePath = fs_basepath->string;
-	}
+	if ( homePath == NULL )
+		homePath = "";
 
 	fs_homepath = Cvar_Get( "fs_homepath", homePath, CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
+	if ( !fs_homepath->string[0] )
+		Com_Error( ERR_FATAL, "No user data directory; set fs_homepath explicitly" );
 	Cvar_SetDescription( fs_homepath, "Directory to store user configuration and downloaded files." );
 
 	fs_gamedirvar = Cvar_Get( "fs_game", "", CVAR_INIT | CVAR_SYSTEMINFO );
@@ -4795,6 +4962,10 @@ static void FS_Startup( void ) {
 	FS_LoadCache();
 #endif
 #endif
+
+	fs_enginepath = Cvar_Get( "fs_enginepath", fs_basepath->string, CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
+	Cvar_SetDescription( fs_enginepath, "Read-only engine data root; its engine directory is below game/mod packages. Writes use fs_homepath." );
+	FS_AddGameDirectory( fs_enginepath->string, "engine" );
 
 	// add search path elements in reverse priority order
 	if ( fs_steampath->string[0] ) {
@@ -4850,6 +5021,8 @@ static void FS_Startup( void ) {
 	// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=506
 	// reorder the pure pk3 files according to server order
 	FS_ReorderPurePaks();
+
+	FS_ValidatePackages();
 
 	// get the pure checksums of the pk3 files loaded by the server
 	FS_LoadedPakPureChecksums();
@@ -5514,6 +5687,7 @@ qboolean FS_ConditionalRestart( int checksumFeed, qboolean clientRestart ) {
 		return qtrue;
 	} else if ( fs_numServerPaks && !fs_reordered ) {
 		FS_ReorderPurePaks();
+		FS_ValidatePackages();
 	}
 
 	return qfalse;
@@ -5578,6 +5752,8 @@ int FS_FOpenFileByMode( const char *qpath, fileHandle_t *f, fsMode_t mode ) {
 
 
 int FS_FTell( fileHandle_t f ) {
+	if ( fsh[f].packageStream )
+		return int( Package_TellAsset( fsh[f].packageStream ) );
 	int pos;
 	if ( fsh[f].zipFile ) {
 		pos = unztell( fsh[f].handleFiles.file.z );
@@ -5589,6 +5765,8 @@ int FS_FTell( fileHandle_t f ) {
 
 
 void FS_Flush( fileHandle_t f ) {
+	if ( fsh[f].packageStream )
+		return;
 	fflush( fsh[f].handleFiles.file.o );
 }
 

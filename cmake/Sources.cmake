@@ -31,6 +31,9 @@ set(COMMON_SOURCES
   engine/platform/sys_services.cpp
   engine/qcommon/cvar.cpp
   engine/qcommon/files.cpp
+  engine/qcommon/package.cpp
+  engine/platform/sys_content_file.cpp
+  third_party/zlib/puff.cpp
   engine/qcommon/history.cpp
   engine/qcommon/keys.cpp
   engine/qcommon/md4.cpp
@@ -104,7 +107,6 @@ set(CLIENT_SOURCES
   engine/sound/snd_main.cpp
   engine/sound/snd_codec.cpp
   engine/sound/snd_codec_wav.cpp
-  third_party/zlib/puff.cpp
 )
 
 set(JPEG_SOURCES
