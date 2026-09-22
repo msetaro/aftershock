@@ -82,6 +82,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 backend deployment manifests
+
+The generator now emits the namespaced service account/RBAC, two-replica deployment,
+ClusterIP service, HPA and disruption budget. Non-root/read-only containers consume
+separately provisioned TLS/publisher/reader/catalog/database secrets; no secret values
+or AppID are generated. Only namespaced GameServer get/list and allocation create
+permissions are granted. TLS health probes and resource requests/limits are explicit.
+The manifest contract passes (backend-deployment-after.log); actual kind deployment,
+metrics availability and end-to-end native acceptance still remain required.
+
 ## #29 backend deployment contract, test first
 
 The manifest contract requires two replicas behind a ClusterIP service, bounded
