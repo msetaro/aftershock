@@ -19,9 +19,16 @@ include("''' + str(ROOT / 'cmake/Audio.cmake') + '''")
 aftershock_add_audio()
 add_executable(probe "''' + str(ROOT / 'tests/probes/audio_voice.cpp') + '''"
   "''' + str(ROOT / 'engine/sound/snd_voice.cpp') + '''")
+target_sources(probe PRIVATE
+  "''' + str(ROOT / 'engine/qcommon/voice.cpp') + '''"
+  "''' + str(ROOT / 'engine/qcommon/msg.cpp') + '''"
+  "''' + str(ROOT / 'engine/qcommon/huffman.cpp') + '''"
+  "''' + str(ROOT / 'engine/qcommon/huffman_static.cpp') + '''"
+  "''' + str(ROOT / 'engine/qcommon/q_shared.cpp') + '''"
+)
 set_property(TARGET probe PROPERTY CXX_STANDARD 20)
-target_compile_options(probe PRIVATE -UNDEBUG -fno-exceptions -fno-rtti -fsanitize=undefined -fno-sanitize-recover=all)
-target_link_options(probe PRIVATE -fsanitize=undefined -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc)
+target_compile_options(probe PRIVATE -UNDEBUG -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-exceptions -fno-rtti -fsanitize=undefined -fno-sanitize-recover=all)
+target_link_options(probe PRIVATE -fsanitize=undefined -Wl,--gc-sections -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc)
 target_link_libraries(probe PRIVATE opus)
 ''')
 cxx = shlex.split(args.cxx)

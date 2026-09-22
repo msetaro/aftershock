@@ -1,9 +1,20 @@
 #include "../../engine/sound/snd_voice.h"
 #include "../../engine/sound/snd_public.h"
 #include "../../engine/qcommon/qcommon_public.h"
+#include "../../engine/qcommon/voice_public.h"
 #include <assert.h>
 #include <cmath>
 #include <stdlib.h>
+#include <initializer_list>
+
+cvar_t *cl_shownet;
+void QDECL Com_Error( errorParm_t, const char *, ... ) {
+	abort();
+}
+void QDECL Com_Printf( const char *, ... ) {
+}
+void QDECL Com_DPrintf( const char *, ... ) {
+}
 
 static bool playing;
 static int allocations, frees;
@@ -33,6 +44,32 @@ void Z_Free( void *ptr ) {
 }
 
 int main() {
+	byte storage[16384];
+	msg_t message;
+	voicePacket_t sent = {}, received;
+	sent.sender = 7;
+	sent.generation = 3;
+	sent.sequence = 99;
+	sent.frames = 1;
+	sent.size = 3;
+	sent.flags = 2;
+	sent.targets[7] = 128;
+	sent.data[0] = 17;
+	for ( bool client : { false, true } ) {
+		MSG_Init( &message, storage, sizeof( storage ) );
+		assert( MSG_WriteVoice( &message, sent, client ) );
+		MSG_BeginReading( &message );
+		assert( MSG_ReadByte( &message ) == ( client ? clc_voipOpus : svc_voipOpus ) );
+		assert( MSG_ReadVoice( &message, &received, client ) );
+		assert( received.generation == 3 && received.sequence == 99 && received.frames == 1 && received.size == 3 && received.flags == 2 );
+		assert( received.data[0] == 17 && ( client ? received.targets[7] == 128 : received.sender == 7 ) );
+		message.cursize -= 2;
+		MSG_BeginReading( &message );
+		MSG_ReadByte( &message );
+		assert( !MSG_ReadVoice( &message, &received, client ) );
+	}
+	MSG_Init( &message, storage, 16 );
+	assert( !MSG_WriteVoice( &message, sent, true ) && message.cursize == 0 );
 	assert( S_VoiceInit() );
 	playing = true;
 	int16_t tone[960];
