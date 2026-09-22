@@ -45,8 +45,9 @@ running. All local profiling gates pass. Merge the final #21 branch 2cefd7e3
 locally to validate the combined developer owners while PR177 finishes; the
 production files merge automatically, and both issues' progress evidence is
 retained. This does not accept #21 or replace the required final current-main
-merge. Rebuild and exercise the combined overlay and AI controller, then merge
-accepted #21 main forward before pushing/running final #22 gates.
+merge. The combined rebuild, overlay/restart/idle accounting, AI combat and same/fresh
+checkpoint continuation pass. Merge accepted #21 main forward before
+pushing/running final #22 gates.
 
 Draft PR179 preserves #23's bounded null/provider interface preparation at
 0bb8070e. Actual Steam integration is incomplete and requires a proper external
@@ -57,6 +58,21 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 Steam SDK/live-acceptance dependency needs maintainer input; finish the
 independent #21/#22 gates before stopping. Do not end at a CI wait.
+
+## #22 combined AI validation
+
+Local merge a203c2e4 incorporates final #21 branch 2cefd7e3 without accepting it
+before hosted checks. The production merge is automatic; the progress conflict
+retains both issues' evidence. Complete developer client/server rebuild, agent
+protocol and developer data probes pass, followed serially by OpenArena overlay
+controls/renderer restart/idle allocation/shutdown reporting and AI combat with
+same/fresh-process checkpoint continuation. Evidence is
+profiling-navigation-{build,agent,data,ui,combat}.log. The actual selected peak
+capture attributes 370.939 ms of a 378.521 ms frame to events/commands; the
+hierarchy remains readable after the AI inspector merge. Formatting (589 files),
+type policy (448), boundaries (449) and targeted production-flags tidy on both
+shared developer owners pass. No fixture changes. The accepted main merge and
+all final-head/integrated hosted gates remain required.
 
 ## #22 local gate evidence
 
