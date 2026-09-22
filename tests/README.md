@@ -1657,3 +1657,29 @@ shutdown paths with ASan/UBSan. All 64 handles must be freed, repeated shutdown
 must be harmless, and the whole pool must be reusable for three cycles. Pass
 `--cxx 'clang++ -stdlib=libc++'` for the second compiler. This #31 regression is
 asset-independent and runs in both CI unit legs and the local full-suite catalog.
+
+
+## Native AI and navigation (#21)
+
+`python3 tests/navigation.py` cooks owned collision through pinned Recast and
+checks the native Detour path/crowd/cover owner under UBSan. It verifies content
+hashes, deterministic recooks, authored jump/launch/door/drop traversal, actual
+trigger notification, zero query/tick allocations, teardown, behavior hierarchy,
+and sight/hearing/target memory. Pass `--cc clang --cxx 'clang++ -stdlib=libc++'`
+for the second compiler. It needs the existing level/cook dependencies and no
+game data; it creates no accepted golden.
+
+`python3 tests/navigation_runtime.py --binary CLIENT` runs a native bot on the
+owned two-lane level with its AAS removed. It requires movement along complete
+routes and a live data weapon. `--combat` requires actual rifle damage and a
+low-health transition into reachable protected cover; `--hearing` requires a
+real occluded shot, the shared audio attenuation and movement toward its source.
+Every mode checks the AI inspector and exact same/fresh-process checkpoint
+continuation. Hosted form adds `--content openarena --data PATH` and checks
+loading the unchanged pre-AI v1 fixture from the live controller. The local
+default uses installed Quake 3 data. Scratch maps, spawns and new cooked AI
+assets are owned test inputs; existing accepted fixtures are never regenerated.
+
+See [docs/navigation.md](../docs/navigation.md) for cooking, selecting the new
+controller and inspecting its behavior. Legacy bot matches retain botlib pending
+full match parity; selecting no AI assets preserves their existing controller.

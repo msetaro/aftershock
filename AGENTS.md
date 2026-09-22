@@ -76,6 +76,7 @@ every wire and file-format struct; issue updated with what changed and what was 
 - `engine/entities` cooked prefab/component definitions and reflection metadata
 
 - `engine/ui` bounded cooked menu/HUD layout and navigation
+- `engine/navigation` bounded navmesh queries, behavior state and perception
 - `engine/animation` cooked skeletal sampling, graphs, root motion, IK and hit boxes
 - `engine/botlib` bot AI library
 - `engine/devtools` optional development UI and bounded console/debug data
@@ -148,6 +149,8 @@ playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructi
 - Presentation controls: `python3 tests/fidelity_runtime.py --binary CLIENT` and
   `python3 tests/streaming_runtime.py --binary CLIENT`; their `--measure-gpu` options
   require the documented reference GPU. `python3 tests/streaming.py` checks residency.
+- Native AI: `python3 tests/navigation.py` and `python3 tests/navigation_runtime.py --binary CLIENT`
+  (also `--combat` and `--hearing`; devtools client, both content sets).
 - Versioned state: `python3 tests/state.py`, `python3 tests/profile_runtime.py --binary CLIENT`
   and `python3 tests/checkpoint_runtime.py --binary CLIENT` (devtools client; hosted
   OpenArena includes the frozen full-game v1-to-v2 migration).

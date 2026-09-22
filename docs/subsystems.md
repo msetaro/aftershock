@@ -61,6 +61,14 @@ header defines the existing DMA contract with platform backends, raw cinematic
 sample timing and the sound API. It owns sound buffers through the existing
 allocator paths; this boundary change does not add allocations or alter mixing.
 
+`engine/navigation` owns bounded Recast/Detour assets, route/cover/avoidance
+queries, plain behavior state and perception. Its public interfaces accept
+collision facts and authoritative positions; `game/game/g_navigation.cpp` owns
+native traces, shot notifications, usercmd production and typed checkpoints.
+Existing Pmove and weapons own movement/damage. The game never accesses vendor
+objects. The shared public sound model supplies hearing attenuation/occlusion.
+See [AI and navigation](navigation.md) for authoring and limits.
+
 `engine/botlib` owns AAS navigation, bot decisions, scripts and bot development
 logs. It receives engine services through its public import contract and public
 qcommon/platform interfaces. Obsolete BSPC, MEQCC and SCREWUP integrations, whose

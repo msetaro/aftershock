@@ -101,6 +101,7 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/iqm_scale.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/physics.py --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/navigation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/entities.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/state.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
 
@@ -366,6 +367,20 @@ jobs:
         run: |
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/profile_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/checkpoint_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Native navmesh patrol combat hearing and checkpoint continuation
+        run: |
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/navigation_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa  --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-navigation-patrol
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/navigation_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --combat --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-navigation-combat
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/navigation_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa --hearing --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-navigation-hearing
+      - name: Native navigation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-navigation
+          path: |
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-navigation-*/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-navigation-*/*.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-navigation-*/*.png
       - name: Checkpoint evidence
         if: always()
         uses: actions/upload-artifact@v7

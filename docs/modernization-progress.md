@@ -35,22 +35,43 @@ Resume the active predecessor gates before any later issue can merge:
   and self-review before readiness/merge. No prior-head gate substitutes.
 
 This is issue/21-ai-navigation in navigation-tree, based on main b92b6ef5.
-Owned collision cooking, routes/crowd/cover/stateless avoidance, typed off-mesh
-following, hierarchical behavior and perception pass both compiler UBSan probes.
-The initial native patrol/weapon/AI-inspector runtime contract is committed at
-7d40e273 and fails at the absent AI integration, as intended.
+The native controller now passes patrol, combat, occluded hearing and exact
+same/fresh-process checkpoint continuation on owned geometry. Actual local
+q3dm17 acceptance passes: two native pad flights, data-weapon damage and movement
+into protected cover. Engine/simulation expressions and accepted fixtures remain
+unchanged. Legacy botlib remains pending full legacy-match parity.
 
-Continue that game integration here while #20's fresh gates run. This updates the
-earlier self-imposed wait-before-integration plan: #21 uses the existing filesystem
-API, so isolated implementation can proceed without publishing or merging it.
-Merge accepted #20 main forward before final #21 gates/PR acceptance, and preserve
-the strict merge order. Runtime combat/cover, q3dm17 traversal, tools and checkpoint
-continuation remain required. No accepted fixture or simulation math changed.
+Finish the running fixed replay/local policy gates, self-review the #21 diff and
+commit its CI/docs registration. New owned tests run in both unit compiler legs
+and hosted OpenArena runtime. Merge accepted #20 main forward before final #21
+hosted gates/PR acceptance; preserve the strict merge order. Nothing has been
+pushed for #21 yet. Follow the specific gate evidence below, not historical next
+steps in older entries.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
+
+## #21 actual q3dm17 acceptance
+
+The final private native run passes (navigation-q3-combat5.log and
+navigation-q3-combat/actors.json): a complete six-corner route traverses two actual
+push triggers, the data rifle damages the player, a return hit selects cover, and
+the bot moves roughly 668 units into trace-protected cover against the relocated
+hostile's last sensed position. The authored cover dwell is 20 seconds so the
+inspector can observe completion. Both actor movement and weapon damage use the
+unchanged native paths. The live AI inspector screenshot was reviewed.
+
+All map extraction, observed landing data, cooked navmesh and trajectories remain
+in the persistent private cache; no installed game archive or derived map asset
+is committed/uploaded. Reproduction scripts there are navigation-q3-offline.py,
+navigation-pads-observe.py, navigation-q3-combat.py. Owned CI geometry exercises
+the same path/perception/weapon/checkpoint owners without proprietary content.
+GCC/Clang navigation UBSan and both legacy bot smoke content sets pass unchanged.
+Full tidy passed 1446 configurations, with the final two-line cover correction
+rechecked for tidy/lifetimes in all four configurations (navigation-cover-recheck.log).
+Full lifetimes and fixed demos are still completing. No accepted golden changed.
 
 ## #21 cover completion after memory expiry, test first
 
