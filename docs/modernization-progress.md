@@ -79,6 +79,20 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 read-only results contract, test first
+
+The new read contract requires separate reader authorization, canonical account
+ownership, completed-and-acknowledged results only, bounded history/leaderboard
+responses, retry deduplication and durable-stub restart recovery. It fails before
+implementation on missing Read/response fields (backend-results-before.log).
+Reuse #28's development log owner for this acceptance read API; #30 will implement
+its production transactional storage. The player-facing tier never writes match data.
+
+A native attribution review also found that a departing player's final score must
+be logged before ClientDisconnect clears ownership. The new feature retains only a
+bounded log-ownership flag until that callback, since server identity is already
+closed by then; anonymous logs stay unchanged. Native/runtime checks remain required.
+
 ## #29 verified result ownership
 
 The native game emits ClientIdentity only from the server's existing verified
