@@ -131,8 +131,9 @@ buffer until close. Filesystem reads and seeks allocate no zone memory.
 
 `python3 tests/packages.py` checks reproducible actual cooked content, manifest
 diffs, removals, per-asset hashes, native read/seek and complete resource release.
-`python3 tests/packages_runtime.py --binary CLIENT` checks separate roots,
-patch/removal/DLC/mod precedence, restarts, user writes and legacy gameplay. It
+`python3 tests/packages_runtime.py --binary CLIENT --server SERVER` checks separate roots,
+patch/removal/DLC/mod precedence, restarts, user writes and legacy gameplay.
+With `--server`, it also reads packaged content on both peers during a pure session. It
 also cooks the owned character into one package and proves a small texture-only
 delta changes the rendered preview in a fresh client. The same command accepts
 `--content openarena --data PATH` for hosted CI. No accepted game demo or golden

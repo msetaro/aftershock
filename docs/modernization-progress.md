@@ -53,6 +53,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
 is currently needed. Do not end at a checkpoint or CI wait.
 
+## #20 CI evidence retention
+
+The runtime job retains only package logs, screenshots and size JSON, including
+pure-session logs; package contents and game archives are not uploaded. The
+AGENTS/tests/design acceptance commands include the dedicated server so the
+pure-session portion is explicit. GCC's complete unit-job variant passed; Clang
+is still running. PR174 integration has advanced beyond level authoring; PR175
+remains in its level-authoring step. Continue monitoring both, with no red/skipped
+required-check merge or main-base shortcut.
+
 ## #20 offline/native limit agreement
 
 Self-review aligns offline mount limits with the native 64-package/65,536-visible-
@@ -73,7 +83,7 @@ Evidence: content-lifetimes.log, content-tidy/results.json,
 content-tidy/recheck-results.json, content-demo.log, content-demo-oa.log.
 The runtime test also now proves that packaged autoexec/q3config entries do not
 replace loose user configuration; full OA package/pure/render acceptance passes
-again. Both full local unit job variants are running via tests/suite.py under
+again. The full local unit job variants run via tests/suite.py under
 content-unit-suite. PR175 and PR174 integration still await hosted runtime.
 
 ## #20 filesystem implementation and local acceptance

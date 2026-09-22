@@ -1609,7 +1609,7 @@ asset-independent and runs in both CI unit legs and the local full-suite catalog
 `python3 tests/packages.py --cc gcc --cxx g++` checks offline and native package
 identity, stored/compressed content, read/seek behavior, one-texture delta and
 removal. Use the existing cooker Python environment; repeat with Clang/libc++.
-`python3 tests/packages_runtime.py --binary CLIENT` uses the development client
+`python3 tests/packages_runtime.py --binary CLIENT --server SERVER` uses the development client
 and installed Quake 3 content. Hosted CI passes `--content openarena --data PATH`.
 The check mounts only newly cooked owned assets/configurations, verifies separate
 engine/game/user directories and mod precedence, restarts the filesystem, and
