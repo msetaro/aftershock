@@ -115,3 +115,7 @@ void BotFreeGoalState( int handle );
 int BotSetupGoalAI( void );
 //shut down the goal AI
 void BotShutdownGoalAI( void );
+
+#include "../public/state_public.h"
+bool Bot_WriteGoalState( stateWriter_t *writer );
+bool Bot_ReadGoalState( const stateReader_t &reader, bool apply );

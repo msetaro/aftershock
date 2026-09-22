@@ -1007,3 +1007,35 @@ bool Bot_ReadWeightState( const stateReader_t &reader, uint32_t slot, weightconf
 		}
 	return true;
 }
+
+int Bot_WeightCacheIndex( const weightconfig_t *config ) {
+	if ( !config )
+		return -1;
+	for ( int i = 0; i < MAX_WEIGHT_FILES; ++i )
+		if ( config == weightFileList[i] )
+			return i;
+	return -2;
+}
+bool Bot_WriteWeightCacheState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	for ( uint32_t i = 0; i < MAX_WEIGHT_FILES; ++i ) {
+		if ( weightFileList[i] && Bot_WeightCacheIndex( weightFileList[i] ) != int( i ) ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( !Bot_WriteWeightState( writer, i, weightFileList[i] ) )
+			return false;
+	}
+	return true;
+}
+bool Bot_ReadWeightCacheState( const stateReader_t &reader, bool apply ) {
+	for ( uint32_t i = 0; i < MAX_WEIGHT_FILES; ++i )
+		if ( ( weightFileList[i] && Bot_WeightCacheIndex( weightFileList[i] ) != int( i ) ) || !Bot_ReadWeightState( reader, i, weightFileList[i], false ) )
+			return false;
+	if ( apply )
+		for ( uint32_t i = 0; i < MAX_WEIGHT_FILES; ++i )
+			if ( !Bot_ReadWeightState( reader, i, weightFileList[i], true ) )
+				return false;
+	return true;
+}

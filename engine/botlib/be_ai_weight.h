@@ -84,3 +84,7 @@ void BotShutdownWeights( void );
 // weapons 256+handle. Names/topology must match the normally reloaded content.
 bool Bot_WriteWeightState( stateWriter_t *writer, uint32_t slot, const weightconfig_t *config );
 bool Bot_ReadWeightState( const stateReader_t &reader, uint32_t slot, weightconfig_t *config, bool apply );
+// -1 null, -2 privately owned, otherwise the shared cache slot.
+int Bot_WeightCacheIndex( const weightconfig_t *config );
+bool Bot_WriteWeightCacheState( stateWriter_t *writer );
+bool Bot_ReadWeightCacheState( const stateReader_t &reader, bool apply );

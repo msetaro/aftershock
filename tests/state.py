@@ -178,6 +178,18 @@ for tag,name,expected in (('fuzzyseperator_s','fuzzyseperator_t',{'index','value
     body=weight_header.split('typedef struct '+tag+' {',1)[1].split('} '+name+';',1)[0]
     assert declared_members(body)==expected, f'{name}: weight topology/value ownership changed'
 print('PASS: bot weights classify topology, names, mutable values and pointer ownership')
+goal_source=(ROOT/'engine/botlib/be_ai_goal.cpp').read_text()
+goal_body=goal_source.split('typedef struct bot_goalstate_s {',1)[1].split('} bot_goalstate_t;',1)[0]
+goal_fields=set(re.findall(r'offsetof\( bot_goalstate_t, ([\w.\[\]]+) \)',goal_source))
+assert {name.split('[')[0] for name in goal_fields} | {'itemweightconfig','itemweightindex'}==declared_members(goal_body)
+goal_header=(ROOT/'engine/botlib/be_ai_goal.h').read_text()
+stack=int(re.search(r'#define MAX_GOALSTACK\s+(\d+)',goal_header)[1])
+goal_record=goal_header.split('typedef struct bot_goal_s {',1)[1].split('} bot_goal_t;',1)[0]
+for i in range(stack):
+    assert {name.split('.')[1] for name in goal_fields if name.startswith(f'goalstack[{i}].')}==declared_members(goal_record)
+assert len([name for name in goal_fields if name.startswith('goalstack[')])==stack*8
+print('PASS: botlib goal stack, avoidance and content-pointer ownership cover every member')
+
 
 
 
@@ -297,3 +309,10 @@ for component in ('input','move','weights'):
          f'tests/probes/state_bot_{component}.cpp','engine/qcommon/state.cpp',sha,
          '-Wl,--gc-sections','-o',probe])
     run([probe])
+
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+     '-fsanitize=undefined','-fno-sanitize-recover=all',
+     'tests/probes/state_bot_goals.cpp','engine/botlib/be_ai_weight.cpp','engine/qcommon/state.cpp',sha,
+     '-Wl,--gc-sections','-o',probe])
+run([probe])

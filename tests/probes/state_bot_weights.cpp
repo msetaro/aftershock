@@ -58,6 +58,28 @@ int main() {
 	assert(State_Open(bytes,State_Finish(&writer),&reader));
 	assert(Bot_ReadWeightState(reader,129,nullptr,true));
 	assert(!Bot_ReadWeightState(reader,129,&restored,true));
+
+	nodes[1].weight = 35.25f;
+	assert(Bot_WeightCacheIndex(nullptr)==-1 && Bot_WeightCacheIndex(&original)==-2);
+	weightFileList[4] = &original;
+	assert(Bot_WeightCacheIndex(&original)==4);
+	writer = { bytes, sizeof( bytes ) };
+	assert(Bot_WriteWeightCacheState(&writer));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	weightFileList[4] = &restored;
+	copied[2].weight = 777;
+	assert(Bot_ReadWeightCacheState(reader,false) && copied[2].weight==777);
+	assert(Bot_ReadWeightCacheState(reader,true) && copied[2].weight==nodes[2].weight);
+	writer = { bytes, sizeof( bytes ) };
+	for ( uint32_t i = 0; i < MAX_WEIGHT_FILES - 1; ++i )
+		assert(Bot_WriteWeightState(&writer,i,i==4?&original:nullptr));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	copied[2].weight = 777;
+	assert(!Bot_ReadWeightCacheState(reader,true) && copied[2].weight==777);
+	weightFileList[2] = &restored;
+	writer = { bytes, sizeof( bytes ) };
+	assert(!Bot_WriteWeightCacheState(&writer) && !State_Finish(&writer));
+	weightFileList[2] = weightFileList[4] = nullptr;
 	// Bound checks reject an oversized tree without truncating its live values.
 	static fuzzyseperator_t oversized[MAX_SAVED_WEIGHT_NODES + 1];
 	for ( uint32_t i = 0; i < MAX_SAVED_WEIGHT_NODES; ++i )

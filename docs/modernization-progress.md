@@ -58,6 +58,19 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 bot goal pools and shared weight cache
+
+Goal records preserve stack entries, avoided-goal timers and reachability memory.
+Pool identity verifies loaded item descriptors and the item-to-weight index map;
+pointers are rebound to the recreated owners. Shared cached weights are saved once
+by cache slot, while uncached private configurations accompany their owning goal.
+Unexpected private aliases and duplicate cache slots reject rather than silently
+apply conflicting copies. GCC and Clang/libc++ UBSan pass full-state relocation,
+identical goal-pop continuation, content mismatch and missing-later-record tests
+(state-bot-goals-{gcc,clang}.log). The cache reader validates all slots before any
+application. Client/server build and focused tidy pass. Level-item lists, weapon
+weight owners, character/chat/AAS/libvars and reconstruction remain open.
+
 ## #19 mutable bot weight records
 
 Weight records retain current weight/minimum/maximum values against a digest of
