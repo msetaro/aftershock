@@ -64,6 +64,7 @@ int main( int argc, char **argv ) {
 	S_MixEvents( &mixer, output, 256, 48000 );
 	assert( output[100][0] == 0 && std::fabs( output[100][1] - 1500 ) < .01f );
 	assert( mixer.active == 1 );
+	assert( mixer.layerFrames[0] == 256 && mixer.layerFrames[1] == 256 && mixer.layerFrames[2] == 0 );
 	S_MixEvents( &mixer, output, 256, 48000 );
 	assert( mixer.active == 0 );
 	mixer = {};
@@ -72,6 +73,7 @@ int main( int argc, char **argv ) {
 	assert( S_StartEventVoice( &mixer, &event, samples, spatial, false, 48000, .0875f ) >= 0 );
 	S_MixEvents( &mixer, output, 256, 48000 );
 	assert( std::fabs( output[100][1] - 750 * (80.0f / 2048.0f) ) < .01f );
+	assert( mixer.layerFrames[0] == 0 && mixer.layerFrames[1] == 0 && mixer.layerFrames[2] == 256 );
 	mixer = {};
 	event.voiceLimit = 2;
 	spatial.offset[1] = -40;

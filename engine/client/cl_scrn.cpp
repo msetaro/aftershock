@@ -400,7 +400,7 @@ static void SCR_DrawVoipMeter() {
 		bars[i] = '*';
 	char text[32];
 	Com_sprintf( text, sizeof( text ), "VoIP: [%s]", bars );
-	SCR_DrawStringExt( 320 - strlen( text ) * 4, 10, 8, text, g_color_table[ColorIndex( COLOR_WHITE )], qtrue, qfalse );
+	SCR_DrawStringExt( 320 - int( strlen( text ) ) * 4, 10, 8, text, g_color_table[ColorIndex( COLOR_WHITE )], qtrue, qfalse );
 }
 
 

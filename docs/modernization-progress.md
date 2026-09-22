@@ -62,6 +62,27 @@ After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
 
+## #16 hosted feedback and weapon acceptance in progress
+
+Head 201bb883 hosted checks exposed two new-path failures: MSVC C4267 in the
+small voice meter (bounded string length now explicitly converted to int), and
+bot-log metadata drift from advertising sv_voip in gameplay serverinfo. Voice
+capability now travels in engine systeminfo, like other transport settings; the
+client reads the same configstring. Accepted goldens remain untouched. Both content sets now pass unchanged bot goldens
+(audio-bot-capability-{oa,q3}.log); fresh hosted compiler gates remain. Runs: build 35672903379, regression
+35672903380; private audio-ci-{msvc,runtime}-201bb883.log retain diagnostics.
+The first two-client weapon test attempted explicit agent stepping; that mode
+skips network polling, so the listener never joined. This is not weapon playback
+evidence. Use ordinary clocked clients for UDP acceptance and retain offline agent
+stepping for local simulation. No engine stepping change belongs in #16.
+
+The ordinary two-client weapon run now fires through real remote animation
+notifies: one near shot, three prepared layers, peak 10783.330, room wet peak
+1104.528. It intentionally fails because per-role mix counters are absent
+(audio-weapons-before3/). The component probe likewise fails compiling its
+near/far layerFrames assertions (audio-layers-before.log). Add those counters
+at actual layer mixing, then rerun near/far and room/outdoor acceptance.
+
 ## #16 voice transport/capture checkpoint
 
 eaeff8af records the missing voice-wire API; 8ca2828b records real two-client

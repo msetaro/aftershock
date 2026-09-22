@@ -96,7 +96,7 @@ void CL_VoiceShutdown() {
 }
 
 void CL_WriteVoice( msg_t *msg ) {
-	const char *info = cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO];
+	const char *info = cl.gameState.stringData + cl.gameState.stringOffsets[CS_SYSTEMINFO];
 	const bool enabled = voiceEnabled && voiceEnabled->integer && cls.state == CA_ACTIVE && !clc.demoplaying &&
 						 !strcmp( Info_ValueForKey( info, "sv_voip" ), "1" );
 	const bool wantCapture = enabled && voiceSend->integer;
