@@ -211,3 +211,11 @@ for component in ('COMBAT','TEAM','PODIUM'):
          'tests/probes/state_globals.cpp','engine/qcommon/state.cpp',sha,native,
          '-Wl,--gc-sections','-o',probe])
     run([probe])
+
+for definitions in ([],['-DAFTERSHOCK_DEVTOOLS']):
+    run([*shlex.split(args.cxx),*definitions,'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+         '-fsanitize=undefined','-fno-sanitize-recover=all',
+         'tests/probes/state_definitions.cpp','engine/entities/entities.cpp','engine/qcommon/state.cpp',sha,
+         '-Wl,--gc-sections','-o',probe])
+    run([probe])

@@ -103,4 +103,8 @@ bool G_WritePodiumState( stateWriter_t *writer, const gStatePools_t &pools );
 bool G_ReadPodiumState( const stateReader_t &reader, const gStatePools_t &pools, bool apply );
 bool G_WriteTeamState( stateWriter_t *writer, const gStatePools_t &pools );
 bool G_ReadTeamState( const stateReader_t &reader, const gStatePools_t &pools, bool apply );
+bool G_WriteDefinitionState( stateWriter_t *writer );
+bool G_ReadDefinitionState( const stateReader_t &reader, bool apply );
+bool G_WriteEditorState( stateWriter_t *writer );
+bool G_ReadEditorState( const stateReader_t &reader, bool apply );
 #endif

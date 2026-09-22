@@ -26,7 +26,7 @@ of merged-tree build/regression workflows pass. #18 is accepted in PR173, merge
 checks pass (build 35683155301, regression 35683155256); the clean head, current
 main/base and immutable known-good tag were checked immediately before ready/merge.
 The merge tree equals the tested tree. Merged-tree build 35687912038 passes.
-Regression 35687912012 has only runtime remaining; monitor it until completion.
+Regression 35687912012 now also passes. All merged-tree checks are green.
 
 #19 is local in /home/matt/.cache/aftershock-modernization/state-tree,
 issue/19-state-serialization. Accepted #18 main is merged forward at this checkpoint.
@@ -37,8 +37,9 @@ full single-player checkpoint integration from committed failing
 tests/checkpoint_runtime.py. Entity, client and level draft records now round-trip
 with typed callbacks, checked references and nullable strings. Composed, authored
 animation/weapon, rewind, utility/spawn-generation, combat, team and podium owners
-also have validated local checkpoint records. Remaining work: definition/editor
-state, other game globals and all bot owners, gameplay validation, live
+also have validated local checkpoint records. Definition/editor state restores
+against matching map registry topology. Remaining work: other game globals and
+all bot owners, gameplay validation, live
 restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
 
 Completed local #19 support: named/versioned fields with bounded strings and
@@ -54,6 +55,24 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 definition and editor checkpoint ownership
+
+Authored definition records use the shared schemas and existing ASENT validation.
+Restore requires the registry topology reloaded for the map to match before applying
+edited values to either the authored or combined native table. The combined table
+is deliberately not treated as ASENT: native rows precede authored replacements.
+Editor saves retain complete/degraded status, unknown-key source documents,
+deleted document slots and entity-to-document mappings. Capture/spawn temporaries
+are reset; shipping builds validate and ignore development documents. Every
+record validates before publication. Command-only fixed scratch avoids large
+stack frames. GCC and Clang/libc++ UBSan pass both build variants, including changed
+topology, missing records, malformed documents and no-partial-application checks
+(state-definitions-{gcc,clang}.log). Build and focused tidy pass. Full checkpoint
+coordination, remaining globals/bots and migration acceptance remain open.
+
+#18 merged-tree regression 35687912012 completed successfully; together with build
+35687912038, all active merged-tree checks are green for 2010b077.
 
 ## #19 utility, combat, team and podium state
 
