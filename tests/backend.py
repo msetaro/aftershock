@@ -53,4 +53,12 @@ for field, value in [(0,'2'), (1,'0'), (1,'01'), (1,'18446744073709551616'),
     digest = hmac.new(bytes([0x42])*32, ('aftershock/join/v1\n'+bad).encode(), hashlib.sha256).hexdigest()
     invalid.append(bad+'.'+digest)
 run([probe, payload+'.'+signature, *invalid])
-print('PASS: versioned schemas, Go/native join-ticket parity and one-use nonce retention')
+server_probe = args.output/'join-server'
+run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
+     '-ffunction-sections', '-fdata-sections', 'tests/probes/join_server.cpp',
+     'engine/qcommon/join.cpp', 'engine/platform/sys_services.cpp', sha, '-Wl,--gc-sections', '-o', server_probe])
+second_payload = payload[:-32]+'ac'*16
+second_signature = hmac.new(bytes([0x42])*32, ('aftershock/join/v1\n'+second_payload).encode(), hashlib.sha256).hexdigest()
+run([server_probe, payload+'.'+signature, second_payload+'.'+second_signature])
+print('PASS: versioned schemas, Go/native tickets, server identity and one-use nonce retention')

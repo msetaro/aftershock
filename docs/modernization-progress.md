@@ -95,6 +95,23 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 server identity contract, test first
+
+A new probe includes the actual server identity and new join owner. It requires
+validated expected-player configuration, verified backend identity distinct from
+Steam, duplicate-account rejection, same-handshake retry eligibility only while
+connected, expiry and replay retention across disconnect and same-match config
+reload. An SDK callback matching a backend session must not revoke it, and closing
+a backend session must not invoke SDK EndAuth. Invalid configuration preserves
+the prior valid configuration. This fails on absent sv_join.cpp before integration
+(backend-server-before.log). Actual UDP handshake wiring remains a later gate;
+the caller must also bind a retry to the same peer address/qport/challenge.
+
+#24's existing console SDK gate is checkpointed on comment 5780638857: no console
+SDK/dev kit is supplied, desktop/proxy checks remain enforced, and actual console
+boot/replay stays outstanding. Continue #29/#30 as recorded; #180 separately owns
+the maintainer-deferred Steam SDK/provider/live acceptance.
+
 ## #29 native ticket verification
 
 The new portable qcommon owner verifies the exact shared compact contract using
