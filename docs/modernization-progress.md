@@ -79,6 +79,14 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 verified result ownership, test first
+
+The checkpoint contract now requires server-verified account attribution through
+slot reuse, anonymous clients, suicide, team changes and checkpoint restart.
+It fails before implementation on missing account statistics (backend-owner-before.log).
+Existing slot-oriented development statistics remain compatible; authenticated
+results must never infer account IDs from names or client-supplied userinfo.
+
 ## #29 durable queue and allocation recovery
 
 The database commits expected-player membership and a private per-match key before

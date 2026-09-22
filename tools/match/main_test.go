@@ -306,3 +306,31 @@ func TestJoinReadiness(t *testing.T) {
 		}
 	}
 }
+
+func TestVerifiedCheckpointOwners(t *testing.T) {
+	var c checkpoint
+	for _, line := range []string{
+		"0:00 ClientConnect: 1", "0:01 ClientIdentity: 1 18446744073709551615",
+		"0:01 ClientBegin: 1", "0:01 ClientIdentity: 2 123",
+		"0:02 Kill: 1 2 7: a killed b", "0:03 score: 4 ping: 5 client: 1 a",
+		// Team changes repeat identity; they must not clear earned statistics.
+		"0:04 ClientIdentity: 1 18446744073709551615",
+		"0:05 ClientDisconnect: 1", "0:06 ClientConnect: 1",
+		"0:07 Kill: 1 2 7: anonymous killed b", "0:08 score: 99 ping: 5 client: 1 anonymous",
+		"0:09 ClientIdentity: 1 456", "0:10 Kill: 1 2 7: c killed b",
+		"0:11 score: 2 ping: 5 client: 1 c",
+		"0:12 ClientDisconnect: 1", "0:13 ClientIdentity: 1 18446744073709551615",
+		"0:14 Kill: 1 1 7: suicide", "0:15 score: -1 ping: 5 client: 1 a",
+		"0:16 ClientIdentity: 64 789", "0:17 ClientIdentity: 3 0123",
+		"0:18 ClientIdentity: 4 18446744073709551616", "0:19 ClientIdentity: 5 0",
+		"0:20 Exit: Timelimit hit.",
+	} { c.add(line) }
+	if len(c.Accounts) != 3 || c.Accounts["18446744073709551615"].Kills != 1 || c.Accounts["18446744073709551615"].Deaths != 1 || c.Accounts["18446744073709551615"].Score != 3 || c.Accounts["123"].Deaths != 3 || c.Accounts["456"].Kills != 1 || c.Accounts["456"].Score != 2 {
+		t.Fatalf("slot reuse/anonymous/suicide attribution: %+v", c.Accounts)
+	}
+	encoded, _ := json.Marshal(c)
+	var restored checkpoint
+	if err := strictJSON(encoded, &restored); err != nil { t.Fatal(err) }
+	restored.add("0:21 score: 2 ping: 5 client: 1 a")
+	if restored.Accounts["18446744073709551615"].Score != 6 { t.Fatal("checkpoint restart lost score baseline") }
+}
