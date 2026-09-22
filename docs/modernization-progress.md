@@ -51,6 +51,30 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 complete entity draft records
+
+Entity numeric/spatial fields, both entityState_t records (including the legacy
+shared r.s), checked references, callback identities and nullable strings now
+compose one archive draft. The source gate requires an explicit description for
+every gentity_t/entityShared_t member. Numeric tests preserve negative values,
+high bits and signed zero; string tests preserve null versus empty and reject
+truncation before mutation. Strings use caller-owned level-lifetime storage.
+GCC/Clang/libc++ UBSan pass (state-entity-archive-{gcc,clang}.log); the missing
+archive APIs failed first. Client/server build and focused clang-tidy pass; format,
+types, boundaries, affected selection and the accepted replication wire digest
+also pass. The first focused tidy invocation inherited a GCC-only warning flag;
+rerunning with the Clang equivalent passes. No live-world load or full checkpoint
+is claimed.
+
+The generated replication state header is now state_replication_public.h so game
+code can consume the shared descriptors through the enforced public boundary.
+The archive record bound is 16,384: seven records per maximum entity population
+plus 2,305 definition records already exceed the previous 8,192 bound. No format
+bytes or accepted fixture changes. Game/client/bot/subsystem coordination, load
+validation, clocks/transport, save-provider routing and full-game migration remain
+required. Next implement client/level records and state owners, then wire the
+existing failing fresh-process test through a complete checkpoint coordinator.
+
 ## #19 entity references
 
 Checked slot indices now describe all entity/client links; items use classname

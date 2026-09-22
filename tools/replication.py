@@ -14,7 +14,7 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 HEADER = ROOT / 'engine/qcommon/q_shared.h'
 OUTPUT = ROOT / 'engine/qcommon/replication.inc'
-STATE_OUTPUT = ROOT / 'engine/public/state_replication.h'
+STATE_OUTPUT = ROOT / 'engine/public/state_replication_public.h'
 MEMBER = re.compile(r'^\s*(int32_t|vec3_t|trajectory_t|trType_t) (\w+)(?:\[([\w]+)\])?;')
 
 

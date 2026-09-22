@@ -177,7 +177,7 @@ struct stateEntry_t {
 };
 static_assert( sizeof( stateEntry_t ) == 8 && offsetof( stateEntry_t, size ) == 4 );
 static constexpr size_t ARCHIVE_START = sizeof( stateEnvelope_t ) + sizeof( uint32_t );
-static constexpr uint32_t ARCHIVE_RECORDS = 8192;
+static constexpr uint32_t ARCHIVE_RECORDS = 16384;
 
 static bool ArchiveEntry( const uint8_t *data, size_t size, size_t offset, stateEntry_t *entry, stateHeader_t *header ) {
 	if ( offset > size || size - offset < sizeof( *entry ) )

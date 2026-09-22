@@ -44,4 +44,32 @@ static_assert( sizeof( gEntityRefs_t ) == 104 && offsetof( gEntityRefs_t, item )
 bool G_CaptureEntityRefs( const gentity_t &entity, const gStatePools_t &pools, gEntityRefs_t *references );
 bool G_RestoreEntityRefs( const gEntityRefs_t &references, const gStatePools_t &pools, gentity_t *entity );
 extern const stateSchema_t entityRefsSchema;
+
+struct gEntityStrings_t {
+	uint32_t present;
+	char classname[MAX_SPAWN_VARS_CHARS];
+	char model[MAX_SPAWN_VARS_CHARS];
+	char model2[MAX_SPAWN_VARS_CHARS];
+	char message[MAX_SPAWN_VARS_CHARS];
+	char target[MAX_SPAWN_VARS_CHARS];
+	char targetname[MAX_SPAWN_VARS_CHARS];
+	char team[MAX_SPAWN_VARS_CHARS];
+	char targetShaderName[MAX_SPAWN_VARS_CHARS];
+	char targetShaderNewName[MAX_SPAWN_VARS_CHARS];
+	char definitionName[MAX_SPAWN_VARS_CHARS];
+};
+static_assert( sizeof( gEntityStrings_t ) == 40964 );
+bool G_CaptureEntityStrings( const gentity_t &entity, gEntityStrings_t *strings );
+// SIZE_MAX means invalid; zero means every string is null.
+size_t G_EntityStringBytes( const gEntityStrings_t &strings );
+// Storage is caller-owned level-lifetime memory, disjoint from strings/entity.
+// No output is changed unless the complete record and storage capacity validate.
+bool G_RestoreEntityStrings( const gEntityStrings_t &strings, char *storage, size_t capacity, gentity_t *entity );
+extern const stateSchema_t entityStringsSchema;
+extern const stateSchema_t gameEntitySchema, entitySharedSchema;
+bool G_WriteEntityState( stateWriter_t *writer, uint32_t slot, const gentity_t &entity, const gStatePools_t &pools, const gSaveCallback_t *const *callbacks );
+// Returns a draft, not a linked/live entity. The checkpoint coordinator validates
+// gameplay invariants, provides string lifetime storage and rebuilds spatial links.
+bool G_ReadEntityState( const stateReader_t &reader, uint32_t slot, const gStatePools_t &pools, const gSaveCallback_t *const *callbacks,
+	gentity_t *entity, gEntityStrings_t *strings );
 #endif

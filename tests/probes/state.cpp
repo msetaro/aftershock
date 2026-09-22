@@ -4,7 +4,7 @@
 #include "../../engine/qcommon/q_shared.h"
 #endif
 #include "../../engine/public/state_public.h"
-#include "../../engine/public/state_replication.h"
+#include "../../engine/public/state_replication_public.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>

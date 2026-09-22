@@ -2,7 +2,96 @@
 #define NATIVE_SOURCE "game/g_state.cpp"
 #include "../../game/module.cpp"
 
+static void Strings() {
+	game::gentity_t entity{};
+	entity.classname = "target_print";
+	entity.definitionName = "checkpoint_sign";
+	entity.model = (char *)""; // Empty and null have different meaning to game callbacks.
+	entity.message = (char *)"Saved message\nwith punctuation: \"hello\"";
+	entity.targetname = (char *)"checkpoint_target";
+	entity.targetShaderName = (char *)"textures/old";
+	entity.targetShaderNewName = (char *)"textures/new";
+	static game::gEntityStrings_t saved, decoded;
+	assert( game::G_CaptureEntityStrings( entity, &saved ) );
+	unsigned char bytes[8192];
+	const size_t size = State_Write( game::entityStringsSchema, &saved, bytes, sizeof( bytes ) );
+	assert( size );
+	uint32_t version;
+	assert( State_Read( game::entityStringsSchema, bytes, size, &decoded, &version ) && version == 1 );
+	char storage[8192]{};
+	game::gentity_t restored{};
+	restored.health = 63;
+	const size_t needed = game::G_EntityStringBytes( decoded );
+	assert( needed && needed < sizeof( storage ) );
+	assert( !game::G_RestoreEntityStrings( decoded, storage, needed - 1, &restored ) );
+	assert( restored.health == 63 && !restored.classname && !storage[0] );
+	assert( game::G_RestoreEntityStrings( decoded, storage, needed, &restored ) );
+	assert( restored.health == 63 && !strcmp( restored.classname, entity.classname ) );
+	assert( restored.classname != entity.classname && !strcmp( restored.definitionName, entity.definitionName ) );
+	assert( restored.model && !restored.model[0] && !restored.model2 );
+	assert( !strcmp( restored.message, entity.message ) && !strcmp( restored.targetname, entity.targetname ) );
+	assert( !strcmp( restored.targetShaderName, entity.targetShaderName ) && !strcmp( restored.targetShaderNewName, entity.targetShaderNewName ) );
+	const auto before = restored;
+	decoded.present |= 1u << 31;
+	assert( game::G_EntityStringBytes( decoded ) == SIZE_MAX );
+	assert( !game::G_RestoreEntityStrings( decoded, storage, sizeof( storage ), &restored ) );
+	assert( !memcmp( &before, &restored, sizeof( restored ) ) );
+	decoded = saved;
+	memset( decoded.message, 'x', sizeof( decoded.message ) );
+	assert( !game::G_RestoreEntityStrings( decoded, storage, sizeof( storage ), &restored ) );
+	assert( !memcmp( &before, &restored, sizeof( restored ) ) );
+	static char tooLarge[4097];
+	memset( tooLarge, 'x', sizeof( tooLarge ) - 1 );
+	entity.message = tooLarge;
+	assert( !game::G_CaptureEntityStrings( entity, &saved ) );
+	assert( !strcmp( saved.message, "Saved message\nwith punctuation: \"hello\"" ) );
+	entity = {};
+	assert( game::G_CaptureEntityStrings( entity, &saved ) );
+	assert( game::G_EntityStringBytes( saved ) == 0 );
+	assert( game::G_RestoreEntityStrings( saved, nullptr, 0, &restored ) );
+	assert( !restored.classname && !restored.model && !restored.message && !restored.definitionName );
+	puts( "PASS: entity strings retain null/empty identity and fit caller-owned lifetime storage" );
+}
+
+static void Scalars() {
+	game::gentity_t entity{};
+	entity.inuse = game::qtrue;
+	entity.rewindSpawn = UINT32_C( 0xfedcba98 );
+	entity.health = -19;
+	entity.pos1[0] = 3.25f;
+	entity.pos2[2] = -7.5f;
+	entity.moverState = game::MOVER_2TO1;
+	entity.nextthink = 987654;
+	entity.wait = -0.0f;
+	entity.s.number = 71;
+	entity.s.pos.trTime = 321;
+	entity.r.s.time = 1987;
+	entity.r.linked = game::qtrue;
+	entity.r.currentOrigin[1] = 456.75f;
+	entity.r.ownerNum = 2;
+	entity.r.contents = 0x12345678;
+	unsigned char archive[32768];
+	stateWriter_t writer{ archive, sizeof( archive ) };
+	assert( State_Append( &writer, game::gameEntitySchema, 71, &entity ) );
+	assert( State_Append( &writer, game::entitySharedSchema, 71, &entity.r ) );
+	assert( State_Append( &writer, game::entityStateSchema, 71, &entity.s ) );
+	assert( State_Append( &writer, game::entityStateSchema, 71 + MAX_GENTITIES, &entity.r.s ) );
+	const size_t size = State_Finish( &writer );
+	stateReader_t reader;
+	assert( size && State_Open(archive,size,&reader) );
+	game::gentity_t restored{};
+	uint32_t version;
+	assert( State_Find( reader, game::gameEntitySchema, 71, &restored, &version ) );
+	assert( State_Find( reader, game::entitySharedSchema, 71, &restored.r, &version ) );
+	assert( State_Find( reader, game::entityStateSchema, 71, &restored.s, &version ) );
+	assert( State_Find( reader, game::entityStateSchema, 71 + MAX_GENTITIES, &restored.r.s, &version ) );
+	assert( !memcmp(&entity,&restored,sizeof(entity)) );
+	puts( "PASS: full entity scalar/spatial state preserves trajectory, clocks, high bits and signed zero" );
+}
+
 int main() {
+	Scalars();
+	Strings();
 	static game::gentity_t entities[8], replacements[8];
 	static game::gclient_t clients[2], newClients[2];
 	game::gitem_t items[2]{}, newItems[2]{};
@@ -40,6 +129,19 @@ int main() {
 	assert( restored.target_ent == &replacements[6] && restored.chain == &replacements[7] && restored.enemy == &replacements[0] );
 	assert( restored.activator == &replacements[1] && restored.teamchain == &replacements[2] && restored.teammaster == &replacements[3] );
 	assert( restored.item == &newItems[0] ); // Item identity survives a reordered table.
+	unsigned char archive[32768];
+	stateWriter_t writer{ archive, sizeof( archive ) };
+	const game::gSaveCallback_t *callbacks[] = { nullptr };
+	assert( game::G_WriteEntityState(&writer,0,entity,original,callbacks) );
+	const size_t archiveSize = State_Finish( &writer );
+	stateReader_t reader;
+	assert( archiveSize && State_Open(archive,archiveSize,&reader) );
+	game::gentity_t draft{};
+	static game::gEntityStrings_t strings;
+	assert( game::G_ReadEntityState(reader,0,replacement,callbacks,&draft,&strings) );
+	assert( draft.parent==restored.parent && draft.client==restored.client && draft.item==restored.item );
+	assert( !game::G_ReadEntityState(reader,1,replacement,callbacks,&draft,&strings) );
+	assert( draft.parent==restored.parent && draft.client==restored.client && draft.item==restored.item );
 	const auto before = restored;
 	decoded.parent = 8;
 	assert( !game::G_RestoreEntityRefs( decoded, replacement, &restored ) );

@@ -44,6 +44,39 @@ for path in (ROOT/'game/game').glob('*.cpp'):
             registered.add((kind,value))
 assert assigned==registered, f'callback coverage: missing {assigned-registered}, unused {registered-assigned}'
 print(f'PASS: {len(assigned)} assigned entity callbacks have typed, stable save identities')
+# New native members must be classified instead of silently disappearing from saves.
+def declared_members(body):
+    body=re.sub(r'/\*[\s\S]*?\*/|//[^\n]*|^\s*#.*$', '', body, flags=re.M)
+    fields=set()
+    for declaration in body.split(';'):
+        declaration=declaration.strip()
+        if not declaration:
+            continue
+        callback=re.fullmatch(r'void\s*\(\s*\*\s*(\w+)\s*\)\s*\([\s\S]*\)',declaration)
+        if callback:
+            fields.add(callback[1])
+            continue
+        match=re.fullmatch(r'(?:(?:struct|const)\s+)?\w+\s+([\s\S]+)',declaration)
+        assert match, f'unclassified native declaration: {declaration}'
+        for declarator in match[1].split(','):
+            member=re.fullmatch(r'\s*\*?\s*(\w+)\s*',declarator)
+            assert member, f'unclassified native member: {declaration}'
+            fields.add(member[1])
+    return fields
+local=(ROOT/'game/game/g_local.h').read_text()
+entity_body=local.split('struct gentity_s {',1)[1].split('\n};',1)[0]
+records=(ROOT/'game/game/g_state.cpp').read_text()
+fields=set(re.findall(r'offsetof\( gentity_t, (\w+) \)',records))
+fields.update(re.findall(r'&gentity_t::(\w+)',records))
+strings=records.split('#define ENTITY_STRINGS( X )',1)[1].split('static bool CaptureString',1)[0]
+fields.update(re.findall(r'X\( (\w+),',strings))
+fields.update(('s','r','client','item','think','reached','blocked','touch','use','pain','die'))
+assert fields==declared_members(entity_body), f'entity save field coverage: {fields ^ declared_members(entity_body)}'
+shared=(ROOT/'engine/public/g_public.h').read_text().split('} entityShared_t;',1)[0].rsplit('typedef struct {',1)[1]
+shared_fields=set(re.findall(r'offsetof\( entityShared_t, (\w+) \)',records)) | {'s'}
+assert shared_fields==declared_members(shared), 'shared entity state needs a save description'
+assert declared_members('int first, second; float added;')=={'first','second','added'}
+print(f'PASS: every entity member has a scalar, reference, string, callback or shared-state description')
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'
@@ -65,9 +98,15 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      'tests/probes/state_random.cpp','engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
 run([probe])
 
+callbacks=args.output/'callbacks.o'
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-ffunction-sections','-fdata-sections','-fsanitize=undefined','-fno-sanitize-recover=all',
+     '-DNATIVE_NAMESPACE=game','-DNATIVE_SOURCE="game/g_callbacks.cpp"',
+     '-c','game/module.cpp','-o',callbacks])
 for component in ('callbacks','references'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',
-         f'tests/probes/state_{component}.cpp','engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
+         f'tests/probes/state_{component}.cpp','engine/qcommon/state.cpp',sha,
+         *([callbacks] if component=='references' else []),'-Wl,--gc-sections','-o',probe])
     run([probe])
