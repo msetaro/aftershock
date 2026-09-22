@@ -58,6 +58,21 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 named bot variables and combined verification
+
+Libvar checkpoints retain name/value strings, flags, modified bits, cached numeric
+values and list order. Loads preserve existing cached libvar_t handles and create
+missing names through the existing allocator. Unexpected initialized names reject
+rather than deleting an owner's pointer. All records and names validate before
+application; the explicit ceiling is 256 variables with engine string limits.
+GCC/Clang libc++ UBSan cover fresh/partial reconstruction, cached-handle identity,
+incomplete/duplicate records and list cycles (state-libvars-{gcc,clang}.log).
+Client/server build and focused tidy pass. The complete state driver through chat
+content also passes on both compilers (state-full-chat-{gcc,clang}.log); chat build,
+tidy and format/types/boundaries pass. Issue19 comment 5772554241 records the
+weapon/character/chat decisions. AAS, global clocks, map info identity and the
+full-game reconstruction/coordinator still remain; no partial acceptance.
+
 ## #19 chat content and dialogue timers
 
 Shared chat caches, private actor chats and global reply lines now save reuse times

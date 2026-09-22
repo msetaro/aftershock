@@ -63,3 +63,7 @@ qboolean LibVarChanged( const char *var_name );
 //sets the library variable to unmodified
 void LibVarSetNotModified( const char *var_name );
 #endif
+
+#include "../public/state_public.h"
+bool LibVar_WriteState( stateWriter_t *writer );
+bool LibVar_ReadState( const stateReader_t &reader, bool apply );

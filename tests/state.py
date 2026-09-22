@@ -227,6 +227,11 @@ for tag,name,expected in (
     body=chat_source.split('typedef struct '+tag+' {',1)[1].split('} '+name+';',1)[0]
     assert declared_members(body)==expected, f'{name}: chat timer/content identity changed'
 print('PASS: chat line timers and all immutable matching/expansion graph fields have ownership')
+libvar_header=(ROOT/'engine/botlib/l_libvar.h').read_text()
+body=libvar_header.split('typedef struct libvar_s {',1)[1].split('} libvar_t;',1)[0]
+assert declared_members(body)=={'name','string','flags','modified','value','next'}
+print('PASS: bot variables retain named payload, flags, cached numeric values and list order')
+
 
 
 
@@ -345,7 +350,7 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wl,--gc-sections','-o',probe])
 run([probe])
 
-for component in ('input','move','weights','characters','chat_queue','chat_content'):
+for component in ('input','move','weights','characters','chat_queue','chat_content','libvars'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',
