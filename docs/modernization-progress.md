@@ -24,18 +24,18 @@ Resume the active predecessor gates before any later issue can merge:
 - #31 PR174 is fully accepted on main 5caa2c1c. Merged build 35715942160 and
   regression 35715942143 attempt 2 pass all 26 jobs; #31 is closed again.
 - #19 draft PR175 head 312048f0: all 16 builds and nine active regression jobs
-  passed; regression 35720181577 runtime is still in level authoring. Require all
+  passed; regression 35720181577 runtime has advanced through level/UI acceptance. Require all
   26 checks, fresh main/base and self-review before ready/merge, then merged gates.
   Its complete owner evidence is in the sibling state-tree progress file.
-- #20 draft PR176 head c95761ed: local full unit variants, lifetime/tidy, both-content
-  package/pure/render and unchanged replay gates pass. Hosted build 35724337548 and
-  regression 35724337593 are early feedback only. Merge accepted #19 main forward
+- #20 draft PR176 head af524559: local full unit variants, lifetime/tidy, both-content
+  package/pure/render and unchanged replay gates pass. Hosted build 35725046713 passed all 16 builds; regression 35725046710
+  passed nine active jobs with runtime still running. These are early feedback only. Merge accepted #19 main forward
   and rerun final gates on the combined tree before #20 readiness/merge.
 
 This is issue/21-ai-navigation in the sibling navigation-tree, branched from main
 5caa2c1c for bounded test-first preparation while predecessors finish. The first
-owned collision-map cook test fails at the missing navigation asset kind
-(navigation-first-before.log). Commit that contract before implementation. Reuse
+owned collision-map cook now passes. The new native route/link/crowd contract
+fails at the absent runtime owner (navigation-native-before.log); commit it first. Reuse
 CM_PhysicsTriangles collision export and the existing cooker/envelope; do not
 change authoritative collision/movement math or accepted bot/demo goldens.
 Runtime AI integration waits for accepted #19/#20 main and requires separate
@@ -46,6 +46,19 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
+
+## #21 native navigation contract, test first
+
+The existing navigation driver now compiles a native functional probe after its
+owned collision cook. It requires a route across both lanes/height transition,
+the authored off-mesh link ID, two opposing agents reaching their goals without
+interpenetration, reusable slots, explicit cleanup and no allocations after
+world creation. The owner must copy the caller's asset bytes before mutable
+Detour initialization. Public result values must remain trivially copyable.
+The initial build fails on missing navigation_public.h/navigation.cpp
+(navigation-native-before.log). Vendored compilation retains its warning policy;
+owned probe/runtime compilation requires -Wall -Wextra -Werror and UBSan.
+No gameplay integration or completed #21 acceptance is claimed.
 
 ## PR174 merged-tree acceptance complete
 

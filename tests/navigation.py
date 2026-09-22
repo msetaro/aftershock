@@ -3,15 +3,22 @@
 import argparse
 import hashlib
 import json
+import os
+import re
+import shlex
 from pathlib import Path
 import subprocess
 import sys
 from cook import cook
-from run import ROOT, SCRATCH
+from run import ROOT, SCRATCH, run
 
 parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--cc', default='gcc')
+parser.add_argument('--cxx', default='g++')
 parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-navigation')
 args = parser.parse_args()
+args.output = args.output.resolve()
+os.environ['CXX'] = args.cxx
 args.output.mkdir(parents=True, exist_ok=True)
 source = args.output/'source'
 source.mkdir(exist_ok=True)
@@ -30,7 +37,7 @@ project.write_text(json.dumps(dict(version=1, assets=[
     dict(name='navigation/two_lane', kind='navigation', source='navigation.json')])))
 cooked = args.output/'cooked'
 first = cook(project, cooked)
-assert first['built'] == ['navigation/two_lane']
+assert first['built'] + first['skipped'] == ['navigation/two_lane']
 asset = cooked/'navigation/two_lane.asnav'
 assert asset.is_file() and asset.stat().st_size > 128
 manifest = json.loads((cooked/'navigation/two_lane.manifest.json').read_text())
@@ -41,3 +48,27 @@ asset.unlink()
 assert cook(project, cooked)['built'] == ['navigation/two_lane']
 assert hashlib.sha256(asset.read_bytes()).hexdigest() == original
 print('PASS: collision BSP navigation asset, transitive hashes and repeated deterministic cook')
+
+sha = args.output/'sha256.o'
+run([*shlex.split(args.cc), '-std=c99', '-O2', '-c',
+     'third_party/sha256/sha-256.c', '-o', sha])
+probe = args.output/'native-probe'
+# Explicit source lists remain owned by the same CMake file as the engine.
+lists = (ROOT/'cmake/Sources.cmake').read_text()
+sources = []
+for name in ('DETOUR_SOURCES', 'DETOUR_CROWD_SOURCES'):
+    sources += re.search(r'set\('+name+r'\s+(.*?)\)', lists, re.S).group(1).split()
+flags = ['-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+         '-ffp-contract=off', '-fno-fast-math', '-fsanitize=undefined',
+         '-fno-sanitize-recover=all', '-Ithird_party/recast/Detour/Include',
+         '-Ithird_party/recast/DetourCrowd/Include']
+objects = []
+# Vendored sources keep their own warning policy; owned code stays strict.
+for source_path in sources:
+    obj = args.output/(Path(source_path).stem+'.o')
+    run([*shlex.split(args.cxx), *flags, '-c', source_path, '-o', obj])
+    objects.append(obj)
+run([*shlex.split(args.cxx), *flags, '-Wall', '-Wextra', '-Werror',
+     'tests/probes/navigation.cpp', 'engine/navigation/navigation.cpp', *objects, sha,
+     '-o', probe])
+run([probe, asset])
