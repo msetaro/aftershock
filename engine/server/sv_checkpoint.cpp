@@ -135,6 +135,12 @@ static bool WriteServerCheckpoint( stateWriter_t *writer ) {
 			return false;
 	return Cvar_WriteServerState( writer ) && CM_WritePortalState( writer );
 }
+static bool ValidateCheckpointCvars( const stateReader_t &reader ) {
+	for ( uint32_t i = 0; i < ARRAY_LEN( checkpointCvars ); ++i )
+		if ( !Cvar_ReadState( reader, "engine.serverCvars", i, checkpointCvars[i], false ) )
+			return false;
+	return Game_ReadCheckpointCvars( &reader, 0 ) != 0;
+}
 static bool SaveCheckpoint( const char *name ) {
 	if ( !name[0] || strlen( name ) > 31 )
 		return false;
@@ -158,7 +164,7 @@ static bool SaveCheckpoint( const char *name ) {
 	const bool bots = game && BotLib_WriteState( &writer, now );
 	const size_t size = bots ? State_Finish( &writer ) : 0;
 	stateReader_t reader;
-	const bool readable = size && State_Open( data, size, &reader ) && Game_ReadCheckpoint( &reader, 0 ) &&
+	const bool readable = size && State_Open( data, size, &reader ) && Cvar_CheckStateCapacity( reader, ValidateCheckpointCvars ) && Game_ReadCheckpoint( &reader, 0 ) &&
 						  BotLib_ReadState( reader, now, false ) && CM_ReadPortalState( reader, false );
 	const fileHandle_t file = readable ? FS_FOpenFileWrite( path ) : 0;
 	const bool success = file && FS_Write( data, int( size ), file ) == int( size );

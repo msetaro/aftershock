@@ -2129,7 +2129,36 @@ bool Cvar_WriteState( stateWriter_t *writer, const char *group, uint32_t slot, c
 	const stateSchema_t schema = { group, 1, 1, sizeof( saved ), cvarStateFields, ARRAY_LEN( cvarStateFields ) };
 	return State_Append( writer, schema, slot, &saved );
 }
+// Collect only owner-selected missing names during a read-only validation pass.
+// Do not spend slots that a later phase might free: every prepare step must fit.
+static struct {
+	bool active;
+	int count, available;
+	char names[MAX_CVARS][64];
+} cvarStateCapacity;
+bool Cvar_CheckStateCapacity( const stateReader_t &reader, bool ( *validate )( const stateReader_t & ) ) {
+	if ( !validate || cvarStateCapacity.active )
+		return false;
+	cvarStateCapacity.count = cvarStateCapacity.available = 0;
+	for ( const auto &entry : cvar_indexes )
+		cvarStateCapacity.available += entry.name == nullptr;
+	cvarStateCapacity.active = true;
+	const bool valid = validate( reader );
+	cvarStateCapacity.active = false;
+	return valid;
+}
+static bool Cvar_ReserveStateName( const char *name ) {
+	for ( int i = 0; i < cvarStateCapacity.count; ++i )
+		if ( !Q_stricmp( name, cvarStateCapacity.names[i] ) )
+			return true;
+	if ( cvarStateCapacity.count == cvarStateCapacity.available )
+		return false;
+	Q_strncpyz( cvarStateCapacity.names[cvarStateCapacity.count++], name, sizeof( cvarStateCapacity.names[0] ) );
+	return true;
+}
 bool Cvar_ReadState( const stateReader_t &reader, const char *group, uint32_t slot, const char *name, bool apply, bool prepare, bool removable ) {
+	if ( apply && cvarStateCapacity.active )
+		return false;
 	cvarStateSave_t saved;
 	const stateSchema_t schema = { group, 1, 1, sizeof( saved ), cvarStateFields, ARRAY_LEN( cvarStateFields ) };
 	uint32_t version;
@@ -2142,7 +2171,7 @@ bool Cvar_ReadState( const stateReader_t &reader, const char *group, uint32_t sl
 		bool available = false;
 		for ( const auto &entry : cvar_indexes )
 			available |= entry.name == nullptr;
-		if ( !available )
+		if ( !available || ( cvarStateCapacity.active && !Cvar_ReserveStateName( name ) ) )
 			return false;
 	}
 	if ( !apply )

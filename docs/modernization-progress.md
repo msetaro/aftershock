@@ -67,6 +67,19 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 cross-owner cvar capacity
+
+Checkpoint preflight now counts missing owner-selected cvar names across the
+engine and native game together, deduplicating shared names. It reserves only
+currently empty slots, not slots that later phases might release, so preparation
+fits regardless of owner ordering. A mutating callback is rejected. Both GCC and
+Clang libc++ UBSan probes demonstrate aggregate exhaustion, duplicate-name reuse,
+rejection without registry mutation, and successful preparation after capacity is
+freed. Client/server build, focused tidy, formatting, types and boundaries pass;
+the live OpenArena capture still validates at 17,314,861 bytes
+(state-capacity-{probes,build,runtime,tidy}.log). The load coordinator must invoke
+this preflight before preparation. Platform routing and full restore remain next.
+
 ## #19 bot ownership validation
 
 Native checkpoint validation now cross-checks every active bot against its saved

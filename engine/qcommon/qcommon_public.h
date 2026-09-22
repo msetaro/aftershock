@@ -568,6 +568,8 @@ struct stateReader_t;
 // Checkpoint coordinator validates every owner-selected record and registry
 // capacity before applying, then restores group/global notification bookkeeping.
 bool Cvar_WriteState( stateWriter_t *writer, const char *group, uint32_t slot, const char *name );
+// Runs trusted read-only owner validators and counts distinct missing names.
+bool Cvar_CheckStateCapacity( const stateReader_t &reader, bool ( *validate )( const stateReader_t & ) );
 bool Cvar_ReadState( const stateReader_t &reader, const char *group, uint32_t slot, const char *name, bool apply, bool prepare = false, bool removable = false );
 bool Cvar_WriteServerState( stateWriter_t *writer );
 bool Cvar_ReadServerState( const stateReader_t &reader, bool apply );

@@ -44,6 +44,17 @@ void QDECL Com_Error( errorParm_t, const char *, ... ) {
 qboolean FS_InvalidGameDir( const char * ) {
 	abort();
 }
+static bool CapacityRecords( const stateReader_t &reader ) {
+	return Cvar_ReadState( reader, "engine.capacity", 0, "capacity_one", false ) &&
+		   Cvar_ReadState( reader, "engine.capacity", 1, "capacity_two", false );
+}
+static bool DuplicateCapacityRecord( const stateReader_t &reader ) {
+	return Cvar_ReadState( reader, "engine.capacity", 0, "capacity_one", false ) &&
+		   Cvar_ReadState( reader, "engine.capacity", 0, "capacity_one", false );
+}
+static bool MutatingCapacityRecord( const stateReader_t &reader ) {
+	return Cvar_ReadState( reader, "engine.capacity", 0, "capacity_one", true );
+}
 int main() {
 	auto *var = Cvar_Get( "checkpoint_gravity", "800", CVAR_LATCH | CVAR_SERVERINFO );
 	var->latchedString = CopyString( "600" );
@@ -143,5 +154,31 @@ int main() {
 	while ( cvar_vars )
 		Cvar_Unset( cvar_vars );
 	assert(allocations==0);
+	Cvar_Get( "capacity_one", "1", 0 );
+	Cvar_Get( "capacity_two", "2", 0 );
+	writer = { bytes, sizeof( bytes ) };
+	assert(Cvar_WriteState(&writer,"engine.capacity",0,"capacity_one") && Cvar_WriteState(&writer,"engine.capacity",1,"capacity_two"));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	while ( cvar_vars )
+		Cvar_Unset( cvar_vars );
+	for ( int i = 0; i < MAX_CVARS - 1; ++i ) {
+		char name[64];
+		snprintf( name, sizeof( name ), "capacity_filler_%d", i );
+		assert(Cvar_Get(name,"0",0));
+	}
+	const int capacityAllocations = allocations;
+	assert(CapacityRecords(reader)); // Each record alone sees the same remaining slot.
+	assert(!Cvar_CheckStateCapacity(reader,CapacityRecords));
+	assert(Cvar_CheckStateCapacity(reader,DuplicateCapacityRecord));
+	assert(!Cvar_CheckStateCapacity(reader,MutatingCapacityRecord));
+	assert(allocations==capacityAllocations && !Cvar_FindVar("capacity_one"));
+	Cvar_Unset( cvar_vars );
+	assert(Cvar_CheckStateCapacity(reader,CapacityRecords));
+	assert(Cvar_ReadState(reader,"engine.capacity",0,"capacity_one",true));
+	assert(Cvar_ReadState(reader,"engine.capacity",1,"capacity_two",true));
+	while ( cvar_vars )
+		Cvar_Unset( cvar_vars );
+	assert(allocations==0);
+	puts( "PASS: aggregate cvar preparation rejects overcapacity without mutation and deduplicates names" );
 	puts( "PASS: selected cvar values, latch, bounds and counters restore across fresh registry handles" );
 }
