@@ -69,8 +69,10 @@ into protected cover, and exact same/fresh-process continuation. The controlled
 spawns are baked into the owned scratch BSP so fresh reconstruction sees identical
 content; a temporary developer entity override correctly failed that identity
 check. Frozen pre-AI migration still passes. Inspector capture reviewed. GCC state
-suite and format/type/boundary gates pass. Full post-combat analysis, explicit
-hearing runtime and q3dm17 traversal/combat acceptance remain pending.
+suite and format/type/boundary gates pass. The explicit occluded-shot runtime also passes (navigation-hearing.log): gain
+0.2996 at 260 units matches shared linear attenuation times 0.35 occlusion, a
+complete investigation route causes real movement, and checkpoint continuation
+remains exact. Full post-combat analysis and q3dm17 acceptance remain pending.
 
 ## #21 navigation checkpoint owner
 

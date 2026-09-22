@@ -33,7 +33,9 @@ def load(engine, path='saves/navigation.000.asstate'):
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path, required=True)
-parser.add_argument('--combat', action='store_true', help='exercise sight, weapon damage and protected cover before checkpoint continuation')
+mode = parser.add_mutually_exclusive_group()
+mode.add_argument('--combat', action='store_true', help='exercise sight, weapon damage and protected cover before checkpoint continuation')
+mode.add_argument('--hearing', action='store_true', help='react to a real occluded weapon shot and follow its remembered position')
 parser.add_argument('--content', choices=['quake3', 'openarena'], default='quake3')
 parser.add_argument('--data', type=Path, default=Path.home()/'.q3a/baseq3')
 parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-navigation-runtime')
@@ -54,7 +56,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
     navigation = dict(version=1, collision='maps/two_lane.bsp', agent=dict(radius=15,height=56,climb=18,slope=46),
                       cell_size=4, cell_height=2, links=[])
     behavior = dict(version=1, name='patrol', initial='patrol', states=[dict(name='patrol', action='patrol', transitions=[])])
-    if args.combat:
+    if args.combat or args.hearing:
         behavior = dict(version=1, name='guard', initial='patrol', states=[
             dict(name='patrol', action='patrol', transitions=[dict(to='attack',field='visible',op='eq',value=1,min_ms=0)]),
             dict(name='attack', action='attack', transitions=[dict(to='cover',field='health',op='lt',value=.9,min_ms=500)]),
@@ -74,7 +76,14 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
 "angle" "270"
 "nohumans" "1"
 }
-'''.encode() + b'\0'
+'''
+        if args.hearing:
+            entities = entities.replace('0 -180 48', '768 -180 48').replace('0 80 48', '768 80 48')
+            behavior = dict(version=1,name='listener',initial='idle',states=[
+                dict(name='idle',action='idle',transitions=[dict(to='investigate',field='heard',op='eq',value=1,min_ms=0)]),
+                dict(name='investigate',action='investigate',transitions=[dict(to='attack',field='visible',op='eq',value=1,min_ms=0)]),
+                dict(name='attack',action='attack',transitions=[])])
+        entities = entities.encode() + b'\0'
         # Bake the two controlled spawns into this owned scratch BSP. A temporary
         # editor override would not match the installed content on checkpoint load.
         bsp = bytearray((source/'maps/two_lane.bsp').read_bytes())
@@ -98,13 +107,35 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
             engine.request('session', dt=20, seed=21)
             engine.request('map', name='two_lane')
             engine.step(50)
-            engine.request('exec', command='god; weapon 1' if args.combat else 'team spectator')
+            engine.request('exec', command='god; weapon 1' if args.combat or args.hearing else 'team spectator')
             engine.step(5)
             engine.request('exec', command='addbot Sarge 3')
             engine.step(100)
             actor = engine.request('actor', owner=1)
             assert actor.get('ai'), 'cooked behavior/navigation did not activate on the native bot'
-            if args.combat:
+            if args.hearing:
+                assert actor['ai']['state'] == 'idle' and actor['ai']['target'] == -1
+                start = actor['ai']['position']
+                engine.request('input',forward=0,right=0,up=0,yaw=270,pitch=0,fire=True)
+                for _ in range(20):
+                    engine.step()
+                    heard = engine.request('actor',owner=1)['ai']
+                    if heard['heard']:
+                        break
+                else:
+                    raise AssertionError('occluded weapon shot did not reach native hearing')
+                engine.request('input',forward=0,right=0,up=0,yaw=270,pitch=0,fire=False)
+                assert heard['target']==0 and not heard['visible'] and heard['state']=='investigate', heard
+                # Both actors have the same standing eye height, 260 units apart.
+                expected = (1-(260-80)/1250)*.35
+                assert abs(heard['gain']-expected)<.002, ('shared distance plus occlusion gain',heard)
+                rows.append(heard)
+                for _ in range(15):
+                    engine.step(5)
+                    rows.append(engine.request('actor',owner=1)['ai'])
+                assert max(math.dist(start,row['position']) for row in rows)>32, 'heard target did not cause actual pursuit'
+                assert any(row['pathCount']>1 and row['complete'] for row in rows), 'no complete investigation path'
+            elif args.combat:
                 assert actor['ai']['state'] == 'attack' and actor['weapons'][0]['sequence'] > 0, ('visible hostile must trigger native data-weapon fire', actor, engine.request('state')['player'], engine.request('entity.list')['entities'][:2])
                 engine.request('subscribe', enabled=True)
                 engine.request('exec', command='god')
