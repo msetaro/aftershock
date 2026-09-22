@@ -73,6 +73,7 @@ every wire and file-format struct; issue updated with what changed and what was 
 
 - `engine/qcommon` shared core: cvars, commands, filesystem, packet protocols, collision (cm_*)
 - `engine/server`, `engine/client` server and client
+- `engine/ui` bounded cooked menu/HUD layout and navigation
 - `engine/animation` cooked skeletal sampling, graphs, root motion, IK and hit boxes
 - `engine/botlib` bot AI library
 - `engine/devtools` optional development UI and bounded console/debug data
@@ -132,6 +133,8 @@ playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructi
   timeout/incomplete is a nonzero result, never merge acceptance).
 - Full local regression: `python3 tests/suite.py --glslang PATH --openarena-data PATH`.
   Each invocation/job owns its scratch root. Hosted compiler checks remain required.
+- Authored UI: `python3 tests/ui_framework.py` and
+  `python3 tests/ui_runtime.py --binary CLIENT` (1080p, 1440p and 4K; both content sets).
 - Authored audio: `python3 tests/audio_events.py`, `python3 tests/audio_voice.py`,
   `python3 tests/audio_runtime.py --binary CLIENT`,
   `python3 tests/audio_weapons_runtime.py --binary CLIENT`, and

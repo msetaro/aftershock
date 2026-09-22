@@ -555,6 +555,11 @@ void CL_SetCGameTime( void );
 //
 // cl_ui.c
 //
+void CL_DataUIInit();
+void CL_DataUIShutdown();
+bool CL_DataUIFullscreen();
+bool CL_DataUIDrawMenu();
+bool CL_DataUIKey( int key );
 void CL_InitUI( void );
 void CL_ShutdownUI( void );
 void Key_SetCatcher( int catcher );

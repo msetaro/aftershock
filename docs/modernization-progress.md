@@ -20,32 +20,29 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#16 is accepted in PR171, merge d2411083325edaa0213fa5680a63d6e8644f291e.
-All 26 exact-head gates passed; merged-tree build 35678588496 passes and
-regression 35678588538 still runs its final runtime job.
+#16 accepted in PR171 (d2411083); both merged-tree workflows 35678588496 and
+35678588538 pass. #17 accepted in PR172, merge ebc03f37c1393f13cb1d33355eda53a9caf911f7.
+All 26 exact-head UI gates passed (build 35679134924, regression 35679134926);
+head/base/current main and known-good tag were rechecked before ready/merge.
+Monitor UI merged-tree build 35682880734/regression 35682880730.
 
-#17 is draft PR172, head fcfd6507759a56ec3255b063883ce43f4f8158df in
-/home/matt/.cache/aftershock-modernization/ui-tree. Build 35679134924 passes all
-16 legs; regression 35679134926 has nine active jobs green, runtime pending.
-After all 26 pass, recheck exact head/base/current main and known-good tag, then
-ready/merge with a merge commit. Do not merge a red/skipped required check.
+#18 draft PR173 is at e0c6a57d in
+/home/matt/.cache/aftershock-modernization/entities-tree. It includes accepted UI
+main; local combined probes/schema/style/build and entity/UI runtime pass. Prior
+5e666dff passed all16 compiler legs; its regression was cancelled as superseded by
+the main merge. Require all26 final hosted checks on e0c6a57d, then exact head/base/
+main/tag recheck, self-review and merge. No accepted fixture regeneration.
 
-#18 is local at 731bd28d in /home/matt/.cache/aftershock-modernization/entities-tree.
-JSON prefabs, composed runtime components and generic inspector edits/save/reload
-pass both content sets. Fixed Quake 3 replay/restart frames are unchanged. GCC and
-Clang/libc++ UBSan, schema, format/types/boundaries and full tidy pass; full lifetime
-and MinGW checks are finishing. Merge accepted #17 main forward before final gates,
-then PR/merge #18 after all active hosted checks and self-review.
-
-#19 has its initial field serializer and migration probe in this separate worktree,
-/home/matt/.cache/aftershock-modernization/state-tree, branch
-issue/19-state-serialization from current main. No game checkpoint integration is implemented.
-The pure named-field serializer can be implemented independently while earlier
-gates run; game/checkpoint integration follows accepted #18. Use typed POD fields
-with explicit schema versions and migrations. Full checkpoints must cover game/entity/client state, references,
-callbacks and supporting subsystem state; no raw native-pointer dump or partial
-checkpoint acceptance. Settings/bindings and developer state must use existing
-filesystem/platform ownership. Read #19 before the remaining implementation.
+#19 is local in /home/matt/.cache/aftershock-modernization/state-tree,
+issue/19-state-serialization. Merge accepted UI main forward at this checkpoint.
+The common named-field serializer is implemented through a8195301; explicit
+added/removed/reordered-field migration and UInt64 identity preservation pass GCC
+and Clang/libc++ UBSan. Focused tidy, MinGW/aarch64 compile and format/types/
+boundaries pass for the initial module. No game checkpoint, settings or editor
+integration is implemented. Continue independent settings/editor test-first work
+while #18 gates run; merge accepted #18 main before game checkpoint integration.
+Private state-preflight.md records the full-state source inventory. No native
+pointer dumps or partial checkpoint acceptance.
 
 Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
