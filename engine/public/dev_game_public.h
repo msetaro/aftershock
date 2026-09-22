@@ -7,7 +7,7 @@
 struct devEntity_t {
 	char classname[64];
 	float origin[3], mins[3], maxs[3];
-	int32_t source, health;
+	int32_t source, health, model, frame, sound, contents;
 	bool linked;
 };
 struct devWeaponState_t {

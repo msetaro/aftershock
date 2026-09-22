@@ -217,6 +217,7 @@ void SP_team_neutralobelisk( gentity_t *ent );
 void SP_item_botroam( gentity_t *ent [[maybe_unused]] ) {};
 
 spawn_t spawns[] = {
+	{ "composed", SP_composed },
 	// info entities don't do anything at all, but provide positional
 	// information for things controlled by other processes
 	{ "info_player_start", SP_info_player_start },
@@ -709,6 +710,7 @@ Parses textual entity definitions out of an entstring and spawns gentities.
 ==============
 */
 void G_SpawnEntitiesFromString( void ) {
+	G_ResetComposed();
 	InitEntityDefinitions();
 #ifdef AFTERSHOCK_DEVTOOLS
 	G_DevReset();
@@ -796,6 +798,10 @@ static bool Dev_ReadEntity( int index, devEntity_t *out ) {
 	VectorCopy( entity->r.absmax, out->maxs );
 	out->source = devSource[index];
 	out->health = entity->health;
+	out->model = entity->s.modelindex;
+	out->frame = entity->s.frame;
+	out->sound = entity->s.loopSound;
+	out->contents = entity->r.contents;
 	out->linked = entity->r.linked != 0;
 	return true;
 }
@@ -928,7 +934,7 @@ static int Dev_Spawn( const char *classname, const float *origin ) {
 		return -1;
 	const auto *definition = Entity_FindDefinition( entityDefinitions, classname );
 	const char *native = definition ? definition->native : classname;
-	bool allowed = !strcmp( native, "target_position" ) || !strcmp( native, "info_notnull" ) ||
+	bool allowed = !strcmp( native, "composed" ) || !strcmp( native, "target_position" ) || !strcmp( native, "info_notnull" ) ||
 				   !strcmp( native, "info_player_deathmatch" ) || !strcmp( native, "misc_teleporter_dest" );
 	for ( const gitem_t *item = bg_itemlist + 1; item->classname; ++item )
 		allowed |= !strcmp( native, item->classname );

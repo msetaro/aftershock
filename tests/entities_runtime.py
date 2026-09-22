@@ -134,7 +134,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-runtime-') as tempo
 }
 ''')
     with Engine(args.binary,args.data,args.content,home=home,arguments=[
-            '+set','g_entityDefinitions','entities/composed.asent','+set','cg_draw2D','0','+set','cg_drawGun','0']) as engine:
+            '+set','g_entityDefinitions','entities/composed.asent','+set','cg_draw2D','0','+set','cg_drawGun','0','+set','con_notifytime','0']) as engine:
         try:
             engine.request('session',dt=20,seed=18)
             engine.request('cvar.set',name='dev_entityFile',value='maps/composed-test.ent')
@@ -163,11 +163,12 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-runtime-') as tempo
             second=capture('composed-animation')
             assert entity('signal_crate')['frame']!=first_frame
             assert ImageChops.difference(first,second).getbbox(), 'cooked model animation must change visible pixels'
+            engine.step(250)  # Respect the existing five-second team-switch cooldown.
             execute('team free')
             execute('give health')
             execute('setviewpos -128 128 24 0')
             engine.step(3)
-            assert engine.request('state')['player']['health']==93, 'trigger damage must apply once'
+            assert engine.request('state')['player']['health']==93, ('trigger damage must apply once',engine.request('state'),entity('touch_zone'))
             assert entity('medical_boost')['linked'], 'touch hook must activate the existing target pickup'
             execute('setviewpos -160 0 24 0')
             engine.step(20)

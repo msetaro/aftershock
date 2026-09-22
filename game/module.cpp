@@ -1,5 +1,6 @@
 /* Compile each imported translation unit in its module's namespace. */
 #include <type_traits>
+#include <cmath>
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -21,7 +22,6 @@
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "../engine/public/dev_game_public.h"
 #include <charconv>
-#include <cmath>
 #endif
 #include "../engine/public/cg_native_public.h"
 #include "../engine/public/ui_native_public.h"

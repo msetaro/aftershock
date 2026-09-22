@@ -431,6 +431,8 @@ qboolean G_SpawnFloat( const char *key, const char *defaultString, float *out );
 qboolean G_SpawnInt( const char *key, const char *defaultString, int *out );
 qboolean G_SpawnVector( const char *key, const char *defaultString, float *out );
 void G_SpawnEntitiesFromString( void );
+void SP_composed( gentity_t *entity );
+void G_ResetComposed();
 char *G_NewString( const char *string );
 
 //

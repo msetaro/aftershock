@@ -79,7 +79,13 @@ no new model format is needed. The real composed-entity test now fails at the mi
 rebuilt client (entities-components-runtime-before2.log); its earlier run used
 an older reader and was not the intended backend negative control. It requires
 visible owned IQM animation, solid collision, trigger damage/target activation,
-sound-emission state and destruction by the real weapon. Generic definition
+sound-emission state and destruction by the real weapon (9ae1769c). The native
+composed backend now passes this full OpenArena sequence
+(entities-composed-second.log), including visible owned IQM animation, movement
+blocked at the authored box, once-only 7 damage, target pickup activation and
+real weapon destruction. The fixture respects the existing five-second team
+switch cooldown. Splash radius lives in the new POD side state; the legacy
+integer field is unchanged. Quake 3 composed acceptance is next. Generic definition
 preview/edit still remains.
 No partial acceptance of remaining #18 scope is claimed. Schema, format/types/boundaries and affected contract pass.
 
