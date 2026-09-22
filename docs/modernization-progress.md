@@ -75,7 +75,12 @@ UBSan (entities-components-{first,clang}.log). Runtime behavior for the new
 composed backend remains to be implemented and tested; metadata alone is not
 acceptance. Continuous audio loops are PCM WAV; authored events are one-shot.
 Reuse cooked IQM frame animation through the existing general-entity renderer;
-no new model format is needed. Generic definition preview/edit still remains.
+no new model format is needed. The real composed-entity test now fails at the missing composed behavior on a
+rebuilt client (entities-components-runtime-before2.log); its earlier run used
+an older reader and was not the intended backend negative control. It requires
+visible owned IQM animation, solid collision, trigger damage/target activation,
+sound-emission state and destruction by the real weapon. Generic definition
+preview/edit still remains.
 No partial acceptance of remaining #18 scope is claimed. Schema, format/types/boundaries and affected contract pass.
 
 ## #17 local verification before integrating accepted audio

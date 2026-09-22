@@ -88,3 +88,101 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-runtime-') as tempo
             print('PASS: map prefab/instance override, runtime inherited pickup and generic field editing affect real health')
         finally:
             shutil.copyfile(engine.log_path,args.output/'engine.log')
+    # Reuse the owned animated character; no source fixture is regenerated.
+    for name in ('character.gltf','character.bin','character.png'):
+        shutil.copyfile(ROOT/'tests/assets/cook-character'/name,source/name)
+    import math
+    import struct
+    import wave
+    with wave.open(str(source/'hum.wav'),'wb') as sound:
+        sound.setparams((1,2,48000,0,'NONE','not compressed'))
+        sound.writeframes(b''.join(struct.pack('<h',int(4000*math.sin(2*math.pi*220*i/48000))) for i in range(4800)))
+    composed=json.loads((ROOT/'tests/assets/entities/composed.json').read_text())
+    prop=composed['definitions'][0]
+    prop['components']['transform']=dict(origin=[0,0,0],angles=[0,0,0])
+    prop['components']['animation']['first_frame']=31
+    prop['components']['collision']=dict(mins=[-16,-16,0],maxs=[16,16,64],solid=True)
+    prop['components'].pop('trigger')
+    prop['components']['damage']['splash']=0
+    composed['definitions']+=definition['definitions']+[dict(id='touch_zone',native='composed',components=dict(
+        collision=dict(mins=[-32,-32,-32],maxs=[32,32,32],solid=False),
+        trigger=dict(wait_ms=1000,once=True),damage=dict(amount=7),hooks=dict(target='door_signal')))]
+    (source/'composed.json').write_text(json.dumps(composed))
+    project.write_text(json.dumps(dict(version=1,assets=[
+        dict(name='models/character',kind='model',source='character.gltf',scale=32,fps=30),
+        dict(name='sound/entities/hum',kind='audio',source='hum.wav'),
+        dict(name='entities/composed',kind='entities',source='composed.json')])))
+    cook(project,base)
+    (base/'maps/composed-test.ent').write_text('''{
+"classname" "worldspawn"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-160 -160 48"
+}
+{
+"classname" "signal_crate"
+}
+{
+"classname" "touch_zone"
+"origin" "-128 128 32"
+}
+{
+"classname" "medical_boost"
+"origin" "128 128 48"
+"targetname" "door_signal"
+}
+''')
+    with Engine(args.binary,args.data,args.content,home=home,arguments=[
+            '+set','g_entityDefinitions','entities/composed.asent','+set','cg_draw2D','0','+set','cg_drawGun','0']) as engine:
+        try:
+            engine.request('session',dt=20,seed=18)
+            engine.request('cvar.set',name='dev_entityFile',value='maps/composed-test.ent')
+            engine.request('cvar.set',name='dev_loadEntities',value='1')
+            engine.request('map',name='two_lane')
+            engine.step(50)
+            def entity(classname):
+                return next((row for row in engine.request('entity.list')['entities'] if row['classname']==classname),None)
+            prop=entity('signal_crate')
+            assert prop and prop['linked'], 'composed native entity must spawn'
+            assert prop['model']>0 and prop['sound']>0 and prop['contents']&1 and prop['health']==20,prop
+            assert not entity('medical_boost')['linked'], 'target pickup starts dormant'
+            execute('team spectator')
+            execute('dev_view -128 0 48 0 0 0')
+            engine.step(4)
+            from PIL import Image, ImageChops
+            def capture(name):
+                result=engine.request('capture',name=name)
+                engine.step(2)
+                picture=Image.open(base/result['path']).convert('RGB')
+                picture.save(args.output/(name+'.png'))
+                return picture
+            first_frame=entity('signal_crate')['frame']
+            first=capture('composed-model')
+            engine.step(10)
+            second=capture('composed-animation')
+            assert entity('signal_crate')['frame']!=first_frame
+            assert ImageChops.difference(first,second).getbbox(), 'cooked model animation must change visible pixels'
+            execute('team free')
+            execute('give health')
+            execute('setviewpos -128 128 24 0')
+            engine.step(3)
+            assert engine.request('state')['player']['health']==93, 'trigger damage must apply once'
+            assert entity('medical_boost')['linked'], 'touch hook must activate the existing target pickup'
+            execute('setviewpos -160 0 24 0')
+            engine.step(20)
+            controls=dict(forward=1,right=0,up=0,yaw=0,pitch=0,fire=False,ads=False,reload=False,melee=False,offhand=False)
+            engine.request('input',**controls)
+            engine.step(30)
+            position=engine.request('state')['player']['origin']
+            assert -35<position[0]<-30, ('solid component must stop movement',position)
+            controls.update(forward=0,fire=True)
+            engine.request('input',**controls)
+            engine.step(30)
+            controls['fire']=False
+            engine.request('input',**controls)
+            engine.step(3)
+            assert entity('signal_crate') is None, 'real weapon damage must destroy the authored damageable model'
+            print('PASS: cooked model animation, solid collision, trigger damage/target hooks, sound emission and destructible health')
+        finally:
+            shutil.copyfile(engine.log_path,args.output/'components.log')
