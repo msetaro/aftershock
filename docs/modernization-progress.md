@@ -49,6 +49,21 @@ Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
 
+## #19 editor/profile migration test before implementation
+
+Created one new frozen version-1 profile fixture using the e199e8bc client,
+OpenArena and an isolated home. Review confirms 239 archived cvars, 51 bindings,
+volume 0.31, no private/CD-key values or absolute paths; raw size 4,735,504 bytes,
+gzip 8,508 bytes. Hashes/provenance accompany it under tests/assets/state. Its
+creation command refuses to overwrite existing data; no accepted old fixture changed.
+
+The extended real-client test requires panel/cvar/filter restoration and loading
+that old file with explicit defaults for the newly added workspace. It fails on
+unchanged Textures/r_mode/r_ selection after profile load (profile-editor-before.log).
+Add workspace metadata through the same versioned serializer, with version-1
+migration defaults. Full game checkpoints and shared replication/entity metadata
+remain outstanding.
+
 ## #19 settings profile implementation
 
 The committed real-client failure 63fcdb68 now passes with both content sets
