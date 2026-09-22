@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"net"
 	"os"
 	"path/filepath"
@@ -226,5 +227,54 @@ func TestFinalStream(t *testing.T) {
 	}
 	if err = s.accept(batch{Version: 1, Match: "local-1", End: 6, Events: []string{"event"}}, "allocation-secret"); err == nil {
 		t.Fatal("accepted data after final acknowledgement")
+	}
+}
+
+func TestBackendAllocation(t *testing.T) {
+	key := strings.Repeat("42", 32)
+	allocation := `{"match":{"version":1,"id":"backend-1","map":"two_lane","mode":0,"slots":2,"rules":{"frag_limit":1,"time_limit":1},"expected_players":["18446744073709551615"]},"join_key":"` + key + `","token":"allocation-secret"}`
+	s, err := decodeSpec([]byte(allocation))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.ID != "backend-1" || s.Password != "" || s.JoinKey != key || len(s.ExpectedPlayers) != 1 || s.ExpectedPlayers[0] != "18446744073709551615" {
+		t.Fatal("allocation did not retain its contract")
+	}
+	args, err := serverArgs(s, "/content", "/home", "aftershock", 27960, false)
+	if err != nil || strings.Contains(strings.Join(args, " "), key) || !strings.Contains(strings.Join(args, " "), "+joinconfig +map two_lane") {
+		t.Fatal("missing private configuration command or secret in argv", err)
+	}
+	home := t.TempDir()
+	if err := writeJoinConfig(home, s); err != nil {
+		t.Fatal(err)
+	}
+	var config struct {
+		Version int      `json:"version"`
+		Match   string   `json:"match_id"`
+		Key     string   `json:"join_key"`
+		Players []string `json:"expected_players"`
+	}
+	path := filepath.Join(home, "match-join.json")
+	if err := readJSON(path, &config); err != nil || config.Version != 1 || config.Match != s.ID || config.Key != key || len(config.Players) != 1 {
+		t.Fatal("incorrect private join configuration", err)
+	}
+	info, err := os.Stat(path)
+	if err != nil || info.Mode().Perm() != 0600 {
+		t.Fatal("join configuration must be private", err)
+	}
+	for _, bad := range []string{
+		strings.Replace(allocation, `"mode":0,`, "", 1),
+		strings.Replace(allocation, `"version":1`, `"version":2`, 1),
+		strings.Replace(allocation, key, "42", 1),
+		strings.Replace(allocation, `"18446744073709551615"`, `"18446744073709551616"`, 1),
+		strings.Replace(allocation, `"token":`, `"password":"bypass-secret","token":`, 1),
+	} {
+		if _, err := decodeSpec([]byte(bad)); err == nil {
+			t.Fatal("accepted invalid backend allocation")
+		}
+	}
+	data, _ := json.Marshal(s)
+	if _, err := decodeSpec(data); err != nil {
+		t.Fatal("private persisted spec cannot be revalidated", err)
 	}
 }

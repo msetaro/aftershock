@@ -79,6 +79,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 controller allocation contract, test first
+
+The existing Go controller test now requires a private allocation envelope carrying
+the versioned MatchSpec, a per-match 32-byte key and separate ingest credential.
+It checks canonical full-width expected players, required mode/version validation,
+no key in process arguments, private 0600 join configuration and revalidation of
+the persisted spec. It fails before controller support (backend-allocation-before.log).
+Legacy password-based #28 specifications stay compatible. Authentication readiness
+will be checked through the existing loaded-map UDP probe, not inferred from stdin.
+
 ## #29 signed UDP admission
 
 SV_DirectConnect now validates the configured ticket after protocol/challenge checks,
