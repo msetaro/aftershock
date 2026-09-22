@@ -1282,7 +1282,7 @@ happen before SV_Frame is called
 ==================
 */
 void SV_Frame( int msec ) {
-	if ( SV_CheckpointFrame() )
+	if ( !sv_killserver->integer && SV_CheckpointFrame() )
 		return;
 	int frameMsec;
 	int startTime;

@@ -27,8 +27,8 @@ chat shutdown fix is now accepted in PR174, merge
 required checks passed exact head ec396fb4: build 35708802501 and regression
 35708802542. Fresh main/base, clean head, self-review and immutable known-good tag
 were checked before ready/merge. Merge tree equals the tested tree
-596db4b2d7eed779f988a59752b69522cc0e1f1b. Merged-tree build 35715942160 and
-regression 35715942143 are running; track both to completion.
+596db4b2d7eed779f988a59752b69522cc0e1f1b. Merged-tree build 35715942160 passed; regression 35715942143 is running.
+Track the remaining integration gate to completion.
 
 #19 remains local in /home/matt/.cache/aftershock-modernization/state-tree,
 issue/19-state-serialization. Main including PR174 is merged forward at this
@@ -42,8 +42,9 @@ view angles, selected weapon/sensitivity and pending loopback input. Full OpenAr
 save/load passes exact entity restoration and identical player/bot continuation in
 both the same process and a fresh process seeded differently
 (state-client-clock-runtime.log). Quake 3 same/fresh-process continuation also passes (state-client-clock-q3.log). The frozen full-game v1 fixture now migrates into v2 and continues identically.
-Register final runtime CI and run
-all required gates before a PR/merge. No partial checkpoint acceptance.
+Final runtime CI and command documentation are registered. Both full compiler
+owner suites, interrupted-load lifecycle and full tidy pass. Finish lifetime,
+normal replay/runtime and hosted checks before merge. No partial checkpoint acceptance.
 
 Named fields/archives, native entity/client/level owners, botlib reconstruction,
 cvar preparation/capacity, portal/spatial state, platform save routing, profiles
@@ -55,6 +56,23 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 final lifecycle and CI registration
+
+The pending-load gate now honors shutdown, explicit map replacement releases its
+archive, and map_restart rejects an unfinished reconnect. The real OpenArena
+runtime passes shutdown/reload/map replacement, exact same/fresh-process restore
+and continuation, and frozen full-game v1 migration (state-final-runtime.log).
+Full GCC and Clang/libc++ state suites pass (state-final-{gcc,clang}.log); full tidy
+passes 1,410 production configurations (state-final-tidy.log). Lifetime analysis
+continues. No existing fixture or golden was regenerated.
+
+CI now runs all state owners with both compilers and real profile/checkpoint
+migration with OpenArena in the runtime job; evidence uploads only logs and entity
+JSON. Affected-test routing, AGENTS commands and tests/README describe storage,
+supported local-game context, migration and immutable fixture provenance.
+Actionlint, affected-contract and suite-contract checks pass. Finish normal
+replay/runtime compatibility and hosted acceptance before merging #19.
 
 ## #19 interrupted-load lifecycle test first
 

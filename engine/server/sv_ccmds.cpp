@@ -212,6 +212,7 @@ static void SV_Map_f( void ) {
 	Q_strncpyz( mapname, map, sizeof( mapname ) );
 
 	// start up the map
+	SV_ClearCheckpoint();
 	SV_SpawnServer( mapname, killBots );
 
 	// set the cheat value
@@ -235,6 +236,10 @@ This allows fair starts with variable load times.
 ================
 */
 static void SV_MapRestart_f( void ) {
+	if ( SV_CheckpointLoading() ) {
+		Com_Printf( "Checkpoint is still reconnecting; use map or killserver to cancel.\n" );
+		return;
+	}
 	int i;
 	client_t *client;
 	const char *denied;

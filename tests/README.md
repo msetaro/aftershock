@@ -1598,7 +1598,7 @@ Start opens in-game options. Binding capture uses existing key storage. Cooked
 localized runs are shaped offline; dynamic numeric/key labels use atlas glyphs.
 Arbitrary runtime Unicode chat shaping is outside this menu/HUD implementation.
 
-## Versioned state and settings (#19 in progress)
+## Versioned state and settings (#19)
 
 `python3 tests/state.py` checks named typed POD serialization and explicit
 version migration under UBSan, including field removal/addition/reordering and
@@ -1618,8 +1618,31 @@ files remain supported. Version 1 supports 2048 cvars and 512 bindings with
 Version 2 also saves the developer panel, selected cvar, filters, world-display
 preferences and up to 4095 bytes of ImGui window layout. Version-1 files migrate
 with explicit workspace defaults; the frozen original file and provenance are in
-`tests/assets/state`. Runtime evidence contains logs only. Full game checkpoints
-are still pending; these tests alone do not complete #19.
+`tests/assets/state`. Runtime evidence contains logs and entity comparisons only.
+
+`python3 tests/checkpoint_runtime.py --binary CLIENT` tests full game save/load
+with a live bot, immutable revisions, exact paused entity restoration and identical
+continuation in the same process and a fresh process with a different initial seed.
+Use `--content openarena --data DATA` for hosted data and the additional frozen
+v1-to-v2 full-game migration; local default content is installed Quake 3. No paks
+are copied into the repository or uploaded.
+
+`savegame NAME` creates `saves/NAME.NNN.asstate` in the active game's user storage;
+`loadgame saves/NAME.NNN.asstate` requires the same installed content and a compatible
+libc RNG signature. Saves support one active anonymous loopback player plus bots,
+not dedicated or remote multiplayer connections. Map reload rebuilds typed native
+references, content-backed bot owners, exact spatial lists, portals and both RNG
+streams. Gameplay stays frozen through the fresh local transport handshake. Local
+input clocks are rebased; authentication and transport sequence numbers are fresh.
+
+The v2 header adds `protocol` and removes redundant `pure` metadata (already owned
+by server cvars). Explicit v1 migration preserves its known protocol revision 2
+and legacy pure check. `checkpoint-v1.asstate.gz` is a frozen reviewed OpenArena
+save, with hashes and saved/continued projections in `checkpoint-v1.json`. The
+one-time `--record-v1-fixture` command must use the recorded v1 writer and refuses
+existing fixture paths; normal tests and CI never regenerate it. See
+[fixture provenance](assets/state/README.md). The original profile fixture is also
+unchanged.
 
 State storage routes profile and game records through the bounded platform save
 provider (`engine/platform/save_public.h`). The PC backend reads loose files only
