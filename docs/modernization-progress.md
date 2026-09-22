@@ -31,7 +31,7 @@ Resume the active predecessor gates before any later issue can merge:
   equals the tested head. Integrated build 35744183979 and regression 35744184060
   are running; require their acceptance before any later issue merges.
 
-This is issue/21-ai-navigation in navigation-tree, merging main 13106135 forward.
+This is issue/21-ai-navigation in navigation-tree, including main 13106135 via af12d732.
 The native controller now passes patrol, combat, occluded hearing and exact
 same/fresh-process checkpoint continuation on owned geometry. Actual local
 q3dm17 acceptance passes: two native pad flights, data-weapon damage and movement
@@ -42,11 +42,16 @@ Fixed replays for both content sets, legacy runtime smoke, differential/unit
 goldens, sanitizer units and full policy gates pass. Cooker/schema checks pass
 (the schema command uses the documented private Go PATH). Final MinGW rebuild
 also passes. Final review added and verified collision-header cache dependencies;
-CI/docs registration is committed. Finish fresh-main integration and hosted gates. New owned tests run in both unit compiler legs
-and hosted OpenArena runtime. Main #20 is merged forward before #21 hosted checks. Those checks may run
-alongside the identical-tree #20 integration checks; #21 merge still waits for
-both complete green sets. Nothing has been pushed for #21 yet. Follow the specific gate evidence below, not historical next
-steps in older entries.
+The combined package/AI build and OpenArena package/pure/render plus AI combat
+and checkpoint continuation pass (navigation-content-{package,combat}.log).
+CI/docs registration is committed. Open the #21 draft against main for hosted
+checks; #21 merge waits for both its exact-head 26 checks and integrated #20's
+26 checks. Recheck current main/base/head immediately before merge.
+
+While those run, start isolated #22 profiling work from current main. Reuse the
+existing developer timers/GPU/allocator/network owners; preserve issue branches
+and merge order. Merge accepted #21 main forward before #22 final checks/merge.
+Follow the specific gate evidence below, not historical next steps.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
@@ -59,8 +64,8 @@ Merge #20 main 13106135 forward. Production changes merge automatically; resolve
 adjacent verification/catalog entries by retaining both packages and navigation.
 Keep both README sections and the earlier content checkpoint as history beneath
 the current next action. No accepted fixtures change. Rebuild the combined
-client/server, run package/AI checkpoint integration and catalog/policy checks,
-then open the #21 draft against current main for its required hosted gates.
+client/server and package/AI checkpoint integration pass, as do catalog/policy
+checks. Open the #21 draft against current main for its required hosted gates.
 
 ## #21 cooker header dependency contract, test first
 
