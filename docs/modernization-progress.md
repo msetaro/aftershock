@@ -24,15 +24,17 @@ upstream; historical upstream PR references below are completed past work.
 2026-09-22 UTC. All 26 active gates passed exact head fcfd6507 (build 35679134924,
 regression 35679134926); head/base/current main and known-good tag were rechecked
 immediately before ready/merge. Private ui-final-gates.json records the results.
-Monitor the new main build/regression. #16 is accepted in PR171 (d2411083);
-its merged-tree build 35678588496 passes, runtime in 35678588538 is finishing.
+Monitor new main build 35682880734/regression 35682880730. #16 is accepted in
+PR171 (d2411083); both merged-tree workflows 35678588496/35678588538 pass.
 
 #18 draft PR173 uses issue/18-entity-definitions in
-/home/matt/.cache/aftershock-modernization/entities-tree. Merge accepted UI main
-forward now, preserving both asset kinds/schemas and all CI checks, then run local
-integration gates and push the merged head for final hosted checks. Previous
+/home/matt/.cache/aftershock-modernization/entities-tree. affbea66 merges accepted UI main
+forward, preserving both asset kinds/schemas and all CI checks. Local integration
+passes: GCC/Clang entity probes, UI probe, all schemas, format/types/boundaries,
+combined client/server build, full OpenArena entity sequence and 1080p UI runtime
+(entities-ui-*.log). Push this checkpoint for final hosted checks. Previous
 5e666dff passes all 16 compiler legs in 35682073149; regression 35682073081 is
-superseded when this merge is pushed. Initial cb84dadb failed old libc++ floating
+superseded and cancelled for this merge. Initial cb84dadb failed old libc++ floating
 from_chars and is not acceptance; strtof with fixed-decimal/range validation fixes
 that portability issue. Both-content component/editor/flag acceptance, full
 lifetime/tidy and unchanged classic bot/replay gates pass locally before this merge.
