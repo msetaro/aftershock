@@ -1,6 +1,7 @@
 # Explicit production source lists migrated from the verified Make build.
 
 set(COMMON_SOURCES
+  engine/entities/entities.cpp
   engine/weapons/weapons_assets.cpp
   engine/weapons/weapons.cpp
   engine/animation/animation.cpp

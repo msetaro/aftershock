@@ -32,7 +32,13 @@ Schema examples and production-boundary checks also pass (entities-schema.log).
 32c39936 records the first failing cook; 679e94f5 implements its passing schema
 and cooker. The next native probe requires real definition/field lookup and
 inherited replication metadata; it fails because engine/entities does not exist
-(entities-native-before.log). Current component schema covers only transform/pickup/hooks/replication; add
+(entities-native-before.log), committed in 8cf5cf24. Native bounded lookup now
+passes GCC and Clang/libc++ UBSan with conversion/shadow warnings; no IO or
+allocation in the definition module (entities-native-{first,clang}.log).
+Format/types/boundaries pass. Added the module to shared build/lifetime ownership.
+Next wire existing game spawn services and finish the remaining components,
+with a failing real pickup test before runtime implementation. Current component
+schema covers only transform/pickup/hooks/replication; add
 model/animation/collision/trigger/damage/audio after tracing their existing
 services. No #18 runtime implementation or PR exists yet. Use JSON
 and the existing cooker/schema, entity storage/spawn callbacks and generic
