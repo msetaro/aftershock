@@ -61,7 +61,14 @@ exact compressed-bit accounting for transmitted entity/player fields and player
 arrays, reset and disabled instrumentation. Encode/decode real production deltas,
 require matching read/write field totals and identical bytes with telemetry off.
 This captures field payload/control bits, excluding message/header framing; it is
-not a second network serializer. Implementation follows the failing contract.
+not a second network serializer. The missing API contract fails first at
+8798763b (profiling-network-before.log). The owner now retains 256 packet records
+and 128 fixed field slots without allocations; both compiler probes pass after
+implementation. Production delta bytes match with telemetry enabled/disabled;
+the accepted replication fixture also passes unchanged. The overlay exposes all
+retained packet metadata and field bit totals; the command exposes the latest
+64 packets plus all observed fields. Reset clears the counters explicitly. The
+command probe and developer client/server build pass.
 
 ## #22 profile command contract, test first
 

@@ -1060,6 +1060,45 @@ static void Agent_Profile( agentReply_t &reply, const devCpuFrame_t *frame ) {
 	reply.Number( net->packets[1] );
 	reply.Text( ",\"outgoingLastPacket\":" );
 	reply.Number( net->lastPacket[1] );
+	reply.Text( ",\"packets\":[" );
+	for ( uint32_t age = 0; age < 64; ++age ) {
+		const auto *packet = DevTools_NetworkPacket( age );
+		if ( !packet )
+			break;
+		if ( age )
+			reply.Text( "," );
+		reply.Text( "{\"time\":" );
+		reply.Number( packet->milliseconds );
+		reply.Text( ",\"bytes\":" );
+		reply.Number( packet->bytes );
+		reply.Text( ",\"outgoing\":" );
+		reply.Text( packet->outgoing ? "true}" : "false}" );
+	}
+	reply.Text( "],\"fields\":[" );
+	const devNetworkField_t *fields;
+	const uint32_t fieldCount = DevTools_NetworkFields( &fields );
+	bool firstField = true;
+	for ( uint32_t i = 0; i < fieldCount; ++i ) {
+		const auto &field = fields[i];
+		if ( !field.samples[0] && !field.samples[1] )
+			continue;
+		if ( !firstField )
+			reply.Text( "," );
+		firstField = false;
+		reply.Text( "{\"name\":" );
+		reply.String( field.name );
+		reply.Text( ",\"readBits\":" );
+		reply.Number( field.bits[0] );
+		reply.Text( ",\"writtenBits\":" );
+		reply.Number( field.bits[1] );
+		reply.Text( ",\"reads\":" );
+		reply.Number( field.samples[0] );
+		reply.Text( ",\"writes\":" );
+		reply.Number( field.samples[1] );
+		reply.Text( "}" );
+	}
+	reply.Text( "]" );
+
 	reply.Text( ",\"delta\":" );
 	reply.Text( net->delta ? "true" : "false" );
 	reply.Text( "},\"events\":{" );
@@ -1619,8 +1658,10 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 			 ( JSON_ObjectGetNamedValue( request, end, "peak" ) && !Agent_Bool( request, end, "peak", peak ) ) ||
 			 ( JSON_ObjectGetNamedValue( request, end, "reset" ) && !Agent_Bool( request, end, "reset", reset ) ) )
 			return reply.Error( "invalid_argument", "$", "Use age in [0,239] and optional boolean peak/reset." );
-		if ( reset )
+		if ( reset ) {
 			DevTools_ClearCpuHistory();
+			DevTools_ClearNetwork();
+		}
 		Agent_Profile( reply, peak ? DevTools_CpuPeak() : DevTools_CpuFrame( age ) );
 	} else if ( !strcmp( op, "state" ) ) {
 		Agent_State( reply );

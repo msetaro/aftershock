@@ -1713,7 +1713,7 @@ static void InspectProfile( const refexport_t *renderer, uint32_t milliseconds )
 	const uint32_t interval = milliseconds - previousTime;
 	if ( interval >= 1000 ) {
 		for ( int i = 0; i < 2; ++i ) {
-			rate[i] = (double)( net->bytes[i] - previous[i] ) * 1000.0 / (double)interval;
+			rate[i] = (double)( net->bytes[i] >= previous[i] ? net->bytes[i] - previous[i] : net->bytes[i] ) * 1000.0 / (double)interval;
 			previous[i] = net->bytes[i];
 		}
 		previousTime = milliseconds;
@@ -1820,6 +1820,22 @@ static void InspectProfile( const refexport_t *renderer, uint32_t milliseconds )
 			net->rewindReports, net->rewindHits, net->rewindClamped );
 		ImGui::TextUnformatted( "Server samples the last shot at most four times per second." );
 	}
+	if ( ImGui::CollapsingHeader( "Recent datagrams (newest first)" ) ) {
+		for ( uint32_t age = 0; const auto *packet = DevTools_NetworkPacket( age ); ++age )
+			ImGui::Text( "%u ms: %s %u bytes", packet->milliseconds, packet->outgoing ? "TX" : "RX", packet->bytes );
+	}
+	if ( ImGui::CollapsingHeader( "Delta field bandwidth" ) ) {
+		const devNetworkField_t *fields;
+		const uint32_t fieldCount = DevTools_NetworkFields( &fields );
+		for ( uint32_t i = 0; i < fieldCount; ++i ) {
+			const auto &field = fields[i];
+			if ( field.samples[0] || field.samples[1] )
+				ImGui::Text( "%s: read %" PRIu64 " / written %" PRIu64 " bits", field.name, field.bits[0], field.bits[1] );
+		}
+	}
+	if ( ImGui::Button( "Clear network counters" ) )
+		DevTools_ClearNetwork();
+	ImGui::TextWrapped( "Field totals count compressed delta field/control bits, excluding message headers. Reads include replay; writes include local snapshot serialization." );
 	ImGui::TextWrapped( "Datagram payload sizes exclude transport headers; replay snapshots are not network traffic." );
 	ImGui::EndTabItem();
 }

@@ -18,7 +18,7 @@ void QDECL Com_Printf( const char *, ... ) {
 void QDECL Com_DPrintf( const char *, ... ) {
 }
 
-static void networkFields() {
+static void checkNetworkFields() {
 	DevTools_BeginFrame( true );
 	DevTools_ClearNetwork();
 	for ( uint32_t i = 0; i < 300; ++i ) {
@@ -45,7 +45,7 @@ static void networkFields() {
 	MSG_WriteDeltaPlayerstate( &msg, &playerBase, &player );
 	const int size = msg.cursize, bits = msg.bit;
 	MSG_BeginReading( &msg );
-	assert( MSG_ReadBits( &msg, GENTITYNUM_BITS ) == 3 );
+	assert( MSG_ReadEntitynum( &msg ) == 3 );
 	MSG_ReadDeltaEntity( &msg, &baseline, &decodedEntity, 3 );
 	MSG_ReadDeltaPlayerstate( &msg, &playerBase, &decodedPlayer );
 	assert( !memcmp( &entity, &decodedEntity, sizeof( entity ) ) );
@@ -78,7 +78,7 @@ static void networkFields() {
 }
 
 int main() {
-	networkFields();
+	checkNetworkFields();
 	clockValue = 0;
 	const devCpuTiming_t *timings;
 	assert( Dev_BeginScope( "disabled" ) == UINT64_MAX );

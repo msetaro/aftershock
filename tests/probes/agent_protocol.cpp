@@ -96,6 +96,17 @@ const devCpuFrame_t *DevTools_CpuPeak() {
 void DevTools_ClearCpuHistory() {
 	cpuCleared = true;
 }
+const devNetworkPacket_t *DevTools_NetworkPacket( uint32_t age ) {
+	static const devNetworkPacket_t packet = { 123, 1400, true };
+	return age == 0 ? &packet : nullptr;
+}
+uint32_t DevTools_NetworkFields( const devNetworkField_t **fields ) {
+	static const devNetworkField_t field = { "player.origin[0]", { 12, 24 }, { 1, 2 } };
+	*fields = &field;
+	return 1;
+}
+void DevTools_ClearNetwork() {
+}
 const devNetwork_t *DevTools_Network( void ) {
 	static devNetwork_t network;
 	return &network;

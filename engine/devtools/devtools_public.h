@@ -16,6 +16,14 @@ struct devCpuFrame_t {
 	int64_t microseconds;
 	devCpuTiming_t scopes[128];
 };
+struct devNetworkPacket_t {
+	uint32_t milliseconds, bytes;
+	bool outgoing;
+};
+struct devNetworkField_t {
+	char name[64];
+	uint64_t bits[2], samples[2];
+};
 struct devNetwork_t {
 	uint64_t bytes[2], packets[2], snapshots, predictions;
 	uint32_t lastPacket[2], snapshotBits;
@@ -54,6 +62,10 @@ void DevTools_ClearCpuHistory();
 void DevTools_Packet( bool outgoing, uint32_t bytes );
 void DevTools_Snapshot( uint32_t bits, bool delta );
 const devNetwork_t *DevTools_Network( void );
+const devNetworkPacket_t *DevTools_NetworkPacket( uint32_t age );
+uint32_t DevTools_NetworkFields( const devNetworkField_t **fields );
+void DevTools_NetworkField( bool outgoing, bool player, uint32_t index, const char *name, int bits );
+void DevTools_ClearNetwork();
 
 const devGameTools_t *DevTools_Game( void );
 void DevTools_SetView( const refdef_t *view, int clientEntity = -1 );

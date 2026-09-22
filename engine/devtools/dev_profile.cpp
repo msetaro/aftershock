@@ -16,6 +16,9 @@ static int64_t frameStart, frameEnd;
 static bool havePeak;
 static bool active;
 static devNetwork_t network;
+static devNetworkPacket_t packets[256];
+static uint32_t packetCursor, packetCount;
+static devNetworkField_t networkFields[128];
 
 void DevTools_BeginFrame( bool enabled ) {
 	DevTools_BeginDebugFrame( enabled, (uint32_t)com_frameTime );
@@ -115,6 +118,9 @@ void DevTools_Packet( bool outgoing, uint32_t bytes ) {
 	network.bytes[direction] += bytes;
 	++network.packets[direction];
 	network.lastPacket[direction] = bytes;
+	packets[packetCursor] = { (uint32_t)com_frameTime, bytes, outgoing };
+	packetCursor = ( packetCursor + 1 ) % ARRAY_LEN( packets );
+	packetCount = MIN( packetCount + 1, (uint32_t)ARRAY_LEN( packets ) );
 }
 
 void DevTools_Snapshot( uint32_t bits, bool delta ) {
@@ -146,4 +152,27 @@ void Dev_RewindReport( uint32_t age, uint32_t limit, int clamped, int hit ) {
 
 const devNetwork_t *DevTools_Network( void ) {
 	return &network;
+}
+
+const devNetworkPacket_t *DevTools_NetworkPacket( uint32_t age ) {
+	return age < packetCount ? &packets[( packetCursor + ARRAY_LEN( packets ) - 1 - age ) % ARRAY_LEN( packets )] : nullptr;
+}
+uint32_t DevTools_NetworkFields( const devNetworkField_t **fields ) {
+	*fields = networkFields;
+	return ARRAY_LEN( networkFields );
+}
+void DevTools_NetworkField( bool outgoing, bool player, uint32_t index, const char *name, int bits ) {
+	if ( !active || index >= 64 || bits < 0 )
+		return;
+	auto &field = networkFields[( player ? 64 : 0 ) + index];
+	if ( !field.name[0] )
+		snprintf( field.name, sizeof( field.name ), "%s.%s", player ? "player" : "entity", name );
+	const uint32_t direction = outgoing ? 1 : 0;
+	field.bits[direction] += (uint32_t)bits;
+	++field.samples[direction];
+}
+void DevTools_ClearNetwork() {
+	network = {};
+	packetCursor = packetCount = 0;
+	memset( networkFields, 0, sizeof( networkFields ) );
 }
