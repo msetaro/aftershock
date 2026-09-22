@@ -1628,3 +1628,9 @@ Provider failures never fall back to PC storage. `tests/state.py` exercises prov
 routing and failure handling; `tests/profile_runtime.py --binary CLIENT` covers real
 PC revisions, fresh-process reload and the frozen v1 migration. Console SDK adapters
 remain part of #24 and are not claimed as tested by the provider probe.
+
+`python3 tests/bot_chat_shutdown.py` checks the real bot chat allocation and
+shutdown paths with ASan/UBSan. All 64 handles must be freed, repeated shutdown
+must be harmless, and the whole pool must be reusable for three cycles. Pass
+`--cxx 'clang++ -stdlib=libc++'` for the second compiler. This #31 regression is
+asset-independent and runs in both CI unit legs and the local full-suite catalog.

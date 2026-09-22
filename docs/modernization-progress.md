@@ -20,47 +20,36 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#16 and #17 are accepted in PR171 (d2411083) and PR172 (ebc03f37); both sets
-of merged-tree build/regression workflows pass. #18 is accepted in PR173, merge
-2010b07737dcf98a87b37f3b6092d7ecee167c18 on 2026-09-22 UTC. All 26 exact-head
-checks pass (build 35683155301, regression 35683155256); the clean head, current
-main/base and immutable known-good tag were checked immediately before ready/merge.
-The merge tree equals the tested tree. Merged-tree build 35687912038 passes.
-Regression 35687912012 now also passes. All merged-tree checks are green.
+#16, #17 and #18 are accepted in PR171 (d2411083), PR172 (ebc03f37) and
+PR173 (2010b077), with exact-head and merged-tree gates green. The separate #31
+chat shutdown fix is now accepted in PR174, merge
+5caa2c1cc65cc590254bbd7aa3d0bd1e7b09e8ec (2026-09-22 10:25:57 UTC). All 26
+required checks passed exact head ec396fb4: build 35708802501 and regression
+35708802542. Fresh main/base, clean head, self-review and immutable known-good tag
+were checked before ready/merge. Merge tree equals the tested tree
+596db4b2d7eed779f988a59752b69522cc0e1f1b. Merged-tree build 35715942160 and
+regression 35715942143 are running; track both to completion.
 
-#19 is local in /home/matt/.cache/aftershock-modernization/state-tree,
-issue/19-state-serialization. Accepted #18 main is merged forward at this checkpoint.
-Additive affected-test and progress conflicts are resolved in 57c0589d. Combined
-GCC/Clang state probes, entity probes, client/server build, profile migration and
-all three entity runtime scenarios pass (private state-entities-*.log). Implement
-full single-player checkpoint integration from committed failing
-tests/checkpoint_runtime.py. Entity, client and level draft records now round-trip
-with typed callbacks, checked references and nullable strings. Composed, authored
-animation/weapon, rewind, utility/spawn-generation, combat, team and podium owners
-also have validated local checkpoint records. Definition/editor state restores
-against matching map registry topology. Botlib draft records now cover input,
-movement, goal/item/weight/weapon pools, character caches, chat queues/content,
-libvars, global clocks and map identities. AAS records cover entities, spatial
-lists, world/physics state and routing caches; BSP content and the quiescent parser
-boundary are verified. Game-side bot actor/navigation/waypoint/scheduler/queue/team
-records are also complete. Character, movement, weight, goal, weapon and chat
-preparation rebuild saved slots locally. Native bot reconstruction, item/filter
-tables, arena accounting and bot/arena content identity are covered. Remaining
-work: coordinate prepared engine cvars and live
-server/client restore and both RNG streams; add the platform save-provider seam
-and frozen full-game N-to-N+1 OpenArena fixture. No partial checkpoint acceptance.
-Take the reproduced chat-shutdown boundary bug in a separate #31 PR before
-#19 live coordination: full reload relies on complete library shutdown. Continue
-independent #19 work while its gates run. See the issue31 entry below.
+#19 remains local in /home/matt/.cache/aftershock-modernization/state-tree,
+issue/19-state-serialization. Main including PR174 is merged forward at this
+checkpoint; additive affected-test/README and progress/bug-status conflicts are
+resolved without discarding #19 evidence. Full save/load now builds, with both
+compiler owner suites and focused/policy gates passing at their recorded heads.
+Real OpenArena local-player-plus-Sarge restore matches all 86 saved entity rows
+exactly after preserving actual spatial lists and snapped collision bounds.
+Continuation still fails: private archive comparison finds matching server/bot
+clocks and RNG records but human usercmd.serverTime 100 ms behind baseline,
+followed by small player/bot position differences. Add a client clock/input owner
+instead of deriving its timing from the last server-received command. Keep the
+exact continuation assertion. Then prove same/fresh-process continuation, freeze
+and migrate the full-game N-to-N+1 OpenArena fixture, register final runtime CI,
+and run all required gates before a PR/merge. No partial checkpoint acceptance.
 
-Completed local #19 support: named/versioned fields with bounded strings and
-schema/slot archives; shared entity/player/usercmd descriptions; profiles restoring
-settings, bindings and editor preferences, including a frozen v1 migration; native
-seed exposure and libc stream capture/restore. GCC/Clang UBSan, full tidy/lifetime,
-format/types/boundaries and the recorded cross-compiles pass at their checkpoints.
-Both bot goldens and fixed demo hashes remain unchanged after RNG routing. No
-accepted fixture was regenerated. Private state-preflight.md records the full
-source inventory and outstanding integration details.
+Named fields/archives, native entity/client/level owners, botlib reconstruction,
+cvar preparation/capacity, portal/spatial state, platform save routing, profiles
+and frozen profile v1 migration are implemented. Existing accepted goldens and
+fixtures are unchanged. Owner evidence follows below; private state-preflight.md
+has the inventory. Do not restart completed owners or the port.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
@@ -250,8 +239,8 @@ tidy and format/type/boundary checks pass (state-portals-*). This is additive
 checkpoint handling; ordinary collision and door arithmetic remain unchanged.
 Live restore still needs to call it before publishing the first snapshot.
 
-#31 prerequisite is draft PR174 at ec396fb4. Hosted build 35708802501 and
-regression 35708802542 are running; no merge before all 26 active gates pass.
+#31 prerequisite PR174 is merged as 5caa2c1c after all 26 required gates passed;
+merged-tree workflows are recorded in Next action.
 
 ## #19 gameplay draft validation; #31 cleanup prerequisite
 
