@@ -1753,3 +1753,472 @@ int BotAIShutdown( int restart ) {
 	}
 	return qtrue;
 }
+
+#ifdef __cplusplus
+struct botClockSave_t {
+	int32_t numbots, bot_interbreed, bot_interbreedmatchcount, local_time, botlib_residual, lastbotthink_time;
+	float floattime, regularupdate_time;
+};
+static_assert( sizeof( botClockSave_t ) == 32 );
+static constexpr stateField_t botClockFields[] = {
+	{ "numbots", offsetof( botClockSave_t, numbots ), 1, stateType_t::Int32 },
+	{ "bot_interbreed", offsetof( botClockSave_t, bot_interbreed ), 1, stateType_t::Int32 },
+	{ "bot_interbreedmatchcount", offsetof( botClockSave_t, bot_interbreedmatchcount ), 1, stateType_t::Int32 },
+	{ "local_time", offsetof( botClockSave_t, local_time ), 1, stateType_t::Int32 },
+	{ "botlib_residual", offsetof( botClockSave_t, botlib_residual ), 1, stateType_t::Int32 },
+	{ "lastbotthink_time", offsetof( botClockSave_t, lastbotthink_time ), 1, stateType_t::Int32 },
+	{ "floattime", offsetof( botClockSave_t, floattime ), 1, stateType_t::Float32 },
+	{ "regularupdate_time", offsetof( botClockSave_t, regularupdate_time ), 1, stateType_t::Float32 },
+};
+static constexpr stateSchema_t botClockSchema = { "game.botClocks", 1, 1, sizeof( botClockSave_t ), botClockFields, 8 };
+static bool ValidBotClock( const botClockSave_t &saved ) {
+	return saved.numbots >= 0 && saved.numbots <= MAX_CLIENTS && saved.bot_interbreed >= 0 && saved.bot_interbreed <= 1 &&
+		   saved.bot_interbreedmatchcount >= 0 && std::isfinite( saved.floattime ) && std::isfinite( saved.regularupdate_time );
+}
+bool G_WriteBotClockState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	const botClockSave_t saved{ numbots, bot_interbreed, bot_interbreedmatchcount, local_time, botlib_residual, lastbotthink_time, floattime, regularupdate_time };
+	if ( !ValidBotClock( saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, botClockSchema, 0, &saved );
+}
+bool G_ReadBotClockState( const stateReader_t &reader, bool apply ) {
+	botClockSave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, botClockSchema, 0, &saved, &version ) || !ValidBotClock( saved ) )
+		return false;
+	if ( apply ) {
+		numbots = saved.numbots;
+		bot_interbreed = saved.bot_interbreed;
+		bot_interbreedmatchcount = saved.bot_interbreedmatchcount;
+		local_time = saved.local_time;
+		botlib_residual = saved.botlib_residual;
+		lastbotthink_time = saved.lastbotthink_time;
+		floattime = saved.floattime;
+		regularupdate_time = saved.regularupdate_time;
+	}
+	return true;
+}
+#endif
+
+#ifdef __cplusplus
+#include "../../engine/public/state_replication_public.h"
+static constexpr stateField_t botActorFields[] = {
+	{ "inuse", offsetof( bot_state_t, inuse ), 1, stateType_t::Int32 },
+	{ "botthink_residual", offsetof( bot_state_t, botthink_residual ), 1, stateType_t::Int32 },
+	{ "client", offsetof( bot_state_t, client ), 1, stateType_t::Int32 },
+	{ "entitynum", offsetof( bot_state_t, entitynum ), 1, stateType_t::Int32 },
+	{ "last_eFlags", offsetof( bot_state_t, last_eFlags ), 1, stateType_t::Int32 },
+	{ "entityeventTime", offsetof( bot_state_t, entityeventTime ), 1024, stateType_t::Int32 },
+	{ "thinktime", offsetof( bot_state_t, thinktime ), 1, stateType_t::Float32 },
+	{ "origin", offsetof( bot_state_t, origin ), 3, stateType_t::Float32 },
+	{ "velocity", offsetof( bot_state_t, velocity ), 3, stateType_t::Float32 },
+	{ "presencetype", offsetof( bot_state_t, presencetype ), 1, stateType_t::Int32 },
+	{ "eye", offsetof( bot_state_t, eye ), 3, stateType_t::Float32 },
+	{ "areanum", offsetof( bot_state_t, areanum ), 1, stateType_t::Int32 },
+	{ "inventory", offsetof( bot_state_t, inventory ), MAX_ITEMS, stateType_t::Int32 },
+	{ "tfl", offsetof( bot_state_t, tfl ), 1, stateType_t::Int32 },
+	{ "flags", offsetof( bot_state_t, flags ), 1, stateType_t::Int32 },
+	{ "respawn_wait", offsetof( bot_state_t, respawn_wait ), 1, stateType_t::Int32 },
+	{ "lasthealth", offsetof( bot_state_t, lasthealth ), 1, stateType_t::Int32 },
+	{ "lastkilledplayer", offsetof( bot_state_t, lastkilledplayer ), 1, stateType_t::Int32 },
+	{ "lastkilledby", offsetof( bot_state_t, lastkilledby ), 1, stateType_t::Int32 },
+	{ "botdeathtype", offsetof( bot_state_t, botdeathtype ), 1, stateType_t::Int32 },
+	{ "enemydeathtype", offsetof( bot_state_t, enemydeathtype ), 1, stateType_t::Int32 },
+	{ "botsuicide", offsetof( bot_state_t, botsuicide ), 1, stateType_t::Int32 },
+	{ "enemysuicide", offsetof( bot_state_t, enemysuicide ), 1, stateType_t::Int32 },
+	{ "setupcount", offsetof( bot_state_t, setupcount ), 1, stateType_t::Int32 },
+	{ "map_restart", offsetof( bot_state_t, map_restart ), 1, stateType_t::Int32 },
+	{ "entergamechat", offsetof( bot_state_t, entergamechat ), 1, stateType_t::Int32 },
+	{ "num_deaths", offsetof( bot_state_t, num_deaths ), 1, stateType_t::Int32 },
+	{ "num_kills", offsetof( bot_state_t, num_kills ), 1, stateType_t::Int32 },
+	{ "revenge_enemy", offsetof( bot_state_t, revenge_enemy ), 1, stateType_t::Int32 },
+	{ "revenge_kills", offsetof( bot_state_t, revenge_kills ), 1, stateType_t::Int32 },
+	{ "lastframe_health", offsetof( bot_state_t, lastframe_health ), 1, stateType_t::Int32 },
+	{ "lasthitcount", offsetof( bot_state_t, lasthitcount ), 1, stateType_t::Int32 },
+	{ "chatto", offsetof( bot_state_t, chatto ), 1, stateType_t::Int32 },
+	{ "walker", offsetof( bot_state_t, walker ), 1, stateType_t::Float32 },
+	{ "ltime", offsetof( bot_state_t, ltime ), 1, stateType_t::Float32 },
+	{ "entergame_time", offsetof( bot_state_t, entergame_time ), 1, stateType_t::Float32 },
+	{ "ltg_time", offsetof( bot_state_t, ltg_time ), 1, stateType_t::Float32 },
+	{ "nbg_time", offsetof( bot_state_t, nbg_time ), 1, stateType_t::Float32 },
+	{ "respawn_time", offsetof( bot_state_t, respawn_time ), 1, stateType_t::Float32 },
+	{ "respawnchat_time", offsetof( bot_state_t, respawnchat_time ), 1, stateType_t::Float32 },
+	{ "chase_time", offsetof( bot_state_t, chase_time ), 1, stateType_t::Float32 },
+	{ "enemyvisible_time", offsetof( bot_state_t, enemyvisible_time ), 1, stateType_t::Float32 },
+	{ "check_time", offsetof( bot_state_t, check_time ), 1, stateType_t::Float32 },
+	{ "stand_time", offsetof( bot_state_t, stand_time ), 1, stateType_t::Float32 },
+	{ "lastchat_time", offsetof( bot_state_t, lastchat_time ), 1, stateType_t::Float32 },
+	{ "kamikaze_time", offsetof( bot_state_t, kamikaze_time ), 1, stateType_t::Float32 },
+	{ "invulnerability_time", offsetof( bot_state_t, invulnerability_time ), 1, stateType_t::Float32 },
+	{ "standfindenemy_time", offsetof( bot_state_t, standfindenemy_time ), 1, stateType_t::Float32 },
+	{ "attackstrafe_time", offsetof( bot_state_t, attackstrafe_time ), 1, stateType_t::Float32 },
+	{ "attackcrouch_time", offsetof( bot_state_t, attackcrouch_time ), 1, stateType_t::Float32 },
+	{ "attackchase_time", offsetof( bot_state_t, attackchase_time ), 1, stateType_t::Float32 },
+	{ "attackjump_time", offsetof( bot_state_t, attackjump_time ), 1, stateType_t::Float32 },
+	{ "enemysight_time", offsetof( bot_state_t, enemysight_time ), 1, stateType_t::Float32 },
+	{ "enemydeath_time", offsetof( bot_state_t, enemydeath_time ), 1, stateType_t::Float32 },
+	{ "enemyposition_time", offsetof( bot_state_t, enemyposition_time ), 1, stateType_t::Float32 },
+	{ "defendaway_time", offsetof( bot_state_t, defendaway_time ), 1, stateType_t::Float32 },
+	{ "defendaway_range", offsetof( bot_state_t, defendaway_range ), 1, stateType_t::Float32 },
+	{ "rushbaseaway_time", offsetof( bot_state_t, rushbaseaway_time ), 1, stateType_t::Float32 },
+	{ "attackaway_time", offsetof( bot_state_t, attackaway_time ), 1, stateType_t::Float32 },
+	{ "harvestaway_time", offsetof( bot_state_t, harvestaway_time ), 1, stateType_t::Float32 },
+	{ "ctfroam_time", offsetof( bot_state_t, ctfroam_time ), 1, stateType_t::Float32 },
+	{ "killedenemy_time", offsetof( bot_state_t, killedenemy_time ), 1, stateType_t::Float32 },
+	{ "arrive_time", offsetof( bot_state_t, arrive_time ), 1, stateType_t::Float32 },
+	{ "lastair_time", offsetof( bot_state_t, lastair_time ), 1, stateType_t::Float32 },
+	{ "teleport_time", offsetof( bot_state_t, teleport_time ), 1, stateType_t::Float32 },
+	{ "camp_time", offsetof( bot_state_t, camp_time ), 1, stateType_t::Float32 },
+	{ "camp_range", offsetof( bot_state_t, camp_range ), 1, stateType_t::Float32 },
+	{ "weaponchange_time", offsetof( bot_state_t, weaponchange_time ), 1, stateType_t::Float32 },
+	{ "firethrottlewait_time", offsetof( bot_state_t, firethrottlewait_time ), 1, stateType_t::Float32 },
+	{ "firethrottleshoot_time", offsetof( bot_state_t, firethrottleshoot_time ), 1, stateType_t::Float32 },
+	{ "notblocked_time", offsetof( bot_state_t, notblocked_time ), 1, stateType_t::Float32 },
+	{ "blockedbyavoidspot_time", offsetof( bot_state_t, blockedbyavoidspot_time ), 1, stateType_t::Float32 },
+	{ "predictobstacles_time", offsetof( bot_state_t, predictobstacles_time ), 1, stateType_t::Float32 },
+	{ "predictobstacles_goalareanum", offsetof( bot_state_t, predictobstacles_goalareanum ), 1, stateType_t::Int32 },
+	{ "aimtarget", offsetof( bot_state_t, aimtarget ), 3, stateType_t::Float32 },
+	{ "enemyvelocity", offsetof( bot_state_t, enemyvelocity ), 3, stateType_t::Float32 },
+	{ "enemyorigin", offsetof( bot_state_t, enemyorigin ), 3, stateType_t::Float32 },
+	{ "kamikazebody", offsetof( bot_state_t, kamikazebody ), 1, stateType_t::Int32 },
+	{ "proxmines", offsetof( bot_state_t, proxmines ), MAX_PROXMINES, stateType_t::Int32 },
+	{ "numproxmines", offsetof( bot_state_t, numproxmines ), 1, stateType_t::Int32 },
+	{ "character", offsetof( bot_state_t, character ), 1, stateType_t::Int32 },
+	{ "ms", offsetof( bot_state_t, ms ), 1, stateType_t::Int32 },
+	{ "gs", offsetof( bot_state_t, gs ), 1, stateType_t::Int32 },
+	{ "cs", offsetof( bot_state_t, cs ), 1, stateType_t::Int32 },
+	{ "ws", offsetof( bot_state_t, ws ), 1, stateType_t::Int32 },
+	{ "enemy", offsetof( bot_state_t, enemy ), 1, stateType_t::Int32 },
+	{ "lastenemyareanum", offsetof( bot_state_t, lastenemyareanum ), 1, stateType_t::Int32 },
+	{ "lastenemyorigin", offsetof( bot_state_t, lastenemyorigin ), 3, stateType_t::Float32 },
+	{ "weaponnum", offsetof( bot_state_t, weaponnum ), 1, stateType_t::Int32 },
+	{ "viewangles", offsetof( bot_state_t, viewangles ), 3, stateType_t::Float32 },
+	{ "ideal_viewangles", offsetof( bot_state_t, ideal_viewangles ), 3, stateType_t::Float32 },
+	{ "viewanglespeed", offsetof( bot_state_t, viewanglespeed ), 3, stateType_t::Float32 },
+	{ "ltgtype", offsetof( bot_state_t, ltgtype ), 1, stateType_t::Int32 },
+	{ "teammate", offsetof( bot_state_t, teammate ), 1, stateType_t::Int32 },
+	{ "decisionmaker", offsetof( bot_state_t, decisionmaker ), 1, stateType_t::Int32 },
+	{ "ordered", offsetof( bot_state_t, ordered ), 1, stateType_t::Int32 },
+	{ "order_time", offsetof( bot_state_t, order_time ), 1, stateType_t::Float32 },
+	{ "owndecision_time", offsetof( bot_state_t, owndecision_time ), 1, stateType_t::Int32 },
+	{ "reachedaltroutegoal_time", offsetof( bot_state_t, reachedaltroutegoal_time ), 1, stateType_t::Float32 },
+	{ "teammessage_time", offsetof( bot_state_t, teammessage_time ), 1, stateType_t::Float32 },
+	{ "teamgoal_time", offsetof( bot_state_t, teamgoal_time ), 1, stateType_t::Float32 },
+	{ "teammatevisible_time", offsetof( bot_state_t, teammatevisible_time ), 1, stateType_t::Float32 },
+	{ "teamtaskpreference", offsetof( bot_state_t, teamtaskpreference ), 1, stateType_t::Int32 },
+	{ "lastgoal_decisionmaker", offsetof( bot_state_t, lastgoal_decisionmaker ), 1, stateType_t::Int32 },
+	{ "lastgoal_ltgtype", offsetof( bot_state_t, lastgoal_ltgtype ), 1, stateType_t::Int32 },
+	{ "lastgoal_teammate", offsetof( bot_state_t, lastgoal_teammate ), 1, stateType_t::Int32 },
+	{ "lead_teammate", offsetof( bot_state_t, lead_teammate ), 1, stateType_t::Int32 },
+	{ "lead_time", offsetof( bot_state_t, lead_time ), 1, stateType_t::Float32 },
+	{ "leadvisible_time", offsetof( bot_state_t, leadvisible_time ), 1, stateType_t::Float32 },
+	{ "leadmessage_time", offsetof( bot_state_t, leadmessage_time ), 1, stateType_t::Float32 },
+	{ "leadbackup_time", offsetof( bot_state_t, leadbackup_time ), 1, stateType_t::Float32 },
+	{ "teamleader", offsetof( bot_state_t, teamleader ), 32, stateType_t::String },
+	{ "askteamleader_time", offsetof( bot_state_t, askteamleader_time ), 1, stateType_t::Float32 },
+	{ "becometeamleader_time", offsetof( bot_state_t, becometeamleader_time ), 1, stateType_t::Float32 },
+	{ "teamgiveorders_time", offsetof( bot_state_t, teamgiveorders_time ), 1, stateType_t::Float32 },
+	{ "lastflagcapture_time", offsetof( bot_state_t, lastflagcapture_time ), 1, stateType_t::Float32 },
+	{ "numteammates", offsetof( bot_state_t, numteammates ), 1, stateType_t::Int32 },
+	{ "redflagstatus", offsetof( bot_state_t, redflagstatus ), 1, stateType_t::Int32 },
+	{ "blueflagstatus", offsetof( bot_state_t, blueflagstatus ), 1, stateType_t::Int32 },
+	{ "neutralflagstatus", offsetof( bot_state_t, neutralflagstatus ), 1, stateType_t::Int32 },
+	{ "flagstatuschanged", offsetof( bot_state_t, flagstatuschanged ), 1, stateType_t::Int32 },
+	{ "forceorders", offsetof( bot_state_t, forceorders ), 1, stateType_t::Int32 },
+	{ "flagcarrier", offsetof( bot_state_t, flagcarrier ), 1, stateType_t::Int32 },
+	{ "ctfstrategy", offsetof( bot_state_t, ctfstrategy ), 1, stateType_t::Int32 },
+	{ "subteam", offsetof( bot_state_t, subteam ), 32, stateType_t::String },
+	{ "formation_dist", offsetof( bot_state_t, formation_dist ), 1, stateType_t::Float32 },
+	{ "formation_teammate", offsetof( bot_state_t, formation_teammate ), 16, stateType_t::String },
+	{ "formation_angle", offsetof( bot_state_t, formation_angle ), 1, stateType_t::Float32 },
+	{ "formation_dir", offsetof( bot_state_t, formation_dir ), 3, stateType_t::Float32 },
+	{ "formation_origin", offsetof( bot_state_t, formation_origin ), 3, stateType_t::Float32 },
+	{ "patrolflags", offsetof( bot_state_t, patrolflags ), 1, stateType_t::Int32 },
+	{ "settings.characterfile", offsetof( bot_state_t, settings.characterfile ), MAX_FILEPATH, stateType_t::String },
+	{ "settings.skill", offsetof( bot_state_t, settings.skill ), 1, stateType_t::Float32 },
+	{ "settings.team", offsetof( bot_state_t, settings.team ), MAX_FILEPATH, stateType_t::String },
+};
+static constexpr stateSchema_t botActorSchema = { "game.botActor", 1, 1, sizeof( bot_state_t ), botActorFields, sizeof( botActorFields ) / sizeof( botActorFields[0] ) };
+static constexpr stateField_t botActivationFields[] = {
+	{ "inuse", offsetof( bot_activategoal_t, inuse ), 1, stateType_t::Int32 },
+	{ "time", offsetof( bot_activategoal_t, time ), 1, stateType_t::Float32 },
+	{ "start_time", offsetof( bot_activategoal_t, start_time ), 1, stateType_t::Float32 },
+	{ "justused_time", offsetof( bot_activategoal_t, justused_time ), 1, stateType_t::Float32 },
+	{ "shoot", offsetof( bot_activategoal_t, shoot ), 1, stateType_t::Int32 },
+	{ "weapon", offsetof( bot_activategoal_t, weapon ), 1, stateType_t::Int32 },
+	{ "target", offsetof( bot_activategoal_t, target ), 3, stateType_t::Float32 },
+	{ "origin", offsetof( bot_activategoal_t, origin ), 3, stateType_t::Float32 },
+	{ "areas", offsetof( bot_activategoal_t, areas ), MAX_ACTIVATEAREAS, stateType_t::Int32 },
+	{ "numareas", offsetof( bot_activategoal_t, numareas ), 1, stateType_t::Int32 },
+	{ "areasdisabled", offsetof( bot_activategoal_t, areasdisabled ), 1, stateType_t::Int32 },
+};
+static constexpr stateSchema_t botActivationSchema = { "game.botActivation", 1, 1, sizeof( bot_activategoal_t ), botActivationFields, sizeof( botActivationFields ) / sizeof( botActivationFields[0] ) };
+static const struct {
+	const char *name;
+	int ( *node )( bot_state_t * );
+} botNodes[] = {
+	{ "AINode_Intermission", AINode_Intermission },
+	{ "AINode_Observer", AINode_Observer },
+	{ "AINode_Respawn", AINode_Respawn },
+	{ "AINode_Stand", AINode_Stand },
+	{ "AINode_Seek_ActivateEntity", AINode_Seek_ActivateEntity },
+	{ "AINode_Seek_NBG", AINode_Seek_NBG },
+	{ "AINode_Seek_LTG", AINode_Seek_LTG },
+	{ "AINode_Battle_Fight", AINode_Battle_Fight },
+	{ "AINode_Battle_Chase", AINode_Battle_Chase },
+	{ "AINode_Battle_Retreat", AINode_Battle_Retreat },
+	{ "AINode_Battle_NBG", AINode_Battle_NBG },
+};
+struct botActorRefs_t {
+	char node[64];
+	int32_t checkpoints, patrolpoints, curpatrolpoint, activatestack, activationNext[MAX_ACTIVATESTACK];
+};
+static_assert( sizeof( botActorRefs_t ) == 112 );
+static constexpr stateField_t botActorRefFields[] = {
+	{ "node", offsetof( botActorRefs_t, node ), 64, stateType_t::String },
+	{ "checkpoints", offsetof( botActorRefs_t, checkpoints ), 1, stateType_t::Int32 },
+	{ "patrolpoints", offsetof( botActorRefs_t, patrolpoints ), 1, stateType_t::Int32 },
+	{ "curpatrolpoint", offsetof( botActorRefs_t, curpatrolpoint ), 1, stateType_t::Int32 },
+	{ "activatestack", offsetof( botActorRefs_t, activatestack ), 1, stateType_t::Int32 },
+	{ "activationNext", offsetof( botActorRefs_t, activationNext ), MAX_ACTIVATESTACK, stateType_t::Int32 }
+};
+static constexpr stateSchema_t botActorRefSchema = { "game.botActorRefs", 1, 1, sizeof( botActorRefs_t ), botActorRefFields, 6 };
+static int ActivationSlot( const bot_state_t &bot, const bot_activategoal_t *pointer ) {
+	if ( !pointer )
+		return -1;
+	for ( int i = 0; i < MAX_ACTIVATESTACK; ++i )
+		if ( pointer == &bot.activategoalheap[i] )
+			return i;
+	return -2;
+}
+static bool BotFloatsFinite( const stateSchema_t &schema, const void *object ) {
+	for ( uint32_t i = 0; i < schema.fieldCount; ++i ) {
+		const auto &field = schema.fields[i];
+		if ( field.type != stateType_t::Float32 )
+			continue;
+		for ( uint32_t j = 0; j < field.count; ++j ) {
+			float value;
+			memcpy( &value, (const uint8_t *)object + field.offset + j * sizeof( float ), sizeof( value ) );
+			if ( !std::isfinite( value ) )
+				return false;
+		}
+	}
+	return true;
+}
+static bot_goal_t bot_state_t::*const botActorGoals[] = {
+	&bot_state_t::teamgoal, &bot_state_t::altroutegoal, &bot_state_t::lastgoal_teamgoal,
+	&bot_state_t::lead_teamgoal, &bot_state_t::formation_goal
+};
+static bool ValidBotActor( uint32_t slot, const bot_state_t &bot, const botActorRefs_t &refs ) {
+	if ( slot >= MAX_CLIENTS || bot.inuse != 1 || bot.client != int( slot ) || bot.entitynum != int( slot ) ||
+		 bot.numproxmines < 0 || bot.numproxmines > MAX_PROXMINES || bot.areanum < 0 ||
+		 !BotFloatsFinite( botActorSchema, &bot ) || !BotFloatsFinite( playerStateSchema, &bot.cur_ps ) )
+		return false;
+	for ( auto member : botActorGoals )
+		if ( !G_ValidBotGoal( bot.*member ) )
+			return false;
+	const int waypoints[] = { refs.checkpoints, refs.patrolpoints, refs.curpatrolpoint };
+	for ( int index : waypoints )
+		if ( index < -1 || ( index >= 0 && !G_StateWaypoint( index ) ) )
+			return false;
+	if ( refs.activatestack < -1 || refs.activatestack >= MAX_ACTIVATESTACK )
+		return false;
+	for ( int i = 0; i < MAX_ACTIVATESTACK; ++i ) {
+		const auto &goal = bot.activategoalheap[i];
+		if ( refs.activationNext[i] < -1 || refs.activationNext[i] >= MAX_ACTIVATESTACK || goal.inuse < 0 || goal.inuse > 1 ||
+			 goal.numareas < 0 || goal.numareas > MAX_ACTIVATEAREAS || goal.areasdisabled < 0 || goal.areasdisabled > 1 ||
+			 !BotFloatsFinite( botActivationSchema, &goal ) || !G_ValidBotGoal( goal.goal ) )
+			return false;
+		for ( int j = 0; j < goal.numareas; ++j )
+			if ( goal.areas[j] < 0 )
+				return false;
+	}
+	int index = refs.activatestack, count = 0;
+	while ( index >= 0 ) {
+		if ( ++count > MAX_ACTIVATESTACK || !bot.activategoalheap[index].inuse )
+			return false;
+		index = refs.activationNext[index];
+	}
+	return true;
+}
+bool G_WriteBotActorState( stateWriter_t *writer, uint32_t slot, const bot_state_t &bot ) {
+	if ( !writer )
+		return false;
+	botActorRefs_t refs{};
+	if ( bot.ainode ) {
+		for ( const auto &node : botNodes )
+			if ( node.node == bot.ainode )
+				strcpy( refs.node, node.name );
+		if ( !refs.node[0] ) {
+			writer->failed = true;
+			return false;
+		}
+	}
+	refs.checkpoints = G_StateWaypointSlot( bot.checkpoints );
+	refs.patrolpoints = G_StateWaypointSlot( bot.patrolpoints );
+	refs.curpatrolpoint = G_StateWaypointSlot( bot.curpatrolpoint );
+	refs.activatestack = ActivationSlot( bot, bot.activatestack );
+	for ( int i = 0; i < MAX_ACTIVATESTACK; ++i )
+		refs.activationNext[i] = ActivationSlot( bot, bot.activategoalheap[i].next );
+	if ( !ValidBotActor( slot, bot, refs ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, botActorSchema, slot, &bot ) || !State_Append( writer, botActorRefSchema, slot, &refs ) ||
+		 !State_Append( writer, playerStateSchema, MAX_CLIENTS + slot, &bot.cur_ps ) ||
+		 !State_Append( writer, usercmdStateSchema, MAX_CLIENTS + slot, &bot.lastucmd ) )
+		return false;
+	uint32_t goalSlot = 1024 + slot * 16;
+	for ( auto member : botActorGoals )
+		if ( !State_Append( writer, botGoalSchema, goalSlot++, &( bot.*member ) ) )
+			return false;
+	for ( uint32_t i = 0; i < MAX_ACTIVATESTACK; ++i )
+		if ( !State_Append( writer, botActivationSchema, slot * MAX_ACTIVATESTACK + i, &bot.activategoalheap[i] ) ||
+			 !State_Append( writer, botGoalSchema, goalSlot++, &bot.activategoalheap[i].goal ) )
+			return false;
+	return true;
+}
+bool G_ReadBotActorState( const stateReader_t &reader, uint32_t slot, bot_state_t *bot, bool apply ) {
+	if ( !bot || slot >= MAX_CLIENTS )
+		return false;
+	bot_state_t saved{};
+	botActorRefs_t refs;
+	uint32_t version;
+	if ( !State_Find( reader, botActorSchema, slot, &saved, &version ) || !State_Find( reader, botActorRefSchema, slot, &refs, &version ) ||
+		 !State_Find( reader, playerStateSchema, MAX_CLIENTS + slot, &saved.cur_ps, &version ) ||
+		 !State_Find( reader, usercmdStateSchema, MAX_CLIENTS + slot, &saved.lastucmd, &version ) )
+		return false;
+	uint32_t goalSlot = 1024 + slot * 16;
+	for ( auto member : botActorGoals )
+		if ( !State_Find( reader, botGoalSchema, goalSlot++, &( saved.*member ), &version ) )
+			return false;
+	for ( uint32_t i = 0; i < MAX_ACTIVATESTACK; ++i )
+		if ( !State_Find( reader, botActivationSchema, slot * MAX_ACTIVATESTACK + i, &saved.activategoalheap[i], &version ) ||
+			 !State_Find( reader, botGoalSchema, goalSlot++, &saved.activategoalheap[i].goal, &version ) )
+			return false;
+	if ( !ValidBotActor( slot, saved, refs ) )
+		return false;
+	if ( refs.node[0] ) {
+		for ( const auto &node : botNodes )
+			if ( !strcmp( node.name, refs.node ) )
+				saved.ainode = node.node;
+		if ( !saved.ainode )
+			return false;
+	}
+	saved.checkpoints = G_StateWaypoint( refs.checkpoints );
+	saved.patrolpoints = G_StateWaypoint( refs.patrolpoints );
+	saved.curpatrolpoint = G_StateWaypoint( refs.curpatrolpoint );
+	saved.activatestack = refs.activatestack < 0 ? nullptr : &bot->activategoalheap[refs.activatestack];
+	for ( int i = 0; i < MAX_ACTIVATESTACK; ++i )
+		saved.activategoalheap[i].next = refs.activationNext[i] < 0 ? nullptr : &bot->activategoalheap[refs.activationNext[i]];
+	if ( apply )
+		*bot = saved;
+	return true;
+}
+
+struct botPoolSave_t {
+	uint32_t allocated[MAX_CLIENTS], active[MAX_CLIENTS];
+};
+static_assert( sizeof( botPoolSave_t ) == MAX_CLIENTS * 8 );
+static constexpr stateField_t botPoolFields[] = {
+	{ "allocated", offsetof( botPoolSave_t, allocated ), MAX_CLIENTS, stateType_t::UInt32 },
+	{ "active", offsetof( botPoolSave_t, active ), MAX_CLIENTS, stateType_t::UInt32 }
+};
+static constexpr stateSchema_t botPoolSchema = { "game.botPool", 1, 1, sizeof( botPoolSave_t ), botPoolFields, 2 };
+bool G_WriteBotPoolState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	botPoolSave_t pool{};
+	static const bot_state_t empty{};
+	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i ) {
+		pool.allocated[i] = botstates[i] != nullptr;
+		pool.active[i] = botstates[i] && botstates[i]->inuse;
+		// A failed partial setup is not a quiescent, reusable inactive slot.
+		if ( pool.allocated[i] && !pool.active[i] && memcmp( botstates[i], &empty, sizeof( empty ) ) ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( pool.active[i] && !G_WriteBotActorState( writer, i, *botstates[i] ) )
+			return false;
+	}
+	return State_Append( writer, botPoolSchema, 0, &pool );
+}
+bool G_ReadBotPoolState( const stateReader_t &reader, bool apply ) {
+	botPoolSave_t pool;
+	uint32_t version, count = 0;
+	if ( !State_Find( reader, botPoolSchema, 0, &pool, &version ) )
+		return false;
+	bot_state_t draft{};
+	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i ) {
+		if ( pool.allocated[i] > 1 || pool.active[i] > pool.allocated[i] ||
+			 ( apply && botstates[i] ) || ( pool.active[i] && !G_ReadBotActorState( reader, i, &draft, false ) ) )
+			return false;
+		count += pool.allocated[i];
+	}
+	if ( !apply || !count )
+		return true;
+	// Reuse the level arena; preserve the legacy arena's reserved bytes separately.
+	static_assert( sizeof( bot_state_t ) * MAX_CLIENTS <= UINT32_MAX );
+	auto *actors = (bot_state_t *)GameImport_AllocLevelMemory( count * uint32_t( sizeof( bot_state_t ) ) );
+	memset( actors, 0, count * sizeof( bot_state_t ) );
+	for ( uint32_t i = 0, index = 0; i < MAX_CLIENTS; ++i )
+		if ( pool.allocated[i] ) {
+			botstates[i] = &actors[index++];
+			if ( pool.active[i] && !G_ReadBotActorState( reader, i, botstates[i], true ) )
+				return false;
+		}
+	return true;
+}
+
+static const gCachedCvar_t savedBotCvars[] = {
+	{ "bot_thinktime", &bot_thinktime },
+	{ "bot_memorydump", &bot_memorydump },
+	{ "bot_saveroutingcache", &bot_saveroutingcache },
+	{ "bot_pause", &bot_pause },
+	{ "bot_report", &bot_report },
+	{ "bot_testsolid", &bot_testsolid },
+	{ "bot_testclusters", &bot_testclusters },
+	{ "bot_developer", &bot_developer },
+	{ "bot_interbreedchar", &bot_interbreedchar },
+	{ "bot_interbreedbots", &bot_interbreedbots },
+	{ "bot_interbreedcycle", &bot_interbreedcycle },
+	{ "bot_interbreedwrite", &bot_interbreedwrite },
+};
+bool G_WriteBotCvarState( stateWriter_t *writer ) {
+	return G_WriteCachedCvars( writer, "game.cvars.Bot", savedBotCvars, sizeof( savedBotCvars ) / sizeof( savedBotCvars[0] ) );
+}
+bool G_ReadBotCvarState( const stateReader_t &reader, int apply ) {
+	return G_ReadCachedCvars( reader, "game.cvars.Bot", savedBotCvars, sizeof( savedBotCvars ) / sizeof( savedBotCvars[0] ), apply );
+}
+
+bool G_ValidateBotReferences( const stateReader_t &reader, const gentity_t *entities, const gclient_t *clients ) {
+	botPoolSave_t pool;
+	uint32_t version;
+	if ( !entities || !clients || !State_Find( reader, botPoolSchema, 0, &pool, &version ) )
+		return false;
+	bool used[4][MAX_CLIENTS + 1]{};
+	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i ) {
+		const bool active = clients[i].pers.connected != CON_DISCONNECTED && ( entities[i].r.svFlags & SVF_BOT );
+		if ( pool.allocated[i] > 1 || pool.active[i] > pool.allocated[i] || pool.active[i] != uint32_t( active ) )
+			return false;
+		if ( !active )
+			continue;
+		bot_state_t actor{};
+		if ( !G_ReadBotActorState( reader, i, &actor, true ) ||
+			 !GameImport_ValidateBotHandles( actor.character, actor.ms, actor.gs, actor.ws, actor.cs ) )
+			return false;
+		const int handles[] = { actor.ms, actor.gs, actor.ws, actor.cs };
+		for ( int kind = 0; kind < 4; ++kind ) {
+			const int handle = handles[kind];
+			if ( handle < 1 || handle > MAX_CLIENTS || used[kind][handle] )
+				return false;
+			used[kind][handle] = true;
+		}
+	}
+	return true;
+}
+#endif

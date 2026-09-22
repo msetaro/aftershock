@@ -53,3 +53,7 @@ extern int botDeveloper; //true if developer is on
 
 //
 int Sys_MilliSeconds( void );
+
+#include "../public/state_public.h"
+bool BotLib_WriteGlobalState( stateWriter_t *writer );
+bool BotLib_ReadGlobalState( const stateReader_t &reader, bool apply );

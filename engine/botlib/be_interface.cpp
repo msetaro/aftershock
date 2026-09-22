@@ -51,6 +51,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_ai_chat.h"
 #include "be_ai_char.h"
 #include "be_ai_gen.h"
+#include <cmath>
 
 //library globals in a structure
 botlib_globals_t botlibglobals;
@@ -852,4 +853,147 @@ botlib_export_t *GetBotLibAPI( int apiVersion, botlib_import_t *import ) {
 	be_botlib_export.Test = BotExportTest;
 
 	return &be_botlib_export;
+}
+
+struct botlibGlobalSave_t {
+	botlib_globals_t globals;
+	int32_t setup, developer;
+};
+static constexpr stateField_t botlibGlobalFields[] = {
+	{ "initialized", offsetof( botlibGlobalSave_t, globals.botlibsetup ), 1, stateType_t::Int32 },
+	{ "maxentities", offsetof( botlibGlobalSave_t, globals.maxentities ), 1, stateType_t::Int32 },
+	{ "maxclients", offsetof( botlibGlobalSave_t, globals.maxclients ), 1, stateType_t::Int32 },
+	{ "time", offsetof( botlibGlobalSave_t, globals.time ), 1, stateType_t::Float32 },
+	{ "setup", offsetof( botlibGlobalSave_t, setup ), 1, stateType_t::Int32 },
+	{ "developer", offsetof( botlibGlobalSave_t, developer ), 1, stateType_t::Int32 },
+#ifdef DEBUG
+	{ "debug", offsetof( botlibGlobalSave_t, globals.debug ), 1, stateType_t::UInt32 },
+	{ "goalareanum", offsetof( botlibGlobalSave_t, globals.goalareanum ), 1, stateType_t::Int32 },
+	{ "goalorigin", offsetof( botlibGlobalSave_t, globals.goalorigin ), 3, stateType_t::Float32 },
+	{ "runai", offsetof( botlibGlobalSave_t, globals.runai ), 1, stateType_t::Int32 },
+#endif
+};
+static constexpr stateSchema_t botlibGlobalSchema = { "botlib.globals", 1, 1, sizeof( botlibGlobalSave_t ), botlibGlobalFields, sizeof( botlibGlobalFields ) / sizeof( *botlibGlobalFields ) };
+static bool ValidBotlibGlobals( const botlibGlobalSave_t &saved ) {
+	if ( saved.setup != botlibsetup || saved.globals.botlibsetup != botlibglobals.botlibsetup || saved.setup != saved.globals.botlibsetup ||
+		 saved.setup < 0 || saved.setup > 1 || ( saved.setup && ( saved.globals.maxentities != botlibglobals.maxentities || saved.globals.maxclients != botlibglobals.maxclients ) ) ||
+		 saved.globals.maxentities < 0 || saved.globals.maxentities > MAX_GENTITIES || saved.globals.maxclients < 0 || saved.globals.maxclients > MAX_CLIENTS ||
+		 !std::isfinite( saved.globals.time ) )
+		return false;
+#ifdef DEBUG
+	if ( uint32_t( saved.globals.debug ) > 1 || saved.globals.goalareanum < 0 )
+		return false;
+	for ( float value : saved.globals.goalorigin )
+		if ( !std::isfinite( value ) )
+			return false;
+#endif
+	return true;
+}
+bool BotLib_WriteGlobalState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	const botlibGlobalSave_t saved{ botlibglobals, botlibsetup, botDeveloper };
+	if ( !ValidBotlibGlobals( saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, botlibGlobalSchema, 0, &saved );
+}
+bool BotLib_ReadGlobalState( const stateReader_t &reader, bool apply ) {
+	botlibGlobalSave_t saved{};
+	uint32_t version;
+	if ( !State_Find( reader, botlibGlobalSchema, 0, &saved, &version ) || !ValidBotlibGlobals( saved ) )
+		return false;
+	if ( apply ) {
+		botlibglobals = saved.globals;
+		botDeveloper = saved.developer;
+	}
+	return true;
+}
+
+
+struct botlibCheckpoint_t {
+	uint32_t setup, navigation;
+	float time;
+	int32_t frames;
+};
+static constexpr stateField_t botlibCheckpointFields[] = {
+	{ "setup", offsetof( botlibCheckpoint_t, setup ), 1, stateType_t::UInt32 },
+	{ "navigation", offsetof( botlibCheckpoint_t, navigation ), 1, stateType_t::UInt32 },
+	{ "time", offsetof( botlibCheckpoint_t, time ), 1, stateType_t::Float32 },
+	{ "frames", offsetof( botlibCheckpoint_t, frames ), 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t botlibCheckpointSchema = { "botlib.checkpoint", 1, 1, sizeof( botlibCheckpoint_t ), botlibCheckpointFields, 4 };
+static bool ReadBotlibCheckpoint( const stateReader_t &reader, botlibCheckpoint_t *saved, bool match ) {
+	uint32_t version;
+	if ( !State_Find( reader, botlibCheckpointSchema, 0, saved, &version ) || saved->setup > 1 || saved->navigation > saved->setup ||
+		 !std::isfinite( saved->time ) || saved->frames < 0 )
+		return false;
+	return !match || ( saved->setup == uint32_t( botlibsetup ) &&
+						 saved->navigation == uint32_t( botlibsetup && AAS_Loaded() ) && ( !saved->navigation || AAS_Initialized() ) );
+}
+bool BotLib_WriteState( stateWriter_t *writer, uint32_t now ) {
+	if ( !writer )
+		return false;
+	const botlibCheckpoint_t header{ uint32_t( botlibsetup ), uint32_t( botlibsetup && AAS_Loaded() ), aasworld.time, aasworld.numframes };
+	if ( ( header.navigation && !AAS_Initialized() ) || header.setup > 1 || !std::isfinite( header.time ) || header.frames < 0 ||
+		 !State_Append( writer, botlibCheckpointSchema, 0, &header ) || !BotLib_WriteGlobalState( writer ) || !LibVar_WriteState( writer ) || !PC_WriteState( writer ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !header.setup )
+		return true;
+	if ( !EA_WriteState( writer ) || !Bot_WriteCharacterState( writer, now ) || !Bot_WriteMoveState( writer ) ||
+		 !Bot_WriteWeightCacheState( writer ) || !Bot_WriteGoalState( writer ) || !Bot_WriteWeaponState( writer ) ||
+		 !Bot_WriteChatQueueState( writer ) || !Bot_WriteChatContentState( writer ) || !Bot_WriteLevelItemState( writer ) ||
+		 !Bot_WriteGoalMapState( writer ) || !AAS_WriteBSPContentState( writer ) || !AAS_WriteEntityState( writer ) || !AAS_WriteSettingsState( writer ) ||
+		 ( header.navigation && ( !AAS_WriteWorldState( writer ) || !AAS_WriteLinkState( writer ) || !AAS_WriteRoutingState( writer ) ) ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return true;
+}
+bool BotLib_PrepareSettings( const stateReader_t &reader ) {
+	botlibCheckpoint_t header;
+	// Called after shutdown, before normal setup/map loading creates dependent pools.
+	return !botlibsetup && ReadBotlibCheckpoint( reader, &header, false ) && LibVar_ReadState( reader, true );
+}
+bool BotLib_PrepareState( const stateReader_t &reader, uint32_t now ) {
+	botlibCheckpoint_t header;
+	if ( !ReadBotlibCheckpoint( reader, &header, true ) || !BotLib_ReadGlobalState( reader, false ) || !PC_ReadState( reader, false ) )
+		return false;
+	if ( !header.setup )
+		return LibVar_ReadState( reader, false );
+	// The caller loaded the same map with saved libvars and empty actor/cache pools.
+	// On failure it must discard this freshly initialized world, never run a frame.
+	return AAS_ReadBSPContentState( reader ) && Bot_ReadGoalMapState( reader ) && LibVar_ReadState( reader, true ) &&
+		   Bot_PrepareCharacterState( reader, now ) && Bot_PrepareMoveState( reader ) && Bot_PrepareWeightCacheState( reader ) &&
+		   Bot_PrepareGoalState( reader ) && Bot_PrepareWeaponState( reader ) && Bot_PrepareChatQueueState( reader ) && Bot_PrepareChatContentState( reader ) &&
+		   BotLib_ReadState( reader, now, false );
+}
+static bool ReadBotlibOwners( const stateReader_t &reader, uint32_t now, bool navigation, bool apply ) {
+	return EA_ReadState( reader, apply ) && Bot_ReadCharacterState( reader, now, apply ) && Bot_ReadMoveState( reader, apply ) &&
+		   Bot_ReadWeightCacheState( reader, apply ) && Bot_ReadGoalState( reader, apply ) && Bot_ReadWeaponState( reader, apply ) &&
+		   Bot_ReadChatQueueState( reader, apply ) && Bot_ReadChatContentState( reader, apply ) && Bot_ReadLevelItemState( reader, apply ) &&
+		   Bot_ReadGoalMapState( reader ) && AAS_ReadBSPContentState( reader ) && AAS_ReadEntityState( reader, apply ) && AAS_ReadSettingsState( reader, apply ) &&
+		   ( !navigation || ( AAS_ReadWorldState( reader, apply ) && AAS_ReadLinkState( reader, apply ) && AAS_ReadRoutingState( reader, apply ) ) );
+}
+bool BotLib_ReadState( const stateReader_t &reader, uint32_t now, bool apply ) {
+	botlibCheckpoint_t header;
+	if ( !ReadBotlibCheckpoint( reader, &header, true ) || !BotLib_ReadGlobalState( reader, false ) || !LibVar_ReadState( reader, false ) ||
+		 !PC_ReadState( reader, false ) || ( header.setup && !ReadBotlibOwners( reader, now, header.navigation != 0, false ) ) )
+		return false;
+	if ( !apply )
+		return true;
+	if ( header.setup && !ReadBotlibOwners( reader, now, header.navigation != 0, true ) )
+		return false;
+	aasworld.time = header.time;
+	aasworld.numframes = header.frames;
+	// Content preparation uses the parser and libvars: restore those records last.
+	return BotLib_ReadGlobalState( reader, true ) && LibVar_ReadState( reader, true ) && PC_ReadState( reader, true );
+}
+
+bool BotLib_HasActorState( int character, int move, int goal, int weapon, int chat ) {
+	return Bot_HasCharacterState( character ) && Bot_HasMoveState( move ) && Bot_HasGoalState( goal ) &&
+		   Bot_HasWeaponState( weapon ) && Bot_HasChatState( chat );
 }

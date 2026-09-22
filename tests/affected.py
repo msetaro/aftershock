@@ -12,7 +12,7 @@ from run import ROOT, SCRATCH
 
 # These are asset-independent entry points with no required binary arguments.
 FAST = ('bot_chat_shutdown', 'agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
-        'animation', 'entities', 'physics', 'ui_framework', 'audio_spatial', 'audio_events', 'audio_streams', 'audio_voice', 'capture', 'weapons', 'effects', 'effects_reference', 'post', 'temporal', 'lod', 'streaming', 'native_math', 'native_shared', 'replication',
+        'state', 'animation', 'entities', 'physics', 'ui_framework', 'audio_spatial', 'audio_events', 'audio_streams', 'audio_voice', 'capture', 'weapons', 'effects', 'effects_reference', 'post', 'temporal', 'lod', 'streaming', 'native_math', 'native_shared', 'replication',
         'protocol', 'rewind', 'replication_policy', 'identity', 'rhi', 'render_graph',
         'shadow_views', 'probes', 'materials', 'cook', 'level', 'lighting',
         'devtools_data', 'check_boundaries', 'check_types', 'check_format',
@@ -23,6 +23,7 @@ COMMANDS['unit'] = [sys.executable, 'tests/run.py', 'unit', '--negative-control'
 COMMANDS['match_go'] = ['go', '-C', 'tools/match', 'test', '-race', './...']
 # Prefix matches compose: a cooker animation edit needs both cooker and animation checks.
 RULES = (
+    (('engine/qcommon/state.cpp', 'engine/qcommon/cvar.cpp', 'engine/qcommon/profile.cpp', 'engine/platform/sys_save.cpp', 'engine/platform/save_public.h', 'engine/client/cl_checkpoint.cpp', 'engine/server/sv_checkpoint.cpp', 'engine/server/sv_world.cpp', 'engine/public/state_public.h', 'engine/public/state_replication_public.h', 'tools/replication.py', 'engine/qcommon/q_shared.h', 'game/bg/q_shared.h', 'game/game/', 'engine/botlib/', 'tests/state.py', 'tests/probes/state'), ('state',)),
     (('engine/botlib/be_ai_chat.cpp',), ('bot_chat_shutdown',)),
     (('engine/entities/', 'tools/cook/entities', 'tests/entities', 'tests/probes/entities', 'tests/assets/entities/'), ('entities',)),
     (('engine/ui/', 'engine/client/cl_data_ui', 'tools/cook/ui', 'tests/ui_framework', 'tests/probes/ui_framework', 'tests/assets/ui/'), ('ui_framework',)),

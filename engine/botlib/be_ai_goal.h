@@ -115,3 +115,18 @@ void BotFreeGoalState( int handle );
 int BotSetupGoalAI( void );
 //shut down the goal AI
 void BotShutdownGoalAI( void );
+
+#include "../public/state_public.h"
+bool Bot_WriteGoalState( stateWriter_t *writer );
+bool Bot_ReadGoalState( const stateReader_t &reader, bool apply );
+
+bool Bot_WriteLevelItemState( stateWriter_t *writer );
+bool Bot_ReadLevelItemState( const stateReader_t &reader, bool apply );
+
+bool Bot_WriteGoalMapState( stateWriter_t *writer );
+bool Bot_ReadGoalMapState( const stateReader_t &reader );
+
+// Prepare exact saved handles into an empty pool after shared weights.
+bool Bot_PrepareGoalState( const stateReader_t &reader );
+
+bool Bot_HasGoalState( int handle );

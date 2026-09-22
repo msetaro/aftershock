@@ -810,6 +810,10 @@ clipHandle_t CM_InlineModel( int index ) {
 }
 
 
+int CM_NumAreas( void ) {
+	return cm.numAreas;
+}
+
 int CM_NumClusters( void ) {
 	return cm.numClusters;
 }

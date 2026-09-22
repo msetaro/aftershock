@@ -494,3 +494,43 @@ qboolean ConsoleCommand( void ) {
 
 	return qfalse;
 }
+
+struct ipFiltersSave_t {
+	int32_t count;
+	uint32_t mask[MAX_IPFILTERS], compare[MAX_IPFILTERS];
+};
+static_assert( sizeof( ipFiltersSave_t ) == 4 + MAX_IPFILTERS * 8 );
+static constexpr stateField_t ipFiltersFields[] = {
+	{ "count", offsetof( ipFiltersSave_t, count ), 1, stateType_t::Int32 },
+	{ "mask", offsetof( ipFiltersSave_t, mask ), MAX_IPFILTERS, stateType_t::UInt32 },
+	{ "compare", offsetof( ipFiltersSave_t, compare ), MAX_IPFILTERS, stateType_t::UInt32 }
+};
+static constexpr stateSchema_t ipFiltersSchema = { "game.ipFilters", 1, 1, sizeof( ipFiltersSave_t ), ipFiltersFields, 3 };
+bool G_WriteIPFilterState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	if ( numIPFilters < 0 || numIPFilters > MAX_IPFILTERS ) {
+		writer->failed = true;
+		return false;
+	}
+	ipFiltersSave_t saved{};
+	saved.count = numIPFilters;
+	for ( int i = 0; i < numIPFilters; ++i ) {
+		saved.mask[i] = ipFilters[i].mask;
+		saved.compare[i] = ipFilters[i].compare;
+	}
+	return State_Append( writer, ipFiltersSchema, 0, &saved );
+}
+bool G_ReadIPFilterState( const stateReader_t &reader, bool apply ) {
+	ipFiltersSave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, ipFiltersSchema, 0, &saved, &version ) || saved.count < 0 || saved.count > MAX_IPFILTERS )
+		return false;
+	if ( apply ) {
+		numIPFilters = saved.count;
+		memset( ipFilters, 0, sizeof( ipFilters ) );
+		for ( int i = 0; i < numIPFilters; ++i )
+			ipFilters[i] = { saved.mask[i], saved.compare[i] };
+	}
+	return true;
+}

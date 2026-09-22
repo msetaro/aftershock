@@ -67,3 +67,7 @@ void AAS_EntityOrigin(int entnum, vec3_t origin);
 int AAS_EntityType( int entnum );
 //returns the model index of the entity
 int AAS_EntityModelindex( int entnum );
+
+#include "../public/state_public.h"
+bool AAS_WriteEntityState( stateWriter_t *writer );
+bool AAS_ReadEntityState( const stateReader_t &reader, bool apply );

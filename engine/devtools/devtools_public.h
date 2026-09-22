@@ -114,6 +114,8 @@ bool DevTools_SelectAsset( const char *kind, int index );
 bool DevTools_MaterialPreview( int index, bool enabled );
 bool DevTools_SetMaterial( int index, const materialParams_t *params );
 void DevTools_EditorState( devEditorState_t *state );
+bool DevTools_CaptureWorkspace( devWorkspace_t *workspace );
+void DevTools_RestoreWorkspace( const devWorkspace_t &workspace );
 void DevTools_Init( void );
 void DevTools_Reset( void );
 void DevTools_Draw( const refexport_t *renderer, int width, int height, int milliseconds );

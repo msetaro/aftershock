@@ -2,6 +2,13 @@
 
 #include <stdint.h>
 
+// Persistent editor preferences; no live handles or counters.
+struct devWorkspace_t {
+	char panel[32], cvar[1024], filters[3][128], layout[4096];
+	uint32_t enabled, collision, navigation, entities;
+	float radius;
+};
+
 // Engine-thread only. Explicit begin/end keeps the longjmp error model intact.
 // Tokens are invalidated every frame; abandoned scopes are not reported.
 #ifdef AFTERSHOCK_DEVTOOLS

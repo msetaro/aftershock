@@ -802,3 +802,26 @@ gentity_t *fire_prox( gentity_t *self, vec3_t start, vec3_t dir ) {
 	return bolt;
 }
 #endif
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_missile[] = {
+	{ .name = "G_ExplodeMissile", .think = G_ExplodeMissile },
+#ifdef MISSIONPACK
+	{ .name = "ProximityMine_Activate", .think = ProximityMine_Activate },
+#endif
+#ifdef MISSIONPACK
+	{ .name = "ProximityMine_Die", .die = ProximityMine_Die },
+#endif
+#ifdef MISSIONPACK
+	{ .name = "ProximityMine_Explode", .think = ProximityMine_Explode },
+#endif
+#ifdef MISSIONPACK
+	{ .name = "ProximityMine_ExplodeOnPlayer", .think = ProximityMine_ExplodeOnPlayer },
+#endif
+#ifdef MISSIONPACK
+	{ .name = "ProximityMine_Trigger", .touch = ProximityMine_Trigger },
+#endif
+	{ nullptr }
+};
+#endif

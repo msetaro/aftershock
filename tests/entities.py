@@ -50,7 +50,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-') as temporary:
     run([*shlex.split(args.cc),'-std=c99','-O2','-c','third_party/sha256/sha-256.c','-o',sha])
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-Wconversion','-Wshadow','-fsanitize=undefined','-fno-sanitize-recover=all',
-         'tests/probes/entities.cpp','engine/entities/entities.cpp',sha,'-o',probe])
+         'tests/probes/entities.cpp','engine/entities/entities.cpp','engine/qcommon/state.cpp',sha,'-o',probe])
     shutil.copyfile(ROOT/'tests/assets/entities/composed.json',source/'composed.json')
     project.write_text(json.dumps(dict(version=1,assets=[dict(name='entities/composed',kind='entities',source='composed.json')])))
     assert cook(project,args.output)['built'] in ([],['entities/composed'])

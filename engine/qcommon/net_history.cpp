@@ -19,10 +19,8 @@ void NET_HistoryReset( netHistory_t *history ) {
 	history->next = history->count = 0;
 }
 
-bool NET_HistoryStore( netHistory_t *history, const netHistoryFrame_t *frame ) {
+bool NET_HistoryFrameValid( const netHistoryFrame_t *frame ) {
 	if ( frame->boxCount > NET_HISTORY_BOXES )
-		return false;
-	if ( history->count && TimeDifference( frame->time, history->frames[( history->next + NET_HISTORY_FRAMES - 1 ) % NET_HISTORY_FRAMES].time ) <= 0 )
 		return false;
 	for ( const auto &entity : frame->entities ) {
 		if ( entity.boxCount && ( !entity.generation || entity.firstBox > frame->boxCount || entity.boxCount > frame->boxCount - entity.firstBox ) )
@@ -31,6 +29,16 @@ bool NET_HistoryStore( netHistory_t *history, const netHistoryFrame_t *frame ) {
 	for ( uint32_t box = 0; box < frame->boxCount; ++box )
 		if ( !ValidBox( frame->boxes[box] ) )
 			return false;
+	return true;
+}
+
+bool NET_HistoryStore( netHistory_t *history, const netHistoryFrame_t *frame ) {
+	if ( frame->boxCount > NET_HISTORY_BOXES )
+		return false;
+	if ( history->count && TimeDifference( frame->time, history->frames[( history->next + NET_HISTORY_FRAMES - 1 ) % NET_HISTORY_FRAMES].time ) <= 0 )
+		return false;
+	if ( !NET_HistoryFrameValid( frame ) )
+		return false;
 	history->frames[history->next] = *frame;
 	history->next = ( history->next + 1 ) % NET_HISTORY_FRAMES;
 	history->count = std::min( history->count + 1, NET_HISTORY_FRAMES );

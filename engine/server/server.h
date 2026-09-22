@@ -356,6 +356,17 @@ void SVC_RateDropAddress( const netadr_t *from, int burst, int period );
 
 void QDECL SV_SendServerCommand( client_t *cl, const char *fmt, ... ) __attribute__( ( format( printf, 2, 3 ) ) );
 
+void SV_SaveGame_f( void );
+void SV_LoadGame_f( void );
+void SV_CreateBaseline( void );
+bool SV_WriteWorldState( stateWriter_t *writer );
+bool SV_ReadWorldState( const stateReader_t &reader, bool apply );
+bool SV_CheckpointLoading();
+void SV_ClearCheckpoint();
+int SV_CheckpointClientSlot();
+bool SV_CheckpointConnect( client_t *client );
+bool SV_CheckpointEnter( client_t *client );
+bool SV_CheckpointFrame();
 void SV_AddOperatorCommands( void );
 void SV_RemoveOperatorCommands( void );
 

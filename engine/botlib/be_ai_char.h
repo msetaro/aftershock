@@ -46,3 +46,13 @@ int Characteristic_BInteger( int character, int index, int min, int max );
 void Characteristic_String( int character, int index, char *buf, int size );
 //free cached bot characters
 void BotShutdownCharacters( void );
+
+#include "../public/state_public.h"
+// The coordinator supplies one process-clock reading for the whole checkpoint.
+bool Bot_WriteCharacterState( stateWriter_t *writer, uint32_t now );
+bool Bot_ReadCharacterState( const stateReader_t &reader, uint32_t now, bool apply );
+
+// Requires an empty character pool; copies resolved values into owned storage.
+bool Bot_PrepareCharacterState( const stateReader_t &reader, uint32_t now );
+
+bool Bot_HasCharacterState( int handle );

@@ -1,5 +1,7 @@
+#include <cmath>
 #include <stdio.h>
 #include <stdarg.h>
+#include "../../engine/public/g_native_public.h"
 [[maybe_unused]] static int TestVsprintf( char *, const char *, va_list );
 [[maybe_unused]] static int TestVsnprintf( char *, size_t, const char *, va_list );
 #define vsprintf TestVsprintf
@@ -16,6 +18,43 @@
 #undef vsprintf
 #undef vsnprintf
 #include <assert.h>
+
+#ifdef PROBE_BOT
+// ASan retains callback identities; diagnostic checks must never run a bot node.
+int AINode_Intermission( bot_state_t * ) {
+	abort();
+}
+int AINode_Observer( bot_state_t * ) {
+	abort();
+}
+int AINode_Respawn( bot_state_t * ) {
+	abort();
+}
+int AINode_Stand( bot_state_t * ) {
+	abort();
+}
+int AINode_Seek_ActivateEntity( bot_state_t * ) {
+	abort();
+}
+int AINode_Seek_NBG( bot_state_t * ) {
+	abort();
+}
+int AINode_Seek_LTG( bot_state_t * ) {
+	abort();
+}
+int AINode_Battle_Fight( bot_state_t * ) {
+	abort();
+}
+int AINode_Battle_Chase( bot_state_t * ) {
+	abort();
+}
+int AINode_Battle_Retreat( bot_state_t * ) {
+	abort();
+}
+int AINode_Battle_NBG( bot_state_t * ) {
+	abort();
+}
+#endif
 
 static char output[4096];
 static size_t expectedCapacity;

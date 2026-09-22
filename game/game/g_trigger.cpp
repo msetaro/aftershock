@@ -460,3 +460,22 @@ void SP_func_timer( gentity_t *self ) {
 
 	self->r.svFlags = SVF_NOCLIENT;
 }
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_trigger[] = {
+	{ .name = "AimAtTarget", .think = AimAtTarget },
+	{ .name = "Touch_Multi", .touch = Touch_Multi },
+	{ .name = "Use_Multi", .use = Use_Multi },
+	{ .name = "Use_target_push", .use = Use_target_push },
+	{ .name = "func_timer_think", .think = func_timer_think },
+	{ .name = "func_timer_use", .use = func_timer_use },
+	{ .name = "hurt_touch", .touch = hurt_touch },
+	{ .name = "hurt_use", .use = hurt_use },
+	{ .name = "multi_wait", .think = multi_wait },
+	{ .name = "trigger_always_think", .think = trigger_always_think },
+	{ .name = "trigger_push_touch", .touch = trigger_push_touch },
+	{ .name = "trigger_teleporter_touch", .touch = trigger_teleporter_touch },
+	{ nullptr }
+};
+#endif

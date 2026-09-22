@@ -1,0 +1,145 @@
+#include "../../engine/botlib/be_ai_goal.cpp"
+#include <assert.h>
+botlib_import_t botimport;
+static levelitem_t originalHeap[6], restoredHeap[6];
+void *GetClearedMemory(size_t size) {
+	assert(size==sizeof(originalHeap));
+	memset( originalHeap, 0, sizeof( originalHeap ) );
+	return originalHeap;
+}
+void FreeMemory( void *memory ) {
+	assert(memory==originalHeap);
+}
+int LibVarInteger( const char *name, const char *, int low, int high ) {
+	assert(!strcmp(name,"max_levelitems") && low==1 && high==4096);
+	return 6;
+}
+int main() {
+	static bot_goalstate_t original[2], restored[2];
+	iteminfo_t info{};
+	strcpy( info.classname, "item_health" );
+	info.index = 4;
+	info.respawntime = 30;
+	itemconfig_t items{ 1, &info };
+	itemconfig = &items;
+	fuzzyseperator_t node{ 0, 10, WT_BALANCE, 7.5f, 1, 20, nullptr, nullptr }, copied = node;
+	char name[] = "item_health";
+	weightconfig_t weights{};
+	weights.numweights = 1;
+	weights.weights[0] = { name, &node };
+	strcpy( weights.filename, "bots/checkpoint_i.c" );
+	auto newWeights = weights;
+	newWeights.weights[0].firstseperator = &copied;
+	int indices[1] = { 0 }, newIndices[1] = { 0 };
+	original[0].client = 3;
+	original[1].client = 5;
+	original[0].lastreachabilityarea = 19;
+	original[0].goalstacktop = 1;
+	original[0].goalstack[1].areanum = 21;
+	original[0].goalstack[1].entitynum = 96;
+	original[0].goalstack[1].origin[0] = -128.5f;
+	original[0].avoidgoals[17] = 123;
+	original[0].avoidgoaltimes[17] = 345.25f;
+	original[0].itemweightconfig = &weights;
+	original[0].itemweightindex = indices;
+	botgoalstates[3] = &original[0];
+	botgoalstates[7] = &original[1];
+	static unsigned char bytes[65536];
+	stateWriter_t writer{ bytes, sizeof( bytes ) };
+	assert(Bot_WriteGoalState(&writer));
+	stateReader_t reader;
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	goalPoolSave_t pool;
+	uint32_t version;
+	assert(State_Find(reader,goalPoolSchema,0,&pool,&version));
+	restored[0].itemweightconfig = &newWeights;
+	restored[0].itemweightindex = newIndices;
+	botgoalstates[3] = &restored[0];
+	botgoalstates[7] = &restored[1];
+	copied.weight = 0;
+	assert(Bot_ReadGoalState(reader,false) && !restored[0].goalstacktop && !copied.weight);
+	assert(Bot_ReadGoalState(reader,true) && copied.weight==node.weight);
+	auto expected = original[0];
+	expected.itemweightconfig = &newWeights;
+	expected.itemweightindex = newIndices;
+	assert(!memcmp(&expected,&restored[0],sizeof(expected)));
+	BotPopGoal( 3 );
+	expected.goalstacktop = 0;
+	assert(!memcmp(&expected,&restored[0],sizeof(expected)));
+	info.respawntime = 31;
+	assert(!Bot_ReadGoalState(reader,true) && !restored[0].goalstacktop);
+	info.respawntime = 30;
+	writer = { bytes, sizeof( bytes ) };
+	assert(State_Append(&writer,goalPoolSchema,0,&pool));
+	assert(State_Append(&writer,goalStateSchema,3,&original[0]));
+	assert(Bot_WriteWeightState(&writer,131,&weights));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	copied.weight = 123;
+	assert(!Bot_ReadGoalState(reader,true) && !restored[0].goalstacktop && copied.weight==123);
+	restored[1].itemweightconfig = &newWeights;
+	writer = { bytes, sizeof( bytes ) };
+	assert(!Bot_WriteGoalState(&writer) && !State_Finish(&writer));
+	restored[1].itemweightconfig = nullptr;
+	restored[1].goalstacktop = MAX_GOALSTACK;
+	writer = { bytes, sizeof( bytes ) };
+	assert(!Bot_WriteGoalState(&writer) && !State_Finish(&writer));
+	puts( "PASS: bot goals, avoid timers and private weights restore with relocated pool/content pointers" );
+
+	InitLevelItemHeap();
+	assert(allocatedLevelItems==6);
+	auto *first = AllocLevelItem(), *second = AllocLevelItem();
+	first->number = 1;
+	second->number = 2;
+	numlevelitems = 2;
+	first->goalareanum = 9;
+	second->goalareanum = 11;
+	second->origin[0] = 23.5f;
+	second->timeout = 900.25f;
+	AddLevelItemToList( first );
+	AddLevelItemToList( second );
+	RemoveLevelItemFromList( first );
+	FreeLevelItem( first );
+	first->weight = HUGE_VALF; // Unreachable payload is cleared by the next allocation.
+	writer = { bytes, sizeof( bytes ) };
+	assert(Bot_WriteLevelItemState(&writer));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	auto *next = AllocLevelItem();
+	assert(next==&originalHeap[0] && next->weight==0);
+	next->number = 44;
+	next->entitynum = 17;
+	AddLevelItemToList( next );
+	auto expectedItem = *next;
+	levelitemheap = restoredHeap;
+	levelitems = freelevelitems = nullptr;
+	assert(Bot_ReadLevelItemState(reader,false) && !levelitems && !freelevelitems);
+	assert(Bot_ReadLevelItemState(reader,true));
+	assert(levelitems==&restoredHeap[1] && freelevelitems==&restoredHeap[0]);
+	assert(restoredHeap[1].origin[0]==23.5f && restoredHeap[1].timeout==900.25f);
+	next = AllocLevelItem();
+	assert(next==&restoredHeap[0] && next->weight==0);
+	next->number = 44;
+	next->entitynum = 17;
+	AddLevelItemToList( next );
+	expectedItem.next = &restoredHeap[1];
+	assert(!memcmp(&expectedItem,next,sizeof(expectedItem)));
+	// Two lists sharing a node are not a valid allocation state.
+	auto *freeBefore = freelevelitems;
+	freelevelitems = levelitems;
+	writer = { bytes, sizeof( bytes ) };
+	assert(!Bot_WriteLevelItemState(&writer) && !State_Finish(&writer));
+	freelevelitems = freeBefore;
+	writer = { bytes, sizeof( bytes ) };
+	assert(Bot_WriteLevelItemState(&writer));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	levelItemsHeaderSave_t itemHeader;
+	assert(State_Find(reader,levelItemsHeaderSchema,0,&itemHeader,&version));
+	assert(LevelItemRecords(nullptr,&reader,uint32_t(itemHeader.count)));
+	savedLevelItems.next[itemHeader.live] = itemHeader.live;
+	writer = { bytes, sizeof( bytes ) };
+	assert(State_Append(&writer,levelItemsHeaderSchema,0,&itemHeader));
+	assert(LevelItemRecords(&writer,nullptr,uint32_t(itemHeader.count)));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	assert(!Bot_ReadLevelItemState(reader,true));
+	assert(levelitems==next && !memcmp(&expectedItem,next,sizeof(expectedItem)));
+	puts( "PASS: bot level-item links and free-list order restore before identical next allocation" );
+}

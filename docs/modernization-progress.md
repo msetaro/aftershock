@@ -20,41 +20,1012 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#18 accepted in PR173, merge 2010b07737dcf98a87b37f3b6092d7ecee167c18.
-All 26 active gates passed exact head e0c6a57d (build 35683155301,
-regression 35683155256). Merged-tree build 35687912038 and regression
-35687912012 both pass. #17 and #16 are also accepted; no CI wait remains.
+#16, #17 and #18 are accepted in PR171 (d2411083), PR172 (ebc03f37) and
+PR173 (2010b077), with exact-head and merged-tree gates green. The separate #31
+chat shutdown fix is now accepted in PR174, merge
+5caa2c1cc65cc590254bbd7aa3d0bd1e7b09e8ec (2026-09-22 10:25:57 UTC). All 26
+required checks passed exact head ec396fb4: build 35708802501 and regression
+35708802542. Fresh main/base, clean head, self-review and immutable known-good tag
+were checked before ready/merge. Merge tree equals the tested tree
+596db4b2d7eed779f988a59752b69522cc0e1f1b. Merged-tree build 35715942160 passed; regression 35715942143 failed on the existing netcode runtime timeout.
+Inspect retained diagnostics and resolve/rerun that gate before closing #31.
 
-Fix the chat shutdown last-handle defect in the separate #31 branch
-issue/31-bot-chat-shutdown, worktree
-/home/matt/.cache/aftershock-modernization/bot-chat-shutdown-tree.
-Test-first commit 4fd1ae34 reproduces the defect under GCC and Clang/libc++
-ASan/UBSan: shutdown retains chat handle 64. The allocation/free API uses handles
-1..MAX_CLIENTS; the shutdown loop incorrectly visits 0..MAX_CLIENTS-1. This must
-land before #19's full checkpoint reload uses normal botlib shutdown.
-The one-line loop correction now passes both ASan/UBSan compilers, including
-three full allocation/shutdown cycles and repeated empty shutdown. CI unit jobs
-and the local suite catalog include the regression; affected-path selection,
-format/type/boundary checks and workflow syntax all pass locally. Self-review:
-only the handle bounds change in production, no OS calls, lifetime/allocation or
-FP changes; no golden or suppression changes. Push the branch and require all
-26 active hosted gates with current main before self-merging.
+#19 remains local in /home/matt/.cache/aftershock-modernization/state-tree,
+issue/19-state-serialization. Main including PR174 is merged forward at this
+checkpoint; additive affected-test/README and progress/bug-status conflicts are
+resolved without discarding #19 evidence. Full save/load now builds, with both
+compiler owner suites and focused/policy gates passing at their recorded heads.
+Real OpenArena local-player-plus-Sarge restore matches all 86 saved entity rows
+exactly after preserving actual spatial lists and snapped collision bounds.
+Local input clock ownership now also restores paused clock lead, timing flags,
+view angles, selected weapon/sensitivity and pending loopback input. Full OpenArena
+save/load passes exact entity restoration and identical player/bot continuation in
+both the same process and a fresh process seeded differently
+(state-client-clock-runtime.log). Quake 3 same/fresh-process continuation also passes (state-client-clock-q3.log). The frozen full-game v1 fixture now migrates into v2 and continues identically.
+Final runtime CI and command documentation are registered. Draft PR175 targets
+main; its first two hosted heads exposed MSVC/MinGW portability and legacy test
+adapter gaps, now corrected. Both full local unit command sets pass using their
+recorded passed prefixes plus resumed tails (state-unit-{gcc,clang}-suite/ and
+state-unit-*-resume*.log). Full tidy/lifetime, profile migration, both content
+sets' checkpoint continuation, legacy bot goldens and fixed replay frames pass.
+Combined correction db9a51db is in CI (build 35719871675, regression
+35719871602). MSVC flags the profile reader version output as potentially
+uninitialized (C4701); initialize it explicitly, rerun profile migration, then
+push and require all 26 checks on the new exact head, and
+recheck current main/base before ready/merge. Also finish PR174's rerun integration
+gate before closing #31. No partial checkpoint acceptance.
 
-#19 remains isolated in /home/matt/.cache/aftershock-modernization/state-tree,
-issue/19-state-serialization, local head af8fb76c including main 2010b077.
-Named-field archive, profile migration, both RNG streams, native and botlib owner
-serialization/reconstruction, cvar preparation and gameplay draft validators are
-implemented and locally checked. Full GCC/Clang owner suites pass at b9baccf4;
-latest semantic validators pass both UBSan compilers, client/server build and
-focused tidy/policy. Aggregate live checkpoint coordination, save/load commands,
-fullgame migration fixture and runtime acceptance remain unfinished. Continue
-those after this #31 prerequisite; do not claim partial checkpoint acceptance.
-Detailed owner evidence and remaining work are on that branch's progress file.
+Named fields/archives, native entity/client/level owners, botlib reconstruction,
+cvar preparation/capacity, portal/spatial state, platform save routing, profiles
+and frozen profile v1 migration are implemented. Existing accepted goldens and
+fixtures are unchanged. Owner evidence follows below; private state-preflight.md
+has the inventory. Do not restart completed owners or the port.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
-is currently needed. Do not end at a checkpoint or CI wait.
+Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
+needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 MSVC profile output initialization
+
+Build 35719871675 reaches a remaining C4701 in profile loading: MSVC does not
+prove that the successful State_Read out-parameter is initialized through the
+stored valid flag. Initialize the version output to zero; valid reads still
+replace it and rejected reads never publish the profile. Rerun the real profile
+and frozen v1 migration, then require another exact-head hosted matrix.
+
+## #19 combined CI corrections verified locally
+
+Both full unit-job command sets now pass: initial suite reports retain all passed
+prefix steps, and resume reports/logs retain the remaining commands after each
+adapter correction. This includes both compiler state suites, format diagnostics
+under ASan/UBSan, native math, protocol/replication/rewind and differential goldens
+with the one-ULP negative control. No test assertion or sanitizer was removed.
+
+The 68 changed production source configurations also pass an extra shadowing
+review. Format, types, boundaries and native ABI pass. Rebuilt profile migration
+passes after the local name change. Local MinGW compiles the corrected save
+message. Quake 3 and OpenArena bot/replay goldens remain unchanged; the frozen
+profile/game gzip and raw hashes still match their committed provenance.
+Origin main remains 5caa2c1c and the known-good tag object/target are unchanged.
+Push the combined corrections to PR175 and require fresh hosted acceptance.
+
+## #19 legacy probe compiler integration
+
+Both full local unit jobs pass cooking, state owners, level/protocol/RHI and ABI
+steps, then expose the bot-command driver compiling the new C++-only owner tail
+of ai_main.cpp as C. Extend that file's existing __cplusplus owner guard through
+its newly added cvar/reference helpers, and guard the new g_main.cpp cvar owner
+likewise. This preserves the existing C regression probes and produces identical
+production C++ code. No assertion, test language, fixture or golden changes.
+Resume the unit jobs from their first failed step instead of repeating passed
+asset cooking. The full exact-head hosted jobs remain required.
+
+ASan keeps the new callback-identity tables live even in isolated formatting
+probes. Their table-referenced gameplay functions now need explicit aborting test
+doubles for unrelated engine services/bot nodes. Add only those doubles and the
+normal native service header; all original formatter assertions and ASan/UBSan
+instrumentation stay enabled. Base/missionpack team formatting and all four
+native diagnostic owners pass after adaptation.
+
+## #19 first hosted matrix findings
+
+MSVC parameter-shadowing correction is pushed at 79308321. The first full matrix
+also found MinGW's legacy printf annotation rejecting %zu; checkpoint size is
+bounded to 64 MiB, so print its checked value as unsigned. The second MSVC
+pass also finds the profile validator local keys array shadowing the engine
+global; rename it keyNumbers without altering the profile schema. A direct local MinGW
+compilation passes after that correction.
+
+Hosted GCC reached the rewind probe and exposed a test comparison of four bytes
+of alignment padding between teleport and generation. Compare all four owned
+fields exactly instead; no production rewind behavior or accepted data changes.
+The hosted legacy OpenArena C smoke also needs its test adapter to reject the four
+new checkpoint exports explicitly, since that pinned C game has no state owners.
+The native Aftershock game remains the implementation exercised by full game
+save/load tests on OpenArena content. Reproduce the old-adapter compilation failure
+locally, then both legacy OpenArena bot goldens pass unchanged after adapting it
+(state-final-oa-smoke.log). Both OpenArena fixed replay frame goldens also pass
+unchanged (state-final-oa-demo.log).
+
+The Clang/libc++ unit job also exposed an old direct-include hitscan probe
+missing the <cmath> prelude that game/module.cpp normally supplies. Add that
+standard header to the probe so the new saved-weapon finite check compiles under
+the runner's libc++ too. Run both complete local unit job variants to catch
+additional test integrations before the next push.
+
+PR174's integration diagnostics show 865 rewind traces and 45.06 seconds of
+advancing simulation when the existing client-frame script hit its 45-second
+wall deadline. No engine error/disconnect appears. Rerun only the failed runtime
+job (35715942143 attempt 2); acceptance still requires it to finish green.
+
+## #19 hosted portability correction
+
+Draft PR175 targets main at cb46c7dd. Hosted MSVC x64/ARM64 Debug/Release
+reject three new level-state helper parameters named level because they shadow
+the native game's global (C4459). Rename only those parameters to savedLevel;
+the reported compiler failure is the failing check. No layout/data behavior or
+fixture changes. Local lifetime analysis passed all 1,344 compilation commands,
+150 paths, shipping/development and static/module controls.
+
+PR174's merged-tree runtime reached the existing delayed hitscan test, then timed
+out waiting for netcode_done (35715942143). Inspect its runtime diagnostics before
+rerunning; the exact-head run passed. Keep #31 open until integration is green.
+
+## #19 final lifecycle and CI registration
+
+The pending-load gate now honors shutdown, explicit map replacement releases its
+archive, and map_restart rejects an unfinished reconnect. The real OpenArena
+runtime passes shutdown/reload/map replacement, exact same/fresh-process restore
+and continuation, and frozen full-game v1 migration (state-final-runtime.log).
+Full GCC and Clang/libc++ state suites pass (state-final-{gcc,clang}.log); full tidy
+passes 1,410 production configurations (state-final-tidy.log). Lifetime analysis
+continues. No existing fixture or golden was regenerated.
+
+CI now runs all state owners with both compilers and real profile/checkpoint
+migration with OpenArena in the runtime job; evidence uploads only logs and entity
+JSON. Affected-test routing, AGENTS commands and tests/README describe storage,
+supported local-game context, migration and immutable fixture provenance.
+Actionlint, affected-contract and suite-contract checks pass. Normal Quake 3 fixed replay and both bot-smoke hashes remain identical
+(state-final-demo.log, state-final-smoke.log). Final Quake 3 checkpoint and
+OpenArena profile/frozen-profile migration pass (state-final-{q3,profile}.log).
+Format, types and boundaries pass. Open the draft PR for hosted acceptance;
+finish lifetime analysis and self-review before ready/merge.
+
+## #19 interrupted-load lifecycle test first
+
+The runtime now interrupts a pending local reconnect with sv_killserver, requires
+shutdown, and loads again; it also requires a map command to replace a pending
+load normally. The first case fails before correction: the new checkpoint early
+return in SV_Frame runs before the existing shutdown request
+(state-interrupt-before.log). Move only that new load gate behind shutdown priority
+and clear pending archive ownership before a normal explicit map change. This is
+a lifecycle gap in new #19 code, not a normal engine bug fix.
+
+## #19 full-game N-to-N+1 migration passes
+
+The v2 checkpoint header removes redundant pure mode (owned by server cvars) and
+adds the native protocol revision. Explicit v1 migration assigns its known
+protocol revision 2 and validates its legacy pure value; a later protocol change
+cannot silently relabel old archives. The frozen v1 bytes are unchanged.
+
+The rebuilt client passes newly written v2 same/fresh-process restore and exact
+continuation, then loads the frozen v1 game in another fresh process with seed 456
+and matches both saved and continued entity projections
+(state-migration-runtime.log). Build and focused tidy pass. Finish lifecycle review,
+CI/command documentation, and final combined-tree gates before opening #19's PR.
+
+## #19 full-game v2 migration test first
+
+The runtime now requires newly written headers to add protocol and remove pure,
+and loads the frozen v1 archive in a fresh process with seed 456, requiring its
+recorded exact entity state and subsequent continuation. The unchanged v1 engine
+fails the new-writer assertion as expected (state-migration-before.log). The v2
+header will obtain pure mode from its already-owned server cvar; v1 migration
+retains its legacy check and assigns that format's known protocol revision 2.
+The migration fixture bytes remain unchanged.
+
+## #19 full-game v1 fixture frozen
+
+The explicit OpenArena-only command passed all same/fresh-process exact assertions
+and created checkpoint-v1.asstate.gz once at writer 308b70c2. Real-client screenshot
+review confirms the restored oa_dm1 scene, local player HUD and Sarge. The archive
+contains 86 saved/83 continued entity rows; raw size 17,407,471, gzip size 340,020.
+Raw SHA256: 1d3d0762caf2f464e242d0e485de429f5a9a53e91e2327efff4f2fcf742fa977.
+Gzip SHA256: 946d1991efd407e7eebd6182485ebe1325a369a7366bac9f1fb436e165a99b74.
+Source/binary provenance and entity projections are checkpoint-v1.json. The fixture
+README records OpenArena GPL attribution from the installed Debian data package.
+No proprietary content is included; no accepted fixture is regenerated. Freeze
+this commit before v2 removes redundant pure metadata and adds protocol context.
+
+## #19 full-game v1 fixture creation command
+
+Quake 3 also passes the unchanged same/fresh-process exact continuation gate.
+The explicit --record-v1-fixture command now requires OpenArena and a version-1
+writer, refuses existing gzip/metadata paths, and writes only after the full runtime
+assertions pass. It records binary/source and raw/compressed hashes plus exact
+saved/continued entity projections. A private screenshot supports review. Run it
+once at this committed writer/driver, review, then freeze the bytes; CI never
+invokes the creation flag. Implement v2 migration only after that reviewed fixture.
+
+## #19 full OpenArena checkpoint continuation passes
+
+A client checkpoint owner retains the actual input clock rebased against the new
+process clock, old frame/time cursors, extrapolation/new-snapshot flags, exact view
+angles, selected weapon/sensitivity and pending loopback command. Transport sequence
+numbers remain fresh. This resolves the 100 ms input discrepancy without changing
+normal clock adjustment, movement arithmetic or the exact equality assertions.
+
+The small owner probe passes GCC/Clang libc++ UBSan. Full OpenArena runtime now
+passes same-process paused restore and continuation, then fresh-process restore
+and the same continuation with a different initial RNG seed. Earlier numbered
+revisions remain unchanged. Build, focused tidy, format/types/boundaries pass
+(state-client-clock-*); the isolated scratch executable initially collided with
+an existing directory, then ran successfully under a unique name. No accepted
+fixture changed. Quake 3 runtime and full-game migration/hosted acceptance remain.
+
+## #19 local input clock test first
+
+The private archive diff shows equal server time/residual, bot clocks and RNG
+records, with the first significant continuation difference in local command time.
+A client-side input owner must retain the paused clock lead, time-adjustment flags,
+view angles, selected weapon/sensitivity and pending loopback command. The new
+state_client probe fails on its absent implementation before the change
+(state-client-before.log); it requires rebasing against a different process clock
+without losing the saved lead. Fresh transport sequences stay connection-owned.
+
+## #19 exact spatial restore; continuation investigation
+
+The spatial owner now preserves sector heads, exact entity list order, cluster
+membership and map-derived sector geometry with checked indices. It validates
+whole lists and rejects cycles/mismatched native linked flags before publication.
+Native saved absolute bounds are retained without rerunning collision math; the
+superseded native relink helper is removed. GCC/Clang libc++ UBSan, build, native
+ABI, focused tidy and policy gates pass (state-world-*). The full OpenArena runtime
+now restores all 86 entity rows exactly, including snapped player bounds.
+
+The continuation assertion still fails on small player/bot position differences
+after resuming; no tolerance was added. Investigate first differing clocks/input
+and RNG records using private saved archive comparisons. Full #19 remains open;
+no fixture has been frozen or regenerated. PR174 remains gated on hosted runtime.
+
+## #19 live restore spatial correction, test first
+
+The first full runtime reaches load completion and restores all 86 OpenArena
+entities, but the equality gate fails on the two players' absolute collision
+bounds. Normal player code links at snapped positions and then restores precise
+currentOrigin; deriving links again from currentOrigin changes those saved bounds.
+Spatial list order also cannot be inferred from entity indices. This is a gap in
+new #19 restore, not a change to normal collision behavior. Preserve actual server
+sector lists/cluster membership and keep native saved bounds untouched.
+
+The new state_world probe fails compilation before owner implementation. It
+requires the original area-query order, snapped bounds distinct from precise
+origins, clusters, and cycle rejection without mutation (state-world-before.log).
+The runtime driver now retains entity diffs on failure. No goldens were changed.
+
+## #19 first live restore coordinator
+
+The local load coordinator now builds and passes native ABI, focused tidy and
+policy checks. Both full GCC/Clang libc++ UBSan state suites pass
+(state-load-full-{gcc,clang}.log). The coordinator validates engine records and
+cvar capacity before shutdown, loads matching content without gameplay startup
+frames or automatic bots, reconstructs native/botlib owners, spatial links,
+configstrings and baselines, then reconnects only the recorded local human slot.
+Simulation/input remain frozen through its first snapshot. Final cvar/input and
+RNG restoration happens after client startup; bot cache ages exclude reconnect
+latency. Errors discard the fresh world and shutdown releases pending archive data.
+
+Full runtime acceptance is now being exercised; no success is claimed yet. Its
+handshake wait steps only the frozen connection, ending on explicit completion.
+This small local-player-plus-one-bot case does not reach the separately reproduced
+MAX_CLIENTS shutdown boundary, so it can run independently while PR174 checks
+continue. #31 must still merge green and be merged forward before #19 acceptance;
+repeat final gates on that combined tree. The original prerequisite ordering was
+conservative; no #31 fix is copied into this branch. N-to-N+1 fullgame fixture and
+final hosted gates remain unfinished.
+
+## #19 server record preflight
+
+Server capture now round-trips and validates its complete engine records: bounded
+map/game context and clocks, exactly one designated local human among anonymous
+bot/free slots, required input records, aggregate configstring capacity, and actual
+replication priority/radius limits. The probe covers invalid metadata/ownership,
+missing engine records, a complete valid archive and a bad final interest record.
+GCC/Clang libc++ UBSan, build, focused tidy and format/type/boundary checks pass.
+Live OpenArena capture/read validation passes at 17,313,632 bytes
+(state-server-*). The unused sv_gametype alias record was removed; actual
+g_gametype is already owned by native game cvars. No accepted fixture changed.
+Full load coordination and acceptance remain next; PR174 runtime is still running.
+
+## #19 server restore preflight test first
+
+The new state_server probe requires bounded map/game names, valid server clocks,
+and a single designated local human slot with anonymous local/bot identities.
+It fails on missing ValidCheckpointHeader/ValidCheckpointClient before their
+implementation (state-server-before.log). These checks precede any destructive
+map reload; full owner validation still occurs against freshly loaded content.
+
+## #19 platform save routing
+
+Profiles and full-game captures now route through Sys_SaveRevision/Sys_ReadSave.
+The bounded main-thread provider installs before first IO; console SDK integration
+can supply its active-user/title storage callbacks without portable code using OS
+APIs. No SDK implementation or console acceptance is claimed. Provider errors
+never fall back to PC storage. PC reads only loose active-game user-directory
+files; exclusive creation tries numbered revisions without replacing existing
+bytes, and failed writes/close errors remove the newly created partial file.
+
+GCC/Clang libc++ UBSan provider probes cover routing, collision retries, invalid
+paths, size bounds, immutable installation and failure without fallback. Real
+OpenArena profile save/reload, fresh-process reload and frozen-v1 migration pass;
+full paused game capture still validates at 17,314,861 bytes. Client/server build,
+focused tidy and format/type/boundary gates pass (state-storage-*). The first
+build exposed a missing cerrno include, corrected before these successful gates.
+No accepted fixture changed. Full live load coordination and its runtime and
+N-to-N+1 game fixture acceptance remain unfinished.
+
+## #19 platform storage test first
+
+The new state_storage probe requires a platform save provider, immutable numbered
+revisions, bounded profile/game paths, and errors without fallback to PC storage.
+It fails compilation on the absent save_public.h before implementation
+(state-storage-before.log). Existing profiles and checkpoints still call the
+filesystem directly; route both through this boundary next. PC storage must stay
+in the active game's user directory and never overwrite an existing revision.
+
+## #19 cross-owner cvar capacity
+
+Checkpoint preflight now counts missing owner-selected cvar names across the
+engine and native game together, deduplicating shared names. It reserves only
+currently empty slots, not slots that later phases might release, so preparation
+fits regardless of owner ordering. A mutating callback is rejected. Both GCC and
+Clang libc++ UBSan probes demonstrate aggregate exhaustion, duplicate-name reuse,
+rejection without registry mutation, and successful preparation after capacity is
+freed. Client/server build, focused tidy, formatting, types and boundaries pass;
+the live OpenArena capture still validates at 17,314,861 bytes
+(state-capacity-{probes,build,runtime,tidy}.log). The load coordinator must invoke
+this preflight before preparation. Platform routing and full restore remain next.
+
+## #19 bot ownership validation
+
+Native checkpoint validation now cross-checks every active bot against its saved
+player/entity slot and the reconstructed live character/movement/goal/weapon/chat
+pools. Actor-local handles cannot be shared; cached characters may be shared.
+Missing handles, mismatched bot flags/connection state and duplicate ownership
+reject before native publication. GCC/Clang UBSan cover those cases and sharing,
+and the real paused OpenArena capture still passes full read validation at the
+same 17,314,861-byte size. Build, native ABI, focused tidy and policy checks pass
+(state-bot-bindings-*). No normal simulation path or accepted fixture changed.
+
+## #19 live capture integration in progress
+
+Native checkpoint orchestration and the server savegame command now build with
+the native ABI gate and focused tidy. The native phase stages all
+entity/client/level drafts and owner validation before publishing; string storage
+uses the existing level arena, spatial relinking preserves link generations, and
+native RNG restoration remains an explicit final phase. Server capture owns map
+context, client slots/input, configstrings, replication interest, selected cvars,
+portal counts and the libc random stream. Save revisions use the user directory
+and never replace a previous numbered path. Platform save-provider routing and
+loadgame orchestration remain unfinished.
+
+Live OpenArena oa_dm1 capture with a paused local player and Sarge now writes a
+17,314,861-byte checkpoint. Before writing it, the command opens the archive and
+validates the complete native, botlib and portal state against the live world.
+New validation was corrected for the unused native level.gentitySize (map setup
+leaves zero) and predictable temporary events carrying EV_EVENT_BITS in eType.
+The reference and semantic probes cover those cases. No gameplay code changed.
+
+Client/server build, native ABI, focused tidy and format/type/boundary checks pass.
+Full GCC/Clang state suites pass (state-capture-full-{gcc,clang}.log).
+The mixed engine/native cvar probe now explicitly declares the native RNG helper
+because the two legacy q_shared headers share an include guard; production builds
+already compile those namespaces separately. Captured files are private temporary
+artifacts, not accepted fixtures. Next: cross-owner bot handle/cvar capacity
+validation, platform save routing and loadgame coordination, then the committed
+full runtime acceptance and frozen N-to-N+1 OpenArena fixture. Do not claim capture
+alone as #19 completion.
+
+## #19 botlib checkpoint phases
+
+BotLib_WriteState now groups every owner behind a setup/navigation header.
+PrepareSettings restores library variables before normal setup/map loading;
+PrepareState reconstructs saved actor/cache slots in the freshly loaded world.
+ReadState validates all owners before applying their values, then restores parser
+and variable state after content loading. Preparation failure requires discarding
+the fresh world; no simulation may run during restore. Disabled botlib and worlds
+without AAS are supported explicitly; a loaded but unfinished AAS is not savable.
+
+A real-library probe links all production botlib sources, with owned empty config
+text and test memory/filesystem services. Disabled capture and normal setup,
+shutdown, preparation and restoration pass GCC/Clang libc++ UBSan. Saved queued
+chat and pending input survive; validation leaves live input unchanged; all zone
+and hunk allocations are accounted for at shutdown. Navigation owner probes remain
+separate until the full runtime integration. Client/server build, focused tidy and
+format/type/boundary gates pass (state-aggregate-*). Native/engine coordinator,
+cross-owner handle checks and fullgame acceptance remain unfinished.
+
+## #19 collision portal reconstruction
+
+The collision owner now records the BSP checksum, area count and symmetric portal
+reference matrix. Restore validates the entire matrix before mutation and rebuilds
+derived flood labels before snapshot visibility. GCC/Clang libc++ UBSan prove the
+same area bits and subsequent door-close sequence with multiple references, plus
+mismatched-map/count and invalid-matrix rejection. Client/server build, focused
+tidy and format/type/boundary checks pass (state-portals-*). This is additive
+checkpoint handling; ordinary collision and door arithmetic remain unchanged.
+Live restore still needs to call it before publishing the first snapshot.
+
+#31 prerequisite PR174 is merged as 5caa2c1c after all 26 required gates passed;
+merged-tree workflows are recorded in Next action.
+
+## #19 gameplay draft validation; #31 cleanup prerequisite
+
+Draft validators now check finite scalar/vector fields, raw enum representations,
+trajectory kinds, active entity/client slot identity, bounding-box order, player
+movement/weapon/team states and level client counts/sorted-client uniqueness.
+They inspect legacy enum representations with memcpy before evaluating enum
+values, so invalid serialized enums reject without undefined behavior. Existing
+user-command handling still owns raw input validation. Auxiliary animation/weapon
+state retains its separate owner validation. GCC/Clang libc++ UBSan, client/server
+build, focused tidy and policy checks pass (state-semantics-{gcc,clang,build,tidy,policy}.log).
+The coordinator still must call these validators before publishing decoded drafts.
+
+Ordering refinement: take the recorded last-chat-handle shutdown bug in its own
+#31 PR now, before #19 live coordination. Full checkpoint reload uses normal
+library shutdown, which must release every handle including MAX_CLIENTS. This
+turns the recorded bug into a prerequisite; do not work around or fix it inside
+#19. Continue independent #19 coordination work while that PR's gates run.
+
+## #19 engine/native cvar restore boundary
+
+Engine records now take trusted owner-selected names and preserve current/reset/
+latched strings, optional bounds, validators, flags and cached numeric/revision
+state. Existing registry addresses remain stable; absent records can remove only
+eligible dynamic variables or explicitly owned transient session names. Private
+variables reject capture/restore. Server notification flags/group state restore
+without replacing renderer notification state. Registry capacity must be checked
+across the complete restore by the coordinator before applying new names.
+
+Native cached-cvar owners now include their engine records through the existing
+native service boundary. Modes are 0 validate, 1 restore, 2 prepare: preparation
+withholds pending latched values so normal map initialization loads the saved
+current content; final restore reinstates the pending values. Additional records
+cover authoring paths, bot initialization settings, session/botsession names and
+per-item disable cvars. Current filesystem/process context remains separately
+owned. The literal cvar call inventory now has a source ownership check.
+
+Focused GCC/Clang libc++ UBSan prove real native/engine handoff, pending cached
+updates, fresh registry handles, latch/bound behavior, session cleanup and content
+path preparation (state-engine-cvar-bridge-{gcc,clang}.log). Full combined GCC/
+Clang suites, the client/server build and focused tidy pass after the preparation
+followup (state-bridge-full-{gcc,clang,build,tidy}.log). #19 comment 5773458340 records
+the preceding complete native-owner checkpoint. Full checkpoint integration is
+still incomplete; no accepted fixture changed.
+
+## #19 cached native cvars and change counters
+
+All persistent native-game cvars now have named owner records, including the
+main table, bot scheduling/navigation/minimum players, animation, weapons and
+rewind. Restore retains current registration handles while applying cached
+values, strings and modification counters. Main-table tracking and password
+change detection also restore. The source ownership check covers every persistent
+vmCvar declaration in those owners. GCC/Clang libc++ UBSan pass fresh-handle
+rebinding, complete-group validation before mutation and missing tracking-record
+rejection (state-cached-cvars-{gcc,clang}.log). Build, focused tidy and policy
+checks pass. Combined state suites pass on both compilers after native-owner and
+cvar additions (state-native-complete-{gcc,clang}.log).
+
+Next: engine cvar values must be prepared before map initialization and restored
+with native caches afterward. Use explicit owner-selected names, preserving
+runtime registration handles and current platform/filesystem context. The native
+cvar call inventory is state-native-cvar-callers.txt in the private cache. Include
+uncached map-authoring paths, bot setup settings, session strings and per-item
+disable flags when coordinating owner selection. Then semantic validation and
+live server/client/RNG restoration, save-provider routing, frozen OpenArena full-
+game migration and final local/hosted gates. No accepted fixture changed.
+
+## #19 native bot slots and remaining native owners
+
+Native bot preparation validates all actors first, then uses the existing level
+arena to reconstruct exact active and allocated-inactive slots. Inactive partial
+setup rejects capture. Activation links target the final allocation. Legacy
+G_Alloc accounting restores its saved used count while retaining the normally
+loaded map-info prefix; entity strings and actors will use level memory. This
+preserves the next legacy allocation offset and remaining budget without saving
+raw pointer-bearing memory. Full coordination must start from a fresh map.
+
+Item registration retains the complete boolean table; IP filters retain all
+1,024 entries independently of the short presentation cvar. Loaded bot/arena info
+strings and order are verified by digest. GCC/Clang libc++ UBSan pass active and
+inactive bot reconstruction, missing-actor rejection before allocation, same-next
+arena allocation, complete item/filter tables and relocated/changed content
+(state-native-owners-{gcc,clang}.log; state-bot-info-{gcc,clang}.log). The initial
+owner client/server build and focused tidy pass. Bot-info build/tidy and all
+policy checks also pass (state-native-info-{build,tidy,policy}.log). Cached
+cvars/change counters and
+semantic/coordinator work remain next. No accepted fixture changed.
+
+## #19 chat reconstruction and combined preparation gates
+
+Chat records now retain the source identity for private as well as cached content.
+Preparation reuses the existing chat loader, verifies content, restores line
+timers, and reconstructs exact cache sharing/private ownership. Actor preparation
+validates queue records before publishing exact saved handles into the normally
+initialized message heap. Command-time staging cleans up on failure.
+GCC/Clang libc++ UBSan exercise real loading of a small owned chat source, sparse
+slots through MAX_CLIENTS, same-next chat selection, pending message order and
+failed restore cleanup. Full state suites pass on both compilers, as do the
+client/server build and focused tidy (state-full-prepare-{gcc,clang,build,tidy}.log).
+No accepted fixture changed. #19 comment 5773155394 records the preceding handle
+checkpoint. Remaining work starts with other native globals/semantic validation,
+then live restore coordination, both RNGs, save-provider routing and full-game
+OpenArena migration acceptance; final integration gates still remain.
+
+## #19 goal and weapon handle reconstruction
+
+Goal and weapon preparation stage exact saved handles, reuse the shared weight
+cache, rebuild private weights and derive content indices with the existing
+index builders. Loaded content/index identities must match before publication;
+failed staging frees its private weights, indices and handles. GCC and
+Clang/libc++ UBSan pass sparse slots including MAX_CLIENTS, shared/private
+ownership, learned values, same-next goal pop and rollback without touching the
+shared cache (state-{goal,weapon,weight}-handles-{gcc,clang}.log). Client/server build and focused tidy
+pass (state-owner-prepare-{build,tidy}.log). Chat reconstruction is next, followed by native/server coordination.
+
+## #19 shared and private weight reconstruction
+
+Weight preparation reuses ReadWeightConfig in its existing private-load mode,
+restores the libvar's cached value on return, verifies the saved topology, and
+applies learned values. The shared cache publishes only after all slots succeed;
+failed staging frees its allocations. Parser search-folder restoration must run
+after all content loading. The new test first failed on missing preparation APIs
+(state-weight-prepare-before.log), then passed with the real script/precompiler
+and fixed owned source on GCC and Clang/libc++ UBSan. It covers saved cache gaps,
+private ownership, unchanged libvar fields, changed content and missing final
+records with no leaked allocations. Build and focused tidy pass
+(state-weight-prepare-{gcc,clang,build,tidy}.log). Goal/weapon/chat preparation and
+full live coordination remain; no accepted fixture changed.
+
+## #19 movement-pool reconstruction
+
+Movement preparation validates every saved record before allocating exact saved
+handle slots into an empty pool. GCC and Clang/libc++ UBSan prove gaps, relocated
+storage and rejection of incomplete records without publication. Client/server
+build and focused tidy pass (state-move-reconstruct-{gcc,clang,build,tidy}.log).
+Character and movement construction are complete locally; shared/private weight,
+goal, weapon and chat reconstruction remain next. No accepted fixture changed.
+
+## #19 exact character-pool reconstruction and stable owner gates
+
+At f8a4e000, the complete state suite passes on GCC and Clang/libc++ UBSan
+(state-full-aas-{gcc,clang}.log). Full tidy passes 1,390 production configurations;
+full lifetime analysis passes 1,332 commands/148 paths and its positive/seven-object
+negative controls (state-full-aas-{tidy,lifetimes}.log). Issue19 comment 5772911231
+records this owner checkpoint; all those gates are now complete.
+
+Characters now also retain resolved typed attributes, because filename/skill alone
+cannot reliably reproduce fallback/default merges and interpolated cache entries.
+Bot_PrepareCharacterState requires an empty pool, validates every record first,
+then creates exact saved slots with owned string copies and rebased clock ages.
+The existing attribute hash checks the resolved payload; full checkpoint content
+identity still belongs to the coordinator. GCC/Clang UBSan pass reconstruction,
+owned-string relocation and missing-later-payload rejection before publication
+(state-character-reconstruct-{gcc,clang}.log). Client/server build and focused tidy
+pass. No accepted fixture changes; eventual full-game fixtures use OpenArena.
+
+## #19 bot content and synchronous parser boundary
+
+BSP checkpoints verify both the source entity text and parsed epair order/content
+against hashes; no map content is embedded. The parser retains its search folder
+and requires no active source handles, outstanding copied tokens or global macro
+definitions at the command boundary. Current native game/UI code never installs
+persistent global macros; adding that use will require a state migration rather
+than silently omitting it. GCC/Clang libc++ UBSan pass content relocation/change
+checks and exact folder restoration with boundary rejection
+(state-bot-content-{gcc,clang}.log). No script-loader behavior changed.
+Routing build and focused tidy pass; its source ownership gate now covers every
+AAS world/cache field. Combined state/lifetime/tidy gates will be rerun after this
+stable owner checkpoint before reconstruction work.
+
+## #19 AAS routing cache ownership
+
+Routing checkpoints retain cache metadata, 16-bit travel times, reachability
+choices, per-bucket list order and oldest-to-newest eviction order. They verify
+rebuilt reverse links, intra-area travel times, portal maximum times, travel flags
+and reachability pass-area lists before replacing caches. Synchronous update
+scratch must have no in-list work; stale scratch pointers are never serialized.
+Explicit ceilings are 4,096 caches, 65,536 travel entries per cache and 256 MiB of
+cache allocations; excess rejects. Pointer lookup is bounded quadratic command
+work, documented in source. GCC/Clang libc++ UBSan prove cache-hit payload, exact
+bucket/LRU order and same-next-eviction after fresh allocation; changed derived
+routing, missing final records and over-wide travel times leave current caches
+unchanged (state-aas-routing-{gcc,clang}.log). World/settings build and focused
+tidy also pass. Full live reconstruction/coordination is still open.
+
+## #19 AAS world clocks, geometry and physics settings
+
+World records retain clocks, frame counters, initialization bookkeeping and
+per-area disabled bits against a digest of all loaded geometry/cluster arrays.
+The digest masks the dynamic disabled bit and omits the two reachability-record
+tail padding bytes, so pointer relocation and padding cannot change identity.
+Capture requires a fully initialized AAS map and the same 65,536-area ceiling as
+spatial links. All AAS physics settings have named float descriptors and finite
+validation. GCC and Clang/libc++ UBSan verify changed geometry/content rejection,
+missing disabled-area records, clock restore, tail-padding independence and
+bit-identical AAS_HorizontalVelocityForJump results after settings restore
+(state-aas-world-{gcc,clang}.log). Routing caches must be restored with world state
+before navigation resumes; their owner and the full coordinator remain open.
+
+## #19 AAS entity history and spatial links
+
+AAS entity records preserve history even for entities invalidated this frame;
+spatial links remain separately owned, and the unused Quake 3 BSP leaf pointer
+must be null. Named scalar/vector fields validate finite values, model indices
+and bounds before application. The AAS link owner retains both list orders
+(entities in areas and areas touched by entities), their back-links, the free-list
+and free count. Every link must belong exactly once to both live views or once to
+the free list. Free payload is omitted. The capture ceiling is 65,536 links and
+areas; excess fails explicitly. GCC/Clang libc++ UBSan cover relocation, actual
+unlink/relink with identical next slots, maximum-size heap, invalid/incomplete
+records, cycles and live/free overlap (state-aas-{entities,links}-{gcc,clang}.log).
+Client/server build and focused tidy pass.
+
+A separate existing bug was reproduced: BotShutdownChatAI omits allocated handle
+64. Issue31 reopened with comment 5772659684; docs/bugs.md records the reproducer
+and exit 1. No fix is mixed into #19. Take a separate test-first #31 PR after #19
+unless full restore makes it a prerequisite. Private reproducer is retained under
+the modernization cache. No fixture or suppression changed.
+
+## #19 botlib globals and immutable map information
+
+Botlib records now retain the global clock and developer setting against matching
+initialized client/entity dimensions. Map locations and camp spots are verified
+by hashes of named, pointer-free fields in list order. They are reloaded from map
+content, not copied as pointer-bearing records. GCC and Clang/libc++ UBSan pass
+relocation, changed content/dimensions and cyclic-map-list rejection
+(state-bot-global-map-{gcc,clang}.log); build and focused tidy pass.
+AAS inventory confirms entity spatial-link ordering, disabled routing areas and
+routing cache contents/order need explicit ownership; cold cache regeneration
+alone is not yet proven to preserve continuation.
+
+## #19 named bot variables and combined verification
+
+Libvar checkpoints retain name/value strings, flags, modified bits, cached numeric
+values and list order. Loads preserve existing cached libvar_t handles and create
+missing names through the existing allocator. Unexpected initialized names reject
+rather than deleting an owner's pointer. All records and names validate before
+application; the explicit ceiling is 256 variables with engine string limits.
+GCC/Clang libc++ UBSan cover fresh/partial reconstruction, cached-handle identity,
+incomplete/duplicate records and list cycles (state-libvars-{gcc,clang}.log).
+Client/server build and focused tidy pass. The complete state driver through chat
+content also passes on both compilers (state-full-chat-{gcc,clang}.log); chat build,
+tidy and format/types/boundaries pass. Issue19 comment 5772554241 records the
+weapon/character/chat decisions. AAS, global clocks, map info identity and the
+full-game reconstruction/coordinator still remain; no partial acceptance.
+
+## #19 chat content and dialogue timers
+
+Shared chat caches, private actor chats and global reply lines now save reuse times
+against immutable content hashes. Hashes cover line/type order, reply keys,
+matching templates, synonym weights and random expansion lists; cached filenames
+and chat names and actor-to-cache ownership must also match. Capture has an
+explicit 8,192-line / 65,536-syntax-node ceiling per owner and rejects excess,
+cycles, aliases and non-finite timers. It never truncates. All records validate
+before timers change. GCC and Clang/libc++ UBSan pass relocated shared/private
+chat, identical next-line selection, changed-content and missing-last-record
+checks (state-chat-content-{gcc,clang}.log). Reconstructed content/cache slots are
+still prerequisites; coordinator and complete runtime acceptance remain open.
+
+## #19 chat queue ownership
+
+Chat actor scalars and pending console messages now retain pool slot/queue/free-list
+order. Back-links are validated at capture and rebuilt from validated, disjoint
+lists at load. Message text is chunked in groups of 64; a maximum-capacity 65,536
+slot pool with one queued message needs four records, not one per free slot.
+Free payload is discarded because enqueue overwrites it. GCC and Clang/libc++
+UBSan prove same-next-allocation and wrapped message handles after relocation,
+reject overlap/cycles and missing later text without mutation, and exercise the
+last slot of the maximum pool (state-chat-queue-{gcc,clang}.log). Client/server
+build and focused tidy pass. Botlib edits now select the state regression in the
+affected-test map. Chat content/timers and full reconstruction remain open.
+
+## #19 character-cache state and process-clock ages
+
+Character records verify immutable typed attributes, filename and skill, then
+restore reference counts and unreferenced ages. The coordinator supplies one
+process-clock reading for capture and one for load; timestamps are rebased with
+unsigned wrap-preserving arithmetic so a fresh process evicts the same oldest
+unreferenced handle. Original cache/eviction expressions are unchanged. GCC and
+Clang/libc++ UBSan pass changed-content, incomplete-pool, clock-wrap and actual
+same-next-eviction checks with relocated characters/strings
+(state-bot-characters-{gcc,clang}.log). Build and focused tidy pass. Cache handles
+still require reconstruction before application; chat/AAS/libvars and the full
+checkpoint coordinator remain open.
+
+## #19 bot weapon-weight ownership
+
+Weapon-pool checkpoints verify pointer-free weapon/projectile descriptors and the
+weapon-to-weight index map, retain shared cache-slot references and restore private
+weight values. The loaded descriptors have explicit no-padding size assertions.
+GCC and Clang/libc++ UBSan prove the same best-weapon choice after relocation and
+reject changed definitions, changed indices and missing values before mutation
+(state-bot-weapons-{gcc,clang}.log). Build and focused tidy pass. Character/chat,
+immutable location/camp identity, AAS/libvars and full reconstruction remain open.
+
+## #19 bot level-item allocation state
+
+Level-item checkpoints retain live payload, doubly linked live order, free-list
+order and the map item-number base. The allocator now records its existing bounded
+capacity for serialization and clears that bookkeeping on shutdown. Free payload
+is omitted because AllocLevelItem clears it before reuse. Every allocated slot
+must belong to exactly one terminating live/free list; overlaps, cycles and
+invalid item references reject before publication. GCC and Clang/libc++ UBSan
+prove that relocated heaps make the same next allocation, including a deliberately
+invalid unreachable payload that is correctly discarded (state-bot-items-{gcc,clang}.log).
+Build and focused tidy pass. This is checkpoint ownership, not a change to allocation
+or item simulation behavior. Immutable location/camp identity and the remaining
+botlib owners still need integration.
+
+## #19 bot goal pools and shared weight cache
+
+Goal records preserve stack entries, avoided-goal timers and reachability memory.
+Pool identity verifies loaded item descriptors and the item-to-weight index map;
+pointers are rebound to the recreated owners. Shared cached weights are saved once
+by cache slot, while uncached private configurations accompany their owning goal.
+Unexpected private aliases and duplicate cache slots reject rather than silently
+apply conflicting copies. GCC and Clang/libc++ UBSan pass full-state relocation,
+identical goal-pop continuation, content mismatch and missing-later-record tests
+(state-bot-goals-{gcc,clang}.log). The cache reader validates all slots before any
+application. Client/server build and focused tidy pass. Level-item lists, weapon
+weight owners, character/chat/AAS/libvars and reconstruction remain open.
+
+## #19 mutable bot weight records
+
+Weight records retain current weight/minimum/maximum values against a digest of
+reloaded names and separator topology. Pointer identity never enters the digest;
+separate trees with identical content restore and evaluate bit-identically.
+GCC and Clang/libc++ UBSan pass relocation, changed-topology, missing-values,
+non-finite, cyclic and oversized-tree checks (state-bot-weights-{gcc,clang}.log).
+The command-only ceiling is 4,096 nodes per configuration: excess rejects the
+save, never truncates it. Only live array prefixes are stored. Existing weight
+math is unchanged. Build and focused tidy pass. Cache/goal/weapon ownership and
+reconstruction still need wiring; these per-configuration records are groundwork.
+
+## #19 botlib input and movement ownership
+
+Botlib inputs preserve jump-edge flags and previous input; movement records retain
+all movement/avoidance fields, saved handle occupancy and model classification.
+Readers require coordinator-recreated handle slots, validate every record first,
+and rebind data to newly allocated storage. GCC and Clang/libc++ UBSan prove
+identical next jump/avoidance updates and reject incomplete pools before mutation
+(state-botlib-move-{gcc,clang}.log). Clang exposed missing explicit <cmath> includes
+in the new validation code; those are fixed. Client/server build, focused tidy
+and member/avoidance-slot source coverage pass. Full library reconstruction and
+checkpoint integration are still pending. No original movement expressions changed.
+
+## #19 bot map-navigation ownership
+
+Navigation records retain last-teleport memory, map/team goals and alternative
+route goals/costs. Reloaded game type, client count and BSP model identity must
+match before publication. Live route costs widen to uint32 in the save record
+and validate back into their original uint16 range. Unused route slots are not
+read from stale storage. GCC and Clang/libc++ UBSan pass normal and optional
+mission-pack probes (state-navigation-{gcc,clang}.log), including changed-map
+identity and missing-later-record rejection. The optional legacy variant needs
+its existing writable-string and unused-parameter warnings tolerated in the
+probe only; production gates are unchanged. Build and focused tidy pass.
+Bot node-switch diagnostics reset at the start of BotDeathmatchAI and are frame
+scratch. Full botlib owners and checkpoint coordination remain open.
+
+## #19 bot actor and activation drafts
+
+Actor records describe all 134 scalar fields, shared player/input state, goals,
+nullable typed AI-node identities and checked activation/waypoint references.
+All eleven AI-node identities pass GCC and Clang/libc++ UBSan round-trips with
+full actor byte equality after explicit pointer relocation. Invalid active-stack
+cycles, unknown callbacks and incomplete actors reject before publication
+(state-bot-actor-{gcc,clang}.log). Member/callback source coverage passes, as do
+the client/server build and focused tidy. Botlib handle identities are retained
+as draft integers; final restore must coordinate their corresponding botlib
+objects and verify live actor counts before application. These are not complete
+checkpoint acceptance. The combined state driver through waypoint support also
+passes with both compilers (state-combined-{gcc,clang}.log).
+
+Next: all botlib mutable owners and immutable-content
+checks; then global cvar/configstring/content state and server/game/client restore
+coordination, both RNG integrations, platform save routing and full saved-game
+N-to-N+1 fixture acceptance. No accepted fixture has been regenerated.
+
+## #19 bot waypoint ownership
+
+Waypoint saves retain stable pool indices, names, goals and the exact free-list
+order. Shared named bot-goal metadata accounts for every goal member. Links are
+range-checked and next chains must terminate before restore; inactive free-node
+prev pointers retain their historical values. GCC and Clang/libc++ UBSan prove
+that restored chains allocate the same next waypoint and reject cyclic/foreign
+links (state-waypoints-{gcc,clang}.log). Full bot actors, activation stacks, map
+navigation globals and botlib remain next. Scheduler/queue/team records are
+committed in aeedbf68; definition/editor records in 508bcdaa.
+
+## #19 bot scheduler, queue and team ownership
+
+Bot checkpoints now retain delayed spawn queue entries, minimum-player check time,
+AI scheduling clocks/residuals, interbreeding counters, team task preferences and
+leader exclusions. GCC and Clang/libc++ UBSan probes pass continuation and reject
+invalid/incomplete archives before applying any owner (state-bot-globals-{gcc,clang}.log).
+Client/server build, focused tidy and the existing bot command-byte control pass.
+Full bot actor/waypoint/activation and botlib ownership remain open; these records
+do not reset bots and are not full-game acceptance.
+
+## #19 definition and editor checkpoint ownership
+
+Authored definition records use the shared schemas and existing ASENT validation.
+Restore requires the registry topology reloaded for the map to match before applying
+edited values to either the authored or combined native table. The combined table
+is deliberately not treated as ASENT: native rows precede authored replacements.
+Editor saves retain complete/degraded status, unknown-key source documents,
+deleted document slots and entity-to-document mappings. Capture/spawn temporaries
+are reset; shipping builds validate and ignore development documents. Every
+record validates before publication. Command-only fixed scratch avoids large
+stack frames. GCC and Clang/libc++ UBSan pass both build variants, including changed
+topology, missing records, malformed documents and no-partial-application checks
+(state-definitions-{gcc,clang}.log). Build and focused tidy pass. Full checkpoint
+coordination, remaining globals/bots and migration acceptance remain open.
+
+#18 merged-tree regression 35687912012 completed successfully; together with build
+35687912038, all active merged-tree checks are green for 2010b077.
+
+## #19 utility, combat, team and podium state
+
+Checkpoint records retain shader remaps, the death-animation cycle, team flag and
+capture clocks, neutral obelisk and victory-podium references. The function-local
+nextRewindSpawn counter is now owner-local so saves retain it; the increment and
+zero-skip expressions are unchanged. A restored UINT32_MAX counter produces the
+same next entity, with both GCC and Clang UBSan. Invalid enums, references and
+incomplete remap archives reject before application. Dead remaps after reset are
+not serialized. Tests initially combined legacy translation units and hit repeated
+header declarations; separate owner probes correct the harness. Both compiler
+probes pass (state-small-globals-{gcc,clang}.log), as do the utility probes,
+client/server build and focused tidy (state-globals-build.log and -tidy.log).
+Full #19 checkpoint coordination remains open. No accepted fixture changed.
+
+## #19 rewind history state
+
+Rewind checkpoints retain live ring frames, cursor/count, 64-bit spawn generations
+and report clocks. Reset does not clear old ring storage, so unreachable frames
+are intentionally never read or serialized; unused box storage is zeroed in the
+save representation. Validation reuses the existing history-frame rules without
+changing query/interpolation math. A fixed command scratch record avoids two
+64 KiB stack frames; the existing per-frame scratch is safe to reuse during load.
+GCC/Clang UBSan proves clock-wrap restore, identical subsequent history queries,
+no partial application on a missing later frame, and compact empty-history saves
+(state-rewind-{gcc,clang}.log). The old gameplay probe now discards unused checkpoint
+sections when linking, as the other focused probes do. Original rewind acceptance
+still passes 950/950 delayed hits with max error 0.000488, plus live-world/view-time
+and reused-slot checks (state-rewind-control.log). Client/server build, focused
+tidy, format/types/boundaries pass. No accepted fixture or authoritative FP
+expression changed. Remaining owners and full checkpoint coordination stay open.
+
+## #19 authored weapon state
+
+Weapon checkpoints retain both-hand inventory, RNG/cooldowns, attachment masks,
+selected definitions, animation state/parameters and checked auxiliary entity
+slots. Definition and graph digests must match the reloaded content. Configured
+attachments are rebuilt by the existing Weapon_Configure and must compare byte-
+identically before capture. Inactive/unconfigured inventory is omitted only after
+checking exact zero; active inventory uses shared named weaponState_t fields.
+GCC/Clang/libc++ UBSan continuation and changed-content/incomplete-owner checks
+pass (state-weapons-{gcc,clang}.log). Client/server build, focused tidy and source
+policies pass. Existing weapon lifecycle, deltas, hitscan and animation tests pass;
+the 1,000-shot trace remains
+0c1b0e259650e6c5c6c155244100b3e194abbfc75fe7d10717cdb25b919c746f
+(state-weapon-control.log). No original simulation expression changed.
+
+Next: rewind history and remaining global/bot/definition/editor owners, then the
+full save/load coordinator and fresh-process acceptance. Core records remain
+drafts until that acceptance passes. No accepted fixture was regenerated.
+
+## #19 authored animation state
+
+Animation checkpoints retain rig hashes/calibration, actor clocks, manual inputs,
+parameters, state-machine event cursors, hit boxes and checked entity slots. Asset
+storage is reloaded by normal map setup and must match the recorded graph hash.
+animState_t uses one shared named description for subsequent animation users.
+The immutable archive is fully validated before a second pass applies actor state.
+GCC/Clang UBSan probes using the owned body/rifle graphs resume identical state,
+event and pose words, reject changed content and prove missing later actor records
+do not partially apply earlier actors (state-animation-{gcc,clang}.log). The
+client/server build passes. Source coverage accounts for all composed/animation
+members. No authoritative animation expression or accepted fixture changed.
+
+Remaining #19 integration includes weapon/rewind/other game globals, all bot state,
+entity-definition and editor state ownership, cvars/configstrings/content identity,
+server/client clocks and reconstruction, platform save routing, full-game migration
+and final gates. Continue from these owners; the common serializer and completed
+entity/client/level records do not need restarting.
+
+## #19 composed side state
+
+Composed entity state now saves animation start/frame timing, trigger cooldowns,
+sound state, damage radius and explicit flag words. Column records retain the
+fixed 1,024-slot state without writing bool representation or padding. The reader
+validates the whole record before optional application. GCC/Clang UBSan checks
+compare every slot and execute the original animation callback after restore,
+including wrapped clock bits (state-composed-{gcc,clang}.log). Invalid animation
+timing prevents a save from being finalized. Gameplay callback bodies are unchanged.
+
+## #19 level draft records
+
+Level archives retain clocks, team/voting state, intermission data, location links,
+and corpse queue slots. Runtime pool addresses, native struct size and log handles
+come from the new map setup; spawn-parser scratch is frame-local and reset. Saving
+mid-spawn is rejected. A byte comparison after explicit handle/reference rebinding
+passes with GCC and Clang/libc++ UBSan (state-level-{gcc,clang}.log). Source coverage
+now accounts for each entity, client/session/team and level member, including the
+explicit transient ownership rules. Full server/game/bot coordination remains open.
+
+## #19 client draft records
+
+Client archives reuse the generated player/usercmd descriptions and explicitly
+name all persistent, session, team, damage and timer fields. Grapple references
+reload into relocated entity pools. The currently unused areabits pointer is
+required to be null; unexpected ownership fails the save instead of disappearing.
+GCC and Clang/libc++ UBSan pass (state-client-{gcc,clang}.log), including complete
+client byte comparison after pointer relocation. This remains draft loading;
+level/subsystem/bot records and full-game coordination are still required.
+
+## #19 complete entity draft records
+
+Entity numeric/spatial fields, both entityState_t records (including the legacy
+shared r.s), checked references, callback identities and nullable strings now
+compose one archive draft. The source gate requires an explicit description for
+every gentity_t/entityShared_t member. Numeric tests preserve negative values,
+high bits and signed zero; string tests preserve null versus empty and reject
+truncation before mutation. Strings use caller-owned level-lifetime storage.
+GCC/Clang/libc++ UBSan pass (state-entity-archive-{gcc,clang}.log); the missing
+archive APIs failed first. Client/server build and focused clang-tidy pass; format,
+types, boundaries, affected selection and the accepted replication wire digest
+also pass. The first focused tidy invocation inherited a GCC-only warning flag;
+rerunning with the Clang equivalent passes. No live-world load or full checkpoint
+is claimed.
+
+The generated replication state header is now state_replication_public.h so game
+code can consume the shared descriptors through the enforced public boundary.
+The archive record bound is 16,384: seven records per maximum entity population
+plus 2,305 definition records already exceed the previous 8,192 bound. No format
+bytes or accepted fixture changes. Game/client/bot/subsystem coordination, load
+validation, clocks/transport, save-provider routing and full-game migration remain
+required. Next implement client/level records and state owners, then wire the
+existing failing fresh-process test through a complete checkpoint coordinator.
+
+## #19 entity references
+
+Checked slot indices now describe all entity/client links; items use classname
+identity so a reordered item table still loads. GCC/Clang UBSan probes restore
+into different entity/client pools, preserve unrelated fields, reject out-of-pool
+pointers and invalid slots/items without mutation, and round-trip null references
+(state-refs-{gcc,clang}.log). Capture and restore use bounded equality scans, not
+pointer subtraction across unrelated objects. Full checkpoint records, strings,
+subsystems, bots, transport reconstruction and frozen game migration remain open.
+
+## #19 callback identities
+
+Entity callbacks now have stable names in typed, owner-local tables, including
+static callbacks and build-conditional entries. The state probe covers all seven
+signatures, null callbacks, unknown names/functions, wrong-signature names and
+no mutation on failure. A source gate accounts for all 77 callback assignments.
+GCC and Clang/libc++ UBSan pass; the devtools client/server builds pass
+(state-callback-{gcc,clang,build}.log). Existing callback bodies are unchanged.
+Full entity references and checkpoint integration remain in progress; this is not
+savegame acceptance. #18 merged-tree regression is still being monitored.
+
+## #19 entity definitions share the named state format
+
+The existing definition header, prefab and component-field POD records now expose
+stateSchema_t descriptions beside their declarations. Edited pickup definitions
+and composed model/collision/damage/audio definitions round-trip through the same
+versioned archive used by replication state, then pass the existing cooked reader.
+GCC and Clang/libc++ UBSan pass (entity-state-{gcc,clang}.log); the missing-metadata
+probe failed first (entity-state-before.log). ASENT bytes and accepted assets do
+not change. This completes shared metadata, not full savegame integration.
+
+## #18 acceptance and #19 main merge
+
+PR173 merged as 2010b077 after all 16 compiler legs and all 10 active regression
+jobs passed at e0c6a57d. Self-review found the final diff within #18 scope, with
+bounded POD state, existing callback semantics, no per-frame allocation or new
+portable OS access, and preserved layout assertions. Exact head/base/main and
+known-good tag checks were repeated after marking ready, immediately before the
+merge. Tree 85cc5b3ce64af5c1e8aea281149cc527d0b71dc1 is shared by head and merge.
+Issue #18 closed; the tracking issue is updated at this checkpoint. New main
+workflows 35687912038/35687912012 are running and must be monitored.
+
+The #19 branch merges this accepted main without rewriting history. Conflicts are
+only additive test selection and progress prose; both feature entries are retained.
+Combined local checks and full game checkpoint implementation follow. This merge
+is not #19 acceptance. All accepted demos/goldens and rollback tags stay unchanged.
 
 ## #18 hosted standard-library compatibility
 
@@ -159,34 +1130,276 @@ Entity_SetField/Entity_WriteDefinitions (entities-editor-before.log). Generic de
 preview/edit still remains.
 No partial acceptance of remaining #18 scope is claimed. Schema, format/types/boundaries and affected contract pass.
 
-## #17 local verification before integrating accepted audio
 
-Decision: bounded in-house immediate UI over existing renderer/input contracts.
-Pillow FreeType/RAQM shapes localized runs offline; fixed POD records own menus,
-HUD layout and navigation. Developer ImGui remains separate. docs/design/ui.md
-records the text scope and library decision. Test-first commits
-510fe1cc/a5c189aa/f155772f precede cooker/native/client implementation.
+## #19 complete user-command description
 
-GCC and Clang/libc++ UBSan probes pass Arabic joining, focus/slider bounds and
-safe-area geometry at five aspect/resolution combinations. Real client acceptance
-passes main/options/rebinding/HUD at 1080p, 1440p and 4K with both content sets,
-including edited-source reload, pixel-identical vid_restart and return from
-in-game controller options. Controller events are injected through actual engine
-keys; no physical-device claim. Logs: ui-runtime-{q3,oa-final}.log and captures.
+The committed missing-schema test fb1246bc passes GCC and Clang/libc++ UBSan with
+both engine and native game declarations (state-usercmd-{gcc,clang}.log). The
+existing generator now reads the complete usercmd_t declaration, including its
+separate byte movement fields, into the same named-field description. Unsupported
+member declarations fail instead of being omitted. Existing replication.inc is
+byte-identical and the accepted wire digest still passes (state-usercmd-wire.log).
+Formatting passes. These descriptions are ready for the full game-state records;
+server save/load integration remains outstanding.
 
-73da8d04 makes pixel conversions explicit for Windows warning policy. Both new
-sources pass conversion/shadow diagnostics; all six 1080p captures remain
-byte-identical (ui-runtime-casts.log). Full tidy (1,334 configurations), lifetime
-(1,276 commands), MinGW rebuild, format/types/boundaries, ABI/shared math and
-workflow/affected contracts pass. Private ui-review.md records self-review.
-No accepted fixtures were regenerated, font binary committed, or paks copied.
+## #19 user-command description test before implementation
 
-#16 extra self-review: a suspected capture-restart state problem did not
-reproduce. Four SDL dummy capture sessions correctly closed/reopened across
-sound/video restart with unchanged engine code. Private reproducer and log:
-audio-capture-restart-check.py and audio-capture-restart-before.log. No speculative
-engine fix was made. Source manifest, known-good tag and accepted fixtures remain
-unchanged; audio-self-review.md records the allocation/lifetime/boundary review.
+Full client state includes its last usercmd_t, not just playerState_t. The existing
+round-trip probe now requires that description, including byte-sized weapon and
+signed movement storage, and fails on the missing schema (state-usercmd-before.log).
+Extend the shared declaration inventory and verify unchanged replication output;
+do not change user-command encoding or movement arithmetic.
+
+## #19 libc RNG capture and preserved behavior
+
+Owned engine rand/srand calls now route through Q_Rand/Q_Srand, retaining libc's
+generator and tracking its seed, draw count and an eight-value signature. Explicit
+restore replays at most 100,000,000 draws; a mismatched generator signature rejects
+and restores the running stream. No per-frame allocation or FP arithmetic change.
+The existing token stripper enforces ownership of raw libc calls in tests/state.py.
+
+A follow-up pre-fix assertion exposed an initial-wrapper error: its first draw
+reset an inherited libc stream to seed 1. The corrected wrapper preserves all
+pre-seed draws and marks their state unavailable until the engine explicitly seeds
+it (as server map startup already does). state-libc-initial-before.log records the
+failure; both compiler tests now cover inherited state, same-sequence operation,
+restore, signature rejection and the replay bound. Capture never reseeds a stream.
+
+GCC/Clang UBSan, client/dedicated build, full tidy (1370 configurations),
+format/types/boundaries pass. Both accepted bot hashes remain unchanged:
+q3dm17 fea77580629db3b6d8b0130a64d41716e93b786b7d06b1ffea85e200eeb343e6;
+q3dm7 14c8ee7d86fd8712533e75cfc44462045714c143208412a440eb119ceab83dd1.
+Both fixed demos retain frame hash
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+Evidence: state-libc-{gcc,clang,build,tidy,format,types,boundaries,runtime,demo}.log.
+Full game-state loading is still unimplemented; these are supporting primitives.
+
+## #19 libc RNG checkpoint test before implementation
+
+The common state probe now requires engine RNG wrappers to match libc's original
+256-value sequence and resume after restoring seed/draw position. A saved-generator
+signature mismatch must reject while preserving the running stream. The test
+fails on the missing API (state-libc-before.log). Compile existing q_shared with
+its production warning policy; keep strict conversion/shadow checks on new state
+code. Do not alter random arithmetic or switch generators. Capture will track
+owned engine calls, with a bounded replay count and a generator signature to
+reject incompatible libc streams. Full real-client continuation remains mandatory.
+
+## #19 bounded text implementation and local rebuild
+
+The committed missing-String test 62c880e7 now passes GCC and Clang/libc++ UBSan
+(state-string-{gcc,clang}.log). Named string fields retain a declared capacity but
+store only terminated used bytes. Loading into a larger capacity is supported;
+unterminated text and insufficient destination capacity reject before mutation.
+Existing numeric/Bytes encoding remains unchanged. Focused tidy, formatting,
+MinGW/AArch64 compilation, client/dedicated build and the real old-profile migration
+pass (state-string-{tidy,format,build,profile}.log).
+
+A private read-only rand/srand call-origin trace on the real local bot scenario
+reports only the engine executable as a caller (checkpoint-rng-audit/checkpoint.log).
+This is local evidence for investigating libc RNG capture, not a cross-platform
+restoration guarantee. The native generator and libc generator remain distinct;
+full checkpoint commands are still unimplemented.
+
+## #19 bounded text state test before implementation
+
+Entity state contains many separately referenced strings. The state probe now
+requires a bounded string field to serialize only its used bytes and load after
+the destination capacity grows from 32 to 64 bytes. It fails on the missing
+String field kind (state-string-before.log). This avoids serializing native
+pointers or filling each entity's file record with maximum-capacity empty text.
+Existing profile Bytes fields and the frozen v1 profile remain unchanged.
+
+## #19 native RNG seed exposure
+
+The committed missing-getter test dca6282c passes GCC and Clang/libc++ UBSan
+(state-rng-{gcc,clang}.log). Q_GetRandomSeed reads the existing full-width seed;
+restoration uses existing srand. Neither original RNG function was edited, and
+compiled instruction comparison confirms rand/srand are unchanged with both
+compilers (state-rng-codegen.log). Format/types pass. This is native RNG exposure
+only; botlib's libc state and full checkpoints remain outstanding.
+
+## #19 native RNG state test before implementation
+
+The state test now also compiles the real native bg_lib through its module
+wrapper and production strict/wrap flags. It verifies 4096 original integer RNG
+steps, serializes the full seed and requires the next 256 draws after restore to
+match. It fails on the missing read-only Q_GetRandomSeed API (state-rng-before.log).
+Expose the existing seed only; retain srand/rand arithmetic and use the existing
+srand entry point for restoration. Botlib's separate libc RNG remains outstanding.
+
+## #19 unsigned trajectory metadata correction test
+
+Review of q_shared.h found trType_t has explicit uint32_t storage. The new save
+metadata initially labeled its bytes Int32, although bit round trips passed. The
+probe now requires UInt32 for both trajectory type fields and fails on that label
+(state-enum-before.log). The generator correction now passes GCC and Clang/libc++ UBSan with both engine
+and game declarations (state-enum-{gcc,clang}.log). The pre-existing network format
+remains untouched.
+
+## #19 additional local verification
+
+The archive module compiles under MinGW and AArch64 with conversion/shadow errors
+enabled. Client/dedicated rebuild and the real OpenArena profile/migration test
+pass (state-archive-build.log, state-archive-profile.log). Workspace coverage now
+also checks world overlay flags and fresh-process panel/cvar/filter restoration;
+both content sets pass (profile-workspace-world-{oa,q3}.log). No profile fixture was
+regenerated. Full lifetime analysis passes all 1312 configurations (state-profile-lifetimes.log); hosted #18 still has only its
+normal authored-level/runtime block outstanding.
+
+## #19 checkpoint record grouping implementation
+
+The committed archive test b68b7dcd now passes GCC and Clang/libc++ UBSan for
+engine and game types (state-archive-{gcc,clang}.log). The bounded caller-owned
+container groups existing field records by schema name and slot, hashes the whole
+payload, checks duplicate identities and preserves per-record versions. Failed
+appends make finalization fail, so an incomplete archive cannot be published.
+An initial magic-string spelling mismatch was caught by the first round trip and
+corrected before acceptance. Focused tidy and format pass.
+
+Before this addition, full profile/shared-metadata tidy passed 1370 production
+configurations (state-profile-tidy.log). The lifetime run remains in progress;
+full final analysis must cover the completed #19 implementation. No game save/load
+implementation or merge acceptance is claimed yet.
+
+## #19 checkpoint record grouping test before implementation
+
+The existing state probe now requires multiple independently versioned records
+in one caller-owned buffer, addressed by schema name and slot, and reads them in a
+different order. It fails on the missing archive API (state-archive-before.log).
+This is the minimal grouping needed for all entity/client/subsystem records in a
+single checkpoint; reuse the existing field format rather than add another field
+serializer. No game integration or acceptance is claimed.
+
+## #19 real checkpoint test before implementation
+
+New tests/checkpoint_runtime.py starts a real local game with a live bot, pauses
+through the existing menu, and requires numbered savegame files. It then requires
+exact paused-world restoration, identical resumed simulation and the same results
+in a fresh process with a different initial seed. The pre-implementation run fails
+at the missing save file (checkpoint-before.log). The first draft tried to set the
+readonly pause cvar; the test was corrected to use actual Escape input before
+recording the missing-feature failure. No engine change was needed for that.
+
+This is an initial acceptance test, still to be extended for authored state and
+version migration. Implement only after accepted #18 main is merged forward.
+Bot/game/server clocks, RNG and callback/reference restoration belong in scope;
+restoring only player fields cannot pass the continuation requirement.
+
+## #19 shared replication descriptions
+
+The committed missing-description test 8d1299b9 now passes with both engine and
+native-game declarations under GCC and Clang/libc++ UBSan. tools/replication.py
+emits public named, typed state fields from its existing exhaustive member
+inventory, including local members and arrays; stale-output checks cover both
+outputs. Every byte of entityState_t/playerState_t round-trips. The existing
+replication.inc remains byte-identical and both compilers retain accepted wire
+digest 26a5fc0d8e5afbfcc1634ddbfcf67155c6a2c6156066b86d20088690dff7d496.
+Evidence: state-shared-{gcc,clang,wire-gcc,wire-clang,format,affected}.log.
+
+This describes only the two shared network-state structs, not all game state.
+Entity-definition metadata and complete checkpoint integration remain required.
+
+## #19 shared replication metadata test before implementation
+
+The state probe now requires full entityState_t/playerState_t round trips,
+including local-only members and separately encoded arrays. It fails on the
+missing public state_replication.h (state-shared-before.log). Generate its typed
+named-field description from the same q_shared annotations already used by the
+wire table; retain the existing wire output and digest unchanged. This avoids a
+second manually maintained player/entity inventory. Full game state still needs
+non-networked game and subsystem records beyond these two structs.
+
+## #19 workspace implementation and migration verification
+
+The committed workspace failure a12b78a8 now passes on both content sets
+(profile-editor-first.log, profile-editor-q3.log). Version 2 adds named fields for
+panel, selected cvar, filters, window layout and world-display preferences through
+the same serializer. ImGui's existing memory settings API handles window layout;
+no parallel layout format or OS access is added. Version 1 explicitly initializes
+the new fields to Console, empty selection/filters/layout, disabled overlays and a
+512-unit radius. Shipping/dedicated builds can read and ignore editor preferences.
+
+Client/server build and format/types/boundaries pass. The runtime test checks
+same-process restoration, fresh-process bindings/settings and the immutable v1
+fixture. All data remains bounded POD; no per-frame allocation is introduced.
+Full game checkpoints, shared entity/replication metadata and hosted final gates
+are still outstanding; this is not #19 acceptance.
+
+## #19 editor/profile migration test before implementation
+
+Created one new frozen version-1 profile fixture using the e199e8bc client,
+OpenArena and an isolated home. Review confirms 239 archived cvars, 51 bindings,
+volume 0.31, no private/CD-key values or absolute paths; raw size 4,735,504 bytes,
+gzip 8,508 bytes. Hashes/provenance accompany it under tests/assets/state. Its
+creation command refuses to overwrite existing data; no accepted old fixture changed.
+
+The extended real-client test requires panel/cvar/filter restoration and loading
+that old file with explicit defaults for the newly added workspace. It fails on
+unchanged Textures/r_mode/r_ selection after profile load (profile-editor-before.log).
+Add workspace metadata through the same versioned serializer, with version-1
+migration defaults. Full game checkpoints and shared replication/entity metadata
+remain outstanding.
+
+## #19 settings profile implementation
+
+The committed real-client failure 63fcdb68 now passes with both content sets
+(profile-first.log, profile-q3.log), including a fresh process and byte-identical
+older revision. saveprofile/loadprofile use the shared named-field envelope,
+archive cvar values (including latched values), stable key names and existing
+filesystem/binding services. Private cvars/CD keys are excluded. Version-1 record
+capacities are fixed, strings/counts/names/keys/registry capacity are checked before
+applying values, and existing readonly/latch behavior is respected. Numbered user
+files never overwrite an earlier revision. Legacy q3config.cfg remains readable.
+
+Temporary profile/file buffers use the existing zone allocator only during an
+explicit command and are freed afterward; no per-frame allocation or new OS access.
+The fixed tables use under 5 MiB per revision. Initial build corrections supplied
+the existing shared-type include and actual Cvar_Flags API name. Client/server
+build, format/types/boundaries pass. Editor workspace and full checkpoint state
+remain required, and this is not #19 acceptance.
+
+## #19 profile test before implementation
+
+`tests/profile_runtime.py` starts an isolated real devtools client, changes an
+archived volume setting and a real F8 binding, and requires numbered profile
+saves plus reload in the same and a fresh process. Earlier revisions must remain
+byte-identical. It fails at the absent saveprofile file (profile-before.log) on
+the accepted UI client. Profiles will use the common named-field serializer and
+existing cvar/binding/filesystem services; numbered saves avoid overwriting user
+data. No automatic replacement of legacy q3config.cfg is intended. Editor workspace
+and full game-state acceptance remain separate required slices of #19.
+
+## #19 field serializer implementation
+
+The committed missing-API test (10c1bee0, introduction-version extension 26e2824d)
+now passes GCC and Clang/libc++ UBSan (state-{first,clang}.log). The small shared
+serializer emits a version/hash envelope and named typed fields, excluding native
+offsets and padding. It validates schema/record bounds, types, duplicates and
+required fields before mutating output. Added fields retain caller defaults until
+an explicit version migration; removed fields are consumed without publication.
+The probe preserves common bits through reordering/removal/addition and v2 reload.
+Storage is caller-owned and core state is trivial; no IO or allocation occurs.
+Production CMake and affected-test selection include the module. This is only the
+common format, not checkpoint/settings/editor/replication integration or acceptance.
+Focused tidy and MinGW/aarch64 compilation also pass. Source review finds 64-bit
+generation identities in existing rewind state, so the next probe requires their
+exact preservation; it fails on the missing UInt64 field kind
+(state-identity-before.log). The added UInt64 field kind now passes GCC and
+Clang/libc++ UBSan, including high-bit identities through migration/reload
+(state-identity-{gcc,clang}.log).
+
+## #19 initial migration test
+
+`tests/state.py` compiles the bounded POD serializer probe under strict conversion/
+shadow diagnostics and UBSan. Version 1 contains health, a removed item field,
+position and name; version 2 reorders fields, removes that item and adds armor.
+It requires bit-preserved common values, an explicit armor-default migration,
+and a version-2 round trip. The initial command fails on the absent
+engine/public/state_public.h and engine/qcommon/state.cpp (state-before.log).
+New fields record their introduction version so missing required old fields cannot
+be mistaken for a migration default. This test fixes only the serialization
+contract; it is not full savegame acceptance.
 
 ## #16 weapon acceptance and final gates
 

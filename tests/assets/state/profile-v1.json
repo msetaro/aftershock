@@ -1,0 +1,10 @@
+{
+  "source_commit": "e199e8bc",
+  "content": "openarena",
+  "version": 1,
+  "raw_sha256": "81e5751653d7960d5e4518db26f28ba5914d4e4e53dff40854a5c85f13461695",
+  "gzip_sha256": "dca142b3f5a1ec368b436966d90a02e9d9dac1d726d544c301569ee0e95db766",
+  "bytes": 4735504,
+  "cvars": 239,
+  "bindings": 51
+}

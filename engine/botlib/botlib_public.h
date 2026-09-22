@@ -512,3 +512,16 @@ name:						default:			module(s):			description:
 void Bot_DeveloperNavigation( const float *origin, float radius,
 	void ( *line )( const float *start, const float *end, uint32_t color ) );
 #endif
+
+// Full checkpoint phases. PrepareSettings runs after shutdown, before normal
+// setup and map loading. PrepareState then rebuilds empty actor/cache pools;
+// failure requires discarding that world. ReadState validates all owners before
+// applying. The server keeps simulation stopped until every owner and RNG is ready.
+struct stateWriter_t;
+struct stateReader_t;
+bool BotLib_WriteState( stateWriter_t *writer, uint32_t now );
+bool BotLib_PrepareSettings( const stateReader_t &reader );
+bool BotLib_PrepareState( const stateReader_t &reader, uint32_t now );
+bool BotLib_ReadState( const stateReader_t &reader, uint32_t now, bool apply );
+
+bool BotLib_HasActorState( int character, int move, int goal, int weapon, int chat );

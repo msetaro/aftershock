@@ -110,3 +110,89 @@ void SP_composed( gentity_t *entity ) {
 	}
 	trap_LinkEntity( entity );
 }
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_composed[] = {
+	{ .name = "ComposedDie", .die = ComposedDie },
+	{ .name = "ComposedThink", .think = ComposedThink },
+	{ .name = "ComposedTouch", .touch = ComposedTouch },
+	{ .name = "ComposedUse", .use = ComposedUse },
+	{ nullptr }
+};
+#endif
+
+// Column records keep this fixed side array compact without writing bool padding.
+struct composedSave_t {
+	uint32_t started[MAX_GENTITIES], nextTouch[MAX_GENTITIES], flags[MAX_GENTITIES];
+	int32_t firstFrame[MAX_GENTITIES], frames[MAX_GENTITIES], frameMS[MAX_GENTITIES], waitMS[MAX_GENTITIES], sound[MAX_GENTITIES];
+	float splashRadius[MAX_GENTITIES];
+};
+static_assert( sizeof( composedSave_t ) == 36864 );
+static constexpr stateField_t composedFields[] = {
+	{ "started", offsetof( composedSave_t, started ), MAX_GENTITIES, stateType_t::UInt32 },
+	{ "nextTouch", offsetof( composedSave_t, nextTouch ), MAX_GENTITIES, stateType_t::UInt32 },
+	{ "flags", offsetof( composedSave_t, flags ), MAX_GENTITIES, stateType_t::UInt32 },
+	{ "firstFrame", offsetof( composedSave_t, firstFrame ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "frames", offsetof( composedSave_t, frames ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "frameMS", offsetof( composedSave_t, frameMS ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "waitMS", offsetof( composedSave_t, waitMS ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "sound", offsetof( composedSave_t, sound ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "splashRadius", offsetof( composedSave_t, splashRadius ), MAX_GENTITIES, stateType_t::Float32 },
+};
+static constexpr stateSchema_t composedSchema = { "game.composed", 1, 1, sizeof( composedSave_t ), composedFields, 9 };
+static bool ValidComposed( const composedSave_t &saved ) {
+	for ( int i = 0; i < MAX_GENTITIES; ++i ) {
+		if ( saved.flags[i] > 7 || saved.waitMS[i] < 0 || saved.waitMS[i] > 60000 || saved.sound[i] < 0 || saved.sound[i] >= MAX_SOUNDS ||
+			 !std::isfinite( saved.splashRadius[i] ) || saved.splashRadius[i] < 0 || saved.splashRadius[i] > 4096 )
+			return false;
+		if ( saved.frames[i] && ( saved.frames[i] < 1 || saved.frames[i] > 4096 || saved.firstFrame[i] < 0 || saved.firstFrame[i] > 4095 || saved.frameMS[i] < 10 || saved.frameMS[i] > 10000 ) )
+			return false;
+	}
+	return true;
+}
+bool G_WriteComposedState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	composedSave_t saved;
+	for ( int i = 0; i < MAX_GENTITIES; ++i ) {
+		const auto &state = composed[i];
+		saved.started[i] = state.started;
+		saved.nextTouch[i] = state.nextTouch;
+		saved.firstFrame[i] = state.firstFrame;
+		saved.frames[i] = state.frames;
+		saved.frameMS[i] = state.frameMS;
+		saved.waitMS[i] = state.waitMS;
+		saved.sound[i] = state.sound;
+		saved.splashRadius[i] = state.splashRadius;
+		saved.flags[i] = uint32_t( state.loopAnimation ) | ( uint32_t( state.once ) << 1 ) | ( uint32_t( state.loopSound ) << 2 );
+	}
+	if ( !ValidComposed( saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, composedSchema, 0, &saved );
+}
+bool G_ReadComposedState( const stateReader_t &reader, bool apply ) {
+	composedSave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, composedSchema, 0, &saved, &version ) || !ValidComposed( saved ) )
+		return false;
+	if ( apply ) {
+		for ( int i = 0; i < MAX_GENTITIES; ++i ) {
+			auto &state = composed[i];
+			state.started = saved.started[i];
+			state.nextTouch = saved.nextTouch[i];
+			state.firstFrame = saved.firstFrame[i];
+			state.frames = saved.frames[i];
+			state.frameMS = saved.frameMS[i];
+			state.waitMS = saved.waitMS[i];
+			state.sound = saved.sound[i];
+			state.splashRadius = saved.splashRadius[i];
+			state.loopAnimation = ( saved.flags[i] & 1 ) != 0;
+			state.once = ( saved.flags[i] & 2 ) != 0;
+			state.loopSound = ( saved.flags[i] & 4 ) != 0;
+		}
+	}
+	return true;
+}

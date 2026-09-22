@@ -212,7 +212,7 @@ to the clients -- only the fields that differ from the
 baseline will be transmitted
 ================
 */
-static void SV_CreateBaseline( void ) {
+void SV_CreateBaseline( void ) {
 	sharedEntity_t *ent;
 	int entnum;
 
@@ -522,7 +522,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	sv.pure = sv_pure->integer;
 
 	// get a new checksum feed and restart the file system
-	srand( Com_Milliseconds() );
+	Q_Srand( Com_Milliseconds() );
 	Com_RandomBytes( (byte *)&sv.checksumFeed, sizeof( sv.checksumFeed ) );
 	FS_Restart( sv.checksumFeed );
 
@@ -568,7 +568,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	sv_pure->modified = qfalse;
 
 	// run a few frames to allow everything to settle
-	for ( i = 0; i < 3; i++ ) {
+	for ( i = 0; i < 3 && !SV_CheckpointLoading(); i++ ) {
 		Cbuf_Wait();
 		sv.time += 100;
 		Game_RunFrame( sv.time );
@@ -614,11 +614,13 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	}
 
 	// run another frame to allow things to look at all the players
-	Cbuf_Wait();
-	sv.time += 100;
-	Game_RunFrame( sv.time );
-	SV_BotFrame( sv.time );
-	svs.time += 100;
+	if ( !SV_CheckpointLoading() ) {
+		Cbuf_Wait();
+		sv.time += 100;
+		Game_RunFrame( sv.time );
+		SV_BotFrame( sv.time );
+		svs.time += 100;
+	}
 
 	// we need to touch the cgame and ui qvm because they could be in
 	// separate pk3 files and the client will need to download the pk3
@@ -900,6 +902,7 @@ before Sys_Quit or Sys_Error
 ================
 */
 void SV_Shutdown( const char *finalmsg ) {
+	SV_ClearCheckpoint();
 	if ( !com_sv_running || !com_sv_running->integer ) {
 		return;
 	}

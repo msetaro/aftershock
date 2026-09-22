@@ -122,6 +122,13 @@ def build_modules(output, cc='cc', modules=('game', 'cgame', 'ui'), cxx='c++', l
             (output / calls).write_text('#include "' + str(public) + '"\n' + direct)
             exports = (ROOT / 'game' / module / (prefix + '_native_exports.inc')).read_text()
             exports = exports.replace(module + '::', '')
+            if module == 'game':
+                # The pinned legacy C game has no checkpoint owners. Keep its
+                # regression ABI linkable and explicitly reject these services.
+                exports, count = re.subn(
+                    r'(int Game_(?:WriteCheckpoint|ReadCheckpointCvars|ReadCheckpoint|RestoreCheckpointRandom)\([^)]*\)) \{[^}]*\}',
+                    r'\1 { return 0; }', exports)
+                assert count == 4
             main.write_text(main.read_text() + '\n#include "' + str(public) + '"\n' + exports)
         command = [*compiler, '-x', 'c', '-std=gnu99', '-O2', '-fPIC', '-shared', precision,
                    '-ffp-contract=off', '-fno-strict-aliasing', '-fwrapv', '-fno-builtin',

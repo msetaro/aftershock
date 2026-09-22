@@ -5,6 +5,11 @@
 #include <cmath>
 #include <cstring>
 
+// weaponDef_t is the layout-asserted version-2 cooked payload.
+void Weapon_DefinitionHash( const weaponDef_t *definition, uint8_t digest[32] ) {
+	calc_sha_256( digest, definition, sizeof( *definition ) );
+}
+
 void Weapon_StateHash( const weaponState_t *state, uint8_t digest[32] ) {
 	calc_sha_256( digest, state, sizeof( *state ) );
 }
