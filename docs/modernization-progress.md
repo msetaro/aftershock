@@ -35,12 +35,13 @@ Local full UI/runtime/style/type/boundary/lifetime/tidy/cross checks pass; focus
 checks after merging audio also pass. Require every one of 26 current active
 hosted gates green, recheck exact main/base, then ready/merge with a merge commit.
 
-#18 is local on issue/18-entity-definitions in
-/home/matt/.cache/aftershock-modernization/entities-tree, no PR yet. Current step:
+#18 is draft PR173 on issue/18-entity-definitions in
+/home/matt/.cache/aftershock-modernization/entities-tree, pushed code head cb84dadb. Current step:
 accepted audio main is merged forward. Both-content component/editor acceptance,
 full lifetime/tidy and unchanged fixed replay pass at 731bd28d. Self-review added
-a failing prefab flag test; the native identity correction passes OpenArena. Finish
-Quake 3 flags, commit, and open a draft for compiler feedback. UI kind 13 arrives
+a failing prefab flag test; cb84dadb preserves native callback identity and passes
+flags on both content sets. Initial build 35681818460/regression 35681818499 are
+compiler/integration feedback, not final acceptance before #17. UI kind 13 arrives
 when #17 is accepted; entities kind 14 remains alongside sound kind 12.
 Merge accepted #17 main before final #18 gates. No accepted golden regeneration.
 
@@ -67,6 +68,10 @@ linked with zero collision contents. Corrected the assertion and rebuilt the old
 (entities-alias-before.log). The new alias dispatch passes pickup and capture
 (entities-alias-after.log). Keep native classname for callbacks and a separate
 private definitionName for authored inspection, cleared when a slot is reused.
+Quake 3 also passes all three scenarios (entities-alias-q3.log). Fixed replay and
+both classic bot hashes pass again after the correction (entities-alias-demo.log,
+entities-alias-bots.log). Full tidy/lifetime reruns are active; final gates must
+include accepted #17 main. PR173 is draft, initial hosted head cb84dadb.
 
 #19 test-only preparation is 10c1bee0 in the separate state-tree worktree, branched
 from main. Its named-field added/removed/reordered migration test fails on the
