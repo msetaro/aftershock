@@ -25,6 +25,25 @@ for name in subprocess.check_output(['git','ls-files','-z','--','engine'],cwd=RO
         continue
     source=TOKENS.sub(lambda match: blank(match[0]), (ROOT/name).read_text())
     assert not raw_random.search(source), f'{name}: use Q_Rand/Q_Srand so checkpoints retain the stream'
+# Every entity callback assignment needs a stable identity in its owner table.
+assigned, registered = set(), set()
+callback_kinds = r'(think|reached|blocked|touch|use|pain|die)'
+for path in (ROOT/'game/game').glob('*.cpp'):
+    source=path.read_text()
+    code=TOKENS.sub(lambda match: blank(match[0]), source)
+    for kind, value in re.findall(r'(?:\b\w+|\])(?:->|\.)'+callback_kinds+r'\s*=(?!=)\s*([^;]+);', code):
+        value=value.strip()
+        if value in ('0','NULL','nullptr'):
+            continue
+        assert re.fullmatch(r'\w+', value), f'{path}: describe indirect callback assignment: {value}'
+        assigned.add((kind,value))
+    for name, fields in re.findall(r'\{\s*\.name\s*=\s*"(\w+)"\s*,([^}]+)\}',source):
+        for kind, value in re.findall(r'\.'+callback_kinds+r'\s*=\s*(\w+)',fields):
+            assert name==value, f'{path}: callback identity must retain its stable function name'
+            assert (kind,value) not in registered, f'duplicate callback identity: {name}'
+            registered.add((kind,value))
+assert assigned==registered, f'callback coverage: missing {assigned-registered}, unused {registered-assigned}'
+print(f'PASS: {len(assigned)} assigned entity callbacks have typed, stable save identities')
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'
@@ -44,4 +63,10 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-U_GNU_SOURCE','-D_DEFAULT_SOURCE','-D__NO_INLINE__','-Wall','-Werror',
      '-ffunction-sections','-fdata-sections','-fsanitize=undefined','-fno-sanitize-recover=all',
      'tests/probes/state_random.cpp','engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
+run([probe])
+
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+     '-fsanitize=undefined','-fno-sanitize-recover=all',
+     'tests/probes/state_callbacks.cpp','engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
 run([probe])

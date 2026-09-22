@@ -110,3 +110,14 @@ void SP_composed( gentity_t *entity ) {
 	}
 	trap_LinkEntity( entity );
 }
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_composed[] = {
+	{ .name = "ComposedDie", .die = ComposedDie },
+	{ .name = "ComposedThink", .think = ComposedThink },
+	{ .name = "ComposedTouch", .touch = ComposedTouch },
+	{ .name = "ComposedUse", .use = ComposedUse },
+	{ nullptr }
+};
+#endif

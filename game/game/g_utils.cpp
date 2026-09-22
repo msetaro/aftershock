@@ -672,3 +672,11 @@ int DebugLine( vec3_t start, vec3_t end, int color ) {
 
 	return trap_DebugPolygonCreate( color, 4, points );
 }
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_utils[] = {
+	{ .name = "G_FreeEntity", .think = G_FreeEntity },
+	{ nullptr }
+};
+#endif

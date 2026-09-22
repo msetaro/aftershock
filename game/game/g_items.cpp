@@ -1004,3 +1004,14 @@ void G_RunItem( gentity_t *ent ) {
 
 	G_BounceItem( ent, &tr );
 }
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_items[] = {
+	{ .name = "FinishSpawningItem", .think = FinishSpawningItem },
+	{ .name = "RespawnItem", .think = RespawnItem },
+	{ .name = "Touch_Item", .touch = Touch_Item },
+	{ .name = "Use_Item", .use = Use_Item },
+	{ nullptr }
+};
+#endif

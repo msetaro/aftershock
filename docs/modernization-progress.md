@@ -51,6 +51,17 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 callback identities
+
+Entity callbacks now have stable names in typed, owner-local tables, including
+static callbacks and build-conditional entries. The state probe covers all seven
+signatures, null callbacks, unknown names/functions, wrong-signature names and
+no mutation on failure. A source gate accounts for all 77 callback assignments.
+GCC and Clang/libc++ UBSan pass; the devtools client/server builds pass
+(state-callback-{gcc,clang,build}.log). Existing callback bodies are unchanged.
+Full entity references and checkpoint integration remain in progress; this is not
+savegame acceptance. #18 merged-tree regression is still being monitored.
+
 ## #19 entity definitions share the named state format
 
 The existing definition header, prefab and component-field POD records now expose

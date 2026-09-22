@@ -371,3 +371,13 @@ void Svcmd_AbortPodium_f( void ) {
 		podium1->think = CelebrateStop;
 	}
 }
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_arenas[] = {
+	{ .name = "CelebrateStart", .think = CelebrateStart },
+	{ .name = "CelebrateStop", .think = CelebrateStop },
+	{ .name = "PodiumPlacementThink", .think = PodiumPlacementThink },
+	{ nullptr }
+};
+#endif

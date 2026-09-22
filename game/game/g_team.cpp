@@ -1456,3 +1456,26 @@ qboolean CheckObeliskAttack( gentity_t *obelisk, gentity_t *attacker ) {
 	return qfalse;
 }
 #endif
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_team[] = {
+#ifdef MISSIONPACK
+	{ .name = "ObeliskDie", .die = ObeliskDie },
+#endif
+#ifdef MISSIONPACK
+	{ .name = "ObeliskPain", .pain = ObeliskPain },
+#endif
+#ifdef MISSIONPACK
+	{ .name = "ObeliskRegen", .think = ObeliskRegen },
+#endif
+#ifdef MISSIONPACK
+	{ .name = "ObeliskRespawn", .think = ObeliskRespawn },
+#endif
+#ifdef MISSIONPACK
+	{ .name = "ObeliskTouch", .touch = ObeliskTouch },
+#endif
+	{ .name = "Team_DroppedFlagThink", .think = Team_DroppedFlagThink },
+	{ nullptr }
+};
+#endif

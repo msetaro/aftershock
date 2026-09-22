@@ -1182,3 +1182,15 @@ qboolean G_RadiusDamage( vec3_t origin, gentity_t *attacker, float damage, float
 
 	return hitClient;
 }
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_combat[] = {
+#ifdef MISSIONPACK
+	{ .name = "Kamikaze_DeathActivate", .think = Kamikaze_DeathActivate },
+#endif
+	{ .name = "body_die", .die = body_die },
+	{ .name = "player_die", .die = player_die },
+	{ nullptr }
+};
+#endif

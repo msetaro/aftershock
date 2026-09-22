@@ -206,3 +206,13 @@ void G_RewindTargetCommand( void ) {
 	G_Printf( "Rewind target created: entity=%d owner=%d\n", target->s.number, owner );
 }
 #endif
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_rewind[] = {
+#ifdef AFTERSHOCK_DEVTOOLS
+	{ .name = "RewindTargetThink", .think = RewindTargetThink },
+#endif
+	{ nullptr }
+};
+#endif
