@@ -66,7 +66,8 @@ All 26 exact-head and integrated jobs pass (merged build 35757322676 and regress
 #22 PR178 merged as main aa96932abb13f761d0a71dde89f95d33893a45c8 at
 2026-09-22 18:28:14 UTC after all 26 exact-head jobs passed on b23ef158. Final
 self-review and current-main/base/head/tag checks pass; merge tree 309bac591a8225478a52321b0205a547f885a996
-matches the tested tree. Integrated build 35767363858/regression 35767363841 are running.
+matches the tested tree. Integrated build 35767363858/regression 35767363841 pass
+all 26 required jobs. #22 is fully accepted; issue #22 and #25 are updated.
 
 #23 draft PR179 final head 1f395716 includes merged #22 main aa96932a. Combined
 GCC/Clang UBSan services, identity/discovery, format and affected/suite catalog
@@ -78,6 +79,15 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
+
+## #29 terminal assignment cleanup
+
+The results read contract includes completion metadata for the caller's current
+assignment, selected by the backend from its database. A final acknowledged empty
+or aborted match releases queue ownership without inventing personal statistics.
+The previously failing empty-match test now passes alongside all DB/TLS/race checks
+(backend-terminal-after/contracts.log). Client query parameters cannot select this
+assignment. Read API storage remains with the existing development stub until #30.
 
 ## #29 terminal assignment contract, test first
 

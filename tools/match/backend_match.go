@@ -300,7 +300,13 @@ func (b *backendService) readResults(w http.ResponseWriter, r *http.Request, pla
 		backendError(w, 503, "results_unavailable")
 		return
 	}
-	input, _ := structpb.NewStruct(map[string]any{"version": 1, "player_id": player, "before": query.Get("before")})
+	var active string
+	err = b.db.QueryRowContext(r.Context(), "SELECT match_id FROM backend_match_members WHERE player_id=$1 AND active", player).Scan(&active)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		backendError(w, 503, "unavailable")
+		return
+	}
+	input, _ := structpb.NewStruct(map[string]any{"version": 1, "player_id": player, "before": query.Get("before"), "active_match": active})
 	var response structpb.Struct
 	ctx := metadata.AppendToOutgoingContext(r.Context(), "authorization", "Bearer "+b.reader)
 	if err = b.results.Invoke(ctx, "/aftershock.match.v1.Ingest/Read", input, &response, grpc.MaxCallRecvMsgSize(65536)); err != nil {
@@ -309,12 +315,12 @@ func (b *backendService) readResults(w http.ResponseWriter, r *http.Request, pla
 	}
 	data, err := response.MarshalJSON()
 	var result resultsResponse
-	if err != nil || strictJSON(data, &result) != nil || result.Version != 1 || len(result.Results) > 20 || len(result.Leaderboard) > 100 {
+	if err != nil || strictJSON(data, &result) != nil || result.Version != 1 || len(result.Results) > 20 || len(result.Leaderboard) > 100 || (result.Finished != "" && result.Finished != active) {
 		backendError(w, 503, "invalid_results")
 		return
 	}
 	// Only queue ownership changes here. Match data belongs to the ingest service.
-	if len(result.Results) > 0 {
+	if result.Finished != "" {
 		tx, err := b.db.BeginTx(r.Context(), nil)
 		if err != nil {
 			backendError(w, 503, "unavailable")
@@ -322,14 +328,11 @@ func (b *backendService) readResults(w http.ResponseWriter, r *http.Request, pla
 		}
 		defer tx.Rollback()
 		_, err = tx.ExecContext(r.Context(), "SELECT pg_advisory_xact_lock(29002)")
-		for _, match := range result.Results {
-			if err != nil {
-				break
-			}
+		if err == nil {
 			_, err = tx.ExecContext(r.Context(), `WITH finished AS (
 UPDATE backend_matches SET state='complete' WHERE id=$1 AND state='allocated'
 AND EXISTS(SELECT 1 FROM backend_match_members WHERE match_id=$1 AND player_id=$2) RETURNING id)
-UPDATE backend_match_members SET active=false WHERE match_id IN (SELECT id FROM finished)`, match.Match, player)
+UPDATE backend_match_members SET active=false WHERE match_id IN (SELECT id FROM finished)`, result.Finished, player)
 		}
 		if err == nil {
 			err = tx.Commit()

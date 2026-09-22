@@ -25,6 +25,7 @@ type leaderboardRow struct {
 	accountStats
 }
 type resultsResponse struct {
+	Finished    string           `json:"finished_match"`
 	Version     int              `json:"version"`
 	Results     []matchResult    `json:"results"`
 	Next        string           `json:"next"`
@@ -44,13 +45,17 @@ func (s *ingest) Read(ctx context.Context, input *structpb.Struct) (*structpb.St
 		Version  int    `json:"version"`
 		PlayerID string `json:"player_id"`
 		Before   string `json:"before,omitempty"`
+		Active   string `json:"active_match,omitempty"`
 	}
-	if err != nil || strictJSON(data, &query) != nil || query.Version != 1 || !contracts.PlayerID(query.PlayerID) || (query.Before != "" && !identifier.MatchString(query.Before)) {
+	if err != nil || strictJSON(data, &query) != nil || query.Version != 1 || !contracts.PlayerID(query.PlayerID) || (query.Before != "" && !identifier.MatchString(query.Before)) || (query.Active != "" && !identifier.MatchString(query.Active)) {
 		return nil, status.Error(codes.InvalidArgument, "invalid result query")
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	result := resultsResponse{Version: 1, Results: []matchResult{}, Leaderboard: []leaderboardRow{}}
+	if query.Active != "" && s.closed[query.Active] {
+		result.Finished = query.Active
+	}
 	leaders := map[string]leaderboardRow{}
 	// ponytail: #28's development stub scans final records in memory; #30 replaces
 	// this with indexed transactional results storage. Responses stay bounded.

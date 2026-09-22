@@ -594,13 +594,23 @@ func TestBackendResults(t *testing.T) {
 	if r := call("/v1/leaderboard", 200); len(r.Leaderboard) != 2 || len(r.Results) != 0 {
 		t.Fatal(r)
 	}
-// An assigned player who never entered still needs terminal queue cleanup.
-	if _,err=db.Exec(`INSERT INTO backend_matches(id,leader,spec,join_key,ingest_token,state) VALUES('result-empty','901','{}',$1,$1,'allocated')`,strings.Repeat("a",64));err!=nil{t.Fatal(err)}
-	if _,err=db.Exec(`INSERT INTO backend_match_members(match_id,player_id) VALUES('result-empty','901')`);err!=nil{t.Fatal(err)}
-	store.mu.Lock();store.tokens["result-empty"]="allocation-secret";store.mu.Unlock()
-	if err=store.accept(batch{Version:1,Match:"result-empty",Final:true},"allocation-secret");err!=nil{t.Fatal(err)}
-	call("/v1/results",200)
-	if err=db.QueryRow("SELECT active FROM backend_match_members WHERE match_id='result-empty'").Scan(&active);err!=nil || active{t.Fatal("terminal empty assignment not released",err)}
+	// An assigned player who never entered still needs terminal queue cleanup.
+	if _, err = db.Exec(`INSERT INTO backend_matches(id,leader,spec,join_key,ingest_token,state) VALUES('result-empty','901','{}',$1,$1,'allocated')`, strings.Repeat("a", 64)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(`INSERT INTO backend_match_members(match_id,player_id) VALUES('result-empty','901')`); err != nil {
+		t.Fatal(err)
+	}
+	store.mu.Lock()
+	store.tokens["result-empty"] = "allocation-secret"
+	store.mu.Unlock()
+	if err = store.accept(batch{Version: 1, Match: "result-empty", Final: true}, "allocation-secret"); err != nil {
+		t.Fatal(err)
+	}
+	call("/v1/results", 200)
+	if err = db.QueryRow("SELECT active FROM backend_match_members WHERE match_id='result-empty'").Scan(&active); err != nil || active {
+		t.Fatal("terminal empty assignment not released", err)
+	}
 	b.reader = "wrong"
 	call("/v1/results", 503)
 }
