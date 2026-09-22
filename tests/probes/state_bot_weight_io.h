@@ -47,8 +47,8 @@ int QDECL Com_sprintf( char *out, int size, const char *format, ... ) {
 void QDECL Com_Error( errorParm_t, const char *, ... ) {
 	abort();
 }
-int Q_stricmp( const char *, const char * ) {
-	abort();
+int Q_stricmp( const char *left, const char *right ) {
+	return strcmp( left, right ); // Fixed lowercase identifiers in these owned sources.
 }
 void Q_strcat( char *, int, const char * ) {
 	abort();

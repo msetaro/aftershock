@@ -44,7 +44,7 @@ libvars, global clocks and map identities. AAS records cover entities, spatial
 lists, world/physics state and routing caches; BSP content and the quiescent parser
 boundary are verified. Game-side bot actor/navigation/waypoint/scheduler/queue/team
 records are also complete. Character, movement, weight, goal and weapon preparation now rebuild saved
-slots locally. Remaining work: reconstruct chat handles/content; finish other game globals and semantic validation; coordinate live
+slots locally. Chat handles/content also reconstruct locally. Remaining work: finish other game globals and semantic validation; coordinate live
 server/client restore and both RNG streams; add the platform save-provider seam
 and frozen full-game N-to-N+1 OpenArena fixture. No partial checkpoint acceptance.
 After #19, take the newly reproduced chat-shutdown boundary bug in a separate
@@ -63,6 +63,22 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 chat reconstruction and combined preparation gates
+
+Chat records now retain the source identity for private as well as cached content.
+Preparation reuses the existing chat loader, verifies content, restores line
+timers, and reconstructs exact cache sharing/private ownership. Actor preparation
+validates queue records before publishing exact saved handles into the normally
+initialized message heap. Command-time staging cleans up on failure.
+GCC/Clang libc++ UBSan exercise real loading of a small owned chat source, sparse
+slots through MAX_CLIENTS, same-next chat selection, pending message order and
+failed restore cleanup. Full state suites pass on both compilers, as do the
+client/server build and focused tidy (state-full-prepare-{gcc,clang,build,tidy}.log).
+No accepted fixture changed. #19 comment 5773155394 records the preceding handle
+checkpoint. Remaining work starts with other native globals/semantic validation,
+then live restore coordination, both RNGs, save-provider routing and full-game
+OpenArena migration acceptance; final integration gates still remain.
 
 ## #19 goal and weapon handle reconstruction
 

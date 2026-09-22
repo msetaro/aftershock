@@ -93,6 +93,7 @@ typedef struct bot_chattype_s {
 //bot chat lines
 typedef struct bot_chat_s {
 	bot_chattype_t *types;
+	char filename[MAX_QPATH], chatname[MAX_QPATH];
 } bot_chat_t;
 
 //random string
@@ -2087,6 +2088,9 @@ static bot_chat_t *BotLoadInitialChat( const char *chatfile, const char *chatnam
 #ifdef DEBUG
 	botimport.Print( PRT_MESSAGE, "initial chats loaded in %d msec\n", Sys_MilliSeconds() - starttime );
 #endif //DEBUG
+	// Retain the source identity for privately owned checkpoint content too.
+	Q_strncpyz( chat->filename, chatfile, sizeof( chat->filename ) );
+	Q_strncpyz( chat->chatname, chatname, sizeof( chat->chatname ) );
 	//character was read successfully
 	return chat;
 } //end of the function BotLoadInitialChat
@@ -2991,9 +2995,9 @@ static bool ChatQueueLinks( stateWriter_t *writer, const stateReader_t *reader, 
 	uint32_t version;
 	return writer ? State_Append( writer, schema, 0, savedChatNext ) : State_Find( *reader, schema, 0, savedChatNext, &version );
 }
-static bool ValidChatQueues( const chatQueueHeader_t &header ) {
+static bool ValidChatQueues( const chatQueueHeader_t &header, bot_chatstate_t *const *states = botchatstates ) {
 	if ( header.count < 0 || header.count > MAX_SAVED_CONSOLE_MESSAGES || header.count != allocatedConsoleMessages ||
-		 bool( header.count ) != bool( consolemessageheap ) || header.present[0] || botchatstates[0] )
+		 bool( header.count ) != bool( consolemessageheap ) || header.present[0] || states[0] )
 		return false;
 	memset( savedChatLive, 0, sizeof( savedChatLive ) );
 	// -2 means unvisited; -1 is a valid list head predecessor.
@@ -3003,7 +3007,7 @@ static bool ValidChatQueues( const chatQueueHeader_t &header ) {
 			return false;
 	}
 	for ( int owner = 0; owner <= MAX_CLIENTS; ++owner ) {
-		if ( header.present[owner] != uint32_t( botchatstates[owner] != nullptr ) )
+		if ( header.present[owner] != uint32_t( states[owner] != nullptr ) )
 			return false;
 		if ( owner && !header.present[owner] )
 			continue;
@@ -3115,7 +3119,7 @@ bool Bot_WriteChatQueueState( stateWriter_t *writer ) {
 		}
 	return true;
 }
-bool Bot_ReadChatQueueState( const stateReader_t &reader, bool apply ) {
+static bool ReadChatQueueState( const stateReader_t &reader, bool apply, bot_chatstate_t *const *states ) {
 	chatQueueHeader_t header;
 	uint32_t version;
 	if ( !State_Find( reader, chatQueueHeaderSchema, 0, &header, &version ) || header.count < 0 || header.count > MAX_SAVED_CONSOLE_MESSAGES ||
@@ -3124,7 +3128,7 @@ bool Bot_ReadChatQueueState( const stateReader_t &reader, bool apply ) {
 	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
 		if ( header.present[i] && !State_Find( reader, chatActorSchema, i, &savedChatActors[i], &version ) )
 			return false;
-	if ( !ValidChatQueues( header ) )
+	if ( !ValidChatQueues( header, states ) )
 		return false;
 	for ( uint32_t base = 0; base < uint32_t( header.count ); base += CHAT_SAVE_CHUNK )
 		if ( !ChatQueueChunk( nullptr, &reader, base, uint32_t( header.count ) - base < CHAT_SAVE_CHUNK ? uint32_t( header.count ) - base : CHAT_SAVE_CHUNK, false ) )
@@ -3141,14 +3145,42 @@ bool Bot_ReadChatQueueState( const stateReader_t &reader, bool apply ) {
 				return false;
 		for ( int i = 1; i <= MAX_CLIENTS; ++i )
 			if ( header.present[i] ) {
-				auto *chat = botchatstates[i]->chat; // Immutable chat ownership is restored separately.
-				*botchatstates[i] = savedChatActors[i];
-				botchatstates[i]->chat = chat;
-				botchatstates[i]->firstmessage = header.first[i] < 0 ? nullptr : &consolemessageheap[header.first[i]];
-				botchatstates[i]->lastmessage = header.last[i] < 0 ? nullptr : &consolemessageheap[header.last[i]];
+				auto *chat = states[i]->chat; // Immutable chat ownership is restored separately.
+				*states[i] = savedChatActors[i];
+				states[i]->chat = chat;
+				states[i]->firstmessage = header.first[i] < 0 ? nullptr : &consolemessageheap[header.first[i]];
+				states[i]->lastmessage = header.last[i] < 0 ? nullptr : &consolemessageheap[header.last[i]];
 			}
 		freeconsolemessages = header.free < 0 ? nullptr : &consolemessageheap[header.free];
 	}
+	return true;
+}
+
+bool Bot_ReadChatQueueState( const stateReader_t &reader, bool apply ) {
+	return ReadChatQueueState( reader, apply, botchatstates );
+}
+bool Bot_PrepareChatQueueState( const stateReader_t &reader ) {
+	for ( const auto *state : botchatstates )
+		if ( state )
+			return false;
+	chatQueueHeader_t header;
+	uint32_t version;
+	if ( !State_Find( reader, chatQueueHeaderSchema, 0, &header, &version ) || header.present[0] )
+		return false;
+	for ( uint32_t present : header.present )
+		if ( present > 1 )
+			return false;
+	bot_chatstate_t *draft[MAX_CLIENTS + 1] = {};
+	for ( int i = 1; i <= MAX_CLIENTS; ++i )
+		if ( header.present[i] )
+			draft[i] = (bot_chatstate_t *)GetClearedMemory( sizeof( bot_chatstate_t ) );
+	if ( !ReadChatQueueState( reader, true, draft ) ) {
+		for ( auto *state : draft )
+			if ( state )
+				FreeMemory( state );
+		return false;
+	}
+	memcpy( botchatstates, draft, sizeof( draft ) );
 	return true;
 }
 
@@ -3331,11 +3363,13 @@ static bool ChatContentIdentity( bot_chat_t *chat, bool global, chatContentIdent
 }
 static bool ChatContentRecord( stateWriter_t *writer, const stateReader_t *reader, uint32_t slot, bot_chat_t *chat, const bot_ichatdata_t *cache, bool global, bool apply ) {
 	chatContentIdentity_t loaded{};
-	if ( cache ) {
-		if ( !memchr( cache->filename, 0, sizeof( cache->filename ) ) || !memchr( cache->chatname, 0, sizeof( cache->chatname ) ) )
+	if ( cache || chat ) {
+		const char *filename = cache ? cache->filename : chat->filename;
+		const char *chatname = cache ? cache->chatname : chat->chatname;
+		if ( !memchr( filename, 0, MAX_QPATH ) || !memchr( chatname, 0, MAX_QPATH ) )
 			return false;
-		strcpy( loaded.filename, cache->filename );
-		strcpy( loaded.chatname, cache->chatname );
+		strcpy( loaded.filename, filename );
+		strcpy( loaded.chatname, chatname );
 	}
 	if ( !ChatContentIdentity( chat, global, &loaded ) )
 		return false;
@@ -3391,4 +3425,73 @@ bool Bot_ReadChatContentState( const stateReader_t &reader, bool apply ) {
 		 !ChatContentRecords( nullptr, &reader, saved, false ) )
 		return false;
 	return !apply || ChatContentRecords( nullptr, &reader, saved, true );
+}
+
+static bot_chat_t *CreateChatContent( const stateReader_t &reader, uint32_t slot ) {
+	chatContentIdentity_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, chatContentSchema, slot, &saved, &version ) || !saved.filename[0] || !saved.chatname[0] || saved.count > MAX_SAVED_CHAT_LINES )
+		return nullptr;
+	auto *chat = BotLoadInitialChat( saved.filename, saved.chatname );
+	if ( chat && !ChatContentRecord( nullptr, &reader, slot, chat, nullptr, false, true ) ) {
+		FreeMemory( chat );
+		return nullptr;
+	}
+	return chat;
+}
+bool Bot_PrepareChatContentState( const stateReader_t &reader ) {
+	for ( const auto *cache : ichatdata )
+		if ( cache )
+			return false;
+	for ( const auto *state : botchatstates )
+		if ( state && state->chat )
+			return false;
+	chatContentPool_t pool;
+	uint32_t version;
+	if ( !State_Find( reader, chatContentPoolSchema, 0, &pool, &version ) || pool.owner[0] != -3 ||
+		 !ChatContentRecord( nullptr, &reader, 2 * MAX_CLIENTS + 1, nullptr, nullptr, true, false ) )
+		return false;
+	for ( uint32_t cached : pool.cached )
+		if ( cached > 1 )
+			return false;
+	for ( int i = 0; i <= MAX_CLIENTS; ++i )
+		if ( pool.owner[i] < -3 || pool.owner[i] >= MAX_CLIENTS ||
+			 ( pool.owner[i] == -3 ) != ( botchatstates[i] == nullptr ) ||
+			 ( pool.owner[i] >= 0 && !pool.cached[pool.owner[i]] ) )
+			return false;
+	bot_ichatdata_t *caches[MAX_CLIENTS] = {};
+	bot_chat_t *privateChats[MAX_CLIENTS + 1] = {};
+	bool valid = true;
+	for ( uint32_t i = 0; i < MAX_CLIENTS && valid; ++i )
+		if ( pool.cached[i] ) {
+			auto *chat = CreateChatContent( reader, i );
+			valid = chat != nullptr;
+			if ( valid ) {
+				caches[i] = (bot_ichatdata_t *)GetClearedMemory( sizeof( bot_ichatdata_t ) );
+				caches[i]->chat = chat;
+				strcpy( caches[i]->filename, chat->filename );
+				strcpy( caches[i]->chatname, chat->chatname );
+			}
+		}
+	for ( uint32_t i = 1; i <= MAX_CLIENTS && valid; ++i )
+		if ( pool.owner[i] == -2 ) {
+			privateChats[i] = CreateChatContent( reader, MAX_CLIENTS + i );
+			valid = privateChats[i] != nullptr;
+		}
+	if ( !valid ) {
+		for ( auto *cache : caches )
+			if ( cache ) {
+				FreeMemory( cache->chat );
+				FreeMemory( cache );
+			}
+		for ( auto *chat : privateChats )
+			if ( chat )
+				FreeMemory( chat );
+		return false;
+	}
+	memcpy( ichatdata, caches, sizeof( caches ) );
+	for ( int i = 1; i <= MAX_CLIENTS; ++i )
+		if ( botchatstates[i] )
+			botchatstates[i]->chat = pool.owner[i] >= 0 ? caches[pool.owner[i]]->chat : privateChats[i];
+	return ChatContentRecord( nullptr, &reader, 2 * MAX_CLIENTS + 1, nullptr, nullptr, true, true );
 }

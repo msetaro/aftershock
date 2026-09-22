@@ -214,7 +214,7 @@ print('PASS: chat actor/console fields have scalar, queue-link or separate chat-
 for tag,name,expected in (
  ('bot_chatmessage_s','bot_chatmessage_t',{'chatmessage','time','next'}),
  ('bot_chattype_s','bot_chattype_t',{'name','numchatmessages','firstchatmessage','next'}),
- ('bot_chat_s','bot_chat_t',{'types'}),
+ ('bot_chat_s','bot_chat_t',{'types','filename','chatname'}),
  ('bot_replychat_s','bot_replychat_t',{'keys','priority','numchatmessages','firstchatmessage','next'}),
  ('bot_replychatkey_s','bot_replychatkey_t',{'flags','string','match','next'}),
  ('bot_randomstring_s','bot_randomstring_t',{'string','next'}),
@@ -398,13 +398,13 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wl,--gc-sections','-o',probe])
 run([probe])
 
-for component in ('input','move','weights','weight_prepare','characters','chat_queue','chat_content','libvars','interface','aas_entities','aas_links','aas_world','aas_settings','aas_routing','bsp_content','parser'):
+for component in ('input','move','weights','weight_prepare','characters','chat_queue','chat_content','chat_prepare','libvars','interface','aas_entities','aas_links','aas_world','aas_settings','aas_routing','bsp_content','parser'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',
          f'tests/probes/state_bot_{component}.cpp',
-         *(['engine/botlib/l_script.cpp'] if component in ('parser','weight_prepare') else []),
-         *(['engine/botlib/l_precomp.cpp'] if component=='weight_prepare' else []),
+         *(['engine/botlib/l_script.cpp'] if component in ('parser','weight_prepare','chat_prepare') else []),
+         *(['engine/botlib/l_precomp.cpp'] if component in ('weight_prepare','chat_prepare') else []),
          'engine/qcommon/state.cpp',sha,
          '-Wl,--gc-sections','-o',probe])
     run([probe])

@@ -18,7 +18,7 @@ int main() {
 	strcpy( type.name, "greeting" );
 	type.numchatmessages = 2;
 	type.firstchatmessage = lines;
-	bot_chat_t chat{ &type };
+	bot_chat_t chat{ &type, {}, {} };
 	bot_ichatdata_t cache{};
 	cache.chat = &chat;
 	strcpy( cache.filename, "bots/test_t.c" );
@@ -34,7 +34,7 @@ int main() {
 	strcpy( privateType.name, "response" );
 	privateType.numchatmessages = 1;
 	privateType.firstchatmessage = &lines[2];
-	bot_chat_t privateChat{ &privateType };
+	bot_chat_t privateChat{ &privateType, {}, {} };
 	actors[2].chat = &privateChat;
 	bot_chatmessage_t replyLine{ answer, 49, nullptr };
 	bot_matchstring_t matchString{ word, nullptr };
@@ -62,7 +62,7 @@ int main() {
 	loaded[0].next = &loaded[1];
 	bot_chattype_t loadedType = type;
 	loadedType.firstchatmessage = loaded;
-	bot_chat_t loadedChat{ &loadedType };
+	bot_chat_t loadedChat{ &loadedType, {}, {} };
 	bot_ichatdata_t loadedCache = cache;
 	loadedCache.chat = &loadedChat;
 	ichatdata[3] = &loadedCache;
