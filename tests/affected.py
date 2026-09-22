@@ -23,7 +23,7 @@ COMMANDS['unit'] = [sys.executable, 'tests/run.py', 'unit', '--negative-control'
 COMMANDS['match_go'] = ['go', '-C', 'tools/match', 'test', '-race', './...']
 # Prefix matches compose: a cooker animation edit needs both cooker and animation checks.
 RULES = (
-    (('engine/ui/', 'tools/cook/ui', 'tests/ui_framework', 'tests/probes/ui_framework', 'tests/assets/ui/'), ('ui_framework',)),
+    (('engine/ui/', 'engine/client/cl_data_ui', 'tools/cook/ui', 'tests/ui_framework', 'tests/probes/ui_framework', 'tests/assets/ui/'), ('ui_framework',)),
     (('engine/physics/', 'engine/client/cl_physics', 'engine/qcommon/cm_physics', 'game/cgame/cg_physics', 'third_party/jolt', 'cmake/Physics.cmake', 'tests/physics', 'tests/probes/physics', 'tests/assets/physics/'), ('physics',)),
     (('engine/devtools/', 'tools/agent/'), ('agent_protocol', 'agent_client', 'agent_formats', 'devtools_data')),
     (('engine/effects/', 'tools/cook/effect', 'tests/assets/effects/'), ('effects', 'effects_reference')),

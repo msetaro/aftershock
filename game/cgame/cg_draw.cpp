@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // active (after loading) gameplay
 
 #include "cg_local.h"
+#include "../../engine/public/cg_native_public.h"
 
 #ifdef MISSIONPACK
 #include "../ui/ui_shared_public.h"
@@ -2535,7 +2536,10 @@ static void CG_Draw2D( void ) {
 				CG_DrawTimedMenus();
 			}
 #else
-			CG_DrawStatusBar();
+			const int weapon = cg.snap->ps.weapon;
+			const int ammo = weapon >= 0 && weapon < MAX_WEAPONS ? cg.snap->ps.ammo[weapon] : 0;
+			if ( !CGameImport_DrawAuthoredHUD( cg.snap->ps.stats[STAT_HEALTH], cg.snap->ps.stats[STAT_ARMOR], ammo, cg.snap->ping ) )
+				CG_DrawStatusBar();
 #endif
 
 			CG_DrawAmmoWarning();

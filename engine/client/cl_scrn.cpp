@@ -526,7 +526,7 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 
 	re.BeginFrame( stereoFrame );
 
-	uiFullscreen = (qboolean)( NativeUI_Running && NativeUI_IsFullscreen() );
+	uiFullscreen = (qboolean)( CL_DataUIFullscreen() || ( NativeUI_Running && NativeUI_IsFullscreen() ) );
 
 	// wide aspect ratio screens need to have the sides cleared
 	// unless they are displaying game renderings
@@ -561,7 +561,8 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 		case CA_CONNECTED:
 			// connecting clients will only show the connection dialog
 			// refresh to update the time
-			NativeUI_Refresh( cls.realtime );
+			if ( !CL_DataUIDrawMenu() )
+				NativeUI_Refresh( cls.realtime );
 			NativeUI_DrawConnectScreen( qfalse );
 			break;
 		case CA_LOADING:
@@ -573,7 +574,8 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 			// also draw the connection information, so it doesn't
 			// flash away too briefly on local or lan games
 			// refresh to update the time
-			NativeUI_Refresh( cls.realtime );
+			if ( !CL_DataUIDrawMenu() )
+				NativeUI_Refresh( cls.realtime );
 			NativeUI_DrawConnectScreen( qtrue );
 			break;
 		case CA_ACTIVE:
@@ -589,7 +591,8 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 
 	// the menu draws next
 	if ( Key_GetCatcher() & KEYCATCH_UI && NativeUI_Running ) {
-		NativeUI_Refresh( cls.realtime );
+		if ( !CL_DataUIDrawMenu() )
+			NativeUI_Refresh( cls.realtime );
 	}
 
 	// console draws next

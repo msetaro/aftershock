@@ -113,11 +113,23 @@ with tempfile.TemporaryDirectory(prefix='aftershock-ui-runtime-') as temporary:
                 engine.step(8)
                 changed=capture('reloaded')
                 assert ImageChops.difference(english,changed).getbbox(), 'source edit must reach visible UI'
+                execute('vid_restart')
+                engine.step(8)
+                assert info()[:3]==('main','play','en'), 'renderer restart must reload the document and atlas'
+                restarted=capture('restart')
+                assert ImageChops.difference(changed,restarted).getbbox() is None, 'menu must survive renderer restart'
                 key('PAD0_A')
                 engine.step(80)
                 assert engine.request('state')['player'], 'authored Play action must start the map'
                 assert int(info()[7])>0, 'game must draw the authored HUD'
                 capture('hud')
+                key('PAD0_START')
+                assert info()[:2]==('options','volume')
+                key('PAD0_B')
+                key('PAD0_B')
+                before=int(info()[7])
+                engine.step(4)
+                assert int(info()[7])>before, 'back must return to live gameplay HUD'
                 print('PASS:',dimensions,'main/options/HUD, controller keys, rebinding, localization and source reload')
             finally:
                 shutil.copyfile(engine.log_path,output/'engine.log')

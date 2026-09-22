@@ -302,7 +302,7 @@ bool R_ReadCookedIndex( const void *data, size_t size, const uint8_t revision[32
 	for ( uint32_t i = 0; i < count; i++ ) {
 		cookedEntry_t entry;
 		memcpy( &entry, payload + 4 + i * sizeof( entry ), sizeof( entry ) );
-		if ( !entry.path[0] || entry.path[0] == '/' || !memchr( entry.path, 0, sizeof( entry.path ) ) || strstr( entry.path, ".." ) || entry.size > INT32_MAX || entry.kind < 1 || entry.kind > 11 )
+		if ( !entry.path[0] || entry.path[0] == '/' || !memchr( entry.path, 0, sizeof( entry.path ) ) || strstr( entry.path, ".." ) || entry.size > INT32_MAX || entry.kind < 1 || entry.kind > 13 )
 			return false;
 	}
 	index->entries = payload + 4;

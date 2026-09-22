@@ -57,9 +57,14 @@ copy lambda named read (an OS-call reserved name); renamed it copyRecords.
 8e65ec16 implements the native core. The real-client acceptance now fails at
 missing ui_info on the pre-UI binary (ui-runtime-before.log), before any claimed
 visual or input acceptance. It exercises existing agent key events using actual
-PAD0 engine key names; no new input-test command is needed. Next implement the
-client menu/controller/rebinding/HUD adapter, then real controller/rebinding/HUD acceptance
-at 1080p, 1440p and 4K. No maintainer input is currently needed.
+PAD0 engine key names; no new input-test command is needed. The client adapter now builds and passes the real OpenArena 1080p sequence
+(ui-runtime-first.log); inspected main/Arabic/HUD captures show readable shaped
+text and live health. Existing key events drive navigation, cvar changes and
+actual binding storage. The cgame calls one typed HUD import; legacy content
+remains opted out. Format/types/boundaries and native ABI/shared-math checks pass.
+1440p/4K acceptance is running. Finish resolution/content and restart checks,
+then merge accepted #16 main forward and run final hosted gates. No maintainer
+input is currently needed.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.

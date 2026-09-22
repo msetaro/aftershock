@@ -87,6 +87,7 @@ set(CLIENT_SOURCES
   engine/client/cl_parse.cpp
   engine/client/cl_scrn.cpp
   engine/client/cl_ui.cpp
+  engine/client/cl_data_ui.cpp
   engine/client/cl_avi.cpp
   engine/client/cl_jpeg.cpp
   engine/sound/snd_adpcm.cpp
