@@ -1,5 +1,6 @@
 #include "../../engine/botlib/be_ai_char.cpp"
 #include <assert.h>
+#include <cstddef>
 botlib_import_t botimport;
 static uint32_t clockTime;
 static void *freed;
@@ -9,6 +10,19 @@ static int Clock() {
 void FreeMemory( void *memory ) {
 	assert(memory);
 	freed = memory;
+}
+void *GetMemory(size_t size) {
+	alignas( std::max_align_t ) static unsigned char memory[65536];
+	static size_t offset;
+	const size_t start = offset;
+	offset += ( size + alignof( std::max_align_t ) - 1 ) / alignof( std::max_align_t ) * alignof( std::max_align_t );
+	assert(offset<=sizeof(memory));
+	return memory + start;
+}
+void *GetClearedMemory(size_t size) {
+	void *memory = GetMemory(size);
+	memset( memory, 0, size );
+	return memory;
 }
 int main() {
 	botimport.Sys_Milliseconds = Clock;
@@ -32,7 +46,7 @@ int main() {
 	botcharacters[4] = &original[1];
 	botcharacters[9] = &original[2];
 	clockTime = 1000;
-	static unsigned char bytes[16384];
+	static unsigned char bytes[65536];
 	stateWriter_t writer{ bytes, sizeof( bytes ) };
 	assert(Bot_WriteCharacterState(&writer,clockTime));
 	stateReader_t reader;
@@ -80,5 +94,27 @@ int main() {
 	assert(Bot_WriteCharacterState(&writer,32));
 	assert(State_Open(bytes,State_Finish(&writer),&reader));
 	assert(Bot_ReadCharacterState(reader,5,true) && restored[0].reftime==-91);
+
+	assert(!Bot_PrepareCharacterState(reader,5));
+	for ( auto &character : botcharacters )
+		character = nullptr;
+	assert(Bot_PrepareCharacterState(reader,5));
+	assert(botcharacters[1]!=&restored[0] && botcharacters[1]->reftime==-91 && botcharacters[1]->refcnt==0);
+	assert(botcharacters[4] && botcharacters[9] && !botcharacters[2]);
+	assert(botcharacters[1]->c[3].value.string!=loadedName && !strcmp(botcharacters[1]->c[3].value.string,loadedName));
+	assert(Characteristic_Float(9,2)==0.5f);
+	assert(Bot_ReadCharacterState(reader,5,false));
+	// Truncation by missing a later resolved-attribute record cannot publish an
+	// earlier character in an empty destination pool.
+	writer = { bytes, sizeof( bytes ) };
+	assert(State_Append(&writer,characterPoolSchema,0,present));
+	assert(State_Append(&writer,characterSaveSchema,1,&saved[0]));
+	assert(CharacterValuesRecord(&writer,nullptr,1,botcharacters[1],nullptr));
+	assert(State_Append(&writer,characterSaveSchema,4,&saved[1]));
+	for ( auto &character : botcharacters )
+		character = nullptr;
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	assert(!Bot_PrepareCharacterState(reader,5) && !botcharacters[1]);
+	puts( "PASS: resolved character attributes reconstruct exact empty-pool slots with owned strings before clock rebasing" );
 	puts( "PASS: relocated character caches preserve attributes, reference counts and clock-rebased eviction order" );
 }

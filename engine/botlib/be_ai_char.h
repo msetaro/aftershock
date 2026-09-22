@@ -51,3 +51,6 @@ void BotShutdownCharacters( void );
 // The coordinator supplies one process-clock reading for the whole checkpoint.
 bool Bot_WriteCharacterState( stateWriter_t *writer, uint32_t now );
 bool Bot_ReadCharacterState( const stateReader_t &reader, uint32_t now, bool apply );
+
+// Requires an empty character pool; copies resolved values into owned storage.
+bool Bot_PrepareCharacterState( const stateReader_t &reader, uint32_t now );

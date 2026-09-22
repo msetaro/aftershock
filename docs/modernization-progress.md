@@ -64,6 +64,24 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 exact character-pool reconstruction and stable owner gates
+
+At f8a4e000, the complete state suite passes on GCC and Clang/libc++ UBSan
+(state-full-aas-{gcc,clang}.log). Full tidy passes 1,390 production configurations;
+full lifetime analysis passes 1,332 commands/148 paths and its positive/seven-object
+negative controls (state-full-aas-{tidy,lifetimes}.log). Issue19 comment 5772911231
+records this owner checkpoint; all those gates are now complete.
+
+Characters now also retain resolved typed attributes, because filename/skill alone
+cannot reliably reproduce fallback/default merges and interpolated cache entries.
+Bot_PrepareCharacterState requires an empty pool, validates every record first,
+then creates exact saved slots with owned string copies and rebased clock ages.
+The existing attribute hash checks the resolved payload; full checkpoint content
+identity still belongs to the coordinator. GCC/Clang UBSan pass reconstruction,
+owned-string relocation and missing-later-payload rejection before publication
+(state-character-reconstruct-{gcc,clang}.log). Client/server build and focused tidy
+pass. No accepted fixture changes; eventual full-game fixtures use OpenArena.
+
 ## #19 bot content and synchronous parser boundary
 
 BSP checkpoints verify both the source entity text and parsed epair order/content

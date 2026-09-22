@@ -874,6 +874,97 @@ static bool CharacterIdentity( const bot_character_t &character, characterSave_t
 	sha_256_close( &hash );
 	return true;
 }
+// Resolved attributes are part of checkpoint state: fallback/default merging
+// and interpolated cache entries cannot always be recreated from filename/skill.
+struct characterValuesSave_t {
+	uint32_t type[MAX_CHARACTERISTICS];
+	int32_t integer[MAX_CHARACTERISTICS];
+	float real[MAX_CHARACTERISTICS];
+	char string[MAX_CHARACTERISTICS][MAX_TOKEN];
+};
+static characterValuesSave_t savedCharacterValues;
+static bool CharacterValuesRecord( stateWriter_t *writer, const stateReader_t *reader, uint32_t slot, const bot_character_t *source, bot_character_t *draft ) {
+	auto &values = savedCharacterValues;
+	if ( writer ) {
+		values = {};
+		for ( int i = 0; i < MAX_CHARACTERISTICS; ++i ) {
+			const auto &value = source->c[i];
+			values.type[i] = value.type;
+			switch ( value.type ) {
+			case 0:
+				break;
+			case CT_INTEGER:
+				values.integer[i] = value.value.integer;
+				break;
+			case CT_FLOAT:
+				values.real[i] = value.value._float;
+				break;
+			case CT_STRING:
+				if ( !value.value.string || strlen( value.value.string ) >= MAX_TOKEN )
+					return false;
+				strcpy( values.string[i], value.value.string );
+				break;
+			default:
+				return false;
+			}
+		}
+	}
+	stateField_t fields[MAX_CHARACTERISTICS + 3] = {
+		{ "type", offsetof( characterValuesSave_t, type ), MAX_CHARACTERISTICS, stateType_t::UInt32 },
+		{ "integer", offsetof( characterValuesSave_t, integer ), MAX_CHARACTERISTICS, stateType_t::Int32 },
+		{ "real", offsetof( characterValuesSave_t, real ), MAX_CHARACTERISTICS, stateType_t::Float32 }
+	};
+	char names[MAX_CHARACTERISTICS][16];
+	for ( uint32_t i = 0; i < MAX_CHARACTERISTICS; ++i ) {
+		snprintf( names[i], sizeof( names[i] ), "string%u", i );
+		fields[i + 3] = { names[i], uint32_t( offsetof( characterValuesSave_t, string ) + i * MAX_TOKEN ), MAX_TOKEN, stateType_t::String };
+	}
+	const stateSchema_t schema = { "botlib.characterValues", 1, 1, sizeof( values ), fields, MAX_CHARACTERISTICS + 3 };
+	uint32_t version;
+	if ( reader && !State_Find( *reader, schema, slot, &values, &version ) )
+		return false;
+	for ( int i = 0; i < MAX_CHARACTERISTICS; ++i ) {
+		if ( !std::isfinite( values.real[i] ) )
+			return false;
+		if ( !draft )
+			continue;
+		auto &value = draft->c[i];
+		value = {};
+		switch ( values.type[i] ) {
+		case 0:
+			break;
+		case CT_INTEGER:
+			value.value.integer = values.integer[i];
+			break;
+		case CT_FLOAT:
+			value.value._float = values.real[i];
+			break;
+		case CT_STRING:
+			value.value.string = values.string[i];
+			break;
+		default:
+			return false;
+		}
+		value.type = uint8_t( values.type[i] );
+	}
+	return !writer || State_Append( writer, schema, slot, &values );
+}
+static bool CharacterDraft( const stateReader_t &reader, uint32_t slot, uint32_t now, bot_character_t *draft, characterSave_t *saved ) {
+	uint32_t version;
+	if ( !State_Find( reader, characterSaveSchema, slot, saved, &version ) || saved->references < 0 || !std::isfinite( saved->skill ) )
+		return false;
+	*draft = {};
+	strcpy( draft->filename, saved->filename );
+	draft->skill = saved->skill;
+	if ( !CharacterValuesRecord( nullptr, &reader, slot, nullptr, draft ) )
+		return false;
+	characterSave_t identity;
+	if ( !CharacterIdentity( *draft, &identity ) || memcmp( identity.characteristics, saved->characteristics, sizeof( identity.characteristics ) ) )
+		return false;
+	draft->refcnt = saved->references;
+	draft->reftime = int32_t( now - saved->age );
+	return true;
+}
 bool Bot_WriteCharacterState( stateWriter_t *writer, uint32_t now ) {
 	if ( !writer )
 		return false;
@@ -896,7 +987,7 @@ bool Bot_WriteCharacterState( stateWriter_t *writer, uint32_t now ) {
 			}
 			saved.references = character.refcnt;
 			saved.age = now - uint32_t( character.reftime );
-			if ( !State_Append( writer, characterSaveSchema, i, &saved ) )
+			if ( !State_Append( writer, characterSaveSchema, i, &saved ) || !CharacterValuesRecord( writer, nullptr, i, &character, nullptr ) )
 				return false;
 		}
 	return true;
@@ -912,7 +1003,8 @@ bool Bot_ReadCharacterState( const stateReader_t &reader, uint32_t now, bool app
 		if ( !present[i] )
 			continue;
 		characterSave_t loaded;
-		if ( !State_Find( reader, characterSaveSchema, i, &saved[i], &version ) || saved[i].references < 0 ||
+		bot_character_t draft;
+		if ( !CharacterDraft( reader, i, now, &draft, &saved[i] ) ||
 			 !CharacterIdentity( *botcharacters[i], &loaded ) || strcmp( saved[i].filename, loaded.filename ) ||
 			 memcmp( &saved[i].skill, &loaded.skill, sizeof( float ) ) || memcmp( saved[i].characteristics, loaded.characteristics, sizeof( loaded.characteristics ) ) )
 			return false;
@@ -923,5 +1015,41 @@ bool Bot_ReadCharacterState( const stateReader_t &reader, uint32_t now, bool app
 				botcharacters[i]->refcnt = saved[i].references;
 				botcharacters[i]->reftime = int32_t( now - saved[i].age );
 			}
+	return true;
+}
+
+bool Bot_PrepareCharacterState( const stateReader_t &reader, uint32_t now ) {
+	// After botlib shutdown/reinitialization, rebuild exact saved slots. Validate
+	// every resolved attribute before publishing any allocation in the empty pool.
+	for ( auto *character : botcharacters )
+		if ( character )
+			return false;
+	uint32_t present[MAX_HANDLES + 1], version;
+	if ( !State_Find( reader, characterPoolSchema, 0, present, &version ) || present[0] )
+		return false;
+	for ( uint32_t i = 1; i <= MAX_HANDLES; ++i ) {
+		if ( present[i] > 1 )
+			return false;
+		bot_character_t draft;
+		characterSave_t saved;
+		if ( present[i] && !CharacterDraft( reader, i, now, &draft, &saved ) )
+			return false;
+	}
+	for ( uint32_t i = 1; i <= MAX_HANDLES; ++i )
+		if ( present[i] ) {
+			bot_character_t draft;
+			characterSave_t saved;
+			if ( !CharacterDraft( reader, i, now, &draft, &saved ) )
+				return false;
+			auto *character = static_cast<bot_character_t *>( GetClearedMemory(sizeof(bot_character_t)));
+			*character = draft;
+			for ( auto &value : character->c )
+				if ( value.type == CT_STRING ) {
+					char *text = static_cast<char *>( GetMemory(strlen(value.value.string)+1));
+					strcpy( text, value.value.string );
+					value.value.string = text;
+				}
+			botcharacters[i] = character;
+		}
 	return true;
 }
