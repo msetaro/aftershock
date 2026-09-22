@@ -62,7 +62,11 @@ PAD0 engine key names; no new input-test command is needed. The client adapter n
 text and live health. Existing key events drive navigation, cvar changes and
 actual binding storage. The cgame calls one typed HUD import; legacy content
 remains opted out. Format/types/boundaries and native ABI/shared-math checks pass.
-1440p/4K acceptance is running. Finish resolution/content and restart checks,
+All three sizes pass for OpenArena (ui-runtime-{first,large}.log).
+The strengthened Quake 3 run passes all three sizes including pixel-identical
+renderer restart and returning from in-game controller options
+(ui-runtime-q3.log). Repeat the strengthened sequence for OpenArena; finish
+lifetime/tidy and MinGW checks,
 then merge accepted #16 main forward and run final hosted gates. No maintainer
 input is currently needed.
 

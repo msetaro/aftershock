@@ -1485,7 +1485,8 @@ Quake 3 content; hosted CI adds `--content openarena --data DATA`. It renders th
 same owned menu/options/HUD at 1920x1080, 2560x1440 and 3840x2160, sends controller
 button names through the engine's real key-event path, changes volume and actual
 bindings, cancels rebinding, switches English/Arabic, and reloads an edited source
-label. PNGs and engine logs are retained; paks are only symlinked into temporary
+label, checks pixel-identical renderer restart, and returns from in-game options.
+PNGs and engine logs are retained; paks are only symlinked into temporary
 homes. This verifies controller mappings with injected events, not physical
 controller hardware. There are no new golden frames or regenerated classic demos.
 
