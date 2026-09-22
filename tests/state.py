@@ -204,6 +204,14 @@ for tag,name,expected in (('bot_character_s','bot_character_t',{'c','filename','
 union=character_source.split('union cvalue {',1)[1].split('};',1)[0]
 assert declared_members(union)=={'integer','_float','string'}
 print('PASS: character attributes, reference counts and rebased process-clock ages have explicit ownership')
+chat_source=(ROOT/'engine/botlib/be_ai_chat.cpp').read_text()
+chat_body=chat_source.split('typedef struct bot_chatstate_s {',1)[1].split('} bot_chatstate_t;',1)[0]
+assert set(re.findall(r'offsetof\( bot_chatstate_t, (\w+) \)',chat_source)) | {'firstmessage','lastmessage','chat'}==declared_members(chat_body)
+chat_header=(ROOT/'engine/botlib/be_ai_chat.h').read_text()
+message_body=chat_header.split('typedef struct bot_consolemessage_s {',1)[1].split('} bot_consolemessage_t;',1)[0]
+assert declared_members(message_body)=={'prev','next','message','time','type','handle'}
+print('PASS: chat actor/console fields have scalar, queue-link or separate chat-content ownership')
+
 
 
 
@@ -320,7 +328,7 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wl,--gc-sections','-o',probe])
 run([probe])
 
-for component in ('input','move','weights','characters'):
+for component in ('input','move','weights','characters','chat_queue'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',

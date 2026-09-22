@@ -23,7 +23,7 @@ COMMANDS['unit'] = [sys.executable, 'tests/run.py', 'unit', '--negative-control'
 COMMANDS['match_go'] = ['go', '-C', 'tools/match', 'test', '-race', './...']
 # Prefix matches compose: a cooker animation edit needs both cooker and animation checks.
 RULES = (
-    (('engine/qcommon/state.cpp', 'engine/public/state_public.h', 'engine/public/state_replication_public.h', 'tools/replication.py', 'engine/qcommon/q_shared.h', 'game/bg/q_shared.h', 'game/game/', 'tests/state.py', 'tests/probes/state'), ('state',)),
+    (('engine/qcommon/state.cpp', 'engine/public/state_public.h', 'engine/public/state_replication_public.h', 'tools/replication.py', 'engine/qcommon/q_shared.h', 'game/bg/q_shared.h', 'game/game/', 'engine/botlib/', 'tests/state.py', 'tests/probes/state'), ('state',)),
     (('engine/entities/', 'tools/cook/entities', 'tests/entities', 'tests/probes/entities', 'tests/assets/entities/'), ('entities',)),
     (('engine/ui/', 'engine/client/cl_data_ui', 'tools/cook/ui', 'tests/ui_framework', 'tests/probes/ui_framework', 'tests/assets/ui/'), ('ui_framework',)),
     (('engine/client/cl_voice', 'engine/qcommon/voice_public.h', 'cmake/Audio.cmake', 'third_party/opus/'), ('audio_voice',)),

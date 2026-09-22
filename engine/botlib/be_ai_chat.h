@@ -117,3 +117,7 @@ int BotLoadChatFile( int chatstate, const char *chatfile, const char *chatname )
 void BotSetChatGender( int chatstate, int gender );
 //store the bot name in the chat state
 void BotSetChatName( int chatstate, const char *name, int client );
+
+#include "../public/state_public.h"
+bool Bot_WriteChatQueueState( stateWriter_t *writer );
+bool Bot_ReadChatQueueState( const stateReader_t &reader, bool apply );

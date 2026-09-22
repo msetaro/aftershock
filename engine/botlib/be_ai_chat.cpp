@@ -47,6 +47,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_interface.h"
 #include "be_ea.h"
 #include "be_ai_chat.h"
+#include <cmath>
 
 
 //escape character
@@ -189,6 +190,7 @@ static bot_ichatdata_t *ichatdata[MAX_CLIENTS];
 static bot_chatstate_t *botchatstates[MAX_CLIENTS + 1];
 //console message heap
 static bot_consolemessage_t *consolemessageheap = NULL;
+static int allocatedConsoleMessages;
 static bot_consolemessage_t *freeconsolemessages = NULL;
 //list with match strings
 static bot_matchtemplate_t *matchtemplates = NULL;
@@ -232,6 +234,7 @@ static void InitConsoleMessageHeap( void ) {
 	max_messages = LibVarInteger( "max_messages", "1024", 2, 65536 );
 	consolemessageheap = (bot_consolemessage_t *)GetClearedHunkMemory(max_messages *
 												sizeof(bot_consolemessage_t));
+	allocatedConsoleMessages = max_messages;
 	consolemessageheap[0].prev = NULL;
 	consolemessageheap[0].next = &consolemessageheap[1];
 	for ( i = 1; i < max_messages - 1; i++ ) {
@@ -2918,6 +2921,7 @@ void BotShutdownChatAI( void ) {
 	if ( consolemessageheap )
 		FreeMemory( consolemessageheap );
 	consolemessageheap = NULL;
+	allocatedConsoleMessages = 0;
 	if ( matchtemplates )
 		BotFreeMatchTemplates( matchtemplates );
 	matchtemplates = NULL;
@@ -2931,3 +2935,216 @@ void BotShutdownChatAI( void ) {
 		BotFreeReplyChat( replychats );
 	replychats = NULL;
 } //end of the function BotShutdownChatAI
+
+// Command-only queue drafts. Chunks keep the maximum 65,536-message pool below
+// the archive record limit; free payload is overwritten by BotQueueConsoleMessage.
+static constexpr int MAX_SAVED_CONSOLE_MESSAGES = 65536;
+static constexpr int CHAT_SAVE_CHUNK = 64;
+struct chatQueueHeader_t {
+	int32_t count, free;
+	uint32_t present[MAX_CLIENTS + 1];
+	int32_t first[MAX_CLIENTS + 1], last[MAX_CLIENTS + 1];
+};
+static constexpr stateField_t chatQueueHeaderFields[] = {
+	{ "count", offsetof( chatQueueHeader_t, count ), 1, stateType_t::Int32 },
+	{ "free", offsetof( chatQueueHeader_t, free ), 1, stateType_t::Int32 },
+	{ "present", offsetof( chatQueueHeader_t, present ), MAX_CLIENTS + 1, stateType_t::UInt32 },
+	{ "first", offsetof( chatQueueHeader_t, first ), MAX_CLIENTS + 1, stateType_t::Int32 },
+	{ "last", offsetof( chatQueueHeader_t, last ), MAX_CLIENTS + 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t chatQueueHeaderSchema = { "botlib.chatQueuePool", 1, 1, sizeof( chatQueueHeader_t ), chatQueueHeaderFields, 5 };
+static constexpr stateField_t chatActorFields[] = {
+	{ "gender", offsetof( bot_chatstate_t, gender ), 1, stateType_t::Int32 },
+	{ "client", offsetof( bot_chatstate_t, client ), 1, stateType_t::Int32 },
+	{ "name", offsetof( bot_chatstate_t, name ), 32, stateType_t::String },
+	{ "chatmessage", offsetof( bot_chatstate_t, chatmessage ), MAX_MESSAGE_SIZE, stateType_t::String },
+	{ "handle", offsetof( bot_chatstate_t, handle ), 1, stateType_t::Int32 },
+	{ "numconsolemessages", offsetof( bot_chatstate_t, numconsolemessages ), 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t chatActorSchema = { "botlib.chatActor", 1, 1, sizeof( bot_chatstate_t ), chatActorFields, 6 };
+static int32_t savedChatNext[MAX_SAVED_CONSOLE_MESSAGES];
+static int32_t savedChatPrevious[MAX_SAVED_CONSOLE_MESSAGES];
+static bool savedChatLive[MAX_SAVED_CONSOLE_MESSAGES];
+static bot_chatstate_t savedChatActors[MAX_CLIENTS + 1];
+struct chatQueueChunk_t {
+	int32_t handle[CHAT_SAVE_CHUNK], type[CHAT_SAVE_CHUNK];
+	float time[CHAT_SAVE_CHUNK];
+	char message[CHAT_SAVE_CHUNK][MAX_MESSAGE_SIZE];
+};
+static int ChatMessageSlot( const bot_consolemessage_t *message ) {
+	if ( !message )
+		return -1;
+	const uintptr_t address = reinterpret_cast<uintptr_t>( message ), base = reinterpret_cast<uintptr_t>( consolemessageheap );
+	if ( !consolemessageheap || address < base || ( address - base ) % sizeof( *message ) ||
+		 ( address - base ) / sizeof( *message ) >= uint32_t( allocatedConsoleMessages ) )
+		return -2;
+	return int( ( address - base ) / sizeof( *message ) );
+}
+static bool ChatQueueLinks( stateWriter_t *writer, const stateReader_t *reader, uint32_t count ) {
+	if ( !count )
+		return true;
+	const stateField_t field = { "next", 0, count, stateType_t::Int32 };
+	const stateSchema_t schema = { "botlib.chatQueueLinks", 1, 1, sizeof( savedChatNext ), &field, 1 };
+	uint32_t version;
+	return writer ? State_Append( writer, schema, 0, savedChatNext ) : State_Find( *reader, schema, 0, savedChatNext, &version );
+}
+static bool ValidChatQueues( const chatQueueHeader_t &header ) {
+	if ( header.count < 0 || header.count > MAX_SAVED_CONSOLE_MESSAGES || header.count != allocatedConsoleMessages ||
+		 bool( header.count ) != bool( consolemessageheap ) || header.present[0] || botchatstates[0] )
+		return false;
+	memset( savedChatLive, 0, sizeof( savedChatLive ) );
+	// -2 means unvisited; -1 is a valid list head predecessor.
+	for ( int i = 0; i < header.count; ++i ) {
+		savedChatPrevious[i] = -2;
+		if ( savedChatNext[i] < -1 || savedChatNext[i] >= header.count )
+			return false;
+	}
+	for ( int owner = 0; owner <= MAX_CLIENTS; ++owner ) {
+		if ( header.present[owner] != uint32_t( botchatstates[owner] != nullptr ) )
+			return false;
+		if ( owner && !header.present[owner] )
+			continue;
+		const auto &actor = savedChatActors[owner];
+		if ( owner && ( actor.gender < CHAT_GENDERLESS || actor.gender > CHAT_GENDERMALE || actor.client < 0 || actor.client >= MAX_CLIENTS ||
+						  actor.handle < 0 || actor.handle > 8192 || actor.numconsolemessages < 0 || actor.numconsolemessages > header.count ) )
+			return false;
+		int previous = -1, count = 0;
+		for ( int slot = owner ? header.first[owner] : header.free; slot != -1; slot = savedChatNext[slot] ) {
+			if ( slot < 0 || slot >= header.count || savedChatPrevious[slot] != -2 )
+				return false;
+			savedChatPrevious[slot] = previous;
+			savedChatLive[slot] = owner != 0;
+			previous = slot;
+			++count;
+		}
+		if ( owner && ( count != actor.numconsolemessages || previous != header.last[owner] ) )
+			return false;
+	}
+	for ( int i = 0; i < header.count; ++i )
+		if ( savedChatPrevious[i] == -2 )
+			return false;
+	return true;
+}
+static bool ChatQueueChunk( stateWriter_t *writer, const stateReader_t *reader, uint32_t base, uint32_t count, bool apply ) {
+	bool live = false;
+	for ( uint32_t i = 0; i < count; ++i )
+		live |= savedChatLive[base + i];
+	if ( !live )
+		return true;
+	chatQueueChunk_t chunk{};
+	stateField_t fields[CHAT_SAVE_CHUNK + 3] = {
+		{ "handle", offsetof( chatQueueChunk_t, handle ), count, stateType_t::Int32 },
+		{ "type", offsetof( chatQueueChunk_t, type ), count, stateType_t::Int32 },
+		{ "time", offsetof( chatQueueChunk_t, time ), count, stateType_t::Float32 }
+	};
+	char names[CHAT_SAVE_CHUNK][16];
+	for ( uint32_t i = 0; i < count; ++i ) {
+		snprintf( names[i], sizeof( names[i] ), "message%u", i );
+		fields[3 + i] = { names[i], uint32_t( offsetof( chatQueueChunk_t, message ) + i * MAX_MESSAGE_SIZE ), MAX_MESSAGE_SIZE, stateType_t::String };
+		if ( writer && savedChatLive[base + i] ) {
+			const auto &message = consolemessageheap[base + i];
+			chunk.handle[i] = message.handle;
+			chunk.type[i] = message.type;
+			chunk.time[i] = message.time;
+			memcpy( chunk.message[i], message.message, MAX_MESSAGE_SIZE );
+		}
+	}
+	const stateSchema_t schema = { "botlib.chatQueueText", 1, 1, sizeof( chunk ), fields, count + 3 };
+	uint32_t version;
+	if ( reader && !State_Find( *reader, schema, base / CHAT_SAVE_CHUNK, &chunk, &version ) )
+		return false;
+	for ( uint32_t i = 0; i < count; ++i )
+		if ( savedChatLive[base + i] &&
+			 ( chunk.handle[i] < 1 || chunk.handle[i] > 8192 || !std::isfinite( chunk.time[i] ) || !memchr( chunk.message[i], 0, MAX_MESSAGE_SIZE ) ) )
+			return false;
+	if ( writer )
+		return State_Append( writer, schema, base / CHAT_SAVE_CHUNK, &chunk );
+	if ( apply )
+		for ( uint32_t i = 0; i < count; ++i )
+			if ( savedChatLive[base + i] ) {
+				auto &message = consolemessageheap[base + i];
+				message.handle = chunk.handle[i];
+				message.type = chunk.type[i];
+				message.time = chunk.time[i];
+				memcpy( message.message, chunk.message[i], MAX_MESSAGE_SIZE );
+			}
+	return true;
+}
+bool Bot_WriteChatQueueState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	if ( allocatedConsoleMessages < 0 || allocatedConsoleMessages > MAX_SAVED_CONSOLE_MESSAGES ||
+		 bool( allocatedConsoleMessages ) != bool( consolemessageheap ) ) {
+		writer->failed = true;
+		return false;
+	}
+	chatQueueHeader_t header{};
+	header.count = allocatedConsoleMessages;
+	header.free = header.count ? ChatMessageSlot( freeconsolemessages ) : -1;
+	for ( int i = 0; i <= MAX_CLIENTS; ++i ) {
+		header.present[i] = botchatstates[i] != nullptr;
+		if ( !header.present[i] )
+			continue;
+		savedChatActors[i] = *botchatstates[i];
+		header.first[i] = ChatMessageSlot( savedChatActors[i].firstmessage );
+		header.last[i] = ChatMessageSlot( savedChatActors[i].lastmessage );
+	}
+	for ( int i = 0; i < header.count; ++i )
+		savedChatNext[i] = ChatMessageSlot( consolemessageheap[i].next );
+	if ( !ValidChatQueues( header ) ) {
+		writer->failed = true;
+		return false;
+	}
+	for ( int i = 0; i < header.count; ++i )
+		if ( ChatMessageSlot( consolemessageheap[i].prev ) != savedChatPrevious[i] ) {
+			writer->failed = true;
+			return false;
+		}
+	if ( !State_Append( writer, chatQueueHeaderSchema, 0, &header ) || !ChatQueueLinks( writer, nullptr, uint32_t( header.count ) ) )
+		return false;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+		if ( header.present[i] && !State_Append( writer, chatActorSchema, i, &savedChatActors[i] ) )
+			return false;
+	for ( uint32_t base = 0; base < uint32_t( header.count ); base += CHAT_SAVE_CHUNK )
+		if ( !ChatQueueChunk( writer, nullptr, base, uint32_t( header.count ) - base < CHAT_SAVE_CHUNK ? uint32_t( header.count ) - base : CHAT_SAVE_CHUNK, false ) ) {
+			writer->failed = true;
+			return false;
+		}
+	return true;
+}
+bool Bot_ReadChatQueueState( const stateReader_t &reader, bool apply ) {
+	chatQueueHeader_t header;
+	uint32_t version;
+	if ( !State_Find( reader, chatQueueHeaderSchema, 0, &header, &version ) || header.count < 0 || header.count > MAX_SAVED_CONSOLE_MESSAGES ||
+		 !ChatQueueLinks( nullptr, &reader, uint32_t( header.count ) ) )
+		return false;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+		if ( header.present[i] && !State_Find( reader, chatActorSchema, i, &savedChatActors[i], &version ) )
+			return false;
+	if ( !ValidChatQueues( header ) )
+		return false;
+	for ( uint32_t base = 0; base < uint32_t( header.count ); base += CHAT_SAVE_CHUNK )
+		if ( !ChatQueueChunk( nullptr, &reader, base, uint32_t( header.count ) - base < CHAT_SAVE_CHUNK ? uint32_t( header.count ) - base : CHAT_SAVE_CHUNK, false ) )
+			return false;
+	if ( apply ) {
+		for ( int i = 0; i < header.count; ++i ) {
+			auto &message = consolemessageheap[i];
+			message = {};
+			message.next = savedChatNext[i] < 0 ? nullptr : &consolemessageheap[savedChatNext[i]];
+			message.prev = savedChatPrevious[i] < 0 ? nullptr : &consolemessageheap[savedChatPrevious[i]];
+		}
+		for ( uint32_t base = 0; base < uint32_t( header.count ); base += CHAT_SAVE_CHUNK )
+			if ( !ChatQueueChunk( nullptr, &reader, base, uint32_t( header.count ) - base < CHAT_SAVE_CHUNK ? uint32_t( header.count ) - base : CHAT_SAVE_CHUNK, true ) )
+				return false;
+		for ( int i = 1; i <= MAX_CLIENTS; ++i )
+			if ( header.present[i] ) {
+				auto *chat = botchatstates[i]->chat; // Immutable chat ownership is restored separately.
+				*botchatstates[i] = savedChatActors[i];
+				botchatstates[i]->chat = chat;
+				botchatstates[i]->firstmessage = header.first[i] < 0 ? nullptr : &consolemessageheap[header.first[i]];
+				botchatstates[i]->lastmessage = header.last[i] < 0 ? nullptr : &consolemessageheap[header.last[i]];
+			}
+		freeconsolemessages = header.free < 0 ? nullptr : &consolemessageheap[header.free];
+	}
+	return true;
+}

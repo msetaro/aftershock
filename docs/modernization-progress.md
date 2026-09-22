@@ -39,7 +39,7 @@ with typed callbacks, checked references and nullable strings. Composed, authore
 animation/weapon, rewind, utility/spawn-generation, combat, team and podium owners
 also have validated local checkpoint records. Definition/editor state restores
 against matching map registry topology. Remaining work: other game globals and
-botlib goal/item, weights, character/chat and AAS/libvar owners (input/movement
+botlib chat-content, AAS/libvar and immutable navigation-content owners (input/movement, goal/item, weight, weapon, character cache and chat queue
 and game map-navigation, actor, activation, waypoint, scheduler,
 queue and team draft records are complete), gameplay validation, live
 restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
@@ -57,6 +57,19 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 chat queue ownership
+
+Chat actor scalars and pending console messages now retain pool slot/queue/free-list
+order. Back-links are validated at capture and rebuilt from validated, disjoint
+lists at load. Message text is chunked in groups of 64; a maximum-capacity 65,536
+slot pool with one queued message needs four records, not one per free slot.
+Free payload is discarded because enqueue overwrites it. GCC and Clang/libc++
+UBSan prove same-next-allocation and wrapped message handles after relocation,
+reject overlap/cycles and missing later text without mutation, and exercise the
+last slot of the maximum pool (state-chat-queue-{gcc,clang}.log). Client/server
+build and focused tidy pass. Botlib edits now select the state regression in the
+affected-test map. Chat content/timers and full reconstruction remain open.
 
 ## #19 character-cache state and process-clock ages
 
