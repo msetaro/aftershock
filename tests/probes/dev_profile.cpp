@@ -28,12 +28,21 @@ int main() {
 	DevTools_BeginFrame( true );
 	assert( DevTools_CpuTimings( &timings ) == 2 );
 	assert( timings[0].microseconds == 50 && timings[1].microseconds == 20 );
+	assert( timings[0].parent == UINT32_MAX && timings[1].parent == 0 );
+	assert( timings[0].selfMicroseconds == 30 && timings[1].selfMicroseconds == 20 );
+	const devCpuFrame_t *frame = DevTools_CpuFrame( 0 );
+	assert( frame && frame->count == 2 && frame->microseconds == 50 && !frame->dropped );
+	assert( !DevTools_CpuFrame( 1 ) );
+	assert( DevTools_CpuPeak() && DevTools_CpuPeak()->serial == frame->serial );
 	for ( int i = 0; i < 128; ++i )
 		assert( Dev_BeginScope( "capacity" ) != UINT64_MAX );
 	assert( Dev_BeginScope( "overflow" ) == UINT64_MAX );
 	Dev_EndScope( abandoned );
 	DevTools_BeginFrame( true );
 	assert( DevTools_CpuTimings( &timings ) == 0 );
+	assert( DevTools_CpuFrame( 0 )->dropped == 1 );
+	assert( DevTools_CpuFrame( 1 )->count == 2 );
+	assert( DevTools_CpuPeak()->microseconds == 50 );
 	const uint64_t backwards = Dev_BeginScope( "clock adjustment" );
 	clockValue = 0;
 	Dev_EndScope( backwards );
