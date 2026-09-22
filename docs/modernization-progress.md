@@ -56,6 +56,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 local input clock test first
+
+The private archive diff shows equal server time/residual, bot clocks and RNG
+records, with the first significant continuation difference in local command time.
+A client-side input owner must retain the paused clock lead, time-adjustment flags,
+view angles, selected weapon/sensitivity and pending loopback command. The new
+state_client probe fails on its absent implementation before the change
+(state-client-before.log); it requires rebasing against a different process clock
+without losing the saved lead. Fresh transport sequences stay connection-owned.
+
 ## #19 exact spatial restore; continuation investigation
 
 The spatial owner now preserves sector heads, exact entity list order, cluster
