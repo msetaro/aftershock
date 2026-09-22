@@ -12,8 +12,12 @@ int main() {
 	header.maxclients = 4;
 	header.localClient = 2;
 	header.pure = 1;
+	header.protocol = AFTERSHOCK_NET_VERSION;
 	assert(ValidCheckpointHeader(header));
 	auto bad = header;
+	bad.protocol++;
+	assert(!ValidCheckpointHeader(bad));
+	bad = header;
 	bad.localClient = 4;
 	assert(!ValidCheckpointHeader(bad));
 	bad = header;
@@ -56,7 +60,8 @@ int main() {
 	assert(State_Open(bytes,State_Finish(&writer),&reader));
 	checkpointHeader_t decoded;
 	uint32_t version;
-	assert(State_Find(reader,checkpointHeaderSchema,0,&decoded,&version));
+	assert(ReadCheckpointHeader(reader,&decoded));
+	header.pure = -1; // v2 removes this redundant legacy header field.
 	assert(ValidCheckpointHeader(decoded) && !memcmp(&header,&decoded,sizeof(header)));
 	assert(State_Find(reader,checkpointClientSchema,1,&saved,&version));
 	assert(ValidCheckpointClient(decoded,1,saved,command));

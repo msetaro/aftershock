@@ -13,8 +13,11 @@ extern int bot_enable;
 static constexpr size_t CHECKPOINT_CAPACITY = 64 * 1024 * 1024;
 struct checkpointHeader_t {
 	char map[MAX_QPATH], game[MAX_QPATH];
-	int32_t checksum, time, serverTime, residual, restartTime, maxclients, localClient, pure;
+	int32_t checksum, time, serverTime, residual, restartTime, maxclients, localClient;
+	int32_t pure; // Read-only legacy v1 metadata; v2 owns pure mode in server cvars.
+	uint32_t protocol;
 };
+static_assert( sizeof( checkpointHeader_t ) == 164 && offsetof( checkpointHeader_t, protocol ) == 160 );
 static constexpr stateField_t checkpointHeaderFields[] = {
 	{ "map", offsetof( checkpointHeader_t, map ), MAX_QPATH, stateType_t::String },
 	{ "game", offsetof( checkpointHeader_t, game ), MAX_QPATH, stateType_t::String },
@@ -25,9 +28,9 @@ static constexpr stateField_t checkpointHeaderFields[] = {
 	{ "restartTime", offsetof( checkpointHeader_t, restartTime ), 1, stateType_t::Int32 },
 	{ "maxclients", offsetof( checkpointHeader_t, maxclients ), 1, stateType_t::Int32 },
 	{ "localClient", offsetof( checkpointHeader_t, localClient ), 1, stateType_t::Int32 },
-	{ "pure", offsetof( checkpointHeader_t, pure ), 1, stateType_t::Int32 }
+	{ "protocol", offsetof( checkpointHeader_t, protocol ), 1, stateType_t::UInt32, 2 }
 };
-static constexpr stateSchema_t checkpointHeaderSchema{ "checkpoint", 1, 1, sizeof( checkpointHeader_t ), checkpointHeaderFields, ARRAY_LEN( checkpointHeaderFields ) };
+static constexpr stateSchema_t checkpointHeaderSchema{ "checkpoint", 2, 1, sizeof( checkpointHeader_t ), checkpointHeaderFields, ARRAY_LEN( checkpointHeaderFields ) };
 static constexpr stateField_t checkpointRandomFields[] = {
 	{ "draws", offsetof( qRandomState_t, draws ), 1, stateType_t::UInt64 },
 	{ "seed", offsetof( qRandomState_t, seed ), 1, stateType_t::UInt32 },
@@ -118,7 +121,7 @@ static bool ValidCheckpointHeader( const checkpointHeader_t &header ) {
 		   header.time >= 0 && header.time < 0x78000000 && header.serverTime >= 0 && header.serverTime < 0x78000000 &&
 		   header.residual >= 0 && header.residual <= 1000000 && header.restartTime >= 0 && header.restartTime < 0x78000000 &&
 		   header.maxclients >= 1 && header.maxclients <= MAX_CLIENTS && header.localClient >= 0 && header.localClient < header.maxclients &&
-		   ( header.pure == 0 || header.pure == 1 );
+		   header.pure >= -1 && header.pure <= 1 && header.protocol == AFTERSHOCK_NET_VERSION;
 }
 static bool ValidCheckpointClient( const checkpointHeader_t &header, int slot, const checkpointClient_t &client, const usercmd_t &command ) {
 	if ( slot < 0 || slot >= header.maxclients || client.active > 1 || client.bot > client.active ||
@@ -132,10 +135,27 @@ static bool ValidCheckpointClient( const checkpointHeader_t &header, int slot, c
 		return client.active && !client.bot && client.snapshotMsec;
 	return !client.active || ( client.bot && client.snapshotMsec );
 }
+static bool ReadCheckpointHeader( const stateReader_t &reader, checkpointHeader_t *header ) {
+	*header = {};
+	header->pure = -1;
+	uint32_t version;
+	if ( !State_Find( reader, checkpointHeaderSchema, 0, header, &version ) )
+		return false;
+	if ( version == 1 ) {
+		// The frozen v1 format predates this field and uses protocol revision 2.
+		// Keep that explicit value so a later protocol change requires a migration.
+		header->protocol = 2;
+		const stateField_t field{ "pure", 0, 1, stateType_t::Int32 };
+		const stateSchema_t legacy{ "checkpoint", 1, 1, sizeof( header->pure ), &field, 1 };
+		if ( !State_Find( reader, legacy, 0, &header->pure, &version ) || header->pure < 0 )
+			return false;
+	}
+	return ValidCheckpointHeader( *header );
+}
 static bool ReadServerCheckpoint( const stateReader_t &reader, checkpointHeader_t *header ) {
 	uint32_t version;
 	qRandomState_t random;
-	if ( !State_Find( reader, checkpointHeaderSchema, 0, header, &version ) || !ValidCheckpointHeader( *header ) ||
+	if ( !ReadCheckpointHeader( reader, header ) ||
 		 !State_Find( reader, checkpointRandomSchema, 0, &random, &version ) || random.draws > Q_RANDOM_MAX_DRAWS )
 		return false;
 	for ( int32_t value : random.signature )
@@ -197,6 +217,7 @@ static bool CheckpointHeader( checkpointHeader_t *header ) {
 	header->restartTime = sv.restartTime;
 	header->maxclients = sv.maxclients;
 	header->pure = sv.pure;
+	header->protocol = AFTERSHOCK_NET_VERSION;
 	return ValidCheckpointHeader( *header );
 }
 static bool WriteServerCheckpoint( stateWriter_t *writer ) {
@@ -394,7 +415,7 @@ static bool LoadCheckpoint( const char *path ) {
 	// Normal map initialization builds content owners, but no gameplay frame or
 	// automatic bot spawn may run before the recorded world replaces the defaults.
 	SV_SpawnServer( header.map, qtrue );
-	if ( sv.maxclients != header.maxclients || sv_mapChecksum->integer != header.checksum || sv.pure != header.pure ) {
+	if ( sv.maxclients != header.maxclients || sv_mapChecksum->integer != header.checksum || ( header.pure >= 0 && sv.pure != header.pure ) ) {
 		SV_Shutdown( "Checkpoint map context differs" );
 		return false;
 	}

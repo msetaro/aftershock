@@ -41,7 +41,8 @@ Local input clock ownership now also restores paused clock lead, timing flags,
 view angles, selected weapon/sensitivity and pending loopback input. Full OpenArena
 save/load passes exact entity restoration and identical player/bot continuation in
 both the same process and a fresh process seeded differently
-(state-client-clock-runtime.log). Quake 3 same/fresh-process continuation also passes (state-client-clock-q3.log). The v1 fixture is now frozen and reviewed; implement/test v2 migration, register final runtime CI, and run
+(state-client-clock-runtime.log). Quake 3 same/fresh-process continuation also passes (state-client-clock-q3.log). The frozen full-game v1 fixture now migrates into v2 and continues identically.
+Register final runtime CI and run
 all required gates before a PR/merge. No partial checkpoint acceptance.
 
 Named fields/archives, native entity/client/level owners, botlib reconstruction,
@@ -54,6 +55,19 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 full-game N-to-N+1 migration passes
+
+The v2 checkpoint header removes redundant pure mode (owned by server cvars) and
+adds the native protocol revision. Explicit v1 migration assigns its known
+protocol revision 2 and validates its legacy pure value; a later protocol change
+cannot silently relabel old archives. The frozen v1 bytes are unchanged.
+
+The rebuilt client passes newly written v2 same/fresh-process restore and exact
+continuation, then loads the frozen v1 game in another fresh process with seed 456
+and matches both saved and continued entity projections
+(state-migration-runtime.log). Build and focused tidy pass. Finish lifecycle review,
+CI/command documentation, and final combined-tree gates before opening #19's PR.
 
 ## #19 full-game v2 migration test first
 
