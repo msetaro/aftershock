@@ -18,7 +18,962 @@ Maintainer ruling (2026-09-19): keep all future changes and PRs in
 repository. This replaces the earlier requirement to submit applicable #31 fixes
 upstream; historical upstream PR references below are completed past work.
 
+## Maintainer Steam deferral — 2026-09-22
+
+Steam SDK setup, provider implementation, authenticated ticket transport and
+live presence/invite acceptance move to follow-up #180 at the maintainer's
+request. #23 now completes the bounded existing-provider interface and null
+backend with deterministic-provider contract tests. Do not claim Steam support
+from those tests. This dependency no longer blocks modernization; continue #24's
+existing SDK dependency checkpoint, then #29 and #30. No SDK/account answer is
+needed for the current scope. #23 and tracking issue #25 record the same ruling.
+
 ## Next action
+
+
+Active isolated preparation is issue/29-backend-services in backend-tree, branched
+from main 13106135 while the earlier required checks finish. Preserve merge order
+#21 -> #22 -> #23, record #24's existing SDK dependency, then #29 -> #30. #180 owns
+the maintainer-deferred Steam SDK/live acceptance and does not block this work.
+The #29 issue and existing Go match controller/spec, identity lifecycle and
+client HTTP ownership are reviewed. Start with versioned JoinTicket, MatchSpec
+and Loadout contracts; reuse the existing Go module and standard crypto/HTTP.
+The first schema test fails because v1.schema.json is absent, and the Go contract
+probe fails on missing JoinTicket/sign/verify/decode APIs. No #29 implementation
+exists yet. Commit these contracts before implementing them.
+
+Resume the active predecessor gates before any later issue can merge:
+- #31 PR174 is fully accepted on main 5caa2c1c; #31 is closed again.
+- #19 PR175 is fully accepted at main b92b6ef5. Merged build 35728186900 and
+  regression 35728186799 pass all 26 required jobs. Merge tree ac9a6cd4 matches
+  tested head 312048f0. Issue #19 and #25 are updated for integrated acceptance.
+- #20 PR176 merged as main 131061351efc14483aeb7da3f623f79ea884d640 at
+  2026-09-22 14:59:32 UTC after all 26 exact-head jobs passed at 4d06f25b.
+  Self-review and fresh main/base/head/tag checks passed. Merge tree 11bc602c
+  equals the tested head. Integrated build 35744183979 and regression 35744184060
+  pass all 26 required jobs. #20 is fully accepted; issue #20 and #25 are updated.
+
+#21 draft PR177 is at 2cefd7e3 and includes main 13106135. Build 35748014590
+passes all 16 compiler legs; regression 35748014600 is running. Hosted corrections
+cover explicit float constants, cold level-tool dependencies, Windows min/max
+macros and C99 bool header compatibility. Existing spatial/native probes pass;
+optimized sound object bytes remain identical. Require all 26 final-head checks
+and integrated #20 acceptance before readiness/self-merge. Recheck current
+main/base/head immediately before merge; preserve merge commits only.
+
+#22 draft PR178 is at 7ab6ab9f, based on main 13106135. Build 35749778908 passes all 16 compiler legs;
+regression 35749778962 has only runtime pending. Local profiling head ce568048
+also includes final AI branch 2cefd7e3 and passes combined runtime checks. All local checks pass, including full
+1426-configuration tidy and 1356-command lifetimes, both compiler/ASan-UBSan
+units, byte-identical shipping msg/common objects, both-content static tooling,
+developer renderer modules, fixed replays, legacy bot smoke and differential.
+Merge accepted #21 main forward and rerun final gates before any #22 merge.
+
+This is issue/23-platform-services in services-tree, branched from main 13106135.
+Draft PR179 is at 0bb8070e; all 16 hosted builds pass. The final AI/profiling
+branches are merged locally for integration preparation; this does not accept
+either issue before its required gates and current-main merge. The production
+merge is automatic; affected-path selection retains both new test entries.
+The issue and existing services_public/sys_services and authenticated server
+identity lifecycle are reviewed. Extend that small function-table boundary with
+identity/ticket, presence, lobby/invite, achievements, cloud and workshop calls;
+keep the absent provider anonymous and unavailable. No second service framework.
+Start with null/provider interface contracts, then the Steam adapter and engine
+integration. The bounded wrappers and GCC/Clang contract tests now pass; no
+Steam adapter or ticket transport is implemented yet; that work moves to #180.
+Preserve #21 -> #22 -> #23 merge order
+and integrate accepted main before final checks. SDK/provider tests must not be
+reported as an actual Steam rich-presence/invite acceptance run.
+
+Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
+Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
+Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
+then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
+
+## #29 initial contracts, test first
+
+The public v1 contracts specify bounded match/rules/expected-player data, loadouts
+that reference a server-owned weapon catalog and short-lived signed join tickets.
+Player IDs are canonical decimal strings to preserve the full uint64 range in
+JSON clients. Join tickets use a fixed canonical field sequence, match-scoped
+HMAC-SHA256 with a 32-byte key, a 128-bit nonce and at most 120 seconds of lifetime.
+The native server will reject reuse separately; signature verification alone is
+not a replay guard. Session/backend and allocation secrets must remain separate.
+The first tests require strict version/field/bounds validation, signature/time/
+match/key rejection and weapon-catalog membership. Evidence:
+backend-contract-before.log (missing schema), backend-go-before.log (missing API).
+No accepted fixture changes or production service calls occur.
+
+References reviewed: Go crypto/hmac (https://pkg.go.dev/crypto/hmac), the Agones
+GameServerAllocation specification (https://agones.dev/site/docs/reference/gameserverallocation/)
+and Steam ISteamUserAuth (https://partner.steamgames.com/doc/webapi/ISteamUserAuth).
+Real Steam identity acceptance remains #180; CI identities must be explicitly
+isolated test-provider identities, never represented as live Steam verification.
+
+## #23 bounded service implementation
+
+The existing provider table now exposes optional user/ticket, presence,
+lobby/invite, achievements, cloud-file and workshop operations. The absent
+provider stays anonymous/unavailable. Inputs and copied POD outputs are checked;
+lobby request generations reject superseded/duplicate/late completions. Invites
+never join automatically. No allocation, OS call, simulation or wire-layout
+change is introduced. A fixed uint32_t event enum permits defined validation of
+unknown provider event values under UBSan; the first implementation's unspecified
+underlying enum triggered UBSan before its rejecting switch.
+
+GCC and Clang/libc++ service probes and existing authenticated-identity/UI
+discovery probes pass (services-{gcc,clang}.log and
+services-identity-{gcc,clang}.log). Format (577 files), fixed-width policy (439)
+and boundaries (440) pass. The new probe is included in both CI unit variants,
+the workflow-derived local suite, affected-path selection and verification docs.
+Affected-path selection, suite catalog, isolation policy and workflow lint also
+pass. Targeted clang-tidy reports only advisory enum-size findings (four existing
+enums and the explicit-width event enum). All new result records are checked as
+trivially copyable. No accepted fixture is modified. This is interface preparation, not completed
+Steam integration; SDK adapter, ticket transport and actual presence/invite
+acceptance remain outstanding.
+
+## #23 service interface contract, test first
+
+Add one standalone probe that runs the same bounded user/ticket, presence,
+lobby/invite, achievement, cloud and workshop operations against an absent
+provider and a deterministic installed provider. Invalid caller arguments must
+not dispatch; malformed provider records must not escape. Provider replacement
+remains forbidden after use. The first run fails on missing serviceUser_t and
+related interface functions (services-before.log). Actual Steam acceptance is
+still separate and cannot be claimed from this probe.
+
+## #23 preparation and external SDK boundary
+
+The official Steamworks SDK download page requires a Steamworks login; no installed
+SDK header was found in the project/cache locations. Valve's public Source SDK
+repository also publishes the Steam API headers and redistributable libraries.
+Keep that official reference only in private cache for API inspection, pinned at
+b8cfb12c0e083a2ef5b2f9f9b50f3902fa034474 with verified Git blob hashes and a local
+SHA256 manifest. No SDK files, credentials or binaries are vendored/published.
+The public Source SDK license is scoped to Source-engine modifications, so this
+reference is not used as the Aftershock build SDK. The adapter needs a proper
+external Steamworks SDK root; default/null CI needs none. Manual callback dispatch keeps SDK events queued as bounded POD data
+and never reenters Com_Error. Real Steam acceptance still needs an authorized AppID,
+running logged-in clients and a designated invite recipient; do not invent them.
+References: https://partner.steamgames.com/doc/sdk/api and the ISteamUser and
+ISteamMatchmaking API pages. No external repository writes were performed.
+
+## #22 combined AI validation
+
+Local merge a203c2e4 incorporates final #21 branch 2cefd7e3 without accepting it
+before hosted checks. The production merge is automatic; the progress conflict
+retains both issues' evidence. Complete developer client/server rebuild, agent
+protocol and developer data probes pass, followed serially by OpenArena overlay
+controls/renderer restart/idle allocation/shutdown reporting and AI combat with
+same/fresh-process checkpoint continuation. Evidence is
+profiling-navigation-{build,agent,data,ui,combat}.log. The actual selected peak
+capture attributes 370.939 ms of a 378.521 ms frame to events/commands; the
+hierarchy remains readable after the AI inspector merge. Formatting (589 files),
+type policy (448), boundaries (449) and targeted production-flags tidy on both
+shared developer owners pass. No fixture changes. The accepted main merge and
+all final-head/integrated hosted gates remain required.
+
+## #22 local gate evidence
+
+Full tidy passes 1426 production configurations (profiling-tidy.log). GCC/Clang
+units and Clang sanitizer known-bug classification pass the unchanged unit hash
+8d44421dfd5f31912bb7ffc942c6f0e1f32cd9a445e1dbcf38b658f555598ede. The one-ULP
+negative control passes; no finished network command is rerun. Isolation, suite
+contract, workflow lint and agent transport checks pass. The extended developer
+runtime also passes local Quake 3 (profiling-runtime-q3.log). Lifetime analysis,
+developer renderer modules pass (profiling-runtime-modules.log), as does the
+unchanged OpenArena fixed replay 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+The unchanged Quake 3 fixed replay also passes
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+Lifetime analysis passes 1356 commands across 151 paths. Final
+UI review gives the plot its full labeled row and accounts for frame padding,
+so click-to-retain indexes the plotted area instead of including the label width.
+The final plot owner passes both static/module tidy configurations and a fresh
+OpenArena runtime check; its capture is reviewed. Prepare a draft PR against main
+for hosted feedback while #21 finishes; merge accepted #21 forward and rerun all
+final checks before any #22 merge.
+
+## #22 renderer and shutdown accounting contract, test first
+
+Reuse the existing RHI draw counter and frontend triangle/surface counters; retain
+them before the normal frame reset, alongside submitted entity count. Existing
+GPU geometry/staging budgets expose their real allocations. Hunk tags reflect its
+actual low/high permanent/temporary lifetime regions instead of inventing per-object
+ownership. Extend existing developer probes for these snapshots and an explicit
+shutdown retained-allocation report; process-lifetime cvars/arenas must not be
+misreported as proven leaks. Test-first 3ff812a4 fails on missing renderer APIs.
+The implementation passes both compiler developer probes, native command tests
+and full developer build. A real OpenArena quit reports zero BOTLIB, RENDERER,
+CLIENTS and DEVTOOLS blocks; remaining cached packs/process strings and permanent
+hunk regions are shown rather than silently discarded. Runtime verifies the
+report after clean exit. The developer renderer ABI advances 31 to 32; shipping
+ABI 25 stays unchanged. Explicit frame selection is shared by the overlay and
+JSON command, with retention/reset covered by probes and a reviewed capture.
+
+## #22 packet and field contract, test first
+
+Extend the same CPU/network probe with bounded packet history, timestamps/direction,
+exact compressed-bit accounting for transmitted entity/player fields and player
+arrays, reset and disabled instrumentation. Encode/decode real production deltas,
+require matching read/write field totals and identical bytes with telemetry off.
+This captures field payload/control bits, excluding message/header framing; it is
+not a second network serializer. The missing API contract fails first at
+8798763b (profiling-network-before.log). The owner now retains 256 packet records
+and 128 fixed field slots without allocations; both compiler probes pass after
+implementation. Production delta bytes match with telemetry enabled/disabled;
+the accepted replication fixture also passes unchanged. The overlay exposes all
+retained packet metadata and field bit totals; the command exposes the latest
+64 packets plus all observed fields. Reset clears the counters explicitly. The
+command probe and developer client/server build pass.
+
+## #22 profile command contract, test first
+
+Extend the existing native command probe: select the retained peak, expose parent
+and self-time fields plus bounded history summaries, reject out-of-range age and
+invalid booleans before a requested reset, and clear history explicitly. The old
+handler ignores those arguments; the new check fails before implementation
+(profiling-agent-before.log, a8ead056). The handler now exposes the retained
+frame/parent/self-time/history and validates before reset. GCC protocol probe
+passes (profiling-agent-gcc.log). The overlay consumes the same history, supports
+click-to-retain, peak and live selection, and displays indented inclusive/self
+timings. Explicit frame/pacing/event-command scopes extend existing server/client
+scopes; no RAII or simulation expressions change. GCC and Clang/libc++ protocol checks and a complete developer client/server
+build pass. Runtime overlay validation and remaining issue scope are next.
+
+## #22 profiling contract, test first
+
+The issue and existing instrumentation are reviewed. The engine already has
+explicit generation-checked CPU scope tokens, a flat previous-frame view, RHI GPU
+timestamps, zone tags/hunk totals, packet/snapshot/prediction totals, renderer
+subsystem counters and lifetime-bounded debug primitives. Extend those owners;
+do not introduce RAII guards across Com_Error or a second profiler framework.
+The first contract adds parent indexes/self time and retained bounded CPU frame
+history/peak attribution. Existing incomplete/stale/overflow/backwards-clock and
+network controls remain. Actual overlay spike attribution without rebuilding is
+required before #22 acceptance; optional Tracy must not become a mandatory build
+dependency. The existing asset/memory probes pass, then the extended CPU probe fails on its
+missing parent/self-time/frame APIs (profiling-history-before.log). No #22
+production changes existed at that checkpoint (c4d6a9ff). The initial hierarchy
+implementation passes that contract. Extend it before completion: external idle
+time between frames must not inflate CPU duration, history must wrap at 240
+frames while retaining the peak, and a finished child of an abandoned parent must
+remain inspectable. The idle-duration assertion fails first
+(profiling-idle-before.log); finalize time at the last completed scope instead of
+the next frame boundary. The correction passes GCC and Clang/libc++ developer-data probes
+(profiling-history-{gcc,clang}.log). The owner retains 240 POD frames, inclusive
+and self durations, parent indexes, drop counts and the worst complete frame.
+It uses existing explicit tokens and no dynamic allocation. Overlay/agent
+consumption and production scope coverage remain next.
+
+## #21 Windows public-header macro contract, test first
+
+Corrected head d24ba4f4 reaches the developer client compilation and exposes
+Windows min/max macro expansion inside the new shared sound-distance header
+(C2589/C2059). Add the hostile-header condition to the existing audio spatial
+probe before correcting the shared helper. Both actual callers (authored audio
+and AI hearing) remain on the same implementation. Parenthesizing the function
+name prevents macro expansion without changing arithmetic; GCC optimized
+snd_spatial.o is byte-identical before/after. Both compiler spatial probes and
+the complete developer client/server rebuild pass. The same hosted run then
+reaches retained C99 bot/team-leader probes: new bool declarations require
+stdbool.h when g_local.h is consumed as C. Add that conditional standard include
+and verify bot byte conversion on GCC/Clang plus the team-leader check. All
+remaining hosted native probe steps also pass on both compiler configurations
+(navigation-native-tail.log). No accepted golden changes. Push the corrected
+head and require every fresh required check before readiness/merge.
+
+## #21 hosted portability and cold tool setup
+
+Head 9fd94edb fails MSVC C4244 on two integer ternaries assigned/passed as
+floats. Use exact float constants (0/1 and 8/16), preserving values. Both hosted
+unit legs fail preparing the owned compiled level. Reproducing with a clean
+cook-only Python venv and an unextracted pinned archive confirms the missing
+level-tool Python dependency. Install the existing tools/level/requirements.txt
+and libarchive-dev on those CI runners, matching runtime setup. The navigation
+driver now prints its saved level log when compilation fails. No local system
+packages or accepted fixtures change. Clean-cache full navigation cooking/native
+checks pass after the dependency install (navigation-cold-after.log). Client/server
+rebuild, format/types, workflow lint and all four native-controller tidy/lifetime
+configurations pass. Fresh hosted checks remain required before PR177 can merge.
+
+## #21 main integration
+
+Merge #20 main 13106135 forward. Production changes merge automatically; resolve
+adjacent verification/catalog entries by retaining both packages and navigation.
+Keep both README sections and the earlier content checkpoint as history beneath
+the current next action. No accepted fixtures change. Rebuild the combined
+client/server and package/AI checkpoint integration pass, as do catalog/policy
+checks. Draft PR177 is open against current main for its required hosted gates.
+
+## #21 cooker header dependency contract, test first
+
+Final review of the actual Ninja dependency records finds 12 engine headers in
+the new collision cooker, but its content-hash input list only included one.
+Extend the existing navigation test to simulate changed collision/platform header
+bytes in memory and require tool-hash invalidation. No production file or accepted
+fixture is modified. Test-first 27133f59 fails on the missing cm_local.h dependency
+(navigation-header-before.log). Adding all 12 verified header dependencies makes
+the complete navigation driver pass (navigation-header-after.log).
+
+## #21 actual q3dm17 acceptance
+
+The final private native run passes (navigation-q3-combat5.log and
+navigation-q3-combat/actors.json): a complete six-corner route traverses two actual
+push triggers, the data rifle damages the player, a return hit selects cover, and
+the bot moves roughly 668 units into trace-protected cover against the relocated
+hostile's last sensed position. The authored cover dwell is 20 seconds so the
+inspector can observe completion. Both actor movement and weapon damage use the
+unchanged native paths. The live AI inspector screenshot was reviewed.
+
+All map extraction, observed landing data, cooked navmesh and trajectories remain
+in the persistent private cache; no installed game archive or derived map asset
+is committed/uploaded. Reproduction scripts there are navigation-q3-offline.py,
+navigation-pads-observe.py, navigation-q3-combat.py. Owned CI geometry exercises
+the same path/perception/weapon/checkpoint owners without proprietary content.
+GCC/Clang navigation UBSan and both legacy bot smoke content sets pass unchanged.
+Full tidy passed 1446 configurations, with the final two-line cover correction
+rechecked for tidy/lifetimes in all four configurations (navigation-cover-recheck.log).
+Full lifetimes pass all 1380 commands. Fixed demos retain Q3 frame hash
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4 and OpenArena
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96
+(navigation-demo-{q3,oa}.log). The owned combat/checkpoint test also passes with
+installed Q3 content (navigation-combat-q3.log). No accepted golden changed.
+
+## #21 cover completion after memory expiry, test first
+
+q3dm17's longer cover route takes more than five seconds at native crouch speed.
+The bot reaches the selected protected point but the transient observation has
+expired, incorrectly clearing covered. Extend the owned runtime contract to hold
+cover for six seconds beyond arrival: target acquisition must expire, while
+protection against the stored last-known threat remains true. The current client
+fails that exact assertion (navigation-cover-memory-before.log). Reuse the
+already checkpointed sense position; no new owner or movement change is needed.
+Test-first e6ebaa21 fails before the two-line correction; the full owned combat
+and same/fresh checkpoint run now passes (navigation-cover-memory-after.log).
+GCC/Clang units retain hash 8d44421dfd5f31912bb7ffc942c6f0e1f32cd9a445e1dbcf38b658f555598ede.
+Full pre-correction tidy passed 1446 configurations; recheck the changed game
+owner after this final correction. Lifetimes and the remaining legacy gates run.
+
+## #21 launch-trigger continuation contract, test first
+
+The first actual q3dm17 AI run launches but its route cursor stays at the source:
+the native trigger overlaps the actor before the endpoint arrival radius. Add a
+contract that consumes the existing authoritative pad-touch bounds and advances
+only the current matching launch link (including unrelated/invalid bounds and
+ordinary-jump rejection). Also allow native ground steering after an off-center
+landing; preserving pad velocity only applies while airborne. No movement or
+impulse expression changes. Evidence: navigation-q3-runtime.log/actors.json. Test-first 2305f981 failed
+on the missing trigger API before implementation. Both compiler UBSan navigation
+suites now pass (navigation-trigger-{gcc,clang}.log). The native q3dm17 route
+now finishes after two pad flights: 38 sampled airborne/landing phases and arrival
+at sample 83 (navigation-q3-trigger-runtime.log). Inspector capture reviewed;
+map-derived assets and trajectories remain private. Combat/cover acceptance on
+q3dm17 is still running.
+
+## #21 native combat and cover
+
+After the committed failing combat contract in 1b248ac6, the controller feeds real
+trace facts into sight/target memory and shared audio distance/occlusion sensing.
+Only actual weapon-shot events mark audible sources. New attack commands release
+the existing respawn latch before firing; an empty data-weapon magazine requests
+its existing reload command. Behavior-driven cover selects reachable nav-boundary
+points, crouches through unchanged Pmove, and reports covered only after reaching
+the selected point with a current blocked threat trace. Perception, cover/replan
+state and recent shot clocks have named checkpoint fields; no per-frame allocation.
+
+OpenArena combat acceptance passes (navigation-combat-5.log): rifle damage to the
+player, low-health rule after a player hit, more than 32 units of real movement
+into protected cover, and exact same/fresh-process continuation. The controlled
+spawns are baked into the owned scratch BSP so fresh reconstruction sees identical
+content; a temporary developer entity override correctly failed that identity
+check. Frozen pre-AI migration still passes. Inspector capture reviewed. GCC state
+suite and format/type/boundary gates pass. The explicit occluded-shot runtime also passes (navigation-hearing.log): gain
+0.2996 at 260 units matches shared linear attenuation times 0.35 occlusion, a
+complete investigation route causes real movement, and checkpoint continuation
+remains exact. Full post-combat analysis and q3dm17 acceptance remain pending.
+
+## #21 navigation checkpoint owner
+
+After a67d9c69's failing full-game contract, typed records own navmesh/behavior
+content identities, controller clock, each bot's behavior state, route corners,
+authored link kinds, cursor/phase and goal. Both latched asset selections use the
+existing cached-cvar owner. Decode validates all actors before publication;
+navmesh bots have their own connection/spawn reference validation and no legacy
+bot handles. Missing pre-AI records migrate to the legacy controller; present
+invalid records fail through the tested presence API.
+
+Same-process and fresh-process paused restore and 25-tick continuation pass with
+exact actor/weapon/route data (navigation-checkpoint-fresh.log). The full existing
+state suite passes GCC and Clang UBSan (navigation-state-{gcc,clang}.log), and the
+legacy runtime suite still passes interrupted/replaced reconnect, fresh-process
+continuation and the unchanged frozen-v1 fixture (navigation-legacy-checkpoint.log).
+Tidy passes 1446 production configurations and lifetimes pass all 1380 commands.
+The full MinGW client/server/devtools build passes. Loading the unchanged frozen
+v1 fixture from an active AI session also passes and clears both selected AI
+assets (navigation-checkpoint-migration.log). Combat/cover and q3dm17 AI traversal
+remain pending.
+
+The extended --combat runtime contract fails as intended on the patrol-only
+client: the visible hostile does not trigger data-weapon fire
+(navigation-combat-before.log). It requires real player damage, a low-health
+transition, movement into trace-protected cover and exact checkpoint continuation.
+Commit this test before connecting the existing perception and weapon services.
+
+## #21 live AI checkpoint contract, test first
+
+Extend native patrol acceptance with a paused full-game save, 25 live ticks,
+restore, and exact actor/weapon/route/behavior continuation. The new AI owner and
+its two latched cvars are not yet serialized. Run this contract against the
+patrol client before implementing the owner. It fails at checkpoint capture
+(navigation-checkpoint-before.log); the existing owner validation cannot account
+for a connected bot without a legacy bot-state allocation. Preserve all accepted
+fixtures and add explicit navmesh actor ownership.
+
+## #21 optional owner lookup
+
+After e6ba42de's failing contract, State_Find can optionally report whether the
+named slot exists even when its schema is rejected. Existing callers retain
+identical behavior. The engine/native field/migration probes pass under GCC and
+Clang UBSan (navigation-state-core.log), including missing versus invalid owner
+records. This supports pre-AI fixture migration without changing old schemas or
+regenerating fixtures. Full AI owner/cvar continuation is still being connected.
+
+## #21 checkpoint migration presence contract, test first
+
+The new AI owner needs an explicit absent-record migration for frozen pre-AI
+checkpoints. Extend the existing state probe so lookup reports whether a named
+record exists independently of schema success: a missing owner may migrate,
+but an existing undecodable owner must fail. This avoids treating malformed new
+state as an older save. Commit the failing optional-presence API contract before
+implementation; syntax compilation fails at the absent presence argument
+(navigation-state-presence-compile-before.log). The full state driver separately
+stops at its expected unowned g_navigation/g_behavior guard until AI cvar
+ownership is connected. No fixture regeneration or existing schema change is
+needed.
+
+## #21 first native patrol integration
+
+Wire the existing navigation/behavior/perception owners and pinned Detour sources
+into client/server builds with strict FP options. Cook index kinds 15/16 are
+recognized; navigation and behavior load through existing filesystem services.
+Latched g_navigation/g_behavior opt into the new controller; ordinary bot matches
+keep their existing path. The controller emits the existing bot input/usercmd
+format and Pmove remains movement authority. New bots bypass legacy AAS client
+setup; a runtime run with the owned map's AAS removed passes.
+
+After 7d40e273's failing runtime contract, the OpenArena native patrol moves about
+1195 units over complete three/four-corner routes with the data-driven rifle
+active. Actor telemetry and the AI ImGui panel expose state age, transitions,
+route cursor and colored path segments. The inspector capture was viewed.
+Evidence: navigation-runtime-patrol2/ and navigation-runtime-no-aas/; Linux client
+and server build and format/type/boundary checks pass. This is initial patrol,
+not combat/cover, q3dm17 traversal or checkpoint acceptance; those are next.
+
+## #21 private map-pad observations
+
+Observed all 13 existing q3dm17 pads through current-main native movement. Twelve
+produce a measured landing; pad *14 has no settled landing within 500 sampled
+frames and is excluded from this temporary link recipe. Cooking those twelve
+local observations increases complete spawn-pair routes from 27 to 58 (52 remain
+partial), with 531 cover candidates, 11 valid steering queries and no query
+allocations. Evidence: navigation-pads-observe/ and navigation-q3-pads-{cook,query}.log.
+BSP, trajectories and derived navmesh stay private; no map bytes are committed or
+uploaded. These are preparation measurements, not native AI gameplay acceptance.
+
+## #21 native runtime contract, test first
+
+Add tests/navigation_runtime.py using the existing owned two_lane level compiler,
+a cooked patrol behavior/navmesh, and the accepted weapon/animation asset sources.
+The OpenArena current-main client starts the map and native bot, then fails at
+absent actor AI state as intended (navigation-runtime-before.log). The remaining
+contract requires actual Pmove displacement over 128 units, a complete navmesh
+route, the configured data weapon and an AI inspector capture. Commit before
+connecting the existing core owners to game lifecycle and developer telemetry.
+Combat/cover, q3dm17 traversal and checkpoint continuation remain later acceptance
+steps; this initial patrol test does not claim them.
+
+## #21 authoritative route following
+
+After 872f868f's failing contract, Nav_Follow keeps an eight-byte POD corner/
+phase cursor. It selects bounded ground/off-mesh steering targets from actual
+feet and grounded state, waits for a real map-pad launch and landing, and never
+moves an entity. Jump commands end in flight; door/drop targets remain explicit;
+partial routes never report arrival. Both compiler UBSan suites pass copied-
+cursor continuation and zero tick allocations (navigation-follow-{gcc,clang}.log).
+Isolated lifetime and the configured tidy error policy pass for the owner; the
+existing advisory warnings remain. Full production integration gates are pending.
+
+## #21 authoritative route-following test first
+
+Extend the native allocation-counted probe with authoritative foot positions and
+POD route cursor continuation. Ground corners advance normally; a pad source
+must wait for a real airborne transition, then its landing; ordinary jump/drop/
+door actions keep distinct output. A partial route must never report arrival.
+The contract is deliberately independent of Pmove: it selects a steering target,
+while existing native user commands retain movement authority. Compilation fails at the absent navFollowState_t/Nav_Follow API
+(navigation-follow-before.log). Commit this contract before implementation.
+
+## #21 checkpoint-enabled main forward merge
+
+Merge main b92b6ef5 after the isolated core preparation. Source lists and the
+collision public API combine cleanly; retain current PR174 acceptance and both
+issues' detailed histories when resolving the documentation conflicts. Recheck
+the cooker/native driver against the new CM/shared sources before committing the
+merge. The first combined cooker link fails because CM's new portal checkpoint
+helpers depend on State_Append/State_Find (navigation-state-base.log). Link the
+existing small state/SHA owners into the offline helper, and apply C++-only
+compiler options by language so the vendored SHA file remains C. Include those
+sources in the existing tool dependency hash. This does not bypass #20 or claim
+runtime gameplay integration. The combined native/cook driver passes
+(navigation-state-base-after.log); format (582), types (442) and boundaries (443)
+also pass before the merge commit.
+
+## #21 off-mesh action metadata and observed pad link
+
+After 6bf8f3b9's failing test, native waypoints expose the cooked jump/drop/door/
+launch action alongside the authored ID. The added launch kind represents an
+existing map impulse rather than synthesizing a gameplay jump. Both compiler
+UBSan drivers pass ordinary-jump and incrementally recooked launch cases. Cooker
+limits now reserve capacity for off-mesh polygons/vertices and the outer envelope,
+so accepted output stays within the native tile/file bounds.
+
+A private link for the observed q3dm17 *5 pad increases complete spawn-pair routes
+from 24 to 27 (83 still partial). All 11 steering queries and 531 cover candidates
+remain available with zero tick allocations (navigation-q3-launch-{cook,query}.log).
+The derived assets and trajectory stay private. This is route/action preparation;
+actual native bot movement, pad execution, combat and checkpoint continuation
+are still required and no #21 PR is open.
+
+## #21 off-mesh action identity, test first
+
+A private current-main client observation confirms q3dm17's *5 jump pad lands
+on the upper platform after 85 sampled frames at dt=20 ms. Source pad bounds
+center at (-32,-672,338); the observed first landing origin is approximately
+(-125.100327,-772.106201,600.125), with floor at 576. Game movement was untouched.
+Trajectory/log evidence stays in navigation-pad-observe/; no map bytes are
+committed or uploaded. The first telemetry row predates queued teleport execution;
+use the first positive launch-velocity row, not that stale row, as launch evidence.
+
+Native routes currently expose link IDs but not their action kind. The extended
+probe requires jump versus existing-pad launch identity, and the driver adds a
+launch-kind incremental cook. Compilation fails on absent link kind metadata
+(navigation-link-kind-before.log). Commit first, then expose the existing cooked
+area kind and add an explicit launch kind; ordinary jump/drop/door remain distinct.
+
+## #21 stateless steering and real-map query evidence
+
+After 7461cf58's failing contract, Nav_Avoid uses a preallocated Detour avoidance
+query reset for each authoritative actor snapshot. Nearby navmesh wall segments
+and up to 64 actor circles feed the existing crowd sampling parameters. Both
+compiler UBSan tests pass oncoming-actor avoidance, identical fresh-world and
+intervening-query results, and zero allocations after initialization
+(navigation-avoid-{gcc,clang}.log). Tidy, lifetime and strict MinGW/aarch64
+compilation pass for the changed owner.
+
+Private q3dm17 queries cover all 11 installed spawn positions: 24 complete routes,
+86 explicitly partial routes, 531 nearby cover candidates and 11 valid steering
+queries, with zero query allocations (navigation-q3-query.log). The disconnected
+platform routes still need authored off-mesh traversal; do not describe these
+numbers as full-map traversal or gameplay acceptance. No game asset/derived map
+output is committed or uploaded.
+
+## #21 checkpoint-compatible steering decision and test
+
+Gameplay will use Detour local obstacle avoidance from current authoritative
+positions/velocities, alongside bounded explicit paths and POD behavior/perception
+state. Do not introduce hidden asynchronous crowd/path-queue state into full-game
+checkpoint continuation. The existing persistent crowd API remains available and
+tested; gameplay movement still goes through native usercmd/Pmove.
+
+The new probe requires avoidance of an oncoming actor, bit-identical output in a
+fresh nav world, and identical output after an unrelated intervening query. Both
+worlds initialize before the allocation counter; no tick allocation is allowed.
+Compilation fails at missing navObstacle_t/Nav_Avoid
+(navigation-avoid-before.log). Commit before the direct avoidance implementation.
+
+## #21 navmesh cover candidates and real-map offline cook
+
+After 209a8623's failing query contract, nearby ground polygons expose inward
+boundary points with stable polygon/edge identities. Results are distance-sorted
+and bounded to 256 polygons/points; capacity exhaustion is explicit. The caller
+still tests current threat occlusion and route reachability. Both compiler UBSan
+runs find reachable cover behind the owned collision brush and retain identical
+query IDs/positions with no allocations (navigation-cover-{gcc,clang}.log).
+Isolated navigation tidy passes; all three navigation/behavior/perception owners
+also compile with strict warnings on local MinGW x86_64 and aarch64 compilers.
+
+A separate private cook reads installed q3dm17 BSP content and produces 1,282
+polygons, 2,087 vertices, no authored links yet, and a 189,236-byte .asnav file
+SHA256 d61e7f20fa8663669b3236c42d9ce55e3e3f2c58ce648f8670cc9e8dbcff97aa
+(navigation-q3-offline.log). These derived bytes and the temporary BSP stay in
+the private cache and are not committed/uploaded. This proves real-map cooking,
+not native bot gameplay or map traversal acceptance.
+
+## #21 collision-derived cover candidate test
+
+Extend the existing native navigation probe to require bounded, repeatable cover
+points from nearby navmesh boundaries, including a reachable point behind the
+owned low-cover collision brush. Candidates must remain within the requested
+range and retain stable identities on repeated queries. Existing allocation
+counters also cover this query. Compilation fails on missing navCoverQuery_t/
+Nav_CoverPoints (navigation-cover-before.log); commit before implementation.
+
+## #21 isolated perception and cover selection
+
+After 1d4b1d6f's missing-owner failure, bounded POD perception selects the nearest
+visible hostile with stable identity ties, then the loudest audible hostile,
+then a time-limited remembered position. Supplied trace facts combine with the
+sight cone; dead/friendly observations invalidate remembered targets. Hearing
+shares authored audio's linear/inverse gain and settled occlusion amplitude.
+Cover selection chooses the nearest reachable point protected from the threat.
+Game trace generation and navmesh cover candidates remain to be integrated.
+
+Both compiler UBSan navigation/behavior/perception suites pass, as do isolated
+perception tidy/lifetime checks. Existing audio spatial probes pass GCC and
+Clang/libc++, and the authored sound-event suite passes. Sharing the occlusion
+helper leaves GCC -O2 snd_event.o byte-identical. Spatial instruction scheduling
+changes after helper extraction, but 100,000 original/current spatial outputs
+are bit-identical, including both attenuation models and randomized positions/
+velocities. Evidence: navigation-perception-{gcc,clang}.log, navigation-audio-
+compare.log and navigation-audio-events.log. No accepted sound/demo artifact,
+authoritative simulation expression, allocation or OS access changed.
+
+## #21 perception/cover contract, test first
+
+The native probe requires sight cone plus supplied collision visibility,
+nearest-hostile selection with stable identity tie breaks, audio-model hearing
+through occlusion, exact memory expiry/copy continuation, and nearest reachable
+cover protected from the threat. It fails on absent perception_public.h/
+perception.cpp after existing navigation/behavior tests pass
+(navigation-perception-before.log). These helpers consume bounded trace facts;
+real game trace production and movement remain separate acceptance requirements.
+Before sharing audio math, retain original GCC -O2 spatial/event objects in the
+private cache for a before/after code-generation comparison. No audio model or
+accepted sound fixture change is intended.
+
+## #21 isolated hierarchical behavior execution
+
+After 7f7a3f60's missing-runtime failure, fixed-capacity POD behavior/state records
+load the authored hierarchy and execute one ordered transition per tick. Leaf
+rules precede inherited parent rules; dwell time is measured in the current leaf,
+and state elapsed/transition counters saturate without wrapping. Loader validation
+checks table extents, names, hierarchy depth/cycles, leaf targets and comparison
+ranges before publication. No allocation or OS calls are introduced.
+
+GCC and Clang/libc++ UBSan now pass the complete navigation/behavior driver,
+including exact dwell/timeout boundaries and identical copied-state continuation
+(navigation-behavior-{gcc,clang}.log). Isolated owner clang-tidy and AST lifetime
+checks pass (navigation-owner-{tidy,lifetime}.log). These isolated checks do not
+replace final production-configuration gates after engine/gameplay integration.
+Perception, cover/target selection, real bot movement/weapons, ImGui inspection
+and #19 checkpoint integration are still outstanding. No #21 PR yet.
+
+## #21 native behavior contract, test first
+
+The cooked hierarchy now has a native probe requiring leaf-before-parent
+transition priority, inherited loss-of-sight behavior, minimum dwell times,
+exact timeout boundaries and identical continuation from a copied POD state.
+The initial compile fails on missing behavior_public.h/behavior.cpp after all
+existing cook/navmesh/crowd assertions pass (navigation-behavior-native-before.log).
+Commit those assertions before the runtime state-machine implementation.
+
+## #21 behavior cooker
+
+After 078aebcd's missing-kind failure, the behavior cooker emits the existing
+version/hash envelope around bounded named states and ordered transition tables.
+Parent identities, cycles/depth, leaf targets and field-specific comparison
+ranges are validated. The agent schema/describe API includes the format, and
+the development index reserves kind 16. Native transition execution is not yet
+implemented. The complete navigation driver passes its existing query/crowd
+checks and the new incremental behavior edit (navigation-behavior-after.log).
+
+## #21 behavior source contract, test first
+
+Extend the navigation acceptance driver with a data-authored guard hierarchy:
+patrol/investigate leaves and attack/cover children of a combat parent. Ordered
+leaf transitions handle health/cover, while both combat children inherit the
+lost-target transition. The source also carries minimum dwell times and a timed
+return to patrol. It must cook incrementally without rebuilding the collision
+navmesh; an edited threshold must change only its own asset.
+
+Existing native navigation assertions pass first, then cooking fails at the
+missing behavior asset kind (navigation-behavior-before.log). Commit this source
+contract before the cooker; native transition/perception/cover assertions remain
+necessary before those runtime pieces. #19 is now in its final UBSan runtime step.
+
+## #21 isolated native navigation owner
+
+After e8a12794's missing-owner failure, the opaque POD owner copies/validates the
+pinned single-tile envelope and initializes Detour query/crowd capacity through
+zone allocator hooks. Public coordinates remain engine Z-up. Ground paths and
+explicit authored off-mesh IDs use bounded caller results; crowds provide
+steering only, with authoritative usercmd/Pmove integration still outstanding.
+No engine build or gameplay owner uses this preparation yet.
+
+The native test exposed Detour omitting a link marker when the route starts at
+the link's exact endpoint. Funnel ground segments separately around each
+corridor off-mesh polygon so the authored action survives a zero-length approach.
+The same test now passes, without weakening its assertion. GCC and Clang/libc++
+UBSan runs pass routes across the owned map, explicit link IDs, two opposing
+agents reaching their destinations without interpenetration, slot reuse and
+complete cleanup. Allocation counters remain unchanged after world creation.
+Evidence: navigation-native-{gcc,clang}.log. No accepted golden changes.
+
+Limits: one tile up to 16 MiB, 32,768 polygons, 256 authored links, 256 returned
+waypoints and 64 preallocated agents. Tile counts, section sizes, geometry/detail
+references, BV escapes and off-mesh identities are validated before Detour pointer
+fixups. Partial routes/capacity exhaustion are explicit in the result. Compiler,
+format/type/boundary checks cover this slice; full integration/tidy/lifetime and
+real gameplay acceptance remain after accepted #19/#20 main is merged forward.
+
+## #21 native navigation contract, test first
+
+The existing navigation driver now compiles a native functional probe after its
+owned collision cook. It requires a route across both lanes/height transition,
+the authored off-mesh link ID, two opposing agents reaching their goals without
+interpenetration, reusable slots, explicit cleanup and no allocations after
+world creation. The owner must copy the caller's asset bytes before mutable
+Detour initialization. Public result values must remain trivially copyable.
+The initial build fails on missing navigation_public.h/navigation.cpp
+(navigation-native-before.log). Vendored compilation retains its warning policy;
+owned probe/runtime compilation requires -Wall -Wextra -Werror and UBSan.
+No gameplay integration or completed #21 acceptance is claimed.
+
+## PR174 merged-tree acceptance complete
+
+Fresh job evidence confirms main 5caa2c1c passes all 16 compiler builds in
+35715942160 and all ten active regressions in 35715942143 attempt 2. #31 is closed
+again after its acceptance comment; docs/bugs.md records PR174 and both exact-head
+and integration runs. The runtime-only rerun preserved all tests after the first
+attempt's advancing-gameplay timeout. No suppression or accepted golden changes.
+PR175 is still running; do not substitute predecessor gates for its own runtime.
+
+## #21 first collision-navmesh cooker
+
+The initial cook contract now passes (navigation-first-after.log). The offline
+helper links the actual CM loader, uses the explicit solid/player-clip exporter,
+rotates engine Z-up coordinates into Detour Y-up, then runs Recast voxelization,
+clearance/regions/contours/detail generation and Detour tile creation. Source JSON
+has bounded agent settings and named off-mesh link IDs/kinds; the existing agent
+schema/diagnostic API exposes it. The cooker records both source and collision
+BSP hashes and skips/recooks reproducibly. Owned map outputs only; no accepted
+fixture or proprietary archive is copied into the repository.
+
+The .asnav envelope retains the shared 48-byte version/hash header, followed by
+64 bytes of BSP SHA256, six agent/cell floats, tile length and CM checksum, then
+the pinned Detour tile. Native inputs have explicit sizes/offset assertions.
+The cooker development index reserves kind 15; runtime loading/reload handling
+is not implemented yet. Existing tests remain the acceptance boundary, not the
+mere presence of a cooked file. Next add native query/crowd/off-mesh tests before
+runtime owners, then gameplay/perception/behavior/tooling on accepted #19/#20 main.
+
+## #21 collision export mask implementation
+
+After 83a9fdd4's failing compile, add the explicit-mask overload and preserve the
+old two-argument solid-only wrapper. The same brush/patch clipping code now serves
+navigation's solid/player-clip mask; no expressions or native movement/trace code
+are restructured. GCC and Clang/libc++ UBSan probes pass the original and added
+mask assertions (navigation-collision-after.log, navigation-collision-clang.log).
+The navigation asset cooker remains unimplemented; no gameplay acceptance yet.
+
+## #21 collision export mask, test first
+
+The existing physics collision probe now requires an explicit navigation contents
+mask. A player-clip brush must stay excluded from the existing cosmetic default
+but be included alongside solid patches when requested. Original winding area,
+inline-model exclusion, deduplication and cleanup assertions remain. The targeted
+compile fails on the absent three-argument export overload
+(navigation-collision-before.log). Keep the old two-argument symbol/default and
+reuse the same clipping implementation; no authoritative CM trace code changes.
+
+Predecessor update: #20's first runtime failure is an extra search-path line for
+an absent optional engine directory, not gameplay divergence. af524559 fixes it;
+both unchanged OA bot hashes and complete package/pure/render acceptance pass.
+New build 35725046713/regression 35725046710 are running/queued. PR174 integration
+is in its final sanitizer/replay checks; PR175 remains in level authoring.
+
+## #21 pinned dependency preparation
+
+After the missing-kind failure was committed at 4c7fa084, import unmodified
+Recast/Detour/DetourCrowd source/header subsets at the verified v1.6.0 commit.
+third_party/recast/provenance.json records every copied hash and archive identity;
+the original zlib license/notices remain. No demos, sample assets or unneeded
+TileCache/DebugUtils modules are imported. No build/runtime integration exists
+yet, and the initial cooker test still fails as expected.
+
+## #21 collision-navmesh source contract, test first
+
+Issue #21 has no additional comments. tests/navigation.py compiles the owned
+three-room/two-lane map using the existing level tool, then requires a navigation
+asset whose source includes that actual collision BSP plus agent/off-mesh settings.
+It checks transitive manifests, incremental skipping and deterministic recooking.
+The map compiles; cooking fails at `asset kind is not implemented yet: navigation`.
+This is the initial source/output contract only; it does not yet prove native
+pathfinding, off-mesh execution, crowd avoidance or gameplay acceptance.
+
+Inspection found existing CM_PhysicsTriangles world brush/patch export. Reuse it
+instead of deriving navigation from visible render surfaces; account for playerclip
+explicitly without modifying authoritative CM/Pmove calculations. Recast/Detour is
+explicitly requested by the issue. The official latest tagged release is v1.6.0,
+peeled commit 6dc1667f580357e8a2154c28b7867bea7e8ad3a7, tag object
+b4554541b658630816dba41466eb1cefb624519e. Its downloaded source archive SHA256 is
+f565cc91b85df95a656cfc672e41c02e8aa44ba2363905aa8277ce20ea87491d; the zlib license
+is retained in the private source cache. No dependency is vendored yet.
+Sources: https://github.com/recastnavigation/recastnavigation/releases/tag/v1.6.0
+and https://github.com/recastnavigation/recastnavigation/tree/6dc1667f580357e8a2154c28b7867bea7e8ad3a7.
+
+## #20 draft-feedback workflow decision
+
+Both complete local unit variants pass (content-unit-suite/suite-report.json
+ok:true, full:false because only unit jobs were selected). Linux/MinGW builds,
+full lifetime/tidy coverage, both-content package/pure/render acceptance, existing
+bot goldens and both fixed replays have passed. No accepted golden changed.
+
+Earlier notes kept #20 local while waiting for #19. With local acceptance complete,
+open a draft into current main for early hosted compiler feedback instead of
+waiting idle. This does not change merge order: #19 must merge first, then its
+current main must be merged forward into #20 and fresh final gates must pass.
+Any checks on the older base are preliminary evidence only. Self-review finds
+only #20 package/root/test/docs changes, no authoritative simulation edits, no
+new non-trivial core owners and no new per-read/seek allocations.
+
+## #20 CI evidence retention
+
+The runtime job retains only package logs, screenshots and size JSON, including
+pure-session logs; package contents and game archives are not uploaded. The
+AGENTS/tests/design acceptance commands include the dedicated server so the
+pure-session portion is explicit. GCC's complete unit-job variant passed; Clang
+is still running. PR174 integration has advanced beyond level authoring; PR175
+remains in its level-authoring step. Continue monitoring both, with no red/skipped
+required-check merge or main-base shortcut.
+
+## #20 offline/native limit agreement
+
+Self-review aligns offline mount limits with the native 64-package/65,536-visible-
+asset limits and uses a set for removal membership during writing. The complete
+functional package check still passes (content-native-final.log); artifact bytes
+and accepted fixtures are unchanged. GCC's full unit job variant has passed; the
+Clang/libc++ variant is running in content-unit-suite. No #20 PR is open yet.
+
+## #20 final local gate checkpoint
+
+Full lifetime analysis passes 1,320 production compilation commands/147 paths,
+including shipping/devtools, static/module and all controls. Tidy covers 1,382
+configurations with the separately recorded eight-filesystem recheck after the
+single tool crash. Fixed Q3 and OpenArena replay hashes remain exactly
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4 and
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+Evidence: content-lifetimes.log, content-tidy/results.json,
+content-tidy/recheck-results.json, content-demo.log, content-demo-oa.log.
+The runtime test also now proves that packaged autoexec/q3config entries do not
+replace loose user configuration; full OA package/pure/render acceptance passes
+again. The full local unit job variants run via tests/suite.py under
+content-unit-suite. PR175 and PR174 integration still await hosted runtime.
+
+## #20 filesystem implementation and local acceptance
+
+Native packages reuse the existing search-pack/hash/handle interface. File reads,
+seeks and explicit close use the platform stream; modern metadata is excluded
+from the legacy zip cache. Sorted independent/patch/DLC/mod mounts validate their
+composed SHA256 view. Removal entries stop lower package/loose lookup and listing.
+Reserved user configs keep the legacy archive exclusion. Existing pure checksums
+bind modern identity/metadata; missing modern artifacts require installation,
+while legacy pk3 downloading and reading retain their existing path.
+
+Engine data is under fs_enginepath/engine, game data under fs_basepath/game, writes
+under fs_homepath/active-game. Windows now uses the static OS application-data API
+for its user default, replacing the inactive optional profile path. Linux/macOS
+keep their existing home defaults. Missing home requires an explicit override,
+never an implicit install-directory write. Explicit portable equal-root launches
+remain supported. No simulation arithmetic or accepted fixture/golden changes.
+
+Both Quake 3 and OpenArena pass roots, patch/removal/DLC/mod precedence, filesystem
+restart, user writes, legacy gameplay and matching-package sv_pure client/server
+sessions (content-mount-final-q3.log, content-mount-oa.log). The actual owned
+character packages into 4,373 bytes; a 1,455-byte texture delta changes 1,518 native
+preview pixels in fresh clients. Screenshot reviewed. The first native mount run
+caught a missing legacy-cache exclusion; corrected within this unmerged feature.
+The test setup also needed normal console `set` for new cvars and session setup
+before stepping. Its corrected test fails the old binary specifically at the
+missing engine mount (content-mount-before.log).
+
+Linux client/server and MinGW client/server builds pass. Core unit golden plus
+one-ULP negative control and both Q3 bot hashes pass unchanged (content-unit.log,
+content-bots.log). Format/type/boundary and suite/affected/actionlint pass. Tidy's
+full run had one tool crash while files.cpp was being edited; after stabilizing
+that file, all eight of its production configurations pass (content-retidy.log).
+The original full report and separate recheck report are retained. Lifetime and
+fixed replay gates remain outstanding; no hosted acceptance is claimed.
+
+CI registers the package probe on both compilers and real OA package rendering/
+pure checks in runtime. AGENTS/tests docs and docs/design/packages.md describe
+commands, roots, mounting, limits and installer-only modern content. Keep #20
+local until #19 merges; final checks must include that current main.
+
+## #20 filesystem acceptance, test first
+
+The real-engine test packages owned configuration files in separate engine/game/
+user roots. It requires a base/patch view, tombstone hiding of lower loose files,
+additional DLC mounts, filesystem restart, user-only writes and playable legacy
+pk3 maps. The accepted binary fails at the absent engine package mount
+(content-mount-before.log). Commit the test before filesystem integration.
+Implementation may proceed while #19's last runtime job runs; #20 final gates
+must include accepted #19 main before its own PR can merge.
+
+## #20 native stream implementation
+
+The production reader validates fixed layouts, canonical metadata hashes and
+ordered patch identities, then verifies each complete asset before exposing bytes.
+Stored assets use 64-bit platform offset reads; compressed assets reuse puff with
+a bounded zone buffer. Read/seek do not allocate. Explicit close/free releases all
+resources. GCC and Clang/libc++ UBSan pass (content-native-after.log,
+content-native-clang.log). Raw DEFLATE packages measure 14,949 bytes for the base,
+2,077 for the one-texture delta and 460 for removal. No new dependency.
+The filesystem has not mounted these packages yet; this is not #20 acceptance.
+
+## #20 native stream contract, test first
+
+The package test now compiles the future native reader and platform file stream,
+requiring stored/compressed bytes to match cooked files, seek/tell accuracy,
+matching patch identities, removed entries, no read/seek zone allocations and
+complete handle/allocation release. Its initial compilation fails on absent
+package_public.h/package.cpp/sys_content_file.cpp (content-native-before.log).
+Commit this contract before implementing those owners.
+
+Inspection found that the engine ships puff, not a public incremental zlib API.
+Use raw DEFLATE through that existing decoder: compressed assets decode/hash once
+at open into a bounded buffer; stored assets stream through platform offsets.
+Audio can explicitly remain stored. The offline codec and format doc now agree,
+and the tool-side exact patch assertions still pass before native compilation.
+This changes only new, unaccepted #20 artifacts; no accepted fixtures are touched.
+
+## #20 offline package and manifest-diff implementation
+
+The writer uses Python's existing SHA256/zlib facilities, a fixed 128-byte header
+and index entries with 64-bit extents, per-asset uncompressed hashes and canonical
+JSON manifest. New/changed payloads and explicit removals form patches; required
+base and resulting identities bind each diff to the current mounted view.
+Stored and compressed assets coexist; source recipe manifests stay offline.
+Atomic publication preserves previous output on failure, and extraction refuses
+an existing destination. No new dependency or accepted asset/golden changes.
+
+The owned-content test passes reproducible packaging, exact texture patch and
+removal views. This is not native mount acceptance. The implementation/spec remain
+local until #19 is accepted and main is merged forward.
+
+## #20 first packaging acceptance test
+
+Reuse tests/cook.py's owned source generator and the actual cooker. Patch a
+separate texture source so exactly one cooked texture and its index/revision
+change. The delta must omit unchanged model/audio payloads and stay below half
+the full package size. Applying base plus patch must reproduce every cooked file
+hash; a following deletion patch must hide the removed configuration file.
+The first run fails on the missing packaging CLI after cooking succeeds.
+This is tool-side preparation only; platform streams, native mounts, precedence,
+directory separation and legacy compatibility remain required by #20.
+
+## Historical #20 pre-acceptance checkpoint
 
 #19 PR175 is merged at main b92b6ef5 after all 26 exact-head jobs passed; its
 merged build 35728186900 passed and regression 35728186799 is still running.
