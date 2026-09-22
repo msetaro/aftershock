@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <cstring>
 #include <cstdio>
+#include <initializer_list>
 
 server_t sv;
 serverStatic_t svs;
@@ -34,6 +35,13 @@ int main( int argc, char **argv ) {
 	assert( !SV_JoinRequired() );
 	assert( !SV_SetJoinConfig( "match-1", "bad", players, 2 ) && !SV_JoinRequired() );
 	assert( !SV_SetJoinConfig( "match-1", key, players, 0 ) );
+	// Failed file configuration closes admission even before a valid config exists.
+	assert( !SV_LoadJoinConfig( "{}", 2 ) && SV_JoinRequired() );
+	joinClaims_t empty;
+	assert( !SV_ValidateJoin( argv[1], &empty ) && !empty.player );
+	char config[512];
+	snprintf( config, sizeof( config ), "{\"version\":1,\"match_id\":\"match-1\",\"join_key\":\"%s\",\"expected_players\":[\"18446744073709551615\",\"123\"]}", key );
+	assert( SV_LoadJoinConfig( config, (uint32_t)strlen( config ) ) );
 	assert( SV_SetJoinConfig( "match-1", key, players, 2 ) && SV_JoinRequired() );
 	serviceProvider_t provider = {
 		[]( uint64_t, uint64_t, const void *, uint32_t ) { return false; },
@@ -69,6 +77,21 @@ int main( int argc, char **argv ) {
 	assert( !SV_ApplyJoin( 0, claims ) ); // Disconnect does not erase replay protection.
 	assert( SV_SetJoinConfig( "match-1", key, players, 2 ) );
 	assert( !SV_ApplyJoin( 0, claims ) ); // Same-match config reload does not either.
+	assert( SV_LoadJoinConfig( config, (uint32_t)strlen( config ) ) );
+	assert( !SV_ApplyJoin( 0, claims ) ); // File reload preserves consumed nonces too.
+	for ( const char *bad : { "[]", "{", "{\"version\":1,}", "{}{}", "{\"version\":1,\"version\":1}",
+			  "{\"version\":2}", "{\"version\":1,\"expected_players\":[\"01\"]}" } ) {
+		assert( !SV_LoadJoinConfig( bad, (uint32_t)strlen( bad ) ) );
+		assert( SV_ValidateJoin( argv[1], &claims ) );
+	}
+	char invalid[512];
+	memcpy( invalid, config, strlen( config ) + 1 );
+	strcpy( invalid + strlen( invalid ) - 1, ",\"extra\":true}" );
+	assert( !SV_LoadJoinConfig( invalid, (uint32_t)strlen( invalid ) ) );
+	memcpy( invalid, config, strlen( config ) + 1 );
+	strcpy( invalid + strlen( invalid ) - 1, ",\"version\":1}" );
+	assert( !SV_LoadJoinConfig( invalid, (uint32_t)strlen( invalid ) ) );
+	assert( !SV_LoadJoinConfig( nullptr, 0 ) && !SV_LoadJoinConfig( config, 8193 ) );
 	const uint64_t duplicate[] = { 123, 123 };
 	assert( !SV_SetJoinConfig( "match-1", key, duplicate, 2 ) );
 	assert( SV_ValidateJoin( argv[1], &claims ) ); // Invalid config preserves the last valid one.

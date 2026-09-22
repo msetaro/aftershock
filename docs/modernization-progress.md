@@ -58,42 +58,35 @@ Resume the active predecessor gates before any later issue can merge:
   equals the tested head. Integrated build 35744183979 and regression 35744184060
   pass all 26 required jobs. #20 is fully accepted; issue #20 and #25 are updated.
 
-#21 draft PR177 is at 2cefd7e3 and includes main 13106135. Build 35748014590
-passes all 16 compiler legs; regression 35748014600 is running. Hosted corrections
-cover explicit float constants, cold level-tool dependencies, Windows min/max
-macros and C99 bool header compatibility. Existing spatial/native probes pass;
-optimized sound object bytes remain identical. Require all 26 final-head checks
-and integrated #20 acceptance before readiness/self-merge. Recheck current
-main/base/head immediately before merge; preserve merge commits only.
+#21 PR177 is fully accepted at main 7c24808f16f9a72d9ed21ba9af736cd54adba386.
+All 26 exact-head and integrated jobs pass (merged build 35757322676 and regression
+35757322732). Merge tree c14c33d3 equals the tested head; issue #21 and #25 are updated.
 
-#22 draft PR178 is at 7ab6ab9f, based on main 13106135. Build 35749778908 passes all 16 compiler legs;
-regression 35749778962 has only runtime pending. Local profiling head ce568048
-also includes final AI branch 2cefd7e3 and passes combined runtime checks. All local checks pass, including full
-1426-configuration tidy and 1356-command lifetimes, both compiler/ASan-UBSan
-units, byte-identical shipping msg/common objects, both-content static tooling,
-developer renderer modules, fixed replays, legacy bot smoke and differential.
-Merge accepted #21 main forward and rerun final gates before any #22 merge.
+#22 draft PR178 final head b23ef158 includes that accepted main. Build 35757405874
+passes all 16 compiler jobs; regression 35757405820 has only runtime pending.
+Local combined AI/profiling gates pass. Require all 26 final checks, fresh main/base/
+head/tag verification and self-review before merging, then check the merged tree.
 
-This is issue/23-platform-services in services-tree, branched from main 13106135.
-Draft PR179 is at 0bb8070e; all 16 hosted builds pass. The final AI/profiling
-branches are merged locally for integration preparation; this does not accept
-either issue before its required gates and current-main merge. The production
-merge is automatic; affected-path selection retains both new test entries.
-The issue and existing services_public/sys_services and authenticated server
-identity lifecycle are reviewed. Extend that small function-table boundary with
-identity/ticket, presence, lobby/invite, achievements, cloud and workshop calls;
-keep the absent provider anonymous and unavailable. No second service framework.
-Start with null/provider interface contracts, then the Steam adapter and engine
-integration. The bounded wrappers and GCC/Clang contract tests now pass; no
-Steam adapter or ticket transport is implemented yet; that work moves to #180.
-Preserve #21 -> #22 -> #23 merge order
-and integrate accepted main before final checks. SDK/provider tests must not be
-reported as an actual Steam rich-presence/invite acceptance run.
+#23 draft PR179 remote head 0bb8070e has passed the initial 16 builds and nine
+regression jobs. The remaining initial runtime was cancelled as superseded.
+Local services-tree b38ae7be includes AI/profiling preparation and Steam deferral
+#180. Merge accepted #22 main, push and run all fresh final gates before merging.
+Only the bounded interface/null and deterministic-provider contract scope is due
+now; Steam SDK/provider/transport/live acceptance is explicitly deferred to #180.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
+
+## #29 join configuration contract, test first
+
+Extend the existing backend server probe with private-file configuration checks:
+invalid initial input must require authenticated admission and accept nobody;
+valid v1 configuration installs atomically; unknown/duplicate fields are rejected;
+failed reload preserves prior configuration; successful same-match reload preserves
+used nonces. This is the next failing check before adding the console/file path.
+Reuse the existing agent JSON validation/string routines in qcommon for both owners.
 
 ## #29 server identity owner
 
@@ -166,7 +159,7 @@ connect handshakes idempotently; those integration checks remain to be written.
 
 #21 PR177 is merged as main 7c24808f16f9a72d9ed21ba9af736cd54adba386 after
 all 26 final-head jobs passed. Its tree c14c33d3 equals the tested 2cefd7e3 tree;
-main build 35757322676/regression 35757322732 are running. #22 final head b23ef158
+main build 35757322676/regression 35757322732 pass all 26 required jobs. #22 final head b23ef158
 includes that main and starts build 35757405874/regression 35757405820. Earlier
 #22 regression 35749778962 is cancelled as superseded. The initial #23 head's
 16 compiler builds and nine completed regression jobs passed; remaining runtime
