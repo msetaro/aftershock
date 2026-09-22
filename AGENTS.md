@@ -149,6 +149,8 @@ playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructi
 - Presentation controls: `python3 tests/fidelity_runtime.py --binary CLIENT` and
   `python3 tests/streaming_runtime.py --binary CLIENT`; their `--measure-gpu` options
   require the documented reference GPU. `python3 tests/streaming.py` checks residency.
+- Content packages: `python3 tests/packages.py` and
+  `python3 tests/packages_runtime.py --binary CLIENT --server SERVER` (devtools client, both content sets).
 - Native AI: `python3 tests/navigation.py` and `python3 tests/navigation_runtime.py --binary CLIENT`
   (also `--combat` and `--hearing`; devtools client, both content sets).
 - Versioned state: `python3 tests/state.py`, `python3 tests/profile_runtime.py --binary CLIENT`

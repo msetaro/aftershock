@@ -1658,6 +1658,23 @@ must be harmless, and the whole pool must be reusable for three cycles. Pass
 `--cxx 'clang++ -stdlib=libc++'` for the second compiler. This #31 regression is
 asset-independent and runs in both CI unit legs and the local full-suite catalog.
 
+## Content packages (#20)
+
+`python3 tests/packages.py --cc gcc --cxx g++` checks offline and native package
+identity, stored/compressed content, read/seek behavior, one-texture delta and
+removal. Use the existing cooker Python environment; repeat with Clang/libc++.
+`python3 tests/packages_runtime.py --binary CLIENT --server SERVER` uses the development client
+and installed Quake 3 content. Hosted CI passes `--content openarena --data PATH`.
+The check mounts only newly cooked owned assets/configurations, verifies separate
+engine/game/user directories and mod precedence, restarts the filesystem, and
+renders a character before/after a small texture patch. Logs, sizes and screenshots
+are retained in the selected `--output` directory. No accepted golden changes.
+
+See [package format and root/precedence rules](../docs/design/packages.md) for
+build/extract/verify commands. Windows user data defaults to the OS application-data
+Quake3 directory; Linux/macOS retain their existing user directories. An unavailable
+home directory requires explicit `fs_homepath`; it never silently selects installation.
+
 
 ## Native AI and navigation (#21)
 

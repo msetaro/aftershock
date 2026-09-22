@@ -96,43 +96,19 @@ Sys_DefaultHomePath
 ================
 */
 const char *Sys_DefaultHomePath( void ) {
-#ifdef USE_PROFILES
-	TCHAR szPath[MAX_PATH];
 	static char path[MAX_OSPATH];
-	FARPROC qSHGetFolderPath;
-	HMODULE shfolder = LoadLibrary( "shfolder.dll" );
-
-	if ( shfolder == NULL ) {
-		Com_Printf( "Unable to load SHFolder.dll\n" );
-		return NULL;
-	}
-
-	qSHGetFolderPath = GetProcAddress( shfolder, "SHGetFolderPathA" );
-	if ( qSHGetFolderPath == NULL ) {
-		Com_Printf( "Unable to find SHGetFolderPath in SHFolder.dll\n" );
-		FreeLibrary( shfolder );
-		return NULL;
-	}
-
-	if ( !SUCCEEDED( qSHGetFolderPath( NULL, CSIDL_APPDATA,
-			 NULL, 0, szPath ) ) ) {
-		Com_Printf( "Unable to detect CSIDL_APPDATA\n" );
-		FreeLibrary( shfolder );
-		return NULL;
-	}
-	Q_strncpyz( path, szPath, sizeof( path ) );
+	if ( *path )
+		return path;
+	char folder[MAX_PATH];
+	if ( !SUCCEEDED( SHGetFolderPathA( NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, folder ) ) )
+		return "";
+	if ( strlen( folder ) + sizeof( "\\Quake3" ) > sizeof( path ) )
+		Sys_Error( "User data path is too long; set fs_homepath explicitly" );
+	Q_strncpyz( path, folder, sizeof( path ) );
 	Q_strcat( path, sizeof( path ), "\\Quake3" );
-	FreeLibrary( shfolder );
-	if ( !CreateDirectory( path, NULL ) ) {
-		if ( GetLastError() != ERROR_ALREADY_EXISTS ) {
-			Com_Printf( "Unable to create directory \"%s\"\n", path );
-			return NULL;
-		}
-	}
+	if ( !CreateDirectoryA( path, NULL ) && GetLastError() != ERROR_ALREADY_EXISTS )
+		Sys_Error( "Unable to create user data directory: %s", path );
 	return path;
-#else
-	return NULL;
-#endif
 }
 
 
