@@ -503,6 +503,50 @@ Use `openarena.py --data /path/to/baseoa` for data extracted without installing
 packages. Local system package installation is prohibited; runner installs are
 expected. A download/checksum/content failure fails CI.
 
+## Profiling (#22)
+
+The existing developer Profile panel retains 240 CPU frames (128 explicit scopes
+per frame) and a separate worst frame. Click the history plot or **Inspect peak**
+to retain a frame; **Live** resumes current frames. Indentation shows parent
+scopes; each row reports inclusive and self time. Frame pacing and command/event
+work are named separately from server/client/game work. Abandoned scopes from a
+`Com_Error` are omitted; completed descendants remain inspectable. Scope overflow
+is counted. No RAII guards, dynamic allocation or profiler code enter shipping.
+The built-in profiler is the required gate; optional external Tracy integration
+is deferred until a concrete deep-capture need exceeds this bounded history.
+
+RHI GPU timestamps reuse completed query results without an extra wait. Draw
+calls include every submitted draw; triangle/surface counts use the existing
+scene counters, and entity counts cover submitted frame entities. Geometry and
+staging bytes come from the existing GPU allocator. The Memory panel reports
+zone tags and hunk low/high permanent/temporary region tags. These are arena
+lifetime regions, not invented individual-object ownership. A clean developer
+quit prints outstanding tagged blocks/regions after subsystem shutdown; retained
+process-lifetime cvars, command strings, cached packs and arena reservations are
+explicitly distinguished from a claim of confirmed leaks. New CPU allocations
+use the same tracked zone/hunk owners; GPU residency budgets retain their existing
+counters.
+
+Network inspection retains 256 datagrams (time, direction, payload bytes) and
+compressed entity/player field bit totals, including each field's change bits
+and each transmitted player array's mask. Message framing and the common array
+presence bit are excluded. Reads include demos, writes include local snapshot
+serialization, and neither is labeled transport traffic. Snapshot delta size,
+prediction error and rewind telemetry remain available. Debug lines/boxes/text
+reuse their existing bounded lifetimes.
+
+`profile` accepts optional `age` (0 latest through 239), `peak`, `select` and
+`reset`. `select: true` copies the chosen frame into the same overlay selection;
+`reset: true` clears CPU history/selection and network counters. The response adds
+`frame`, newest-first `history`, parent/self CPU fields, `selected`, render counts,
+hunk tags, the latest 64 packets and all observed delta fields. Invalid arguments
+are rejected before reset. `tests/devtools_data.py` checks wraparound, abandoned
+parents, exact read/write bits and enabled/disabled wire parity; the unchanged
+replication fixture remains the wire oracle. `tests/devtools.py` forces a real
+renderer restart, attributes its retained spike to the command scope, captures
+the selected overlay, checks live telemetry and verifies the shutdown report.
+Its logs, `profile.json` and captures can be retained with `--output DIR`.
+
 ## Development tooling (#7)
 
 `AFTERSHOCK_DEVTOOLS=ON` includes the ImGui overlay; the default OFF build has no
@@ -513,7 +557,7 @@ tagged zone/hunk usage are also available. CPU scopes and client traffic/snapsho
 The model viewer loads MD3/MDR/IQM models and optional skins, scrubs/plays frames
 and rotates an existing renderer scene. Entity tools edit a local native game started with `devmap`; the World tab visualizes collision and navigation, and entity picking works at
 the crosshair or by clicking outside the tools. Enabled renderer
-modules use ABI 11; shipping remains ABI 10. Rebuild client/modules together.
+modules use ABI 32; shipping remains ABI 25. Rebuild client/modules together.
 
 `python3 tests/devtools.py` builds both variants, verifies shipping excludes the
 UI and agent symbols, then uses the local JSON channel to select panels and edit
@@ -1685,3 +1729,29 @@ See [package format and root/precedence rules](../docs/design/packages.md) for
 build/extract/verify commands. Windows user data defaults to the OS application-data
 Quake3 directory; Linux/macOS retain their existing user directories. An unavailable
 home directory requires explicit `fs_homepath`; it never silently selects installation.
+
+
+## Native AI and navigation (#21)
+
+`python3 tests/navigation.py` cooks owned collision through pinned Recast and
+checks the native Detour path/crowd/cover owner under UBSan. It verifies content
+hashes, deterministic recooks, authored jump/launch/door/drop traversal, actual
+trigger notification, zero query/tick allocations, teardown, behavior hierarchy,
+and sight/hearing/target memory. Pass `--cc clang --cxx 'clang++ -stdlib=libc++'`
+for the second compiler. It needs the existing level/cook dependencies and no
+game data; it creates no accepted golden.
+
+`python3 tests/navigation_runtime.py --binary CLIENT` runs a native bot on the
+owned two-lane level with its AAS removed. It requires movement along complete
+routes and a live data weapon. `--combat` requires actual rifle damage and a
+low-health transition into reachable protected cover; `--hearing` requires a
+real occluded shot, the shared audio attenuation and movement toward its source.
+Every mode checks the AI inspector and exact same/fresh-process checkpoint
+continuation. Hosted form adds `--content openarena --data PATH` and checks
+loading the unchanged pre-AI v1 fixture from the live controller. The local
+default uses installed Quake 3 data. Scratch maps, spawns and new cooked AI
+assets are owned test inputs; existing accepted fixtures are never regenerated.
+
+See [docs/navigation.md](../docs/navigation.md) for cooking, selecting the new
+controller and inspecting its behavior. Legacy bot matches retain botlib pending
+full match parity; selecting no AI assets preserves their existing controller.

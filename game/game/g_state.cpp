@@ -767,7 +767,7 @@ bool G_ValidateLevelState( const level_locals_t &saved, const gStatePools_t &poo
 static constexpr stateField_t nativeRandomField{ "seed", 0, 1, stateType_t::UInt32 };
 static constexpr stateSchema_t nativeRandomSchema{ "game.random", 1, 1, sizeof( uint32_t ), &nativeRandomField, 1 };
 static bool ReadCheckpointCvars( const stateReader_t &reader, int apply ) {
-	return G_ReadMainCvarState( reader, apply ) && G_ReadBotCvarState( reader, apply ) && G_ReadBotNavigationCvarState( reader, apply ) &&
+	return G_ReadNavigationCvarState( reader, apply ) && G_ReadMainCvarState( reader, apply ) && G_ReadBotCvarState( reader, apply ) && G_ReadBotNavigationCvarState( reader, apply ) &&
 		   G_ReadBotQueueCvarState( reader, apply ) && G_ReadAnimationCvarState( reader, apply ) && G_ReadWeaponCvarState( reader, apply ) &&
 		   G_ReadRewindCvarState( reader, apply ) && G_ReadExtraCvarState( reader, apply );
 }
@@ -780,7 +780,7 @@ static bool CheckpointOwnerWrite( bool success, const char *name ) {
 	return success;
 }
 static bool WriteCheckpointOwners( stateWriter_t *writer, const gStatePools_t &pools ) {
-	return CheckpointOwnerWrite( G_WriteComposedState( writer ), "G_WriteComposedState" ) && CheckpointOwnerWrite( G_WriteAnimationState( writer, pools ), "G_WriteAnimationState" ) && CheckpointOwnerWrite( G_WriteWeaponState( writer, pools ), "G_WriteWeaponState" ) &&
+	return CheckpointOwnerWrite( G_WriteNavigationState( writer ), "G_WriteNavigationState" ) && CheckpointOwnerWrite( G_WriteComposedState( writer ), "G_WriteComposedState" ) && CheckpointOwnerWrite( G_WriteAnimationState( writer, pools ), "G_WriteAnimationState" ) && CheckpointOwnerWrite( G_WriteWeaponState( writer, pools ), "G_WriteWeaponState" ) &&
 		   CheckpointOwnerWrite( G_WriteRewindState( writer ), "G_WriteRewindState" ) && CheckpointOwnerWrite( G_WriteUtilityState( writer ), "G_WriteUtilityState" ) && CheckpointOwnerWrite( G_WriteCombatState( writer ), "G_WriteCombatState" ) && CheckpointOwnerWrite( G_WritePodiumState( writer, pools ), "G_WritePodiumState" ) &&
 		   CheckpointOwnerWrite( G_WriteTeamState( writer, pools ), "G_WriteTeamState" ) && CheckpointOwnerWrite( G_WriteDefinitionState( writer ), "G_WriteDefinitionState" ) && CheckpointOwnerWrite( G_WriteEditorState( writer ), "G_WriteEditorState" ) && CheckpointOwnerWrite( G_WriteBotQueueState( writer ), "G_WriteBotQueueState" ) &&
 		   CheckpointOwnerWrite( G_WriteBotClockState( writer ), "G_WriteBotClockState" ) && CheckpointOwnerWrite( G_WriteBotTeamState( writer ), "G_WriteBotTeamState" ) && CheckpointOwnerWrite( G_WriteWaypointState( writer ), "G_WriteWaypointState" ) && CheckpointOwnerWrite( G_WriteBotPoolState( writer ), "G_WriteBotPoolState" ) &&
@@ -790,7 +790,7 @@ static bool WriteCheckpointOwners( stateWriter_t *writer, const gStatePools_t &p
 		   CheckpointOwnerWrite( G_WriteExtraCvarState( writer ), "G_WriteExtraCvarState" );
 }
 static bool ReadCheckpointOwners( const stateReader_t &reader, const gStatePools_t &pools, bool apply ) {
-	return G_ReadComposedState( reader, apply ) && G_ReadAnimationState( reader, pools, apply ) && G_ReadWeaponState( reader, pools, apply ) &&
+	return G_ReadNavigationState( reader, apply ) && G_ReadComposedState( reader, apply ) && G_ReadAnimationState( reader, pools, apply ) && G_ReadWeaponState( reader, pools, apply ) &&
 		   G_ReadRewindState( reader, apply ) && G_ReadUtilityState( reader, apply ) && G_ReadCombatState( reader, apply ) && G_ReadPodiumState( reader, pools, apply ) &&
 		   G_ReadTeamState( reader, pools, apply ) && G_ReadDefinitionState( reader, apply ) && G_ReadEditorState( reader, apply ) && G_ReadBotQueueState( reader, apply ) &&
 		   G_ReadBotClockState( reader, apply ) && G_ReadBotTeamState( reader, apply ) && G_ReadWaypointState( reader, apply ) && G_ReadBotPoolState( reader, apply ) &&
@@ -858,7 +858,7 @@ bool G_ReadCheckpoint( const stateReader_t &reader, bool apply ) {
 	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i )
 		if ( !G_ReadClientState( reader, i, pools, &clients[i] ) || !G_ValidateClientState( i, clients[i], pools ) )
 			return false;
-	if ( !ReadCheckpointOwners( reader, pools, false ) || !G_ValidateBotReferences( reader, entities, clients ) )
+	if ( !ReadCheckpointOwners( reader, pools, false ) || !G_ValidateBotReferences( reader, entities, clients ) || !G_ValidateNavigationReferences( reader, entities, clients ) )
 		return false;
 	if ( !apply )
 		return true;

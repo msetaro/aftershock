@@ -381,6 +381,9 @@ void RE_EndFrame( int *frontEndMsec, int *backEndMsec ) {
 
 	R_IssueRenderCommands();
 
+#ifdef AFTERSHOCK_DEVTOOLS
+	RE_DeveloperFrame( R_DeveloperEntityCount() );
+#endif
 	R_PerformanceCounters();
 
 	R_InitNextFrame();

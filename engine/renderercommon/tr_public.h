@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AFTERSHOCK_DEVTOOLS
 #include "tr_dev_public.h"
-#define REF_API_VERSION 31
+#define REF_API_VERSION 32
 #else
 #define REF_API_VERSION 25
 #endif
@@ -148,6 +148,7 @@ typedef struct {
 	bool ( *GetDeveloperImage )( int index, devImage_t *image );
 	bool ( *GetDeveloperMaterial )( int index, devMaterial_t *material );
 	bool ( *SetDeveloperMaterial )( int index, const materialParams_t *params );
+	devRenderStats_t ( *GetDeveloperStats )();
 	uint32_t ( *GetDeveloperTimings )( devGpuTiming_t *timings, uint32_t capacity );
 #endif
 

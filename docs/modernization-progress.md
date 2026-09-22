@@ -39,14 +39,19 @@ optimized sound object bytes remain identical. Require all 26 final-head checks
 and integrated #20 acceptance before readiness/self-merge. Recheck current
 main/base/head immediately before merge; preserve merge commits only.
 
-#22 draft PR178 is at 7ab6ab9f, based on main 13106135. Build 35749778908
-and regression 35749778962 are running. All local checks pass, including full
+#22 draft PR178 is at 7ab6ab9f, based on main 13106135. Build 35749778908 passes all 16 compiler legs;
+regression 35749778962 has only runtime pending. Local profiling head ce568048
+also includes final AI branch 2cefd7e3 and passes combined runtime checks. All local checks pass, including full
 1426-configuration tidy and 1356-command lifetimes, both compiler/ASan-UBSan
 units, byte-identical shipping msg/common objects, both-content static tooling,
 developer renderer modules, fixed replays, legacy bot smoke and differential.
 Merge accepted #21 main forward and rerun final gates before any #22 merge.
 
 This is issue/23-platform-services in services-tree, branched from main 13106135.
+Draft PR179 is at 0bb8070e; all 16 hosted builds pass. The final AI/profiling
+branches are merged locally for integration preparation; this does not accept
+either issue before its required gates and current-main merge. The production
+merge is automatic; affected-path selection retains both new test entries.
 The issue and existing services_public/sys_services and authenticated server
 identity lifecycle are reviewed. Extend that small function-table boundary with
 identity/ticket, presence, lobby/invite, achievements, cloud and workshop calls;
@@ -112,6 +117,21 @@ running logged-in clients and a designated invite recipient; do not invent them.
 References: https://partner.steamgames.com/doc/sdk/api and the ISteamUser and
 ISteamMatchmaking API pages. No external repository writes were performed.
 
+## #22 combined AI validation
+
+Local merge a203c2e4 incorporates final #21 branch 2cefd7e3 without accepting it
+before hosted checks. The production merge is automatic; the progress conflict
+retains both issues' evidence. Complete developer client/server rebuild, agent
+protocol and developer data probes pass, followed serially by OpenArena overlay
+controls/renderer restart/idle allocation/shutdown reporting and AI combat with
+same/fresh-process checkpoint continuation. Evidence is
+profiling-navigation-{build,agent,data,ui,combat}.log. The actual selected peak
+capture attributes 370.939 ms of a 378.521 ms frame to events/commands; the
+hierarchy remains readable after the AI inspector merge. Formatting (589 files),
+type policy (448), boundaries (449) and targeted production-flags tidy on both
+shared developer owners pass. No fixture changes. The accepted main merge and
+all final-head/integrated hosted gates remain required.
+
 ## #22 local gate evidence
 
 Full tidy passes 1426 production configurations (profiling-tidy.log). GCC/Clang
@@ -124,7 +144,7 @@ developer renderer modules pass (profiling-runtime-modules.log), as does the
 unchanged OpenArena fixed replay 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
 The unchanged Quake 3 fixed replay also passes
 43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
-Lifetime analysis remains in progress. Final
+Lifetime analysis passes 1356 commands across 151 paths. Final
 UI review gives the plot its full labeled row and accounts for frame padding,
 so click-to-retain indexes the plotted area instead of including the label width.
 The final plot owner passes both static/module tidy configurations and a fresh
@@ -203,6 +223,37 @@ the next frame boundary. The correction passes GCC and Clang/libc++ developer-da
 and self durations, parent indexes, drop counts and the worst complete frame.
 It uses existing explicit tokens and no dynamic allocation. Overlay/agent
 consumption and production scope coverage remain next.
+
+## #21 Windows public-header macro contract, test first
+
+Corrected head d24ba4f4 reaches the developer client compilation and exposes
+Windows min/max macro expansion inside the new shared sound-distance header
+(C2589/C2059). Add the hostile-header condition to the existing audio spatial
+probe before correcting the shared helper. Both actual callers (authored audio
+and AI hearing) remain on the same implementation. Parenthesizing the function
+name prevents macro expansion without changing arithmetic; GCC optimized
+snd_spatial.o is byte-identical before/after. Both compiler spatial probes and
+the complete developer client/server rebuild pass. The same hosted run then
+reaches retained C99 bot/team-leader probes: new bool declarations require
+stdbool.h when g_local.h is consumed as C. Add that conditional standard include
+and verify bot byte conversion on GCC/Clang plus the team-leader check. All
+remaining hosted native probe steps also pass on both compiler configurations
+(navigation-native-tail.log). No accepted golden changes. Push the corrected
+head and require every fresh required check before readiness/merge.
+
+## #21 hosted portability and cold tool setup
+
+Head 9fd94edb fails MSVC C4244 on two integer ternaries assigned/passed as
+floats. Use exact float constants (0/1 and 8/16), preserving values. Both hosted
+unit legs fail preparing the owned compiled level. Reproducing with a clean
+cook-only Python venv and an unextracted pinned archive confirms the missing
+level-tool Python dependency. Install the existing tools/level/requirements.txt
+and libarchive-dev on those CI runners, matching runtime setup. The navigation
+driver now prints its saved level log when compilation fails. No local system
+packages or accepted fixtures change. Clean-cache full navigation cooking/native
+checks pass after the dependency install (navigation-cold-after.log). Client/server
+rebuild, format/types, workflow lint and all four native-controller tidy/lifetime
+configurations pass. Fresh hosted checks remain required before PR177 can merge.
 
 ## #21 main integration
 

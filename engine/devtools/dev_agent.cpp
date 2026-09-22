@@ -932,10 +932,22 @@ static void Agent_Memory( agentReply_t &reply ) {
 	reply.Number( memory.hunkTemporary );
 	reply.Text( ",\"hunkFree\":" );
 	reply.Number( memory.hunkFree );
+	reply.Text( ",\"hunkTags\":[" );
+	const char *names[] = { "LOW-PERMANENT", "HIGH-PERMANENT", "LOW-TEMPORARY", "HIGH-TEMPORARY" };
+	for ( uint32_t i = 0; i < ARRAY_LEN( names ); ++i ) {
+		if ( i )
+			reply.Text( "," );
+		reply.Text( "{\"name\":" );
+		reply.String( names[i] );
+		reply.Text( ",\"bytes\":" );
+		reply.Number( memory.hunkBytes[i] );
+		reply.Text( "}" );
+	}
+	reply.Text( "]" );
 	reply.Text( "}" );
 }
 
-static void Agent_Profile( agentReply_t &reply ) {
+static void Agent_Profile( agentReply_t &reply, const devCpuFrame_t *frame ) {
 	int64_t sorted[ARRAY_LEN( agentFrameTimes )];
 	const uint32_t count = MIN( agentSamples, (uint32_t)ARRAY_LEN( sorted ) );
 	memcpy( sorted, agentFrameTimes, count * sizeof( sorted[0] ) );
@@ -948,16 +960,48 @@ static void Agent_Profile( agentReply_t &reply ) {
 	reply.Number( count ? double( sorted[( count - 1 ) * 95 / 100] ) / 1000 : 0 );
 	reply.Text( ",\"p99_ms\":" );
 	reply.Number( count ? double( sorted[( count - 1 ) * 99 / 100] ) / 1000 : 0 );
-	reply.Text( ",\"cpu\":[" );
-	const devCpuTiming_t *cpu;
-	const uint32_t scopes = DevTools_CpuTimings( &cpu );
-	for ( uint32_t i = 0; i < scopes; ++i ) {
+	reply.Text( ",\"frame\":" );
+	if ( frame ) {
+		reply.Text( "{\"serial\":" );
+		reply.Number( frame->serial );
+		reply.Text( ",\"milliseconds\":" );
+		reply.Number( double( frame->microseconds ) / 1000 );
+		reply.Text( ",\"dropped\":" );
+		reply.Number( frame->dropped );
+		reply.Text( "}" );
+	} else
+		reply.Text( "null" );
+	reply.Text( ",\"selected\":" );
+	if ( const auto *selected = DevTools_CpuSelection() )
+		reply.Number( selected->serial );
+	else
+		reply.Text( "null" );
+	reply.Text( ",\"history\":[" );
+	for ( uint32_t age = 0; const auto *previous = DevTools_CpuFrame( age ); ++age ) {
+		if ( age )
+			reply.Text( "," );
+		reply.Text( "{\"serial\":" );
+		reply.Number( previous->serial );
+		reply.Text( ",\"milliseconds\":" );
+		reply.Number( double( previous->microseconds ) / 1000 );
+		reply.Text( "}" );
+	}
+	reply.Text( "],\"cpu\":[" );
+	for ( uint32_t i = 0; frame && i < frame->count; ++i ) {
+		const auto &cpu = frame->scopes[i];
 		if ( i )
 			reply.Text( "," );
 		reply.Text( "{\"name\":" );
-		reply.String( cpu[i].name );
+		reply.String( cpu.name );
 		reply.Text( ",\"milliseconds\":" );
-		reply.Number( double( cpu[i].microseconds ) / 1000 );
+		reply.Number( double( cpu.microseconds ) / 1000 );
+		reply.Text( ",\"self_ms\":" );
+		reply.Number( double( cpu.selfMicroseconds ) / 1000 );
+		reply.Text( ",\"parent\":" );
+		if ( cpu.parent == UINT32_MAX )
+			reply.Text( "null" );
+		else
+			reply.Number( cpu.parent );
 		reply.Text( "}" );
 	}
 	reply.Text( "],\"gpu\":[" );
@@ -980,6 +1024,11 @@ static void Agent_Profile( agentReply_t &reply ) {
 	Agent_Memory( reply );
 #ifndef DEDICATED
 	if ( const auto *renderer = DevTools_Renderer() ) {
+		const auto render = renderer->GetDeveloperStats();
+		char renderText[384];
+		snprintf( renderText, sizeof( renderText ), ",\"render\":{\"drawCalls\":%u,\"triangles\":%u,\"surfaces\":%u,\"entities\":%u,\"geometryBytes\":%" PRIu64 ",\"stagingBytes\":%" PRIu64 "}",
+			render.drawCalls, render.triangles, render.surfaces, render.entities, render.geometryBytes, render.stagingBytes );
+		reply.Text( renderText );
 		postRenderStats_t post;
 		renderer->PostStats( &post );
 		char status[384];
@@ -1033,6 +1082,45 @@ static void Agent_Profile( agentReply_t &reply ) {
 	reply.Number( net->packets[1] );
 	reply.Text( ",\"outgoingLastPacket\":" );
 	reply.Number( net->lastPacket[1] );
+	reply.Text( ",\"packets\":[" );
+	for ( uint32_t age = 0; age < 64; ++age ) {
+		const auto *packet = DevTools_NetworkPacket( age );
+		if ( !packet )
+			break;
+		if ( age )
+			reply.Text( "," );
+		reply.Text( "{\"time\":" );
+		reply.Number( packet->milliseconds );
+		reply.Text( ",\"bytes\":" );
+		reply.Number( packet->bytes );
+		reply.Text( ",\"outgoing\":" );
+		reply.Text( packet->outgoing ? "true}" : "false}" );
+	}
+	reply.Text( "],\"fields\":[" );
+	const devNetworkField_t *fields;
+	const uint32_t fieldCount = DevTools_NetworkFields( &fields );
+	bool firstField = true;
+	for ( uint32_t i = 0; i < fieldCount; ++i ) {
+		const auto &field = fields[i];
+		if ( !field.samples[0] && !field.samples[1] )
+			continue;
+		if ( !firstField )
+			reply.Text( "," );
+		firstField = false;
+		reply.Text( "{\"name\":" );
+		reply.String( field.name );
+		reply.Text( ",\"readBits\":" );
+		reply.Number( field.bits[0] );
+		reply.Text( ",\"writtenBits\":" );
+		reply.Number( field.bits[1] );
+		reply.Text( ",\"reads\":" );
+		reply.Number( field.samples[0] );
+		reply.Text( ",\"writes\":" );
+		reply.Number( field.samples[1] );
+		reply.Text( "}" );
+	}
+	reply.Text( "]" );
+
 	reply.Text( ",\"delta\":" );
 	reply.Text( net->delta ? "true" : "false" );
 	reply.Text( "},\"events\":{" );
@@ -1125,7 +1213,44 @@ static void Agent_Actor( agentReply_t &reply, int owner ) {
 		else
 			Agent_AnimationState( reply, animation.state, animation.name );
 	}
-	reply.Text( "]}}" );
+	reply.Text( "],\"ai\":" );
+	devAIState_t ai;
+	if ( !game || !game->ReadAI || !game->ReadAI( owner, &ai ) ) {
+		reply.Text( "null" );
+	} else {
+		reply.Text( "{\"state\":" );
+		reply.String( ai.name );
+		reply.Text( ",\"action\":" );
+		reply.Number( ai.action );
+		reply.Text( ",\"target\":" );
+		reply.Number( ai.observation.target );
+		reply.Text( ",\"visible\":" );
+		reply.Text( ai.observation.visible ? "true" : "false" );
+		reply.Text( ",\"heard\":" );
+		reply.Text( ai.observation.heard ? "true" : "false" );
+		reply.Text( ",\"gain\":" );
+		reply.Number( ai.observation.gain );
+		reply.Text( ",\"covered\":" );
+		reply.Text( ai.covered ? "true" : "false" );
+		reply.Text( ",\"elapsed\":" );
+		reply.Number( ai.behavior.elapsed );
+		reply.Text( ",\"transitions\":" );
+		reply.Number( ai.behavior.transitions );
+		reply.Text( ",\"position\":" );
+		reply.Vector( ai.position );
+		reply.Text( ",\"goal\":" );
+		reply.Vector( ai.goal );
+		reply.Text( ",\"pathCount\":" );
+		reply.Number( ai.path.count );
+		reply.Text( ",\"point\":" );
+		reply.Number( ai.cursor.point );
+		reply.Text( ",\"phase\":" );
+		reply.Number( ai.cursor.phase );
+		reply.Text( ",\"complete\":" );
+		reply.Text( ai.path.complete ? "true" : "false" );
+		reply.Text( "}" );
+	}
+	reply.Text( "}}" );
 }
 
 static bool Agent_Entity( const char *op, const char *request, const char *end, agentReply_t &reply ) {
@@ -1586,7 +1711,21 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 	} else if ( !strncmp( op, "entity.", 7 ) ) {
 		return Agent_Entity( op, request, end, reply );
 	} else if ( !strcmp( op, "profile" ) ) {
-		Agent_Profile( reply );
+		uint32_t age = 0;
+		bool peak = false, reset = false, select = false;
+		if ( ( JSON_ObjectGetNamedValue( request, end, "age" ) && !Agent_Integer( request, end, "age", age ) ) || age >= 240 ||
+			 ( JSON_ObjectGetNamedValue( request, end, "peak" ) && !Agent_Bool( request, end, "peak", peak ) ) ||
+			 ( JSON_ObjectGetNamedValue( request, end, "reset" ) && !Agent_Bool( request, end, "reset", reset ) ) ||
+			 ( JSON_ObjectGetNamedValue( request, end, "select" ) && !Agent_Bool( request, end, "select", select ) ) )
+			return reply.Error( "invalid_argument", "$", "Use age in [0,239] and optional boolean peak/reset/select." );
+		if ( reset ) {
+			DevTools_ClearCpuHistory();
+			DevTools_ClearNetwork();
+		}
+		const auto *frame = peak ? DevTools_CpuPeak() : DevTools_CpuFrame( age );
+		if ( select )
+			DevTools_SelectCpuFrame( frame );
+		Agent_Profile( reply, frame );
 	} else if ( !strcmp( op, "state" ) ) {
 		Agent_State( reply );
 	} else if ( !strcmp( op, "capture" ) ) {

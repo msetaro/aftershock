@@ -20,7 +20,21 @@ uint32_t RHI_GetTimings( const rhiTiming_t **timings ) {
 	*timings = values;
 	return ARRAY_LEN( values );
 }
+rhiStats_t RHI_GetStats() {
+	rhiStats_t stats = {};
+	stats.frameDrawCalls = 17;
+	stats.geometryBytes = 1000;
+	stats.stagingBytes = 2000;
+	return stats;
+}
 int main() {
+	backEnd.pc.c_indexes = 60;
+	backEnd.pc.c_surfaces = 9;
+	RE_DeveloperFrame( 5 );
+	backEnd.pc = {};
+	const devRenderStats_t stats = RE_GetDeveloperStats();
+	assert( stats.drawCalls == 17 && stats.triangles == 20 && stats.entities == 5 && stats.surfaces == 9 );
+	assert( stats.geometryBytes == 1000 && stats.stagingBytes == 2000 );
 	devImage_t copy;
 	assert( !RE_GetDeveloperImage( -1, &copy ) && !RE_GetDeveloperImage( 0, &copy ) );
 	image_t image = {};

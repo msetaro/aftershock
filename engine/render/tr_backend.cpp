@@ -2304,6 +2304,16 @@ bool RE_SetDeveloperMaterial( int index, const materialParams_t *params ) {
 	return true;
 }
 
+static devRenderStats_t developerStats;
+void RE_DeveloperFrame( uint32_t entities ) {
+	const auto stats = RHI_GetStats();
+	developerStats = { stats.frameDrawCalls, (uint32_t)MAX( 0, backEnd.pc.c_indexes / 3 ),
+		(uint32_t)MAX( 0, backEnd.pc.c_surfaces ), entities, stats.geometryBytes, stats.stagingBytes };
+}
+devRenderStats_t RE_GetDeveloperStats() {
+	return developerStats;
+}
+
 uint32_t RE_GetDeveloperTimings( devGpuTiming_t *timings, uint32_t capacity ) {
 	const rhiTiming_t *source;
 	const uint32_t count = MIN( capacity, RHI_GetTimings( &source ) );

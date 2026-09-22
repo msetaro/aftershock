@@ -16,6 +16,7 @@ for probe in ('assets', 'memory', 'profile', 'debug'):
     run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
          '-Wall', '-Wextra', '-Werror', '-DAFTERSHOCK_DEVTOOLS', '-DUSE_VULKAN_API',
          '-ffunction-sections', '-fdata-sections', f'tests/probes/dev_{probe}.cpp',
-         'engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp', '-Wl,--gc-sections', '-o', binary])
+         'engine/qcommon/q_shared.cpp', 'engine/qcommon/q_math.cpp',
+         *(['engine/qcommon/msg.cpp', 'engine/qcommon/huffman_static.cpp'] if probe == 'profile' else []), '-Wl,--gc-sections', '-o', binary])
     run([binary], timeout=10)
 print('PASS: registry bounds/copies, bounded GPU timing copy tagged/hunk accounting and bounded CPU/network telemetry')
