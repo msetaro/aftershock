@@ -327,6 +327,22 @@ func TestBackendParties(t *testing.T) {
 	if call("GET", tokens[0], "", 200)["party"] != nil {
 		t.Fatal("leader leave retained party")
 	}
+	// Exercise the engine's 64-player ceiling using only this private test database.
+	var count int
+	if err := db.QueryRow("SELECT count(*) FROM backend_party_members WHERE party_id=$1", second["id"]).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec("INSERT INTO backend_profiles(player_id) SELECT n::text FROM generate_series(2000,$1) n", 2063-count); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec("INSERT INTO backend_party_members(player_id,party_id) SELECT n::text,$1 FROM generate_series(2000,$2) n", second["id"], 2063-count); err != nil {
+		t.Fatal(err)
+	}
+	call("PUT", tokens[0], `{"invite_code":"`+second["invite_code"].(string)+`"}`, 409)
+	if len(call("GET", tokens[2], "", 200)["party"].(map[string]any)["members"].([]any)) != 64 {
+		t.Fatal("party capacity changed")
+	}
+	call("POST", tokens[0], `{"leader":"1003"}`, 400)
 	// Reload through another pool: membership belongs to the shared database.
 	other, err := openBackendDB(context.Background(), os.Getenv("BACKEND_TEST_DATABASE"))
 	if err != nil {

@@ -54,7 +54,17 @@ CREATE TABLE IF NOT EXISTS backend_sessions (
  player_id text NOT NULL REFERENCES backend_profiles(player_id),
  expires_at timestamptz NOT NULL
 );
-CREATE INDEX IF NOT EXISTS backend_sessions_expiry ON backend_sessions(expires_at);`)
+CREATE INDEX IF NOT EXISTS backend_sessions_expiry ON backend_sessions(expires_at);
+CREATE TABLE IF NOT EXISTS backend_parties (
+ id text PRIMARY KEY CHECK (length(id)=32),
+ leader text NOT NULL UNIQUE REFERENCES backend_profiles(player_id),
+ invite_hash text NOT NULL UNIQUE CHECK (length(invite_hash)=64)
+);
+CREATE TABLE IF NOT EXISTS backend_party_members (
+ player_id text PRIMARY KEY REFERENCES backend_profiles(player_id),
+ party_id text NOT NULL REFERENCES backend_parties(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS backend_party_members_party ON backend_party_members(party_id);`)
 		if err == nil {
 			err = tx.Commit()
 		}
@@ -242,6 +252,8 @@ func (b *backendService) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch {
+	case r.URL.Path == "/v1/party":
+		b.party(w, r, player)
 	case r.URL.Path == "/v1/logout" && r.Method == "POST":
 		// ponytail: retain one row per exchanged ticket; add cleanup when #180 supplies
 		// a provider-proven ticket lifetime. Logout/expiry must not reopen old tickets.
@@ -409,4 +421,122 @@ func serveBackend(ctx context.Context) error {
 		return nil
 	}
 	return err
+}
+
+type backendParty struct {
+	ID         string   `json:"id"`
+	Leader     string   `json:"leader"`
+	Members    []string `json:"members"`
+	InviteCode string   `json:"invite_code,omitempty"`
+}
+
+func (b *backendService) readParty(ctx context.Context, player string) (*backendParty, error) {
+	rows, err := b.db.QueryContext(ctx, `SELECT p.id,p.leader,m.player_id FROM backend_parties p
+JOIN backend_party_members mine ON mine.party_id=p.id JOIN backend_party_members m ON m.party_id=p.id
+WHERE mine.player_id=$1 ORDER BY m.player_id`, player)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var party *backendParty
+	for rows.Next() {
+		if party == nil {
+			party = &backendParty{}
+		}
+		var member string
+		if err := rows.Scan(&party.ID, &party.Leader, &member); err != nil {
+			return nil, err
+		}
+		party.Members = append(party.Members, member)
+		if len(party.Members) > 64 {
+			return nil, errors.New("party exceeds server capacity")
+		}
+	}
+	return party, rows.Err()
+}
+func (b *backendService) party(w http.ResponseWriter, r *http.Request, player string) {
+	ctx := r.Context()
+	invite, created := "", ""
+	if r.Method != "GET" {
+		if r.Method != "POST" && r.Method != "PUT" && r.Method != "DELETE" {
+			backendError(w, 405, "unsupported_method")
+			return
+		}
+		var input struct {
+			InviteCode string `json:"invite_code"`
+		}
+		if backendDecode(r, &input) != nil || (r.Method == "PUT" && (len(input.InviteCode) != 32 || strings.Trim(input.InviteCode, "0123456789abcdef") != "")) || (r.Method != "PUT" && input.InviteCode != "") {
+			backendError(w, 400, "invalid_party")
+			return
+		}
+		tx, err := b.db.BeginTx(ctx, nil)
+		if err != nil {
+			backendError(w, 503, "unavailable")
+			return
+		}
+		defer tx.Rollback()
+		// ponytail: one short membership transaction at a time across replicas;
+		// shard this database lock by party if measured queue traffic requires it.
+		if _, err = tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(29002)"); err != nil {
+			backendError(w, 503, "unavailable")
+			return
+		}
+		var current string
+		err = tx.QueryRowContext(ctx, "SELECT party_id FROM backend_party_members WHERE player_id=$1", player).Scan(&current)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			backendError(w, 503, "unavailable")
+			return
+		}
+		if r.Method != "DELETE" && current != "" {
+			backendError(w, 409, "already_in_party")
+			return
+		}
+		switch r.Method {
+		case "POST":
+			created, invite = randomID(), randomID()
+			_, err = tx.ExecContext(ctx, "INSERT INTO backend_parties(id,leader,invite_hash) VALUES($1,$2,$3)", created, player, digest([]byte(invite)))
+			if err == nil {
+				_, err = tx.ExecContext(ctx, "INSERT INTO backend_party_members(player_id,party_id) VALUES($1,$2)", player, created)
+			}
+		case "PUT":
+			var target string
+			err = tx.QueryRowContext(ctx, "SELECT id FROM backend_parties WHERE invite_hash=$1", digest([]byte(input.InviteCode))).Scan(&target)
+			if errors.Is(err, sql.ErrNoRows) {
+				backendError(w, 403, "invalid_invite")
+				return
+			}
+			var count int
+			if err == nil {
+				err = tx.QueryRowContext(ctx, "SELECT count(*) FROM backend_party_members WHERE party_id=$1", target).Scan(&count)
+			}
+			if err == nil && count >= 64 {
+				backendError(w, 409, "party_full")
+				return
+			}
+			if err == nil {
+				_, err = tx.ExecContext(ctx, "INSERT INTO backend_party_members(player_id,party_id) VALUES($1,$2)", player, target)
+			}
+		case "DELETE":
+			_, err = tx.ExecContext(ctx, "DELETE FROM backend_parties WHERE id=$1 AND leader=$2", current, player)
+			if err == nil {
+				_, err = tx.ExecContext(ctx, "DELETE FROM backend_party_members WHERE player_id=$1", player)
+			}
+		}
+		if err == nil {
+			err = tx.Commit()
+		}
+		if err != nil {
+			backendError(w, 503, "unavailable")
+			return
+		}
+	}
+	party, err := b.readParty(ctx, player)
+	if err != nil {
+		backendError(w, 503, "unavailable")
+		return
+	}
+	if party != nil && party.ID == created {
+		party.InviteCode = invite
+	}
+	backendJSON(w, 200, map[string]any{"version": 1, "party": party})
 }

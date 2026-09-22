@@ -78,6 +78,22 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 persistent parties
+
+Explicit party create/join/leave now uses the shared database. Invite codes are
+random 128-bit values returned only on creation and stored as digests; party IDs
+are separate. Membership is unique per account, the leader leaving disbands the
+party, and old codes stop working. A short database advisory lock serializes
+membership mutations across replicas; it holds no HTTP/network allocation work.
+This deliberately simple ceiling is documented for measured future sharding.
+The engine's 64-player limit is enforced before adding a member.
+
+Real PostgreSQL/race checks pass for concurrent joins to different parties, identity
+ownership, capacity, disband/revoked code, explicit leave and fresh-pool persistence,
+alongside the full auth/profile/TLS contracts (backend-parties/contracts.log). The
+existing Go race suite and vet also pass. No invitations are sent to any account.
+Next: durable queue ownership and Agones allocation recovery, then results/client UI.
+
 ## #29 party contract, test first
 
 The real-database gate now requires persistent explicit-code party create/join/leave,
