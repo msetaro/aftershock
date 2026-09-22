@@ -29,6 +29,15 @@ if args.record_v1_fixture:
     assert not fixture.exists() and not metadata.exists(), 'accepted migration fixtures are immutable'
 
 
+def checkpoint_fields(data):
+    assert data[:8]==b'ASARCH\0\0' and data[108:140].rstrip(b'\0')==b'checkpoint'
+    version,count=struct.unpack_from('<II',data,140)
+    offset=148;fields={}
+    for _ in range(count):
+        name,kind,size=struct.unpack_from('<64sII',data,offset);offset+=72
+        fields[name.rstrip(b'\0').decode()]=(kind,data[offset:offset+size]);offset+=size
+    return version,fields
+
 def execute(engine,command):
     engine.request('exec',command=command)
     engine.step(2)
@@ -87,6 +96,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-checkpoint-') as temporary:
             assert first.is_file(), 'savegame must write a full local-game checkpoint'
             fixture_bytes=first.read_bytes()
             digest=hashlib.sha256(fixture_bytes).hexdigest()
+            version,fields=checkpoint_fields(fixture_bytes)
+            if not args.record_v1_fixture:
+                assert version==2 and 'protocol' in fields and 'pure' not in fields, 'v2 adds protocol and removes redundant pure metadata'
+
             execute(engine,'savegame acceptance')
             assert (base/'saves/acceptance.001.asstate').is_file()
             assert hashlib.sha256(first.read_bytes()).hexdigest()==digest, 'later saves must preserve earlier revisions'
@@ -118,6 +131,25 @@ with tempfile.TemporaryDirectory(prefix='aftershock-checkpoint-') as temporary:
                 Image.open(base/result['path']).save(args.output/'checkpoint-review.png')
         finally:
             shutil.copyfile(engine.log_path,args.output/'checkpoint-restart.log')
+    if args.content=='openarena' and not args.record_v1_fixture:
+        frozen=json.loads(metadata.read_text())
+        compressed=fixture.read_bytes();data=gzip.decompress(compressed)
+        assert hashlib.sha256(compressed).hexdigest()==frozen['gzip_sha256']
+        assert hashlib.sha256(data).hexdigest()==frozen['raw_sha256']
+        version,fields=checkpoint_fields(data)
+        assert version==1 and 'pure' in fields and 'protocol' not in fields
+        (base/'saves/legacy.asstate').write_bytes(data)
+        with Engine(args.binary,args.data,args.content,home=home) as engine:
+            try:
+                engine.request('session',dt=20,seed=456)
+                load(engine,'saves/legacy.asstate')
+                assert_entities(engine,frozen['before'],'v1-restore')
+                toggle_pause(engine)
+                engine.step(25)
+                assert_entities(engine,frozen['continued'],'v1-continuation')
+                print('PASS: frozen v1 full game migrates into v2 with identical player/bot continuation')
+            finally:
+                shutil.copyfile(engine.log_path,args.output/'checkpoint-v1.log')
     (args.output/'result.json').write_text(json.dumps(dict(before=before,continued=continued),indent=2)+'\n')
 
 if args.record_v1_fixture:

@@ -55,6 +55,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 full-game v2 migration test first
+
+The runtime now requires newly written headers to add protocol and remove pure,
+and loads the frozen v1 archive in a fresh process with seed 456, requiring its
+recorded exact entity state and subsequent continuation. The unchanged v1 engine
+fails the new-writer assertion as expected (state-migration-before.log). The v2
+header will obtain pure mode from its already-owned server cvar; v1 migration
+retains its legacy check and assigns that format's known protocol revision 2.
+The migration fixture bytes remain unchanged.
+
 ## #19 full-game v1 fixture frozen
 
 The explicit OpenArena-only command passed all same/fresh-process exact assertions
