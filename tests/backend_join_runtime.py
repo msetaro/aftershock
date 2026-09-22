@@ -31,7 +31,13 @@ def ticket(player='18446744073709551615', match='match-1', start=issued, nonce='
     payload = f'1.{player}.{match}.{start}.{start+120}.{nonce}'
     return payload+'.'+hmac.new(key, ('aftershock/join/v1\n'+payload).encode(), hashlib.sha256).hexdigest()
 
-with tempfile.TemporaryDirectory(prefix='aftershock-backend-join-', dir=SCRATCH) as temporary:
+with tempfile.TemporaryDirectory(prefix='aftershock-backend-join-', dir=SCRATCH) as temporary, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as master:
+    master.bind(('127.0.0.1',0))
+    master.settimeout(.3)
+    def no_heartbeat():
+        try: packet,peer=master.recvfrom(4096)
+        except socket.timeout: return
+        raise AssertionError('retired master heartbeat emitted to owned receiver: '+repr(packet))
     root = Path(temporary)
     subprocess.run([sys.executable, str(ROOT/'tools/match/content.py'), str(root/'content')], check=True)
     home = root/'home'
@@ -45,7 +51,9 @@ with tempfile.TemporaryDirectory(prefix='aftershock-backend-join-', dir=SCRATCH)
     with log.open('w') as out:
         server = subprocess.Popen([str(args.server.resolve()), '+set', 'fs_basepath', str(root/'content'),
             '+set', 'fs_homepath', str(home), '+set', 'fs_basegame', 'aftershock',
-            '+set', 'dedicated', '1', '+set', 'net_enabled', '1', '+set', 'net_ip', address[0],
+            '+set', 'dedicated', '2', '+set', 'net_enabled', '1', '+set', 'net_ip', address[0],
+            '+set', 'sv_master1', '127.0.0.1:'+str(master.getsockname()[1]),
+            '+set', 'sv_master2', '', '+set', 'sv_master3', '', '+set', 'sv_master4', '', '+set', 'sv_master5', '',
             '+set', 'net_port', str(address[1]), '+set', 'bot_enable', '0', '+set', 'sv_pure', '0',
             '+set', 'sv_reconnectlimit', '0', '+set', 'sv_zombietime', '0', '+set', 'sv_maxclients', '4',
             '+joinconfig', '+map', 'two_lane'], stdin=subprocess.PIPE, stdout=out, stderr=subprocess.STDOUT,
@@ -85,6 +93,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-backend-join-', dir=SCRATCH)
         try:
             wait_log('Static game loaded.')
             wait_log('Join configuration rejected;')
+            no_heartbeat()
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as first, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as other:
                 first.settimeout(5)
                 other.settimeout(5)
@@ -128,6 +137,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-backend-join-', dir=SCRATCH)
                     server.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     server.kill(); server.wait(timeout=5)
+    no_heartbeat()
     if args.controller:
         # A local SDK endpoint delivers an owned allocation; the actual controller and
         # dedicated server must load authentication before reporting allocation ready.

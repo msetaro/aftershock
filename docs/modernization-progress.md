@@ -30,57 +30,58 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
+Machine migration checkpoint, 2026-09-22: the maintainer is moving Ironforge;
+this thread, worktrees and private build caches will be lost. Resume from the
+remote `issue/29-backend-services` branch, not the retired modernization branch.
+Read [the migration handoff](modernization-handoff.md) first; it records the exact
+remaining work, reproducible checks and intentionally incomplete integration.
+The historical sections below remain evidence, not fresh instructions to repeat work.
 
-Active work is issue/29-backend-services in backend-tree. Accepted main aa96932a
-(#21/#22) is merged forward; production files merge automatically. Preserve merge order
-#21 -> #22 -> #23, record #24's existing SDK dependency, then #29 -> #30. #180 owns
-the maintainer-deferred Steam SDK/live acceptance and does not block this work.
-The #29 issue and existing Go match controller/spec, identity lifecycle and
-client HTTP ownership are reviewed. Start with versioned JoinTicket, MatchSpec
-and Loadout contracts; reuse the existing Go module and standard crypto/HTTP.
-The initial schema/API checks fail before implementation (c5217257). The v1
-schema, bounded decoders and domain-separated HMAC join-ticket contract now pass
-with an independent Python signature oracle. Existing match-controller Go race
-tests also pass after moving its unchanged bounded JSON decoder into the shared
-contract package. The native verifier and nonce store now pass both compiler UBSan probes, using
-the same Python signature oracle and correctly signed invalid-claim controls.
-Server identity/connect, persistent authentication/profile/parties and durable queue
-recovery, verified result attribution, read-only results and native HTTPS transport
-now pass their local tests. Next: harden ambiguous allocation recovery, then native
-login/queue/profile UI, deployment and real client/kind acceptance. #23 remains
-unmerged while its final required runtime job runs; merge it only after all gates.
+1. Recheck draft #23 PR179, head `1f3957166a740a60d00ecb2e4d663eb136133dd6`.
+   All 16 compiler jobs in build 35767480303 and all 10 active regression jobs
+   in 35767480297 now PASS. It is deliberately left unmerged during migration.
+   Perform AGENTS self-review and fresh main/base/head/tag checks, mark ready and
+   merge with a merge commit only if the current base remains covered. If main
+   advanced, merge main forward and rerun gates first. Verify integrated gates.
+2. Merge accepted main forward into `issue/29-backend-services`. Preserve its
+   `SERVICE_BACKEND = 2` when integrating #23's services header. Ordinary client
+   builds currently lack #23's ticket API; preview probes are not final acceptance.
+3. Record #24's existing SDK dependency; Steam provider/live work is deferred to
+   #180 by the maintainer. Do not ask for SDK paths, AppIDs or test accounts now.
+4. Continue #29: implement heartbeat retirement against its committed failing
+   test, finish actual HTTPS/native-client and kind acceptance, wire CI and docs,
+   and complete all scope/quality gates before merging. Then continue #30 per #25.
+   No #29 merge or full integration acceptance is claimed by this checkpoint.
 
-Resume the active predecessor gates before any later issue can merge:
-- #31 PR174 is fully accepted on main 5caa2c1c; #31 is closed again.
-- #19 PR175 is fully accepted at main b92b6ef5. Merged build 35728186900 and
-  regression 35728186799 pass all 26 required jobs. Merge tree ac9a6cd4 matches
-  tested head 312048f0. Issue #19 and #25 are updated for integrated acceptance.
-- #20 PR176 merged as main 131061351efc14483aeb7da3f623f79ea884d640 at
-  2026-09-22 14:59:32 UTC after all 26 exact-head jobs passed at 4d06f25b.
-  Self-review and fresh main/base/head/tag checks passed. Merge tree 11bc602c
-  equals the tested head. Integrated build 35744183979 and regression 35744184060
-  pass all 26 required jobs. #20 is fully accepted; issue #20 and #25 are updated.
+Accepted main is `aa96932abb13f761d0a71dde89f95d33893a45c8` (#22), already merged
+into #29 at `6ae3fbfa`. #19 PR175 and #20 PR176 were fully accepted earlier.
+#21 PR177 is fully accepted at `7c24808f16f9a72d9ed21ba9af736cd54adba386`:
+merged build 35757322676/regression 35757322732 pass all 26 required jobs.
+#22 PR178 is fully accepted at `aa96932a`: tested head `b23ef158`, merge tree
+`309bac591a8225478a52321b0205a547f885a996`, merged build 35767363858/regression
+35767363841 pass all 26 required jobs. Issues #21/#22 and tracking #25 are updated.
+#31 is closed after accepted PR174. Do not repeat these completed issues.
 
-#21 PR177 is fully accepted at main 7c24808f16f9a72d9ed21ba9af736cd54adba386.
-All 26 exact-head and integrated jobs pass (merged build 35757322676 and regression
-35757322732). Merge tree c14c33d3 equals the tested head; issue #21 and #25 are updated.
+## #29 migration checkpoint and heartbeat retirement, test first
 
-#22 PR178 merged as main aa96932abb13f761d0a71dde89f95d33893a45c8 at
-2026-09-22 18:28:14 UTC after all 26 exact-head jobs passed on b23ef158. Final
-self-review and current-main/base/head/tag checks pass; merge tree 309bac591a8225478a52321b0205a547f885a996
-matches the tested tree. Integrated build 35767363858/regression 35767363841 pass
-all 26 required jobs. #22 is fully accepted; issue #22 and #25 are updated.
+All backend implementation through `71a119d9` is preserved in this branch. Durable
+ambiguous allocation recovery, authored UI/client action wiring, namespaced deployment
+manifests and exact owned result selection are implemented; the detailed entries
+below record their tests and limits. No real native login-to-match-to-profile or kind
+acceptance has passed yet; the frontend still needs accepted #23's services API.
 
-#23 draft PR179 final head 1f395716 includes merged #22 main aa96932a. Combined
-GCC/Clang UBSan services, identity/discovery, format and affected/suite catalog
-checks pass. Final build 35767480303/regression 35767480297 are running; require all
-26 jobs and integrated #22 acceptance, then fresh main/head/base/tag checks and
-self-review before merge. Steam integration/live acceptance is deferred to #180.
+The final unfinished edit extends `tests/backend_join_runtime.py` to run our dedicated
+server with every master destination empty or an owned loopback receiver. It rejects
+any legacy heartbeat at startup and shutdown. Before implementation it failed as
+intended with `retired master heartbeat emitted to owned receiver` and payload
+`heartbeat QuakeArena-1`. No production heartbeat removal has been made yet.
+This failing test is intentionally committed for continuation, not marked passed.
 
-Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
-Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
-then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
+The migration audit found all other registered worktrees clean, no stashes, and all
+other local branch tips already reachable from origin. Only this active #29 branch
+needed publishing. Preserve source/history and the documented evidence; generated
+binaries, private package caches, test keys, local logs and game paks are not backups
+and must not be uploaded. Rebuild on the new machine using the handoff and tests docs.
 
 ## #29 exact owned result selection
 
