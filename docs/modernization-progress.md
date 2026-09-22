@@ -26,7 +26,8 @@ Resume the active predecessor gates before any later issue can merge:
 - #19 PR175 merged at b92b6ef5 after head 312048f0 passed all 26 required jobs
   (build 35720181499/regression 35720181577). Main/base/self-review/known-good tag
   were rechecked; merge tree equals tested ac9a6cd40b4903d50553072165aff295f9a1e807.
-  Merged build 35728186900/regression 35728186799 are running/queued; require both
+  Merged build 35728186900 passes all 16 compiler jobs; regression
+  35728186799 is running; require both
   before #25's integration checkbox and the next issue's merge.
 - #20 draft PR176 now includes that main at b2c2ae5e. Combined client/server build,
   policy/test routing, package/pure/render, profiles and same/fresh/interrupted/
@@ -36,9 +37,9 @@ Resume the active predecessor gates before any later issue can merge:
   preliminary af524559 gates as final combined-tree acceptance.
 
 This is issue/21-ai-navigation in the sibling navigation-tree, branched from main
-5caa2c1c for bounded test-first preparation while predecessors finish. The first
-owned collision-map cook now passes. The new native route/link/crowd contract
-fails at the absent runtime owner (navigation-native-before.log); commit it first. Reuse
+5caa2c1c for bounded test-first preparation while predecessors finish. Owned collision cooking, native route/link/crowd ownership and data-authored
+hierarchical behavior now pass GCC and Clang/libc++ UBSan. Continue with failing-
+first perception/cover/target tests; gameplay/tooling/checkpoint integration remains. Reuse
 CM_PhysicsTriangles collision export and the existing cooker/envelope; do not
 change authoritative collision/movement math or accepted bot/demo goldens.
 Runtime AI integration waits for accepted #19/#20 main and requires separate
@@ -49,6 +50,23 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
+
+## #21 isolated hierarchical behavior execution
+
+After 7f7a3f60's missing-runtime failure, fixed-capacity POD behavior/state records
+load the authored hierarchy and execute one ordered transition per tick. Leaf
+rules precede inherited parent rules; dwell time is measured in the current leaf,
+and state elapsed/transition counters saturate without wrapping. Loader validation
+checks table extents, names, hierarchy depth/cycles, leaf targets and comparison
+ranges before publication. No allocation or OS calls are introduced.
+
+GCC and Clang/libc++ UBSan now pass the complete navigation/behavior driver,
+including exact dwell/timeout boundaries and identical copied-state continuation
+(navigation-behavior-{gcc,clang}.log). Isolated owner clang-tidy and AST lifetime
+checks pass (navigation-owner-{tidy,lifetime}.log). These isolated checks do not
+replace final production-configuration gates after engine/gameplay integration.
+Perception, cover/target selection, real bot movement/weapons, ImGui inspection
+and #19 checkpoint integration are still outstanding. No #21 PR yet.
 
 ## #21 native behavior contract, test first
 
