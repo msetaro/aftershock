@@ -67,6 +67,14 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 server restore preflight test first
+
+The new state_server probe requires bounded map/game names, valid server clocks,
+and a single designated local human slot with anonymous local/bot identities.
+It fails on missing ValidCheckpointHeader/ValidCheckpointClient before their
+implementation (state-server-before.log). These checks precede any destructive
+map reload; full owner validation still occurs against freshly loaded content.
+
 ## #19 platform save routing
 
 Profiles and full-game captures now route through Sys_SaveRevision/Sys_ReadSave.
