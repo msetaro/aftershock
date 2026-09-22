@@ -105,6 +105,7 @@ int main() {
 			assert( field.type == stateType_t::UInt32 );
 	CheckReplicationState<entityState_t>( entityStateSchema );
 	CheckReplicationState<playerState_t>( playerStateSchema );
+	CheckReplicationState<usercmd_t>( usercmdStateSchema );
 	const previous_t previous = { 73, 9, UINT64_C( 0xfedcba9876543210 ), { 16.25f, -32.5f, 48.0f }, "checkpoint" };
 	unsigned char bytes[4096];
 	const size_t size = State_Write( previousSchema, &previous, bytes, sizeof( bytes ) );

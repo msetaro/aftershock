@@ -55,6 +55,14 @@ Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
 
+## #19 user-command description test before implementation
+
+Full client state includes its last usercmd_t, not just playerState_t. The existing
+round-trip probe now requires that description, including byte-sized weapon and
+signed movement storage, and fails on the missing schema (state-usercmd-before.log).
+Extend the shared declaration inventory and verify unchanged replication output;
+do not change user-command encoding or movement arithmetic.
+
 ## #19 libc RNG capture and preserved behavior
 
 Owned engine rand/srand calls now route through Q_Rand/Q_Srand, retaining libc's
