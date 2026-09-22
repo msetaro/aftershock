@@ -47,6 +47,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 collision export mask implementation
+
+After 83a9fdd4's failing compile, add the explicit-mask overload and preserve the
+old two-argument solid-only wrapper. The same brush/patch clipping code now serves
+navigation's solid/player-clip mask; no expressions or native movement/trace code
+are restructured. GCC and Clang/libc++ UBSan probes pass the original and added
+mask assertions (navigation-collision-after.log, navigation-collision-clang.log).
+The navigation asset cooker remains unimplemented; no gameplay acceptance yet.
+
 ## #21 collision export mask, test first
 
 The existing physics collision probe now requires an explicit navigation contents
