@@ -1546,6 +1546,27 @@ changes accepted fixtures. `physics_prop box`, `physics_prop grenade` and
 motion/storage. Development builds add the Physics panel and `cg_physicsDebug`
 collision bounds. Damage-bearing trajectories remain native weapon/CM state.
 
+## Entity definitions (#18)
+
+`python3 tests/entities.py` cooks inherited JSON prefabs and runs the bounded native
+reader/editor under UBSan. `--cc clang --cxx 'clang++ -stdlib=libc++'` checks the
+second standard library. It checks component reflection, independent overrides,
+derived replication fields, validated edits and hashed write/read round trips.
+
+`python3 tests/entities_runtime.py --binary CLIENT` uses a devtools client and
+installed Quake 3 content. Hosted CI passes `--content openarena --data PATH` for
+staged OpenArena. Owned two-lane geometry, the existing owned animated character
+and a generated test tone cover map/runtime pickups, explicit instance overrides,
+generic definition edits, numbered saves and map reload. The composed entity
+checks visible animation, solid collision, once-only damage, target activation,
+loop-sound state and destruction by a real weapon. CTF prefab flags exercise
+native classname callbacks through pickup and capture. It saves logs and PNGs, no paks.
+
+The ordinary `tests/run.py runtime` bot goldens and fixed `tests/demo.py` replays
+remain the classic q3dm17/q3dm7 (or hosted OpenArena) compatibility gates. These
+fixtures are unchanged. See [the definition contract](../docs/design/entities.md)
+for capacities, component meanings and editor/source ownership.
+
 ## Authored UI (#17)
 
 `python3 tests/ui_framework.py` cooks `tests/assets/ui/shell.json` with the installed

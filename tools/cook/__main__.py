@@ -19,6 +19,7 @@ import shader
 import weapon
 import effect
 import post
+import entities
 import ui
 
 HERE = Path(__file__).resolve().parent
@@ -111,7 +112,7 @@ def cook(project, output):
 
             source = below(root, asset['source'])
             try:
-                if asset['kind'] in ('weapon', 'animation', 'material', 'effect', 'decal', 'post', 'ui', 'sound-event'):
+                if asset['kind'] in ('weapon', 'animation', 'material', 'effect', 'decal', 'post', 'entities', 'ui', 'sound-event'):
                     validate_format(asset['kind'], json.loads(read(source)), source)
                 if asset['kind'] == 'model':
                     payloads = model.cook(source, name, asset, read)
@@ -120,6 +121,8 @@ def cook(project, output):
                     payloads = animation.cook(source, name, asset, read, models)
                 elif asset['kind'] == 'weapon':
                     payloads = weapon.cook(source, name, read)
+                elif asset['kind'] == 'entities':
+                    payloads = entities.cook(source, name, read)
                 elif asset['kind'] == 'ui':
                     payloads = ui.cook(source, name, read)
                 elif asset['kind'] == 'post':
@@ -167,7 +170,7 @@ def cook(project, output):
     if len(resources) > 4096:
         raise ValueError('project exceeds the 4096-resource development index limit')
     index = bytearray(struct.pack('<I', len(resources)))
-    kinds = {'.iqm': 1, '.ktx2': 2, '.asmat': 3, '.wav': 4, '.asspv': 5, '.asanim': 6, '.asweapon': 7, '.asfx': 8, '.aslod': 9, '.asdc': 10, '.aspost': 11, '.asevt': 12, '.asui': 13}
+    kinds = {'.iqm': 1, '.ktx2': 2, '.asmat': 3, '.wav': 4, '.asspv': 5, '.asanim': 6, '.asweapon': 7, '.asfx': 8, '.aslod': 9, '.asdc': 10, '.aspost': 11, '.asevt': 12, '.asui': 13, '.asent': 14}
     for path, hashed in sorted(resources.items()):
         size = below(output, path).stat().st_size
         index.extend(struct.pack('<64s32sII', path.encode(), bytes.fromhex(hashed), size, kinds[Path(path).suffix]))

@@ -3,11 +3,12 @@
 #include <stdint.h>
 #include "../weapons/weapons_public.h"
 #include "../animation/animation_public.h"
+#include "../entities/entities_public.h"
 
 struct devEntity_t {
 	char classname[64];
 	float origin[3], mins[3], maxs[3];
-	int32_t source, health;
+	int32_t source, health, model, frame, sound, contents;
 	bool linked;
 };
 struct devWeaponState_t {
@@ -33,6 +34,8 @@ struct devGameTools_t {
 	const char *( *MapText )( int index ); // empty string for deliberately deleted records
 	bool ( *ReadWeapon )( int owner, int hand, devWeaponState_t *state ) = nullptr;
 	bool ( *ReadAnimation )( int owner, int rig, devAnimationState_t *state ) = nullptr;
+	const entityDefinitions_t *( *Definitions )() = nullptr;
+	bool ( *WriteDefinition )( const char *name, const char *key, const char *value ) = nullptr;
 };
 void Dev_RegisterGameTools( const devGameTools_t *tools );
 #endif

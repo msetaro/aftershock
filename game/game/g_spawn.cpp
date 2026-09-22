@@ -22,6 +22,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
 #include "g_local.h"
+#include "../../engine/entities/entities_public.h"
+#include "../../engine/public/g_native_public.h"
+
+static entityDefinitions_t entityDefinitions, authoredDefinitions;
+
+static const entityDefinition_t *SpawnDefinition() {
+	for ( int i = 0; i < level.numSpawnVars; ++i )
+		if ( !Q_stricmp( level.spawnVars[i][0], "classname" ) )
+			return Entity_FindDefinition( entityDefinitions, level.spawnVars[i][1] );
+	return nullptr;
+}
 #ifdef AFTERSHOCK_DEVTOOLS
 static void G_DevCapture( void );
 static void G_DevMapEntity( gentity_t *entity );
@@ -43,6 +54,14 @@ qboolean G_SpawnString( const char *key, const char *defaultString, char **out )
 		}
 	}
 
+	if ( level.spawning ) {
+		const auto *definition = SpawnDefinition();
+		const auto *field = definition ? Entity_Field( entityDefinitions, *definition, key ) : nullptr;
+		if ( field ) {
+			*out = (char *)field->value;
+			return qtrue;
+		}
+	}
 	*out = (char *)defaultString;
 	return qfalse;
 }
@@ -198,6 +217,7 @@ void SP_team_neutralobelisk( gentity_t *ent );
 void SP_item_botroam( gentity_t *ent [[maybe_unused]] ) {};
 
 spawn_t spawns[] = {
+	{ "composed", SP_composed },
 	// info entities don't do anything at all, but provide positional
 	// information for things controlled by other processes
 	{ "info_player_start", SP_info_player_start },
@@ -273,6 +293,62 @@ spawn_t spawns[] = {
 	{ 0, 0 }
 };
 
+static void RegisterLegacyDefinition( const char *name ) {
+	if ( entityDefinitions.header.count == 256 )
+		G_Error( "Entity definitions exceed 256 records" );
+	auto &definition = entityDefinitions.definitions[entityDefinitions.header.count++];
+	Q_strncpyz( definition.name, name, sizeof( definition.name ) );
+	Q_strncpyz( definition.native, name, sizeof( definition.native ) );
+}
+static void InitEntityDefinitions() {
+	memset( &entityDefinitions, 0, sizeof( entityDefinitions ) );
+	memset( &authoredDefinitions, 0, sizeof( authoredDefinitions ) );
+	for ( const gitem_t *item = bg_itemlist + 1; item->classname; ++item )
+		RegisterLegacyDefinition( item->classname );
+	for ( const spawn_t *spawn = spawns; spawn->name; ++spawn )
+		RegisterLegacyDefinition( spawn->name );
+	vmCvar_t path;
+	trap_Cvar_Register( &path, "g_entityDefinitions", "", CVAR_LATCH );
+	if ( !path.string[0] )
+		return;
+	fileHandle_t file;
+	const int length = trap_FS_FOpenFile( path.string, &file, FS_READ );
+	static uint8_t bytes[sizeof( entityDefinitions_t ) + 48];
+	auto &authored = authoredDefinitions;
+	if ( !file || length <= 0 || length > int( sizeof( bytes ) ) ) {
+		if ( file )
+			trap_FS_FCloseFile( file );
+		G_Error( "Entity definitions rejected: cannot read %s", path.string );
+	}
+	trap_FS_Read( bytes, length, file );
+	trap_FS_FCloseFile( file );
+	if ( !Entity_ReadDefinitions( bytes, size_t( length ), &authored ) )
+		G_Error( "Entity definitions rejected: %s", path.string );
+	for ( uint32_t i = 0; i < authored.header.count; ++i ) {
+		const auto &definition = authored.definitions[i];
+		bool native = false;
+		for ( const gitem_t *item = bg_itemlist + 1; item->classname; ++item )
+			native |= !strcmp( item->classname, definition.native );
+		for ( const spawn_t *spawn = spawns; spawn->name; ++spawn )
+			native |= !strcmp( spawn->name, definition.native );
+		if ( !native )
+			G_Error( "Entity definition %s has unknown native behavior %s", definition.name, definition.native );
+		const auto *previous = Entity_FindDefinition( entityDefinitions, definition.name );
+		uint32_t index;
+		if ( previous )
+			index = uint32_t( previous - entityDefinitions.definitions );
+		else {
+			if ( entityDefinitions.header.count == 256 )
+				G_Error( "Entity definitions exceed 256 records" );
+			index = entityDefinitions.header.count++;
+		}
+		entityDefinitions.definitions[index] = definition;
+	}
+	entityDefinitions.header.fieldCount = authored.header.fieldCount;
+	memcpy( entityDefinitions.fields, authored.fields, authored.header.fieldCount * sizeof( entityDefinitionField_t ) );
+	G_Printf( "Entity definitions: %s authored=%u total=%u\n", path.string, authored.header.count, entityDefinitions.header.count );
+}
+
 /*
 ===============
 G_CallSpawn
@@ -290,9 +366,16 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 		return qfalse;
 	}
 
+	const auto *definition = Entity_FindDefinition( entityDefinitions, ent->classname );
+	const char *native = definition ? definition->native : ent->classname;
+	if ( definition ) {
+		ent->definitionName = definition->name;
+		ent->classname = native;
+	}
+
 	// check item spawn functions
 	for ( item = bg_itemlist + 1; item->classname; item++ ) {
-		if ( !strcmp( item->classname, ent->classname ) ) {
+		if ( !strcmp( item->classname, native ) ) {
 			G_SpawnItem( ent, item );
 			return qtrue;
 		}
@@ -300,7 +383,7 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 
 	// check normal spawn functions
 	for ( s = spawns; s->name; s++ ) {
-		if ( !strcmp( s->name, ent->classname ) ) {
+		if ( !strcmp( s->name, native ) ) {
 			// found it
 			s->spawn( ent );
 			return qtrue;
@@ -417,6 +500,11 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 	G_DevMapEntity( ent );
 #endif
 
+	const auto *definition = SpawnDefinition();
+	if ( definition )
+		for ( uint32_t field = definition->firstField; field < definition->firstField + definition->fieldCount; ++field )
+			G_ParseField( entityDefinitions.fields[field].key, entityDefinitions.fields[field].value, ent );
+
 	for ( i = 0; i < level.numSpawnVars; i++ ) {
 		G_ParseField( level.spawnVars[i][0], level.spawnVars[i][1], ent );
 	}
@@ -477,6 +565,8 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 	// if we didn't get a classname, don't bother spawning anything
 	if ( !G_CallSpawn( ent ) ) {
 		G_FreeEntity( ent );
+	} else if ( ent->inuse && definition && ( definition->priority || definition->radius ) ) {
+		GameImport_SetEntityReplication( ent->s.number, int( definition->priority ), definition->radius );
 	}
 }
 
@@ -625,6 +715,8 @@ Parses textual entity definitions out of an entstring and spawns gentities.
 ==============
 */
 void G_SpawnEntitiesFromString( void ) {
+	G_ResetComposed();
+	InitEntityDefinitions();
 #ifdef AFTERSHOCK_DEVTOOLS
 	G_DevReset();
 #endif
@@ -705,12 +797,18 @@ static bool Dev_ReadEntity( int index, devEntity_t *out ) {
 	if ( index < 0 || index >= level.num_entities || !g_entities[index].inuse )
 		return false;
 	const gentity_t *entity = &g_entities[index];
-	Q_strncpyz( out->classname, entity->classname ? entity->classname : "", sizeof( out->classname ) );
+	Q_strncpyz( out->classname, entity->definitionName ? entity->definitionName : entity->classname ? entity->classname
+																									: "",
+		sizeof( out->classname ) );
 	VectorCopy( entity->r.currentOrigin, out->origin );
 	VectorCopy( entity->r.absmin, out->mins );
 	VectorCopy( entity->r.absmax, out->maxs );
 	out->source = devSource[index];
 	out->health = entity->health;
+	out->model = entity->s.modelindex;
+	out->frame = entity->s.frame;
+	out->sound = entity->s.loopSound;
+	out->contents = entity->r.contents;
 	out->linked = entity->r.linked != 0;
 	return true;
 }
@@ -732,6 +830,10 @@ static bool Dev_ReadField( int index, const char *key, char *value, int capacity
 	const field_t *field = Dev_Field( key );
 	if ( capacity <= 0 || !Dev_ReadEntity( index, &info ) || !field )
 		return false;
+	if ( !Q_stricmp( key, "classname" ) ) {
+		Q_strncpyz( value, info.classname, capacity );
+		return true;
+	}
 	const byte *data = (const byte *)&g_entities[index] + field->ofs;
 	switch ( field->type ) {
 	case F_LSTRING: {
@@ -841,10 +943,12 @@ static bool Dev_WriteField( int index, const char *key, const char *value ) {
 static int Dev_Spawn( const char *classname, const float *origin ) {
 	if ( !trap_Cvar_VariableIntegerValue( "sv_cheats" ) || !devComplete || devDocumentCount == MAX_GENTITIES || ( level.num_entities >= ENTITYNUM_MAX_NORMAL && !G_EntitiesFree() ) )
 		return -1;
-	bool allowed = !strcmp( classname, "target_position" ) || !strcmp( classname, "info_notnull" ) ||
-				   !strcmp( classname, "info_player_deathmatch" ) || !strcmp( classname, "misc_teleporter_dest" );
+	const auto *definition = Entity_FindDefinition( entityDefinitions, classname );
+	const char *native = definition ? definition->native : classname;
+	bool allowed = !strcmp( native, "composed" ) || !strcmp( native, "target_position" ) || !strcmp( native, "info_notnull" ) ||
+				   !strcmp( native, "info_player_deathmatch" ) || !strcmp( native, "misc_teleporter_dest" );
 	for ( const gitem_t *item = bg_itemlist + 1; item->classname; ++item )
-		allowed |= !strcmp( classname, item->classname );
+		allowed |= !strcmp( native, item->classname );
 	if ( !allowed || !std::isfinite( origin[0] ) || !std::isfinite( origin[1] ) || !std::isfinite( origin[2] ) )
 		return -1;
 	level.numSpawnVars = level.numSpawnVarChars = 0;
@@ -878,13 +982,27 @@ static const char *Dev_MapText( int index ) {
 	return index >= 0 && index < devDocumentCount ? devDocuments[index] : nullptr;
 }
 
+static const entityDefinitions_t *Dev_Definitions() {
+	return authoredDefinitions.header.count ? &authoredDefinitions : nullptr;
+}
+static bool Dev_WriteDefinition( const char *name, const char *key, const char *value ) {
+	if ( !trap_Cvar_VariableIntegerValue( "sv_cheats" ) || !Entity_SetField( &authoredDefinitions, name, key, value ) )
+		return false;
+	const auto *source = Entity_FindDefinition( authoredDefinitions, name );
+	const auto *target = Entity_FindDefinition( entityDefinitions, name );
+	entityDefinitions.definitions[target - entityDefinitions.definitions] = *source;
+	for ( uint32_t i = source->firstField; i < source->firstField + source->fieldCount; ++i )
+		entityDefinitions.fields[i] = authoredDefinitions.fields[i];
+	return true;
+}
+
 static void G_DevReset( void ) {
 	memset( devSource, 0xff, sizeof( devSource ) );
 	devDocumentCount = 0;
 	devCurrentSource = -1;
 	devComplete = true;
 	static const devGameTools_t tools = { Dev_ReadEntity, Dev_FieldName, Dev_ReadField, Dev_WriteField,
-		Dev_Spawn, Dev_Delete, Dev_MapCount, Dev_MapText, G_DevWeapon, G_DevAnimation };
+		Dev_Spawn, Dev_Delete, Dev_MapCount, Dev_MapText, G_DevWeapon, G_DevAnimation, Dev_Definitions, Dev_WriteDefinition };
 	Dev_RegisterGameTools( &tools );
 }
 #endif

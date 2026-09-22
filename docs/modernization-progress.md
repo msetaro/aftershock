@@ -20,41 +20,142 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#16 is accepted: PR171 merged into main as d2411083325edaa0213fa5680a63d6e8644f291e
-on 2026-09-22 UTC. Exact head 4c8dc002 passed all 16 compiler legs in 35673913679
-and all ten active regression jobs in 35673913655, including hosted playback,
-near/far weapon layers, voice reconnect, fixed/module demos and sanitized bots.
-Rechecked unchanged base 0561e0f0 and rollback tag before ready/merge. Private
-audio-final-gates.json records all 26 results. Monitor the merged-tree workflows.
-No accepted golden/demo or known-good tag changed.
+#17 accepted in PR172, merge ebc03f37c1393f13cb1d33355eda53a9caf911f7 on
+2026-09-22 UTC. All 26 active gates passed exact head fcfd6507 (build 35679134924,
+regression 35679134926); head/base/current main and known-good tag were rechecked
+immediately before ready/merge. Private ui-final-gates.json records the results.
+Monitor new main build 35682880734/regression 35682880730. #16 is accepted in
+PR171 (d2411083); both merged-tree workflows 35678588496/35678588538 pass.
 
-#17 is locally implemented on issue/17-ui-framework in
-/home/matt/.cache/aftershock-modernization/ui-tree. 6593c9c3 merged accepted
-#16 main forward, preserving both cooker kinds (sound-event 12, UI 13), CI steps
-and documentation. Focused schema/native, format/types/boundaries, build and
-1080p runtime checks pass (ui-merged-{schema,native}.log, ui-with-audio.log).
-Draft PR172 is open into main. Hosted MSVC rejected std::min's initializer-list
-calls because Windows min/max macros expand them (ui-msvc-522f9904.log).
-Parenthesized the four standard-library call names to prevent macro expansion;
-no expression/value change. Rerun all gates on the new head. Require all 26 hosted gates on that exact head and current main before
-ready/merge. Do not treat previous-base local checks as final merge acceptance.
+#18 draft PR173 uses issue/18-entity-definitions in
+/home/matt/.cache/aftershock-modernization/entities-tree. affbea66 merges accepted UI main
+forward, preserving both asset kinds/schemas and all CI checks. Local integration
+passes: GCC/Clang entity probes, UI probe, all schemas, format/types/boundaries,
+combined client/server build, full OpenArena entity sequence and 1080p UI runtime
+(entities-ui-*.log). Push this checkpoint for final hosted checks. Previous
+5e666dff passes all 16 compiler legs in 35682073149; regression 35682073081 is
+superseded and cancelled for this merge. Initial cb84dadb failed old libc++ floating
+from_chars and is not acceptance; strtof with fixed-decimal/range validation fixes
+that portability issue. Both-content component/editor/flag acceptance, full
+lifetime/tidy and unchanged classic bot/replay gates pass locally before this merge.
+Require all 26 active jobs on the final head including ebc03f37, then recheck main,
+self-review, ready and merge with a merge commit. No accepted fixture regeneration.
 
-#18 preparation is isolated on issue/18-entity-definitions in
-/home/matt/.cache/aftershock-modernization/entities-tree (still based on 0561e0f0).
-Commits through acd59b9e contain the initial JSON prefab cooker, bounded native
-lookup and test-first real pickup acceptance. The uncommitted game spawn adapter
-initially failed linking because its public header was included inside the game
-namespace. Added it to game/module.cpp's existing global public-header imports;
-the initial OpenArena map/runtime pickup acceptance now passes
-(entities-runtime-second.log). The collection fixture no longer assigns a
-targetname, which correctly made the original pickup dormant until triggered.
-No #18 PR yet. Finish #17 acceptance and merge current main forward before its
-final gates. Remaining #18 component coverage is documented in that branch.
+#19 isolated preparation is in /home/matt/.cache/aftershock-modernization/state-tree,
+issue/19-state-serialization from main d2411083, local head a8195301. The common
+named-field serializer and added/removed/reordered-field migration pass GCC and
+Clang/libc++ UBSan, including 64-bit identities. No full checkpoint/settings/editor
+integration is implemented. Merge accepted #18 main before that integration.
+Private state-preflight.md records the source inventory and remaining full-state
+requirements; no partial checkpoint acceptance.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue #18 through #24 (SDK dependency), #29 and #30 according to #25. No
-maintainer input is currently needed; do not end at a checkpoint or CI wait.
+Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
+is currently needed. Do not end at a checkpoint or CI wait.
+
+## #18 hosted standard-library compatibility
+
+Initial cb84dadb build 35681818460 fails Linux libc++ and all four Apple legs:
+those libraries do not expose floating-point from_chars. The local libc++ 21
+probe alone did not cover that older-library interface. Use standard strtof with
+explicit fixed-decimal spelling, finite/range and delimiter validation; integer
+from_chars is supported and unchanged. Field values remain the same decimal
+strings expected by classic spawn parsing. GCC and Clang/libc++ probes pass again;
+no fixture or existing engine math changes. The old regression is cancelled to
+free runners and is never acceptance. MSVC ARM64 and release x64 already pass the
+new entity feature at cb84dadb; require fresh full gates for this correction.
+
+## #18 alias compatibility review
+
+The completed local checks at 731bd28d pass: full tidy 1,358 configurations,
+lifetimes 1,300 commands/144 paths, MinGW client/server, both-content editor and
+composed acceptance, and unchanged fixed Quake 3 replay/restart hashes
+(entities-{tidy,lifetimes,mingw-build,demo,editor-q3}.log). Self-review then found
+a gap in the new alias feature: legacy CTF and path/target callbacks compare
+native classname strings. Keeping the authored alias in that field breaks those
+callbacks. The added real flag-prefab test fails enemy pickup as expected
+(entities-flags-before.log). Preserve native identity in the existing field and
+keep prefab identity separately for generic inspection. This is a correction to
+unmerged #18 code, not a change to the accepted classic callbacks.
+The first flag assertion mistakenly expected unlinking; classic pickups stay
+linked with zero collision contents. Corrected the assertion and rebuilt the old
+3b7071f0 in a detached private worktree: it fails the corrected pickup check
+(entities-alias-before.log). The new alias dispatch passes pickup and capture
+(entities-alias-after.log). Keep native classname for callbacks and a separate
+private definitionName for authored inspection, cleared when a slot is reused.
+Quake 3 also passes all three scenarios (entities-alias-q3.log). Fixed replay and
+both classic bot hashes pass again after the correction (entities-alias-demo.log,
+entities-alias-bots.log). Full tidy (1,358 configurations) and lifetime (1,300 commands) reruns pass; final gates must
+include accepted #17 main. PR173 is draft, initial hosted head cb84dadb.
+
+#19 test-only preparation is 10c1bee0 in the separate state-tree worktree, branched
+from main. Its named-field added/removed/reordered migration test fails on the
+missing serializer. The pure serializer now passes GCC and Clang/libc++ UBSan at 96db1f93. No game
+checkpoint integration or #19 acceptance is claimed.
+
+## #18 generic inspector and serialization
+
+9b40aebb records the missing generic native editing/serialization API and real
+save/reload requirements before implementation. Reflected component fields now
+feed the Definitions panel and dev_definition command, using one validated native
+edit path. Replication edits update their typed policy fields. Edits affect new
+spawns, while numbered hashed cooked revisions preserve saved values across map
+reload; JSON remains the inheritance/component source. Apply/save run after ImGui
+returns, local cheats required, no new allocations or OS calls.
+
+OpenArena full pickup/editor/composed sequence passes (entities-editor-runtime.log),
+and the Definitions screenshot was reviewed. GCC and Clang/libc++ UBSan round trips
+pass (entities-editor-{first,clang}.log). Format, type, boundary, suite/affected
+contracts and actionlint pass. CI now includes both compiler probes and real
+runtime acceptance with log/PNG artifacts. Quake 3 editor runtime and full
+lifetime/tidy checks are running; not acceptance yet. docs/design/entities.md
+records the format, component and save/source decisions. No accepted fixture changed.
+
+## #18 initial prefab and real-pickup acceptance
+
+JSON source/schema reuses the existing cooker. No ECS or scripting language.
+32c39936 records missing entities cook; 679e94f5 supplies inherited bounded POD
+records with component metadata and derived priority/radius. 8cf5cf24 records
+missing native lookup; 738a895e passes GCC and Clang/libc++ UBSan with conversion/
+shadow warnings. Fields are bounded/validated before publication, no native IO
+or allocation. The current schema covers transform/pickup/hooks/replication;
+model/animation/collision/trigger/damage/audio coverage remains unfinished.
+
+acd59b9e records the real-client missing-prefab failure. 8ae8a5e3 routes map and
+runtime prefabs through existing spawn/item callbacks, applies definition fields
+before explicit instance fields, and reuses generic field editing. Classic
+registered spawn/item behaviors get transparent compatibility definitions.
+OpenArena real collection passes map amount 45 and runtime inspector-edited
+amount 20 (entities-runtime-second.log); accepted old callbacks/arithmetic are
+unchanged. The first runtime fixture assigned targetname, correctly leaving a
+legacy pickup dormant until triggered; removed that hook from this collection
+fixture, not engine behavior. First link needed entities_public.h included before
+the game namespace in game/module.cpp. Both-content pickup collection now passes, and unchanged Quake 3 bot goldens
+pass q3dm17 and q3dm7 (entities-runtime-q3.log, entities-classic-runtime.log).
+The next component fixture requires model/animation/collision/trigger/damage/audio
+metadata and fails on the missing schema fields (entities-components-before.log,
+7571d023). Its schema/cooker/native metadata now passes GCC and Clang/libc++
+UBSan (entities-components-{first,clang}.log). Runtime behavior for the new
+composed backend remains to be implemented and tested; metadata alone is not
+acceptance. Continuous audio loops are PCM WAV; authored events are one-shot.
+Reuse cooked IQM frame animation through the existing general-entity renderer;
+no new model format is needed. The real composed-entity test now fails at the missing composed behavior on a
+rebuilt client (entities-components-runtime-before2.log); its earlier run used
+an older reader and was not the intended backend negative control. It requires
+visible owned IQM animation, solid collision, trigger damage/target activation,
+sound-emission state and destruction by the real weapon (9ae1769c). The native
+composed backend now passes this full OpenArena sequence
+(entities-composed-second.log), including visible owned IQM animation, movement
+blocked at the authored box, once-only 7 damage, target pickup activation and
+real weapon destruction. The fixture respects the existing five-second team
+switch cooldown. Splash radius lives in the new POD side state; the legacy
+integer field is unchanged. Quake 3 composed acceptance also passes (entities-composed-q3.log); implementation
+commit 685e379c. The next test requires generic default editing, reflected
+replication fields and hashed serialization/reload; it fails compiling absent
+Entity_SetField/Entity_WriteDefinitions (entities-editor-before.log). Generic definition
+preview/edit still remains.
+No partial acceptance of remaining #18 scope is claimed. Schema, format/types/boundaries and affected contract pass.
 
 ## #17 local verification before integrating accepted audio
 

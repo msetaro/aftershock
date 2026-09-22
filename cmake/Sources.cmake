@@ -1,6 +1,7 @@
 # Explicit production source lists migrated from the verified Make build.
 
 set(COMMON_SOURCES
+  engine/entities/entities.cpp
   engine/weapons/weapons_assets.cpp
   engine/weapons/weapons.cpp
   engine/animation/animation.cpp
@@ -257,6 +258,7 @@ set(NATIVE_GAME_SOURCES
   game/game/g_mover.cpp
   game/game/g_session.cpp
   game/game/g_spawn.cpp
+  game/game/g_composed.cpp
   game/game/g_svcmds.cpp
   game/game/g_native.cpp
   game/game/g_target.cpp

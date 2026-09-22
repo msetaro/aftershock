@@ -7,7 +7,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import best_match
 
 ROOT = Path(__file__).resolve().parents[2]
-KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'decal', 'post', 'ui', 'sound-event', 'match-spec')
+KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'decal', 'post', 'entities', 'ui', 'sound-event', 'match-spec')
 
 
 def obj(properties, required=None, extra=False):
@@ -180,6 +180,30 @@ def match_schema():
     return schema
 
 
+def entities_schema():
+    identity=dict(type='string',pattern='^[a-z][a-z0-9_]{0,62}$')
+    def field(schema, key):
+        return dict(schema, **{'x-spawn-field':key})
+    components=obj(dict(
+        transform=obj(dict(origin=field(vector(integer=False),'origin'), angles=field(vector(-360,360,False),'angles')),[]),
+        pickup=obj(dict(amount=field(num(1,10000,True),'count')),[]),
+        hooks=obj(dict(target=field(identity,'target'),targetname=field(identity,'targetname')),[]),
+        replication=obj(dict(priority=field(num(0,3,True),'rep_priority'),radius=field(num(0,32768),'rep_radius')),[]),
+        model=obj(dict(resource=field(qpath(),'model')),[]),
+        animation=obj(dict(first_frame=field(num(0,4095,True),'anim_first'),frames=field(num(1,4096,True),'anim_frames'),
+                           frame_ms=field(num(10,10000,True),'anim_ms'),loop=field(dict(type='boolean'),'anim_loop')),[]),
+        collision=obj(dict(mins=field(vector(-1024,1024,False),'mins'),maxs=field(vector(-1024,1024,False),'maxs'),
+                           solid=field(dict(type='boolean'),'solid')),[]),
+        trigger=obj(dict(wait_ms=field(num(0,60000,True),'trigger_wait'),once=field(dict(type='boolean'),'trigger_once')),[]),
+        damage=obj(dict(amount=field(num(0,10000,True),'dmg'),health=field(num(0,10000,True),'health'),
+                        splash=field(num(0,10000,True),'splash_damage'),radius=field(num(0,4096),'splash_radius')),[]),
+        audio=obj(dict(sound=field(qpath(),'noise'),loop=field(dict(type='boolean'),'audio_loop')),[])),[])
+    definition=obj(dict(id=identity,extends=identity,
+                        native=dict(type='string',pattern='^[a-zA-Z][a-zA-Z0-9_]{0,62}$'),
+                        components=components),['id','components'])
+    return obj(dict(version=dict(const=1),name=dict(identity,maxLength=31),definitions=array(definition,1,256)))
+
+
 def ui_schema():
     identity=dict(type='string',pattern='^[a-z][a-z0-9_]{0,30}$')
     localized=dict(type='object',minProperties=1,maxProperties=8,
@@ -198,7 +222,7 @@ def ui_schema():
 
 def schema(kind):
     schemas = dict(level=level_schema,weapon=weapon_schema,animation=animation_schema,material=material_schema,
-                   effect=effect_schema,decal=decal_schema,post=post_schema,ui=ui_schema,**{'match-spec':match_schema,'sound-event':sound_event_schema})
+                   effect=effect_schema,decal=decal_schema,post=post_schema,entities=entities_schema,ui=ui_schema,**{'match-spec':match_schema,'sound-event':sound_event_schema})
     schema = schemas[kind]()
     schema['$schema'] = 'https://json-schema.org/draft/2020-12/schema'
     return schema
@@ -211,6 +235,8 @@ def describe(kind):
                        rooms=[dict(id='room',origin=[0,0,0],size=[512,512,192])],connections=[],
                        spawns=[dict(team='ffa',origin=[-128,0,24],angle=0)],cover=[dict(id='cover',origin=[0,0,0],kit='low')],
                        props=[],pickups=[],lighting=dict(ambient=32,lights=[]))
+    elif kind == 'entities':
+        example = json.loads((ROOT/'tests/assets/entities/pickups.json').read_text())
     elif kind == 'ui':
         example = json.loads((ROOT/'tests/assets/ui/shell.json').read_text())
     elif kind == 'weapon':

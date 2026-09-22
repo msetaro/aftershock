@@ -165,8 +165,64 @@ static void EntityCommand( void ) {
 	Com_Printf( "Developer entity %s: %s (last %d)\n", operation, success ? "completed" : "rejected", last );
 }
 
+bool DevTools_SaveDefinitions() {
+	const auto *tools = DevTools_Game();
+	const auto *definitions = tools && tools->Definitions ? tools->Definitions() : nullptr;
+	if ( !definitions || !Cvar_VariableIntegerValue( "sv_cheats" ) )
+		return false;
+	char path[MAX_QPATH];
+	int revision;
+	for ( revision = 0; revision < 1000; ++revision ) {
+		Com_sprintf( path, sizeof( path ), "entities/definitions.%03d.asent", revision );
+		if ( !FS_FileExists( path ) )
+			break;
+	}
+	if ( revision == 1000 )
+		return false;
+	static uint8_t bytes[sizeof( entityDefinitions_t ) + 48];
+	const size_t length = Entity_WriteDefinitions( *definitions, bytes, sizeof( bytes ) );
+	if ( !length )
+		return false;
+	const fileHandle_t file = FS_FOpenFileWrite( path );
+	if ( !file )
+		return false;
+	const bool success = FS_Write( bytes, int( length ), file ) == int( length );
+	FS_FCloseFile( file );
+	if ( success )
+		Cvar_Set( "dev_definitionFile", path );
+	Com_Printf( "Developer definitions: %s %s\n", success ? "saved" : "write failed", path );
+	return success;
+}
+static void DefinitionCommand() {
+	const auto *tools = DevTools_Game();
+	const auto *definitions = tools && tools->Definitions ? tools->Definitions() : nullptr;
+	const char *operation = Cmd_Argv( 1 );
+	bool success = false;
+	if ( !strcmp( operation, "save" ) && Cmd_Argc() == 2 )
+		success = DevTools_SaveDefinitions();
+	else if ( definitions && ( !strcmp( operation, "select" ) || !strcmp( operation, "set" ) ) ) {
+		const char *name = Cmd_Argv( 2 ), *key = Cmd_Argv( 3 );
+		const auto *definition = Entity_FindDefinition( *definitions, name );
+		if ( definition && Entity_Field( *definitions, *definition, key ) ) {
+			if ( !strcmp( operation, "select" ) && Cmd_Argc() == 4 )
+				success = true;
+			else if ( !strcmp( operation, "set" ) && Cmd_Argc() == 5 && tools->WriteDefinition )
+				success = tools->WriteDefinition( name, key, Cmd_Argv( 4 ) );
+			if ( success ) {
+				Cvar_Set( "dev_definitionName", name );
+				Cvar_Set( "dev_definitionKey", key );
+			}
+		}
+	}
+	Com_Printf( "Developer definition %s: %s\n", operation, success ? "completed" : "rejected" );
+}
+
 void DevTools_InitEntities( void ) {
 	Cmd_AddCommand( "dev_entity", EntityCommand );
+	Cmd_AddCommand( "dev_definition", DefinitionCommand );
+	Cvar_Get( "dev_definitionName", "", CVAR_TEMP );
+	Cvar_Get( "dev_definitionKey", "", CVAR_TEMP );
+	Cvar_Get( "dev_definitionFile", "", CVAR_TEMP );
 	Cmd_AddCommand( "dev_light", LightCommand );
 	Cvar_Get( "dev_entityFile", "", CVAR_TEMP );
 	Cvar_Get( "dev_loadEntities", "0", CVAR_TEMP );
