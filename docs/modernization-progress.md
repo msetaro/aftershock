@@ -29,7 +29,7 @@ Resume the active predecessor gates before any later issue can merge:
   2026-09-22 14:59:32 UTC after all 26 exact-head jobs passed at 4d06f25b.
   Self-review and fresh main/base/head/tag checks passed. Merge tree 11bc602c
   equals the tested head. Integrated build 35744183979 and regression 35744184060
-  are running; require their acceptance before any later issue merges.
+  pass all 26 required jobs. #20 is fully accepted; issue #20 and #25 are updated.
 
 #21 draft PR177 is at 2cefd7e3 and includes main 13106135. Build 35748014590
 passes all 16 compiler legs; regression 35748014600 is running. Hosted corrections
@@ -64,7 +64,9 @@ units and Clang sanitizer known-bug classification pass the unchanged unit hash
 negative control passes; no finished network command is rerun. Isolation, suite
 contract, workflow lint and agent transport checks pass. The extended developer
 runtime also passes local Quake 3 (profiling-runtime-q3.log). Lifetime analysis,
-developer renderer modules and both fixed demo replays are in progress. Final
+developer renderer modules pass (profiling-runtime-modules.log), as does the
+unchanged OpenArena fixed replay 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+Lifetime analysis and the Quake 3 fixed replay remain in progress. Final
 UI review gives the plot its full labeled row and accounts for frame padding,
 so click-to-retain indexes the plotted area instead of including the label width.
 Recheck that small UI change before final gates.
