@@ -27,4 +27,21 @@ bool G_CaptureCallbacks( const gentity_t &entity, const gSaveCallback_t *const *
 bool G_RestoreCallbacks( const gCallbackNames_t &names, const gSaveCallback_t *const *tables, gentity_t *entity );
 const gSaveCallback_t *const *G_StateCallbackTables();
 extern const stateSchema_t callbackNamesSchema;
+
+struct gStatePools_t {
+	gentity_t *entities;
+	int entityCount;
+	gclient_t *clients;
+	int clientCount;
+	gitem_t *items;
+	int itemCount;
+};
+struct gEntityRefs_t {
+	int32_t client, parent, nextTrain, prevTrain, target_ent, chain, enemy, activator, teamchain, teammaster;
+	char item[64];
+};
+static_assert( sizeof( gEntityRefs_t ) == 104 && offsetof( gEntityRefs_t, item ) == 40 );
+bool G_CaptureEntityRefs( const gentity_t &entity, const gStatePools_t &pools, gEntityRefs_t *references );
+bool G_RestoreEntityRefs( const gEntityRefs_t &references, const gStatePools_t &pools, gentity_t *entity );
+extern const stateSchema_t entityRefsSchema;
 #endif

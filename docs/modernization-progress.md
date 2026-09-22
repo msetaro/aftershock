@@ -51,6 +51,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 entity references
+
+Checked slot indices now describe all entity/client links; items use classname
+identity so a reordered item table still loads. GCC/Clang UBSan probes restore
+into different entity/client pools, preserve unrelated fields, reject out-of-pool
+pointers and invalid slots/items without mutation, and round-trip null references
+(state-refs-{gcc,clang}.log). Capture and restore use bounded equality scans, not
+pointer subtraction across unrelated objects. Full checkpoint records, strings,
+subsystems, bots, transport reconstruction and frozen game migration remain open.
+
 ## #19 callback identities
 
 Entity callbacks now have stable names in typed, owner-local tables, including

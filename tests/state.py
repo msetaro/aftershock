@@ -65,8 +65,9 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      'tests/probes/state_random.cpp','engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
 run([probe])
 
-run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
-     '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
-     '-fsanitize=undefined','-fno-sanitize-recover=all',
-     'tests/probes/state_callbacks.cpp','engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
-run([probe])
+for component in ('callbacks','references'):
+    run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+         '-fsanitize=undefined','-fno-sanitize-recover=all',
+         f'tests/probes/state_{component}.cpp','engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
+    run([probe])

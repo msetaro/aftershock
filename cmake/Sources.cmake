@@ -231,6 +231,7 @@ set(VULKAN_SOURCES
 )
 
 set(NATIVE_GAME_SOURCES
+  game/game/g_state.cpp
   game/game/g_callbacks.cpp
   game/game/g_rewind.cpp
   game/game/g_data_weapons.cpp
