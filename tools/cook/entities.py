@@ -18,6 +18,9 @@ def cook(source,name,read):
     if len(definitions)!=len(document['definitions']):
         raise ValueError('entity definition ids must be unique')
     schemas=entities_schema()['properties']['definitions']['items']['properties']['components']['properties']
+    defaults=dict(model=dict(resource=''),animation=dict(first_frame=0,frames=1,frame_ms=100,loop=True),
+                  collision=dict(mins=[-16,-16,-16],maxs=[16,16,16],solid=False),trigger=dict(wait_ms=250,once=False),
+                  damage=dict(amount=0,health=0,splash=0,radius=0),audio=dict(sound='',loop=False))
     resolved={}
     def resolve(identity,parents=()):
         if identity in parents or len(parents)>=16:
@@ -34,9 +37,27 @@ def cook(source,name,read):
         result=dict(native=row.get('native',base['native']),components=components)
         if not result['native']:
             raise ValueError('entity definition requires an inherited or explicit native behavior')
+        for component,values in defaults.items():
+            if component in components:
+                for key,value in values.items():
+                    components[component].setdefault(key,value)
+        if 'model' in components and not components['model']['resource']:
+            raise ValueError('model component requires a resource')
+        if 'animation' in components and 'model' not in components:
+            raise ValueError('animation component requires a model')
+        if 'collision' in components and any(a>=b for a,b in zip(components['collision']['mins'],components['collision']['maxs'])):
+            raise ValueError('collision bounds require positive extent on all axes')
+        if 'trigger' in components and 'collision' not in components:
+            raise ValueError('trigger component requires collision bounds')
+        if 'audio' in components:
+            sound=components['audio']['sound']
+            if not sound.endswith(('.wav','.asevt')) or components['audio']['loop'] and not sound.endswith('.wav'):
+                raise ValueError('audio requires WAV or an authored event; continuous loops require WAV')
         resolved[identity]=result
         return result
     def decimal(value):
+        if isinstance(value,bool):
+            return str(int(value))
         if isinstance(value,str):
             return value
         if isinstance(value,list):

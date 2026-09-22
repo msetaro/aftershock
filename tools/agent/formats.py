@@ -188,7 +188,16 @@ def entities_schema():
         transform=obj(dict(origin=field(vector(integer=False),'origin'), angles=field(vector(-360,360,False),'angles')),[]),
         pickup=obj(dict(amount=field(num(1,10000,True),'count')),[]),
         hooks=obj(dict(target=field(identity,'target'),targetname=field(identity,'targetname')),[]),
-        replication=obj(dict(priority=num(0,3,True),radius=num(0,32768)),[])),[])
+        replication=obj(dict(priority=num(0,3,True),radius=num(0,32768)),[]),
+        model=obj(dict(resource=field(qpath(),'model')),[]),
+        animation=obj(dict(first_frame=field(num(0,4095,True),'anim_first'),frames=field(num(1,4096,True),'anim_frames'),
+                           frame_ms=field(num(10,10000,True),'anim_ms'),loop=field(dict(type='boolean'),'anim_loop')),[]),
+        collision=obj(dict(mins=field(vector(-1024,1024,False),'mins'),maxs=field(vector(-1024,1024,False),'maxs'),
+                           solid=field(dict(type='boolean'),'solid')),[]),
+        trigger=obj(dict(wait_ms=field(num(0,60000,True),'trigger_wait'),once=field(dict(type='boolean'),'trigger_once')),[]),
+        damage=obj(dict(amount=field(num(0,10000,True),'dmg'),health=field(num(0,10000,True),'health'),
+                        splash=field(num(0,10000,True),'splash_damage'),radius=field(num(0,4096),'splash_radius')),[]),
+        audio=obj(dict(sound=field(qpath(),'noise'),loop=field(dict(type='boolean'),'audio_loop')),[])),[])
     definition=obj(dict(id=identity,extends=identity,
                         native=dict(type='string',pattern='^[a-zA-Z][a-zA-Z0-9_]{0,62}$'),
                         components=components),['id','components'])

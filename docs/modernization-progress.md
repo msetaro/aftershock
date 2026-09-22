@@ -69,7 +69,11 @@ fixture, not engine behavior. First link needed entities_public.h included befor
 the game namespace in game/module.cpp. Both-content pickup collection now passes, and unchanged Quake 3 bot goldens
 pass q3dm17 and q3dm7 (entities-runtime-q3.log, entities-classic-runtime.log).
 The next component fixture requires model/animation/collision/trigger/damage/audio
-metadata and fails on the missing schema fields (entities-components-before.log).
+metadata and fails on the missing schema fields (entities-components-before.log,
+7571d023). Its schema/cooker/native metadata now passes GCC and Clang/libc++
+UBSan (entities-components-{first,clang}.log). Runtime behavior for the new
+composed backend remains to be implemented and tested; metadata alone is not
+acceptance. Continuous audio loops are PCM WAV; authored events are one-shot.
 Reuse cooked IQM frame animation through the existing general-entity renderer;
 no new model format is needed. Generic definition preview/edit still remains.
 No partial acceptance of remaining #18 scope is claimed. Schema, format/types/boundaries and affected contract pass.

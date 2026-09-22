@@ -16,24 +16,55 @@ static bool Identifier( const char *value, size_t capacity, bool uppercase = fal
 static bool ValidField( const entityDefinitionField_t &field, uint32_t mask ) {
 	if ( !Identifier( field.component, sizeof( field.component ) ) || !Identifier( field.key, sizeof( field.key ) ) || !memchr( field.value, 0, sizeof( field.value ) ) )
 		return false;
-	const char *cursor = field.value, *end = cursor + strlen( cursor );
-	if ( !strcmp( field.component, "hooks" ) )
-		return ( mask & 4 ) && ( !strcmp( field.key, "target" ) || !strcmp( field.key, "targetname" ) ) && Identifier( field.value, 64 );
-	if ( !strcmp( field.component, "pickup" ) ) {
-		int quantity;
-		const auto result = std::from_chars( cursor, end, quantity );
-		return ( mask & 2 ) && !strcmp( field.key, "count" ) && result.ec == std::errc() && result.ptr == end && quantity >= 1 && quantity <= 10000;
-	}
-	if ( strcmp( field.component, "transform" ) || !( mask & 1 ) || ( strcmp( field.key, "origin" ) && strcmp( field.key, "angles" ) ) )
+	struct rule_t {
+		const char *component, *key;
+		uint32_t mask;
+		int count; // 0 identifier, -1 resource path, 1 integer, 2 scalar float, 3 vector
+		float low, high;
+	};
+	static const rule_t rules[] = {
+		{ "transform", "origin", 1, 3, -32000, 32000 }, { "transform", "angles", 1, 3, -360, 360 },
+		{ "pickup", "count", 2, 1, 1, 10000 },
+		{ "hooks", "target", 4, 0, 0, 0 }, { "hooks", "targetname", 4, 0, 0, 0 },
+		{ "model", "model", 16, -1, 0, 0 },
+		{ "animation", "anim_first", 32, 1, 0, 4095 }, { "animation", "anim_frames", 32, 1, 1, 4096 },
+		{ "animation", "anim_ms", 32, 1, 10, 10000 }, { "animation", "anim_loop", 32, 1, 0, 1 },
+		{ "collision", "mins", 64, 3, -1024, 1024 }, { "collision", "maxs", 64, 3, -1024, 1024 }, { "collision", "solid", 64, 1, 0, 1 },
+		{ "trigger", "trigger_wait", 128, 1, 0, 60000 }, { "trigger", "trigger_once", 128, 1, 0, 1 },
+		{ "damage", "dmg", 256, 1, 0, 10000 }, { "damage", "health", 256, 1, 0, 10000 },
+		{ "damage", "splash_damage", 256, 1, 0, 10000 }, { "damage", "splash_radius", 256, 2, 0, 4096 },
+		{ "audio", "noise", 512, -1, 0, 0 }, { "audio", "audio_loop", 512, 1, 0, 1 }
+	};
+	const rule_t *rule = nullptr;
+	for ( const auto &candidate : rules )
+		if ( !strcmp( field.component, candidate.component ) && !strcmp( field.key, candidate.key ) )
+			rule = &candidate;
+	if ( !rule || !( mask & rule->mask ) )
 		return false;
-	const float bound = !strcmp( field.key, "origin" ) ? 32000.0f : 360.0f;
-	for ( int i = 0; i < 3; ++i ) {
+	const char *cursor = field.value, *end = cursor + strlen( cursor );
+	if ( rule->count == 0 )
+		return Identifier( field.value, 64 );
+	if ( rule->count < 0 ) {
+		if ( end == cursor || end - cursor >= 64 || *cursor == '/' || strstr( cursor, ".." ) )
+			return false;
+		for ( const char *p = cursor; p < end; ++p )
+			if ( !( *p >= 'a' && *p <= 'z' ) && !( *p >= '0' && *p <= '9' ) && !strchr( "_./-", *p ) )
+				return false;
+		return true;
+	}
+	if ( rule->count == 1 ) {
+		int value;
+		const auto result = std::from_chars( cursor, end, value );
+		return result.ec == std::errc() && result.ptr == end && float( value ) >= rule->low && float( value ) <= rule->high;
+	}
+	const int count = rule->count == 3 ? 3 : 1;
+	for ( int i = 0; i < count; ++i ) {
 		float value;
 		const auto result = std::from_chars( cursor, end, value, std::chars_format::fixed );
-		if ( result.ec != std::errc() || !std::isfinite( value ) || value < -bound || value > bound )
+		if ( result.ec != std::errc() || !std::isfinite( value ) || value < rule->low || value > rule->high )
 			return false;
 		cursor = result.ptr;
-		if ( i != 2 ) {
+		if ( i != count - 1 ) {
 			if ( cursor == end || *cursor != ' ' )
 				return false;
 			++cursor;
@@ -71,7 +102,7 @@ bool Entity_ReadDefinitions( const void *data, size_t size, entityDefinitions_t 
 		memcpy( &definition, records + i * sizeof( definition ), sizeof( definition ) );
 		if ( !Identifier( definition.name, sizeof( definition.name ) ) || !Identifier( definition.native, sizeof( definition.native ), true ) ||
 			 definition.firstField != first || definition.fieldCount > 32 || definition.fieldCount > header.fieldCount - first ||
-			 definition.components > 15 || definition.priority > 3 || !std::isfinite( definition.radius ) || definition.radius < 0 || definition.radius > 32768 )
+			 definition.components > 1023 || definition.priority > 3 || !std::isfinite( definition.radius ) || definition.radius < 0 || definition.radius > 32768 )
 			return false;
 		for ( uint32_t j = 0; j < i; ++j ) {
 			entityDefinition_t previous;
