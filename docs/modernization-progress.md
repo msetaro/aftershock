@@ -78,6 +78,17 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 persistent authentication/profile contract, test first
+
+A real PostgreSQL integration test requires upstream-verified account identity,
+bounded opaque sessions, ticket-exchange replay rejection, strict request/loadout
+validation, per-account profile ownership, persistence across pool/service restart,
+logout and expiry. The test fails on missing openBackendDB/backendService before
+implementation (backend-service-before.log). tests/backend_services.py owns a
+private randomly named loopback database container with temporary credentials;
+missing Docker/database is a failure, not skipped acceptance. No live Steam calls
+are made: its HTTPS exchange fixture is explicitly local and SDK acceptance remains #180.
+
 ## #29 controller authenticated allocation
 
 The controller consumes the v1 MatchSpec inside a private allocation envelope,
