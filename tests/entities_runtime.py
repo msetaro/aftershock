@@ -88,6 +88,11 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-runtime-') as tempo
             execute('dev_definition set medical_boost_small count 30')
             engine.request('panel',name='Definitions')
             engine.step(3)
+            result=engine.request('capture',name='definition-inspector')
+            engine.step(2)
+            from PIL import Image
+            Image.open(base/result['path']).save(args.output/'definition-inspector.png')
+            engine.request('cvar.set',name='dev_tools',value='0')
             new=engine.request('entity.spawn',classname='medical_boost_small',x=128,y=-128,z=48)['entity']
             assert engine.request('entity.get',entity=new,key='count')['value']=='30', 'generic definition edits affect new instances'
             execute('dev_definition save')

@@ -26,6 +26,8 @@ static_assert( sizeof( entityDefinitionHeader_t ) == 40 );
 static_assert( sizeof( entityDefinition_t ) == 148 && offsetof( entityDefinition_t, firstField ) == 128 );
 static_assert( sizeof( entityDefinitionField_t ) == 176 && offsetof( entityDefinitionField_t, value ) == 48 );
 static_assert( std::is_trivially_copyable_v<entityDefinitions_t> );
+size_t Entity_WriteDefinitions( const entityDefinitions_t &definitions, void *data, size_t capacity );
+bool Entity_SetField( entityDefinitions_t *definitions, const char *name, const char *key, const char *value );
 bool Entity_ReadDefinitions( const void *data, size_t size, entityDefinitions_t *out );
 const entityDefinition_t *Entity_FindDefinition( const entityDefinitions_t &definitions, const char *name );
 const entityDefinitionField_t *Entity_Field( const entityDefinitions_t &definitions, const entityDefinition_t &definition, const char *key );

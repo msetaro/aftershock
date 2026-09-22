@@ -188,7 +188,7 @@ def entities_schema():
         transform=obj(dict(origin=field(vector(integer=False),'origin'), angles=field(vector(-360,360,False),'angles')),[]),
         pickup=obj(dict(amount=field(num(1,10000,True),'count')),[]),
         hooks=obj(dict(target=field(identity,'target'),targetname=field(identity,'targetname')),[]),
-        replication=obj(dict(priority=num(0,3,True),radius=num(0,32768)),[]),
+        replication=obj(dict(priority=field(num(0,3,True),'rep_priority'),radius=field(num(0,32768),'rep_radius')),[]),
         model=obj(dict(resource=field(qpath(),'model')),[]),
         animation=obj(dict(first_frame=field(num(0,4095,True),'anim_first'),frames=field(num(1,4096,True),'anim_frames'),
                            frame_ms=field(num(10,10000,True),'anim_ms'),loop=field(dict(type='boolean'),'anim_loop')),[]),

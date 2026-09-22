@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../../engine/entities/entities_public.h"
 #include "../../engine/public/g_native_public.h"
 
-static entityDefinitions_t entityDefinitions;
+static entityDefinitions_t entityDefinitions, authoredDefinitions;
 
 static const entityDefinition_t *SpawnDefinition() {
 	for ( int i = 0; i < level.numSpawnVars; ++i )
@@ -302,6 +302,7 @@ static void RegisterLegacyDefinition( const char *name ) {
 }
 static void InitEntityDefinitions() {
 	memset( &entityDefinitions, 0, sizeof( entityDefinitions ) );
+	memset( &authoredDefinitions, 0, sizeof( authoredDefinitions ) );
 	for ( const gitem_t *item = bg_itemlist + 1; item->classname; ++item )
 		RegisterLegacyDefinition( item->classname );
 	for ( const spawn_t *spawn = spawns; spawn->name; ++spawn )
@@ -313,7 +314,7 @@ static void InitEntityDefinitions() {
 	fileHandle_t file;
 	const int length = trap_FS_FOpenFile( path.string, &file, FS_READ );
 	static uint8_t bytes[sizeof( entityDefinitions_t ) + 48];
-	static entityDefinitions_t authored;
+	auto &authored = authoredDefinitions;
 	if ( !file || length <= 0 || length > int( sizeof( bytes ) ) ) {
 		if ( file )
 			trap_FS_FCloseFile( file );
@@ -971,13 +972,27 @@ static const char *Dev_MapText( int index ) {
 	return index >= 0 && index < devDocumentCount ? devDocuments[index] : nullptr;
 }
 
+static const entityDefinitions_t *Dev_Definitions() {
+	return authoredDefinitions.header.count ? &authoredDefinitions : nullptr;
+}
+static bool Dev_WriteDefinition( const char *name, const char *key, const char *value ) {
+	if ( !trap_Cvar_VariableIntegerValue( "sv_cheats" ) || !Entity_SetField( &authoredDefinitions, name, key, value ) )
+		return false;
+	const auto *source = Entity_FindDefinition( authoredDefinitions, name );
+	const auto *target = Entity_FindDefinition( entityDefinitions, name );
+	entityDefinitions.definitions[target - entityDefinitions.definitions] = *source;
+	for ( uint32_t i = source->firstField; i < source->firstField + source->fieldCount; ++i )
+		entityDefinitions.fields[i] = authoredDefinitions.fields[i];
+	return true;
+}
+
 static void G_DevReset( void ) {
 	memset( devSource, 0xff, sizeof( devSource ) );
 	devDocumentCount = 0;
 	devCurrentSource = -1;
 	devComplete = true;
 	static const devGameTools_t tools = { Dev_ReadEntity, Dev_FieldName, Dev_ReadField, Dev_WriteField,
-		Dev_Spawn, Dev_Delete, Dev_MapCount, Dev_MapText, G_DevWeapon, G_DevAnimation };
+		Dev_Spawn, Dev_Delete, Dev_MapCount, Dev_MapText, G_DevWeapon, G_DevAnimation, Dev_Definitions, Dev_WriteDefinition };
 	Dev_RegisterGameTools( &tools );
 }
 #endif

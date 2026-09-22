@@ -18,7 +18,7 @@ def cook(source,name,read):
     if len(definitions)!=len(document['definitions']):
         raise ValueError('entity definition ids must be unique')
     schemas=entities_schema()['properties']['definitions']['items']['properties']['components']['properties']
-    defaults=dict(model=dict(resource=''),animation=dict(first_frame=0,frames=1,frame_ms=100,loop=True),
+    defaults=dict(replication=dict(priority=0,radius=0),model=dict(resource=''),animation=dict(first_frame=0,frames=1,frame_ms=100,loop=True),
                   collision=dict(mins=[-16,-16,-16],maxs=[16,16,16],solid=False),trigger=dict(wait_ms=250,once=False),
                   damage=dict(amount=0,health=0,splash=0,radius=0),audio=dict(sound='',loop=False))
     resolved={}
@@ -83,6 +83,6 @@ def cook(source,name,read):
             raise ValueError('entity definitions exceed 32 fields per prefab or 2048 total')
         replication=row['components'].get('replication',{})
         records.extend(struct.pack('<64s64sIIIIf',text(identity),text(row['native']),first,field_count-first,mask,
-                                   replication.get('priority',0),replication.get('radius',0)))
+                                   replication.get('priority',0),float(decimal(replication.get('radius',0)))))
     payload=struct.pack('<32sII',text(document['name'],32),len(definitions),field_count)+records+properties
     return {name+'.asent':wrapped(b'ASENT\0\0\0',payload)}

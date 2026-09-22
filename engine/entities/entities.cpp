@@ -25,6 +25,7 @@ static bool ValidField( const entityDefinitionField_t &field, uint32_t mask ) {
 	static const rule_t rules[] = {
 		{ "transform", "origin", 1, 3, -32000, 32000 }, { "transform", "angles", 1, 3, -360, 360 },
 		{ "pickup", "count", 2, 1, 1, 10000 },
+		{ "replication", "rep_priority", 8, 1, 0, 3 }, { "replication", "rep_radius", 8, 2, 0, 32768 },
 		{ "hooks", "target", 4, 0, 0, 0 }, { "hooks", "targetname", 4, 0, 0, 0 },
 		{ "model", "model", 16, -1, 0, 0 },
 		{ "animation", "anim_first", 32, 1, 0, 4095 }, { "animation", "anim_frames", 32, 1, 1, 4096 },
@@ -115,6 +116,19 @@ bool Entity_ReadDefinitions( const void *data, size_t size, entityDefinitions_t 
 			memcpy( &field, fields + j * sizeof( field ), sizeof( field ) );
 			if ( !ValidField( field, definition.components ) )
 				return false;
+			if ( !strcmp( field.key, "rep_priority" ) ) {
+				uint32_t priority = 0;
+				std::from_chars( field.value, field.value + strlen( field.value ), priority );
+				if ( priority != definition.priority )
+					return false;
+			}
+			if ( !strcmp( field.key, "rep_radius" ) ) {
+				float radius = 0;
+				std::from_chars( field.value, field.value + strlen( field.value ), radius, std::chars_format::fixed );
+				if ( radius != definition.radius )
+					return false;
+			}
+
 			for ( uint32_t k = first; k < j; ++k ) {
 				entityDefinitionField_t previous;
 				memcpy( &previous, fields + k * sizeof( previous ), sizeof( previous ) );
@@ -142,4 +156,47 @@ const entityDefinitionField_t *Entity_Field( const entityDefinitions_t &definiti
 		if ( !strcmp( definitions.fields[i].key, key ) )
 			return &definitions.fields[i];
 	return nullptr;
+}
+
+bool Entity_SetField( entityDefinitions_t *definitions, const char *name, const char *key, const char *value ) {
+	if ( !definitions || !name || !key || !value || strlen( value ) >= sizeof( entityDefinitionField_t::value ) )
+		return false;
+	const auto *definition = Entity_FindDefinition( *definitions, name );
+	const auto *field = definition ? Entity_Field( *definitions, *definition, key ) : nullptr;
+	if ( !field )
+		return false;
+	auto replacement = *field;
+	memset( replacement.value, 0, sizeof( replacement.value ) );
+	memcpy( replacement.value, value, strlen( value ) );
+	if ( !ValidField( replacement, definition->components ) )
+		return false;
+	auto &edited = definitions->definitions[definition - definitions->definitions];
+	if ( !strcmp( key, "rep_priority" ) )
+		std::from_chars( value, value + strlen( value ), edited.priority );
+	if ( !strcmp( key, "rep_radius" ) )
+		std::from_chars( value, value + strlen( value ), edited.radius, std::chars_format::fixed );
+	definitions->fields[field - definitions->fields] = replacement;
+	return true;
+}
+size_t Entity_WriteDefinitions( const entityDefinitions_t &definitions, void *data, size_t capacity ) {
+	struct envelope_t {
+		char magic[8];
+		uint32_t version, size;
+		uint8_t hash[32];
+	} envelope = { "ASENT", 1, 0, {} };
+	static_assert( sizeof( envelope ) == 48 );
+	const auto &header = definitions.header;
+	if ( !data || !header.count || header.count > 256 || header.fieldCount > 2048 )
+		return 0;
+	const size_t bytes = sizeof( header ) + header.count * sizeof( entityDefinition_t ) + header.fieldCount * sizeof( entityDefinitionField_t );
+	if ( capacity < sizeof( envelope ) + bytes )
+		return 0;
+	auto *payload = (uint8_t *)data + sizeof( envelope );
+	memcpy( payload, &header, sizeof( header ) );
+	memcpy( payload + sizeof( header ), definitions.definitions, header.count * sizeof( entityDefinition_t ) );
+	memcpy( payload + sizeof( header ) + header.count * sizeof( entityDefinition_t ), definitions.fields, header.fieldCount * sizeof( entityDefinitionField_t ) );
+	envelope.size = uint32_t( bytes );
+	calc_sha_256( envelope.hash, payload, bytes );
+	memcpy( data, &envelope, sizeof( envelope ) );
+	return sizeof( envelope ) + bytes;
 }

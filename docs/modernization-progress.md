@@ -25,11 +25,11 @@ active gates passed head 4c8dc002 (build 35673913679, regression 35673913655), w
 exact head/base/main and rollback tag rechecked before merge. Monitor merged-tree
 build 35678588496 and regression 35678588538; not all have completed yet.
 
-#17 is draft PR172 into main, branch issue/17-ui-framework at 522f9904, worktree
+#17 is draft PR172 into main, branch issue/17-ui-framework, worktree
 /home/matt/.cache/aftershock-modernization/ui-tree. It includes d2411083. Current
 head is fcfd6507 after fixing Windows min/max macro expansion; hosted build
-35679134924 has all four MSVC legs green and regression 35679134926 has no active
-failure so far. Old 522f9904 build failed MSVC and its regression was cancelled. Superseded aa5cd964
+35679134924 has all 16 compiler legs green; regression 35679134926 has nine
+active jobs green and runtime still running. Old 522f9904 build failed MSVC and its regression was cancelled. Superseded aa5cd964
 runs 35678751260/35678751264 were cancelled to free runners; not merge evidence.
 Local full UI/runtime/style/type/boundary/lifetime/tidy/cross checks pass; focused
 checks after merging audio also pass. Require every one of 26 current active
@@ -37,15 +37,34 @@ hosted gates green, recheck exact main/base, then ready/merge with a merge commi
 
 #18 is local on issue/18-entity-definitions in
 /home/matt/.cache/aftershock-modernization/entities-tree, no PR yet. Current step:
-merge accepted audio main forward, retaining entities kind 14 alongside sound
-kind 12; UI kind 13 arrives when #17 is accepted. Then finish remaining component
-coverage, generic definition inspection and q3dm17 unchanged gameplay/replay.
+accepted audio main is merged forward. All component runtime coverage and generic
+definition editing/save/reload pass OpenArena. Finish Quake 3 editor acceptance,
+full lifetime/tidy checks and unchanged fixed replay. UI kind 13 arrives when #17
+is accepted; entities kind 14 is retained alongside sound kind 12.
 Merge accepted #17 main before final #18 gates. No accepted golden regeneration.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue #18 through #24 (SDK dependency), #29 and #30 per #25. No maintainer
 input is currently needed. Do not end at a checkpoint or CI wait.
+
+## #18 generic inspector and serialization
+
+9b40aebb records the missing generic native editing/serialization API and real
+save/reload requirements before implementation. Reflected component fields now
+feed the Definitions panel and dev_definition command, using one validated native
+edit path. Replication edits update their typed policy fields. Edits affect new
+spawns, while numbered hashed cooked revisions preserve saved values across map
+reload; JSON remains the inheritance/component source. Apply/save run after ImGui
+returns, local cheats required, no new allocations or OS calls.
+
+OpenArena full pickup/editor/composed sequence passes (entities-editor-runtime.log),
+and the Definitions screenshot was reviewed. GCC and Clang/libc++ UBSan round trips
+pass (entities-editor-{first,clang}.log). Format, type, boundary, suite/affected
+contracts and actionlint pass. CI now includes both compiler probes and real
+runtime acceptance with log/PNG artifacts. Quake 3 editor runtime and full
+lifetime/tidy checks are running; not acceptance yet. docs/design/entities.md
+records the format, component and save/source decisions. No accepted fixture changed.
 
 ## #18 initial prefab and real-pickup acceptance
 
