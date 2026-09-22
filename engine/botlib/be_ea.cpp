@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
+#include <cmath>
 #include "l_memory.h"
 #include "l_script.h"
 #include "l_precomp.h"
@@ -441,3 +442,57 @@ void EA_Shutdown( void ) {
 	FreeMemory( botinputs );
 	botinputs = NULL;
 } //end of the function EA_Shutdown
+
+static constexpr stateField_t inputFields[] = {
+	{ "thinktime", offsetof( bot_input_t, thinktime ), 1, stateType_t::Float32 },
+	{ "dir", offsetof( bot_input_t, dir ), 3, stateType_t::Float32 },
+	{ "speed", offsetof( bot_input_t, speed ), 1, stateType_t::Float32 },
+	{ "viewangles", offsetof( bot_input_t, viewangles ), 3, stateType_t::Float32 },
+	{ "actionflags", offsetof( bot_input_t, actionflags ), 1, stateType_t::Int32 },
+	{ "weapon", offsetof( bot_input_t, weapon ), 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t inputSchema = { "botlib.input", 1, 1, sizeof( bot_input_t ), inputFields, 6 };
+static constexpr stateField_t inputCountFields[] = { { "count", 0, 1, stateType_t::Int32 } };
+static constexpr stateSchema_t inputCountSchema = { "botlib.inputCount", 1, 1, sizeof( int32_t ), inputCountFields, 1 };
+static bool ValidInputState( const bot_input_t &input ) {
+	if ( !std::isfinite( input.thinktime ) || !std::isfinite( input.speed ) || input.speed < -MAX_USERMOVE || input.speed > MAX_USERMOVE )
+		return false;
+	for ( int i = 0; i < 3; ++i )
+		if ( !std::isfinite( input.dir[i] ) || !std::isfinite( input.viewangles[i] ) )
+			return false;
+	return true;
+}
+bool EA_WriteState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	const int32_t count = botinputs ? botlibglobals.maxclients : 0;
+	if ( count < 0 || count > MAX_CLIENTS ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, inputCountSchema, 0, &count ) )
+		return false;
+	for ( int i = 0; i < count; ++i ) {
+		if ( !ValidInputState( botinputs[i] ) ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( !State_Append( writer, inputSchema, uint32_t( i ), &botinputs[i] ) )
+			return false;
+	}
+	return true;
+}
+bool EA_ReadState( const stateReader_t &reader, bool apply ) {
+	int32_t count;
+	uint32_t version;
+	if ( !State_Find( reader, inputCountSchema, 0, &count, &version ) || count < 0 || count > MAX_CLIENTS ||
+		 count != ( botinputs ? botlibglobals.maxclients : 0 ) )
+		return false;
+	bot_input_t saved[MAX_CLIENTS];
+	for ( int i = 0; i < count; ++i )
+		if ( !State_Find( reader, inputSchema, uint32_t( i ), &saved[i], &version ) || !ValidInputState( saved[i] ) )
+			return false;
+	if ( apply && count )
+		memcpy( botinputs, saved, size_t( count ) * sizeof( saved[0] ) );
+	return true;
+}

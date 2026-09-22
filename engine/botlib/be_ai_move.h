@@ -136,3 +136,7 @@ void BotSetBrushModelTypes( void );
 int BotSetupMoveAI( void );
 //shutdown movement AI
 void BotShutdownMoveAI( void );
+
+#include "../public/state_public.h"
+bool Bot_WriteMoveState( stateWriter_t *writer );
+bool Bot_ReadMoveState( const stateReader_t &reader, bool apply );

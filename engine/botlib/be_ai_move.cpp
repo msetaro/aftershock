@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
+#include <cmath>
 #include "l_memory.h"
 #include "l_libvar.h"
 #include "l_utils.h"
@@ -3522,3 +3523,212 @@ void BotShutdownMoveAI( void ) {
 		} //end if
 	} //end for
 } //end of the function BotShutdownMoveAI
+
+static constexpr stateField_t moveStateFields[] = {
+	{ "origin", offsetof( bot_movestate_t, origin ), 3, stateType_t::Float32 },
+	{ "velocity", offsetof( bot_movestate_t, velocity ), 3, stateType_t::Float32 },
+	{ "viewoffset", offsetof( bot_movestate_t, viewoffset ), 3, stateType_t::Float32 },
+	{ "entitynum", offsetof( bot_movestate_t, entitynum ), 1, stateType_t::Int32 },
+	{ "client", offsetof( bot_movestate_t, client ), 1, stateType_t::Int32 },
+	{ "thinktime", offsetof( bot_movestate_t, thinktime ), 1, stateType_t::Float32 },
+	{ "presencetype", offsetof( bot_movestate_t, presencetype ), 1, stateType_t::Int32 },
+	{ "viewangles", offsetof( bot_movestate_t, viewangles ), 3, stateType_t::Float32 },
+	{ "areanum", offsetof( bot_movestate_t, areanum ), 1, stateType_t::Int32 },
+	{ "lastareanum", offsetof( bot_movestate_t, lastareanum ), 1, stateType_t::Int32 },
+	{ "lastgoalareanum", offsetof( bot_movestate_t, lastgoalareanum ), 1, stateType_t::Int32 },
+	{ "lastreachnum", offsetof( bot_movestate_t, lastreachnum ), 1, stateType_t::Int32 },
+	{ "lastorigin", offsetof( bot_movestate_t, lastorigin ), 3, stateType_t::Float32 },
+	{ "reachareanum", offsetof( bot_movestate_t, reachareanum ), 1, stateType_t::Int32 },
+	{ "moveflags", offsetof( bot_movestate_t, moveflags ), 1, stateType_t::Int32 },
+	{ "jumpreach", offsetof( bot_movestate_t, jumpreach ), 1, stateType_t::Int32 },
+	{ "grapplevisible_time", offsetof( bot_movestate_t, grapplevisible_time ), 1, stateType_t::Float32 },
+	{ "lastgrappledist", offsetof( bot_movestate_t, lastgrappledist ), 1, stateType_t::Float32 },
+	{ "reachability_time", offsetof( bot_movestate_t, reachability_time ), 1, stateType_t::Float32 },
+	{ "avoidreach", offsetof( bot_movestate_t, avoidreach ), MAX_AVOIDREACH, stateType_t::Int32 },
+	{ "avoidreachtimes", offsetof( bot_movestate_t, avoidreachtimes ), MAX_AVOIDREACH, stateType_t::Float32 },
+	{ "avoidreachtries", offsetof( bot_movestate_t, avoidreachtries ), MAX_AVOIDREACH, stateType_t::Int32 },
+	{ "numavoidspots", offsetof( bot_movestate_t, numavoidspots ), 1, stateType_t::Int32 },
+	{ "avoidspots[0].origin", offsetof( bot_movestate_t, avoidspots[0].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[0].radius", offsetof( bot_movestate_t, avoidspots[0].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[0].type", offsetof( bot_movestate_t, avoidspots[0].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[1].origin", offsetof( bot_movestate_t, avoidspots[1].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[1].radius", offsetof( bot_movestate_t, avoidspots[1].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[1].type", offsetof( bot_movestate_t, avoidspots[1].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[2].origin", offsetof( bot_movestate_t, avoidspots[2].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[2].radius", offsetof( bot_movestate_t, avoidspots[2].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[2].type", offsetof( bot_movestate_t, avoidspots[2].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[3].origin", offsetof( bot_movestate_t, avoidspots[3].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[3].radius", offsetof( bot_movestate_t, avoidspots[3].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[3].type", offsetof( bot_movestate_t, avoidspots[3].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[4].origin", offsetof( bot_movestate_t, avoidspots[4].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[4].radius", offsetof( bot_movestate_t, avoidspots[4].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[4].type", offsetof( bot_movestate_t, avoidspots[4].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[5].origin", offsetof( bot_movestate_t, avoidspots[5].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[5].radius", offsetof( bot_movestate_t, avoidspots[5].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[5].type", offsetof( bot_movestate_t, avoidspots[5].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[6].origin", offsetof( bot_movestate_t, avoidspots[6].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[6].radius", offsetof( bot_movestate_t, avoidspots[6].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[6].type", offsetof( bot_movestate_t, avoidspots[6].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[7].origin", offsetof( bot_movestate_t, avoidspots[7].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[7].radius", offsetof( bot_movestate_t, avoidspots[7].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[7].type", offsetof( bot_movestate_t, avoidspots[7].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[8].origin", offsetof( bot_movestate_t, avoidspots[8].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[8].radius", offsetof( bot_movestate_t, avoidspots[8].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[8].type", offsetof( bot_movestate_t, avoidspots[8].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[9].origin", offsetof( bot_movestate_t, avoidspots[9].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[9].radius", offsetof( bot_movestate_t, avoidspots[9].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[9].type", offsetof( bot_movestate_t, avoidspots[9].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[10].origin", offsetof( bot_movestate_t, avoidspots[10].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[10].radius", offsetof( bot_movestate_t, avoidspots[10].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[10].type", offsetof( bot_movestate_t, avoidspots[10].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[11].origin", offsetof( bot_movestate_t, avoidspots[11].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[11].radius", offsetof( bot_movestate_t, avoidspots[11].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[11].type", offsetof( bot_movestate_t, avoidspots[11].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[12].origin", offsetof( bot_movestate_t, avoidspots[12].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[12].radius", offsetof( bot_movestate_t, avoidspots[12].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[12].type", offsetof( bot_movestate_t, avoidspots[12].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[13].origin", offsetof( bot_movestate_t, avoidspots[13].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[13].radius", offsetof( bot_movestate_t, avoidspots[13].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[13].type", offsetof( bot_movestate_t, avoidspots[13].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[14].origin", offsetof( bot_movestate_t, avoidspots[14].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[14].radius", offsetof( bot_movestate_t, avoidspots[14].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[14].type", offsetof( bot_movestate_t, avoidspots[14].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[15].origin", offsetof( bot_movestate_t, avoidspots[15].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[15].radius", offsetof( bot_movestate_t, avoidspots[15].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[15].type", offsetof( bot_movestate_t, avoidspots[15].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[16].origin", offsetof( bot_movestate_t, avoidspots[16].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[16].radius", offsetof( bot_movestate_t, avoidspots[16].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[16].type", offsetof( bot_movestate_t, avoidspots[16].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[17].origin", offsetof( bot_movestate_t, avoidspots[17].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[17].radius", offsetof( bot_movestate_t, avoidspots[17].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[17].type", offsetof( bot_movestate_t, avoidspots[17].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[18].origin", offsetof( bot_movestate_t, avoidspots[18].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[18].radius", offsetof( bot_movestate_t, avoidspots[18].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[18].type", offsetof( bot_movestate_t, avoidspots[18].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[19].origin", offsetof( bot_movestate_t, avoidspots[19].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[19].radius", offsetof( bot_movestate_t, avoidspots[19].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[19].type", offsetof( bot_movestate_t, avoidspots[19].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[20].origin", offsetof( bot_movestate_t, avoidspots[20].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[20].radius", offsetof( bot_movestate_t, avoidspots[20].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[20].type", offsetof( bot_movestate_t, avoidspots[20].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[21].origin", offsetof( bot_movestate_t, avoidspots[21].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[21].radius", offsetof( bot_movestate_t, avoidspots[21].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[21].type", offsetof( bot_movestate_t, avoidspots[21].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[22].origin", offsetof( bot_movestate_t, avoidspots[22].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[22].radius", offsetof( bot_movestate_t, avoidspots[22].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[22].type", offsetof( bot_movestate_t, avoidspots[22].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[23].origin", offsetof( bot_movestate_t, avoidspots[23].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[23].radius", offsetof( bot_movestate_t, avoidspots[23].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[23].type", offsetof( bot_movestate_t, avoidspots[23].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[24].origin", offsetof( bot_movestate_t, avoidspots[24].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[24].radius", offsetof( bot_movestate_t, avoidspots[24].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[24].type", offsetof( bot_movestate_t, avoidspots[24].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[25].origin", offsetof( bot_movestate_t, avoidspots[25].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[25].radius", offsetof( bot_movestate_t, avoidspots[25].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[25].type", offsetof( bot_movestate_t, avoidspots[25].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[26].origin", offsetof( bot_movestate_t, avoidspots[26].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[26].radius", offsetof( bot_movestate_t, avoidspots[26].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[26].type", offsetof( bot_movestate_t, avoidspots[26].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[27].origin", offsetof( bot_movestate_t, avoidspots[27].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[27].radius", offsetof( bot_movestate_t, avoidspots[27].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[27].type", offsetof( bot_movestate_t, avoidspots[27].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[28].origin", offsetof( bot_movestate_t, avoidspots[28].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[28].radius", offsetof( bot_movestate_t, avoidspots[28].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[28].type", offsetof( bot_movestate_t, avoidspots[28].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[29].origin", offsetof( bot_movestate_t, avoidspots[29].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[29].radius", offsetof( bot_movestate_t, avoidspots[29].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[29].type", offsetof( bot_movestate_t, avoidspots[29].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[30].origin", offsetof( bot_movestate_t, avoidspots[30].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[30].radius", offsetof( bot_movestate_t, avoidspots[30].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[30].type", offsetof( bot_movestate_t, avoidspots[30].type ), 1, stateType_t::Int32 },
+	{ "avoidspots[31].origin", offsetof( bot_movestate_t, avoidspots[31].origin ), 3, stateType_t::Float32 },
+	{ "avoidspots[31].radius", offsetof( bot_movestate_t, avoidspots[31].radius ), 1, stateType_t::Float32 },
+	{ "avoidspots[31].type", offsetof( bot_movestate_t, avoidspots[31].type ), 1, stateType_t::Int32 },
+};
+static constexpr stateSchema_t moveStateSchema = { "botlib.move", 1, 1, sizeof( bot_movestate_t ), moveStateFields, sizeof( moveStateFields ) / sizeof( moveStateFields[0] ) };
+struct movePoolSave_t {
+	uint32_t present[MAX_CLIENTS + 1];
+	int32_t models[MAX_MODELS];
+};
+static_assert( sizeof( movePoolSave_t ) == ( MAX_CLIENTS + 1 + MAX_MODELS ) * 4 );
+static constexpr stateField_t movePoolFields[] = {
+	{ "present", offsetof( movePoolSave_t, present ), MAX_CLIENTS + 1, stateType_t::UInt32 },
+	{ "models", offsetof( movePoolSave_t, models ), MAX_MODELS, stateType_t::Int32 }
+};
+static constexpr stateSchema_t movePoolSchema = { "botlib.movePool", 1, 1, sizeof( movePoolSave_t ), movePoolFields, 2 };
+static bool ValidMovePool( const movePoolSave_t &saved ) {
+	if ( saved.present[0] )
+		return false;
+	for ( uint32_t present : saved.present )
+		if ( present > 1 )
+			return false;
+	for ( int32_t model : saved.models )
+		if ( model < 0 || model > MODELTYPE_FUNC_STATIC )
+			return false;
+	return true;
+}
+static bool ValidMoveState( const bot_movestate_t &saved ) {
+	if ( saved.client < 0 || saved.client >= MAX_CLIENTS || saved.entitynum < 0 || saved.entitynum >= MAX_GENTITIES ||
+		 saved.numavoidspots < 0 || saved.numavoidspots > MAX_AVOIDSPOTS )
+		return false;
+	for ( const auto &field : moveStateFields ) {
+		if ( field.type != stateType_t::Float32 )
+			continue;
+		for ( uint32_t i = 0; i < field.count; ++i ) {
+			float value;
+			memcpy( &value, (const uint8_t *)&saved + field.offset + i * sizeof( float ), sizeof( value ) );
+			if ( !std::isfinite( value ) )
+				return false;
+		}
+	}
+	for ( int i = 0; i < saved.numavoidspots; ++i )
+		if ( saved.avoidspots[i].radius < 0 || saved.avoidspots[i].type < AVOID_ALWAYS || saved.avoidspots[i].type > AVOID_DONTBLOCK )
+			return false;
+	return true;
+}
+bool Bot_WriteMoveState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	movePoolSave_t saved{};
+	for ( int i = 1; i <= MAX_CLIENTS; ++i )
+		saved.present[i] = botmovestates[i] != nullptr;
+	memcpy( saved.models, modeltypes, sizeof( modeltypes ) );
+	if ( !ValidMovePool( saved ) || botmovestates[0] ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, movePoolSchema, 0, &saved ) )
+		return false;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+		if ( saved.present[i] ) {
+			if ( !ValidMoveState( *botmovestates[i] ) ) {
+				writer->failed = true;
+				return false;
+			}
+			if ( !State_Append( writer, moveStateSchema, i, botmovestates[i] ) )
+				return false;
+		}
+	return true;
+}
+bool Bot_ReadMoveState( const stateReader_t &reader, bool apply ) {
+	movePoolSave_t pool;
+	uint32_t version;
+	if ( !State_Find( reader, movePoolSchema, 0, &pool, &version ) || !ValidMovePool( pool ) || botmovestates[0] )
+		return false;
+	// Checkpoint coordination recreates the saved handle slots before applying.
+	// Fixed command-only scratch avoids a large stack frame and per-frame allocation.
+	static bot_movestate_t saved[MAX_CLIENTS + 1];
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i ) {
+		if ( pool.present[i] != uint32_t( botmovestates[i] != nullptr ) )
+			return false;
+		if ( pool.present[i] && ( !State_Find( reader, moveStateSchema, i, &saved[i], &version ) || !ValidMoveState( saved[i] ) ) )
+			return false;
+	}
+	if ( apply ) {
+		memcpy( modeltypes, pool.models, sizeof( modeltypes ) );
+		for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+			if ( pool.present[i] )
+				*botmovestates[i] = saved[i];
+	}
+	return true;
+}

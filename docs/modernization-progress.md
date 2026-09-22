@@ -39,7 +39,8 @@ with typed callbacks, checked references and nullable strings. Composed, authore
 animation/weapon, rewind, utility/spawn-generation, combat, team and podium owners
 also have validated local checkpoint records. Definition/editor state restores
 against matching map registry topology. Remaining work: other game globals and
-botlib owners (game map-navigation, actor, activation, waypoint, scheduler,
+botlib goal/item, weights, character/chat and AAS/libvar owners (input/movement
+and game map-navigation, actor, activation, waypoint, scheduler,
 queue and team draft records are complete), gameplay validation, live
 restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
 
@@ -56,6 +57,18 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 botlib input and movement ownership
+
+Botlib inputs preserve jump-edge flags and previous input; movement records retain
+all movement/avoidance fields, saved handle occupancy and model classification.
+Readers require coordinator-recreated handle slots, validate every record first,
+and rebind data to newly allocated storage. GCC and Clang/libc++ UBSan prove
+identical next jump/avoidance updates and reject incomplete pools before mutation
+(state-botlib-move-{gcc,clang}.log). Clang exposed missing explicit <cmath> includes
+in the new validation code; those are fixed. Client/server build, focused tidy
+and member/avoidance-slot source coverage pass. Full library reconstruction and
+checkpoint integration are still pending. No original movement expressions changed.
 
 ## #19 bot map-navigation ownership
 

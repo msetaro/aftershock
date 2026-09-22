@@ -157,6 +157,21 @@ ai_nodes=set(re.findall(r'bs->ainode = (AINode_\w+);',(ROOT/'game/game/ai_dmnet.
 registered_nodes=set(re.findall(r'\{ "(AINode_\w+)", AINode_\w+ \}',bot_main))
 assert ai_nodes==registered_nodes, 'AI node callback needs a stable saved identity'
 print(f'PASS: all bot actor/activation members and {len(ai_nodes)} typed AI nodes have state ownership')
+input_source=(ROOT/'engine/botlib/be_ea.cpp').read_text()
+input_body=(ROOT/'engine/botlib/botlib_public.h').read_text().split('typedef struct bot_input_s {',1)[1].split('} bot_input_t;',1)[0]
+assert set(re.findall(r'offsetof\( bot_input_t, (\w+) \)',input_source))==declared_members(input_body)
+move_source=(ROOT/'engine/botlib/be_ai_move.cpp').read_text()
+move_body=move_source.split('typedef struct bot_movestate_s {',1)[1].split('} bot_movestate_t;',1)[0]
+move_fields=set(re.findall(r'offsetof\( bot_movestate_t, ([\w.\[\]]+) \)',move_source))
+assert {name.split('[')[0] for name in move_fields}==declared_members(move_body)
+move_header=(ROOT/'engine/botlib/be_ai_move.h').read_text()
+spots=int(re.search(r'#define MAX_AVOIDSPOTS\s+(\d+)',move_header)[1])
+spot_body=move_header.split('typedef struct bot_avoidspot_s {',1)[1].split('} bot_avoidspot_t;',1)[0]
+for i in range(spots):
+    assert {name.split('.')[1] for name in move_fields if name.startswith(f'avoidspots[{i}].')}==declared_members(spot_body)
+assert len([name for name in move_fields if name.startswith('avoidspots[')])==spots*3
+print('PASS: botlib input and movement metadata account for every member and avoidance slot')
+
 
 
 
@@ -266,3 +281,11 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      'tests/probes/state_bot_actor.cpp','engine/qcommon/state.cpp',sha,
      '-Wl,--gc-sections','-o',probe])
 run([probe])
+
+for component in ('input','move'):
+    run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+         '-fsanitize=undefined','-fno-sanitize-recover=all',
+         f'tests/probes/state_bot_{component}.cpp','engine/qcommon/state.cpp',sha,
+         '-Wl,--gc-sections','-o',probe])
+    run([probe])

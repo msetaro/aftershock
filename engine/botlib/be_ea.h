@@ -64,3 +64,7 @@ void EA_ResetInput( int client );
 //setup and shutdown routines
 int EA_Setup( void );
 void EA_Shutdown( void );
+
+#include "../public/state_public.h"
+bool EA_WriteState( stateWriter_t *writer );
+bool EA_ReadState( const stateReader_t &reader, bool apply );
