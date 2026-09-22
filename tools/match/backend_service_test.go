@@ -5,15 +5,15 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"crypto/x509"
-"crypto/tls"
-"google.golang.org/grpc"
-"google.golang.org/grpc/credentials"
 	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"github.com/msetaro/aftershock/tools/match/contracts"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"io"
 	"net"
 	"net/http"
@@ -513,51 +513,87 @@ func TestBackendQueueRecovery(t *testing.T) {
 }
 
 func TestBackendResults(t *testing.T) {
-	db,err:=openBackendDB(context.Background(),os.Getenv("BACKEND_TEST_DATABASE"))
-	if err!=nil {t.Fatal(err)}
+	db, err := openBackendDB(context.Background(), os.Getenv("BACKEND_TEST_DATABASE"))
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer db.Close()
-	token:=strings.Repeat("9",64)
-	if _,err=db.Exec("INSERT INTO backend_profiles(player_id) VALUES('901') ON CONFLICT DO NOTHING");err!=nil{t.Fatal(err)}
-	if _,err=db.Exec("INSERT INTO backend_sessions(token_hash,exchange_hash,player_id,expires_at) VALUES($1,$2,'901',CURRENT_TIMESTAMP+INTERVAL '1 hour')",digest([]byte(token)),digest([]byte("result-exchange")));err!=nil{t.Fatal(err)}
-	store,err:=newIngest(filepath.Join(t.TempDir(),"events.jsonl"),map[string]string{"result-901":"allocation-secret"})
-	if err!=nil{t.Fatal(err)}
+	token := strings.Repeat("9", 64)
+	if _, err = db.Exec("INSERT INTO backend_profiles(player_id) VALUES('901') ON CONFLICT DO NOTHING"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec("INSERT INTO backend_sessions(token_hash,exchange_hash,player_id,expires_at) VALUES($1,$2,'901',CURRENT_TIMESTAMP+INTERVAL '1 hour')", digest([]byte(token)), digest([]byte("result-exchange"))); err != nil {
+		t.Fatal(err)
+	}
+	store, err := newIngest(filepath.Join(t.TempDir(), "events.jsonl"), map[string]string{"result-901": "allocation-secret"})
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer store.file.Close()
-	store.reader=strings.Repeat("r",64)
-	b:=&backendService{db:db}
-	api:=httptest.NewTLSServer(b)
+	store.reader = strings.Repeat("r", 64)
+	b := &backendService{db: db}
+	api := httptest.NewTLSServer(b)
 	defer api.Close()
-	listener,err:=net.Listen("tcp","127.0.0.1:0");if err!=nil{t.Fatal(err)}
-	server:=grpc.NewServer(grpc.Creds(credentials.NewTLS(api.TLS)))
-	registerIngest(server,store)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	server := grpc.NewServer(grpc.Creds(credentials.NewTLS(api.TLS)))
+	registerIngest(server, store)
 	go server.Serve(listener)
 	defer server.Stop()
-	roots:=x509.NewCertPool();roots.AddCert(api.Certificate())
-	b.results,err=grpc.NewClient(listener.Addr().String(),grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{RootCAs:roots,MinVersion:tls.VersionTLS12})))
-	if err!=nil{t.Fatal(err)}
+	roots := x509.NewCertPool()
+	roots.AddCert(api.Certificate())
+	b.results, err = grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{RootCAs: roots, MinVersion: tls.VersionTLS12})))
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer b.results.Close()
-	b.reader=store.reader
-	call:=func(path string,want int) resultsResponse {
+	b.reader = store.reader
+	call := func(path string, want int) resultsResponse {
 		t.Helper()
-		r,_:=http.NewRequest("GET",api.URL+path,nil);r.Header.Set("Authorization","Bearer "+token)
-		response,err:=api.Client().Do(r);if err!=nil{t.Fatal(err)}
+		r, _ := http.NewRequest("GET", api.URL+path, nil)
+		r.Header.Set("Authorization", "Bearer "+token)
+		response, err := api.Client().Do(r)
+		if err != nil {
+			t.Fatal(err)
+		}
 		defer response.Body.Close()
-		data,_:=io.ReadAll(response.Body)
-		if response.StatusCode!=want{t.Fatalf("%s: %d %s",path,response.StatusCode,data)}
+		data, _ := io.ReadAll(response.Body)
+		if response.StatusCode != want {
+			t.Fatalf("%s: %d %s", path, response.StatusCode, data)
+		}
 		var result resultsResponse
-		if want==200 && json.Unmarshal(data,&result)!=nil{t.Fatal(string(data))}
+		if want == 200 && json.Unmarshal(data, &result) != nil {
+			t.Fatal(string(data))
+		}
 		return result
 	}
-	call("/v1/results?player_id=902",400)
-	if r:=call("/v1/results",200);len(r.Results)!=0{t.Fatal(r)}
-	if _,err=db.Exec(`INSERT INTO backend_matches(id,leader,spec,join_key,ingest_token,state) VALUES('result-901','901','{}',$1,$1,'allocated')`,strings.Repeat("a",64));err!=nil{t.Fatal(err)}
-	if _,err=db.Exec(`INSERT INTO backend_match_members(match_id,player_id) VALUES('result-901','901')`);err!=nil{t.Fatal(err)}
-	c:=checkpoint{Completed:true,Accounts:map[string]accountStats{"901":{Kills:2,Score:3},"902":{Deaths:2}}}
-	if err=store.accept(batch{Version:1,Match:"result-901",Final:true,Checkpoint:c},"allocation-secret");err!=nil{t.Fatal(err)}
-	result:=call("/v1/results",200)
-	if len(result.Results)!=1 || result.Results[0].Stats.Score!=3 || len(result.Leaderboard)!=2{t.Fatal(result)}
+	call("/v1/results?player_id=902", 400)
+	if r := call("/v1/results", 200); len(r.Results) != 0 {
+		t.Fatal(r)
+	}
+	if _, err = db.Exec(`INSERT INTO backend_matches(id,leader,spec,join_key,ingest_token,state) VALUES('result-901','901','{}',$1,$1,'allocated')`, strings.Repeat("a", 64)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(`INSERT INTO backend_match_members(match_id,player_id) VALUES('result-901','901')`); err != nil {
+		t.Fatal(err)
+	}
+	c := checkpoint{Completed: true, Accounts: map[string]accountStats{"901": {Kills: 2, Score: 3}, "902": {Deaths: 2}}}
+	if err = store.accept(batch{Version: 1, Match: "result-901", Final: true, Checkpoint: c}, "allocation-secret"); err != nil {
+		t.Fatal(err)
+	}
+	result := call("/v1/results", 200)
+	if len(result.Results) != 1 || result.Results[0].Stats.Score != 3 || len(result.Leaderboard) != 2 {
+		t.Fatal(result)
+	}
 	var active bool
-	if err=db.QueryRow("SELECT active FROM backend_match_members WHERE match_id='result-901'").Scan(&active);err!=nil || active{t.Fatal("completed assignment not released",err)}
-	if r:=call("/v1/leaderboard",200);len(r.Leaderboard)!=2 || len(r.Results)!=0{t.Fatal(r)}
-	b.reader="wrong"
-	call("/v1/results",503)
+	if err = db.QueryRow("SELECT active FROM backend_match_members WHERE match_id='result-901'").Scan(&active); err != nil || active {
+		t.Fatal("completed assignment not released", err)
+	}
+	if r := call("/v1/leaderboard", 200); len(r.Leaderboard) != 2 || len(r.Results) != 0 {
+		t.Fatal(r)
+	}
+	b.reader = "wrong"
+	call("/v1/results", 503)
 }

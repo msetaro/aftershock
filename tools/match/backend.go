@@ -26,6 +26,9 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/msetaro/aftershock/tools/match/contracts"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func openBackendDB(ctx context.Context, dsn string) (*sql.DB, error) {
@@ -92,6 +95,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS backend_match_members_active ON backend_match_
 }
 
 type backendService struct {
+	results                                       *grpc.ClientConn
+	reader                                        string
 	kubeURL, kubeToken, namespace, fleet, mapName string
 	matchMinutes                                  int
 	db                                            *sql.DB
@@ -269,6 +274,8 @@ func (b *backendService) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch {
+	case r.URL.Path == "/v1/results" || r.URL.Path == "/v1/leaderboard":
+		b.readResults(w, r, player)
 	case r.URL.Path == "/v1/queue":
 		b.queue(w, r, player)
 	case r.URL.Path == "/v1/party":
@@ -450,6 +457,27 @@ func serveBackend(ctx context.Context) error {
 	service := &backendService{kubeURL: kubeURL, kubeToken: kubeToken, namespace: namespace, fleet: fleet, mapName: mapName, matchMinutes: minutes,
 		db: db, steamURL: endpoint, steamKey: strings.TrimSpace(string(key)), appID: appID, catalog: catalog,
 		client: &http.Client{Transport: transport, Timeout: 5 * time.Second}, logger: slog.New(slog.NewJSONHandler(os.Stdout, nil))}
+	if address := os.Getenv("BACKEND_RESULTS"); address != "" {
+		file, err := os.Open(os.Getenv("BACKEND_READER_KEY_FILE"))
+		if err != nil {
+			return errors.New("BACKEND_READER_KEY_FILE required")
+		}
+		data, err := io.ReadAll(io.LimitReader(file, 129))
+		file.Close()
+		service.reader = strings.TrimSpace(string(data))
+		if err != nil || len(data) > 128 || len(service.reader) < 32 {
+			return errors.New("invalid results reader credential")
+		}
+		var trust credentials.TransportCredentials = credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12, RootCAs: roots})
+		if os.Getenv("BACKEND_RESULTS_DEV_INSECURE") == "1" {
+			trust = insecure.NewCredentials()
+		}
+		service.results, err = grpc.NewClient(address, grpc.WithTransportCredentials(trust))
+		if err != nil {
+			return errors.New("results connection unavailable")
+		}
+		defer service.results.Close()
+	}
 	server := &http.Server{Addr: env("BACKEND_LISTEN", ":8443"), Handler: service, ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout: 10 * time.Second, WriteTimeout: 10 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 8192, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
 	stopped, shutdown := make(chan struct{}), make(chan struct{})

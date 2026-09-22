@@ -16,6 +16,9 @@ import (
 	"time"
 
 	"github.com/msetaro/aftershock/tools/match/contracts"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func (b *backendService) queue(w http.ResponseWriter, r *http.Request, player string) {
@@ -281,4 +284,64 @@ func (b *backendService) allocate(ctx context.Context, id string) (backendAssign
 		err = tx.Commit()
 	}
 	return result, err
+}
+
+func (b *backendService) readResults(w http.ResponseWriter, r *http.Request, player string) {
+	if r.Method != "GET" {
+		backendError(w, 405, "unsupported_method")
+		return
+	}
+	query, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil || len(query) > 1 || (len(query) == 1 && len(query["before"]) != 1) || (query.Get("before") != "" && !identifier.MatchString(query.Get("before"))) {
+		backendError(w, 400, "invalid_query")
+		return
+	}
+	if b.results == nil || b.reader == "" {
+		backendError(w, 503, "results_unavailable")
+		return
+	}
+	input, _ := structpb.NewStruct(map[string]any{"version": 1, "player_id": player, "before": query.Get("before")})
+	var response structpb.Struct
+	ctx := metadata.AppendToOutgoingContext(r.Context(), "authorization", "Bearer "+b.reader)
+	if err = b.results.Invoke(ctx, "/aftershock.match.v1.Ingest/Read", input, &response, grpc.MaxCallRecvMsgSize(65536)); err != nil {
+		backendError(w, 503, "results_unavailable")
+		return
+	}
+	data, err := response.MarshalJSON()
+	var result resultsResponse
+	if err != nil || strictJSON(data, &result) != nil || result.Version != 1 || len(result.Results) > 20 || len(result.Leaderboard) > 100 {
+		backendError(w, 503, "invalid_results")
+		return
+	}
+	// Only queue ownership changes here. Match data belongs to the ingest service.
+	if len(result.Results) > 0 {
+		tx, err := b.db.BeginTx(r.Context(), nil)
+		if err != nil {
+			backendError(w, 503, "unavailable")
+			return
+		}
+		defer tx.Rollback()
+		_, err = tx.ExecContext(r.Context(), "SELECT pg_advisory_xact_lock(29002)")
+		for _, match := range result.Results {
+			if err != nil {
+				break
+			}
+			_, err = tx.ExecContext(r.Context(), `WITH finished AS (
+UPDATE backend_matches SET state='complete' WHERE id=$1 AND state='allocated'
+AND EXISTS(SELECT 1 FROM backend_match_members WHERE match_id=$1 AND player_id=$2) RETURNING id)
+UPDATE backend_match_members SET active=false WHERE match_id IN (SELECT id FROM finished)`, match.Match, player)
+		}
+		if err == nil {
+			err = tx.Commit()
+		}
+		if err != nil {
+			backendError(w, 503, "unavailable")
+			return
+		}
+	}
+	if r.URL.Path == "/v1/leaderboard" {
+		result.Results = []matchResult{}
+		result.Next = ""
+	}
+	backendJSON(w, 200, result)
 }

@@ -79,6 +79,17 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 player-facing results consumer
+
+The HTTPS tier reads the acknowledged result API over verified TLS gRPC using a
+separate bounded reader credential. Its authenticated session supplies the account;
+client-selected account query parameters are rejected. Only queue ownership state
+changes when completed results release assignments; the tier never writes match data.
+Real PostgreSQL + HTTPS + TLS gRPC checks pass, including unauthorized ownership,
+reader failure and assignment release (backend-results-https/contracts.log). Full
+Go race/vet checks also pass. Development plaintext is explicit and limited to the
+existing #28 stub configuration; production defaults require TLS.
+
 ## #29 HTTPS results consumer contract, test first
 
 The real-database integration gate now requires the player-facing service to read
