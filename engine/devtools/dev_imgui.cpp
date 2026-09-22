@@ -1726,9 +1726,11 @@ static void InspectProfile( const refexport_t *renderer, uint32_t milliseconds )
 	while ( const auto *frame = DevTools_CpuFrame( frames ) ) {
 		history[frames++] = float( frame->microseconds ) / 1000.0f;
 	}
-	ImGui::PlotLines( "CPU frame ms (newest first)", history, (int)frames, 0, nullptr, 0, FLT_MAX, ImVec2( 0, 80 ) );
+	ImGui::TextUnformatted( "CPU frame ms (newest first)" );
+	ImGui::PlotLines( "##cpu-history", history, (int)frames, 0, nullptr, 0, FLT_MAX, ImVec2( ImGui::GetContentRegionAvail().x, 80 ) );
 	if ( frames && ImGui::IsItemHovered() && ImGui::IsMouseClicked( ImGuiMouseButton_Left ) ) {
-		const float fraction = ( ImGui::GetMousePos().x - ImGui::GetItemRectMin().x ) / ( ImGui::GetItemRectMax().x - ImGui::GetItemRectMin().x );
+		const float padding = ImGui::GetStyle().FramePadding.x;
+		const float fraction = ( ImGui::GetMousePos().x - ImGui::GetItemRectMin().x - padding ) / MAX( 1.0f, ImGui::GetItemRectMax().x - ImGui::GetItemRectMin().x - 2.0f * padding );
 		const uint32_t age = MIN( frames - 1, (uint32_t)( MAX( 0.0f, fraction ) * float( frames ) ) );
 		DevTools_SelectCpuFrame( DevTools_CpuFrame( age ) );
 	}

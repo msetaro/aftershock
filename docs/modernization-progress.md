@@ -56,6 +56,19 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #22 local gate evidence
+
+Full tidy passes 1426 production configurations (profiling-tidy.log). GCC/Clang
+units and Clang sanitizer known-bug classification pass the unchanged unit hash
+8d44421dfd5f31912bb7ffc942c6f0e1f32cd9a445e1dbcf38b658f555598ede. The one-ULP
+negative control passes; no finished network command is rerun. Isolation, suite
+contract, workflow lint and agent transport checks pass. The extended developer
+runtime also passes local Quake 3 (profiling-runtime-q3.log). Lifetime analysis,
+developer renderer modules and both fixed demo replays are in progress. Final
+UI review gives the plot its full labeled row and accounts for frame padding,
+so click-to-retain indexes the plotted area instead of including the label width.
+Recheck that small UI change before final gates.
+
 ## #22 renderer and shutdown accounting contract, test first
 
 Reuse the existing RHI draw counter and frontend triangle/surface counters; retain
