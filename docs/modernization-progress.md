@@ -36,7 +36,7 @@ checks after merging audio also pass. Require every one of 26 current active
 hosted gates green, recheck exact main/base, then ready/merge with a merge commit.
 
 #18 is draft PR173 on issue/18-entity-definitions in
-/home/matt/.cache/aftershock-modernization/entities-tree, pushed code head cb84dadb. Current step:
+/home/matt/.cache/aftershock-modernization/entities-tree, pushed code head 5e666dff. Current step:
 accepted audio main is merged forward. Both-content component/editor acceptance,
 full lifetime/tidy and unchanged fixed replay pass at 731bd28d. Self-review added
 a failing prefab flag test; cb84dadb preserves native callback identity and passes
@@ -44,7 +44,8 @@ flags on both content sets. Initial build 35681818460 fails hosted libc++ floati
 regression 35681818499 is superseded and cancelled. Replace that conversion with
 strtof plus fixed-decimal syntax/range validation, preserving the spawn format.
 GCC and Clang/libc++ UBSan pass again (entities-libcxx-{gcc,clang}.log). Fresh
-compiler/integration feedback is required; no final acceptance before #17. UI kind 13 arrives
+build 35682073149 passes all 16 legs; regression 35682073081 is running. No final
+acceptance before #17. UI kind 13 arrives
 when #17 is accepted; entities kind 14 remains alongside sound kind 12.
 Merge accepted #17 main before final #18 gates. No accepted golden regeneration.
 
@@ -85,12 +86,13 @@ linked with zero collision contents. Corrected the assertion and rebuilt the old
 private definitionName for authored inspection, cleared when a slot is reused.
 Quake 3 also passes all three scenarios (entities-alias-q3.log). Fixed replay and
 both classic bot hashes pass again after the correction (entities-alias-demo.log,
-entities-alias-bots.log). Full tidy/lifetime reruns are active; final gates must
+entities-alias-bots.log). Full tidy (1,358 configurations) and lifetime (1,300 commands) reruns pass; final gates must
 include accepted #17 main. PR173 is draft, initial hosted head cb84dadb.
 
 #19 test-only preparation is 10c1bee0 in the separate state-tree worktree, branched
 from main. Its named-field added/removed/reordered migration test fails on the
-missing serializer. No checkpoint implementation or #19 acceptance is claimed.
+missing serializer. The pure serializer now passes GCC and Clang/libc++ UBSan at 96db1f93. No game
+checkpoint integration or #19 acceptance is claimed.
 
 ## #18 generic inspector and serialization
 
