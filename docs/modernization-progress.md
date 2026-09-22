@@ -25,7 +25,12 @@ issue/18-entity-definitions at /home/matt/.cache/aftershock-modernization/entiti
 branched from main 0561e0f0 while #16/#17 checks run. tests/entities.py fails on the
 missing entities asset kind (entities-before.log). The owned pickup fixture tests
 prefab overrides, reflected component keys and replication priority/radius from
-the same definition. No #18 runtime implementation or PR exists yet. Use JSON
+the same definition. The initial JSON schema/cooker now passes that fixture (entities-first.log),
+resolving parent fields without mutating parent records, bounding inheritance to
+16 levels and emitting hashed component metadata and replication fields.
+Current component schema covers only transform/pickup/hooks/replication; add
+model/animation/collision/trigger/damage/audio after tracing their existing
+services. No #18 runtime implementation or PR exists yet. Use JSON
 and the existing cooker/schema, entity storage/spawn callbacks and generic
 inspector; no ECS or scripting language. Finish #16 merge and #17 final gates
 before #18 acceptance. Private entities-preflight.md records the traced entry
