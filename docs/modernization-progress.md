@@ -53,6 +53,22 @@ Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
 
+## #19 bounded text implementation and local rebuild
+
+The committed missing-String test 62c880e7 now passes GCC and Clang/libc++ UBSan
+(state-string-{gcc,clang}.log). Named string fields retain a declared capacity but
+store only terminated used bytes. Loading into a larger capacity is supported;
+unterminated text and insufficient destination capacity reject before mutation.
+Existing numeric/Bytes encoding remains unchanged. Focused tidy, formatting,
+MinGW/AArch64 compilation, client/dedicated build and the real old-profile migration
+pass (state-string-{tidy,format,build,profile}.log).
+
+A private read-only rand/srand call-origin trace on the real local bot scenario
+reports only the engine executable as a caller (checkpoint-rng-audit/checkpoint.log).
+This is local evidence for investigating libc RNG capture, not a cross-platform
+restoration guarantee. The native generator and libc generator remain distinct;
+full checkpoint commands are still unimplemented.
+
 ## #19 bounded text state test before implementation
 
 Entity state contains many separately referenced strings. The state probe now

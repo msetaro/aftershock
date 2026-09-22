@@ -66,6 +66,10 @@ int main() {
 	const size_t size = State_Write( previousSchema, &previous, bytes, sizeof( bytes ) );
 	assert( size > 0 );
 	assert( size < 48 + 40 + 5 * 72 + 4 + 8 + 4 + 12 + 32 ); // Store used text, not unused string capacity.
+	previous_t unterminated = previous;
+	memset( unterminated.name, 'x', sizeof( unterminated.name ) );
+	unsigned char rejected[4096];
+	assert( !State_Write( previousSchema, &unterminated, rejected, sizeof( rejected ) ) );
 	previous_t same = {};
 	uint32_t version = 0;
 	assert( State_Read( previousSchema, bytes, size, &same, &version ) && version == 1 );
@@ -80,6 +84,14 @@ int main() {
 	assert( !memcmp( current.position, previous.position, sizeof( current.position ) ) && !strcmp( current.name, previous.name ) );
 	const size_t currentSize = State_Write( currentSchema, &current, bytes, sizeof( bytes ) );
 	assert( currentSize > 0 );
+	stateField_t smallFields[5];
+	memcpy( smallFields, currentFields, sizeof( smallFields ) );
+	smallFields[0].count = 4;
+	stateSchema_t smallSchema = currentSchema;
+	smallSchema.fields = smallFields;
+	current_t untouched = {};
+	untouched.health = 101;
+	assert( !State_Read( smallSchema, bytes, currentSize, &untouched, &version ) && untouched.health == 101 );
 	current_t restored = {};
 	assert( State_Read( currentSchema, bytes, currentSize, &restored, &version ) && version == 2 );
 	assert( restored.health == 73 && restored.armor == 25 && restored.identity == previous.identity );

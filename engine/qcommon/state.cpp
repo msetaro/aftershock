@@ -39,6 +39,7 @@ static uint32_t Width( stateType_t type ) {
 	case stateType_t::UInt64:
 		return 8;
 	case stateType_t::Bytes:
+	case stateType_t::String:
 		return 1;
 	case stateType_t::Int32:
 	case stateType_t::UInt32:
@@ -66,12 +67,23 @@ static bool Schema( const stateSchema_t &schema ) {
 	}
 	return true;
 }
+static uint32_t FieldSize( const stateField_t &field, const void *object ) {
+	if ( field.type != stateType_t::String )
+		return field.count * Width( field.type );
+	const auto *text = (const char *)object + field.offset;
+	const auto *end = (const char *)memchr( text, 0, field.count );
+	return end ? uint32_t( end - text ) + 1 : 0;
+}
 size_t State_Write( const stateSchema_t &schema, const void *object, void *data, size_t capacity ) {
 	if ( !object || !data || !Schema( schema ) )
 		return 0;
 	size_t payloadSize = sizeof( stateHeader_t );
-	for ( uint32_t i = 0; i < schema.fieldCount; ++i )
-		payloadSize += sizeof( stateRecord_t ) + schema.fields[i].count * Width( schema.fields[i].type );
+	for ( uint32_t i = 0; i < schema.fieldCount; ++i ) {
+		const uint32_t size = FieldSize( schema.fields[i], object );
+		if ( !size )
+			return 0;
+		payloadSize += sizeof( stateRecord_t ) + size;
+	}
 	if ( payloadSize > UINT32_MAX || capacity < sizeof( stateEnvelope_t ) + payloadSize )
 		return 0;
 	stateEnvelope_t envelope = { "ASSTATE", 1, uint32_t( payloadSize ), {} };
@@ -82,7 +94,7 @@ size_t State_Write( const stateSchema_t &schema, const void *object, void *data,
 	auto *cursor = payload + sizeof( header );
 	for ( uint32_t i = 0; i < schema.fieldCount; ++i ) {
 		const auto &field = schema.fields[i];
-		stateRecord_t record = { {}, field.type, field.count * Width( field.type ) };
+		stateRecord_t record = { {}, field.type, FieldSize( field, object ) };
 		memcpy( record.name, field.name, strlen( field.name ) );
 		memcpy( cursor, &record, sizeof( record ) );
 		cursor += sizeof( record );
@@ -111,6 +123,7 @@ bool State_Read( const stateSchema_t &schema, const void *data, size_t size, voi
 		 header.version < schema.minimumVersion || header.version > schema.version || !header.fieldCount || header.fieldCount > 256 )
 		return false;
 	const uint8_t *values[256] = {};
+	uint32_t lengths[256] = {};
 	const char *names[256] = {};
 	const auto *cursor = payload + sizeof( header ), *end = payload + envelope.size;
 	for ( uint32_t i = 0; i < header.fieldCount; ++i ) {
@@ -124,6 +137,8 @@ bool State_Read( const stateSchema_t &schema, const void *data, size_t size, voi
 		cursor += sizeof( record );
 		if ( record.size > size_t( end - cursor ) )
 			return false;
+		if ( record.type == stateType_t::String && ( cursor[record.size - 1] || memchr( cursor, 0, record.size - 1 ) ) )
+			return false;
 		for ( uint32_t j = 0; j < i; ++j )
 			if ( !strcmp( names[j], record.name ) )
 				return false;
@@ -131,9 +146,11 @@ bool State_Read( const stateSchema_t &schema, const void *data, size_t size, voi
 			const auto &field = schema.fields[j];
 			if ( strcmp( field.name, record.name ) )
 				continue;
-			if ( field.sinceVersion > header.version || field.type != record.type || field.count * Width( field.type ) != record.size )
+			if ( field.sinceVersion > header.version || field.type != record.type ||
+				 ( field.type == stateType_t::String ? record.size > field.count : field.count * Width( field.type ) != record.size ) )
 				return false;
 			values[j] = cursor;
+			lengths[j] = record.size;
 		}
 		cursor += record.size;
 	}
@@ -142,9 +159,15 @@ bool State_Read( const stateSchema_t &schema, const void *data, size_t size, voi
 	for ( uint32_t i = 0; i < schema.fieldCount; ++i )
 		if ( schema.fields[i].sinceVersion <= header.version && !values[i] )
 			return false;
-	for ( uint32_t i = 0; i < schema.fieldCount; ++i )
-		if ( values[i] )
-			memcpy( (uint8_t *)object + schema.fields[i].offset, values[i], schema.fields[i].count * Width( schema.fields[i].type ) );
+	for ( uint32_t i = 0; i < schema.fieldCount; ++i ) {
+		if ( !values[i] )
+			continue;
+		const auto &field = schema.fields[i];
+		auto *destination = (uint8_t *)object + field.offset;
+		if ( field.type == stateType_t::String )
+			memset( destination, 0, field.count );
+		memcpy( destination, values[i], lengths[i] );
+	}
 	*sourceVersion = header.version;
 	return true;
 }
