@@ -60,6 +60,14 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 Windows public-header macro contract, test first
+
+Corrected head d24ba4f4 reaches the developer client compilation and exposes
+Windows min/max macro expansion inside the new shared sound-distance header
+(C2589/C2059). Add the hostile-header condition to the existing audio spatial
+probe before correcting the shared helper. Both actual callers (authored audio
+and AI hearing) remain on the same implementation; do not restructure its math.
+
 ## #21 hosted portability and cold tool setup
 
 Head 9fd94edb fails MSVC C4244 on two integer ternaries assigned/passed as
