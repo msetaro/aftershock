@@ -551,6 +551,7 @@ bool SV_JoinRequired();
 bool SV_LoadJoinConfig( const char *data, uint32_t size );
 void SV_JoinConfig_f();
 bool SV_ValidateJoin( const char *token, joinClaims_t *out );
+bool SV_JoinAvailable( const joinClaims_t &claims );
 bool SV_ApplyJoin( int clientNum, const joinClaims_t &claims );
 // Caller additionally verifies the same peer address and qport.
 bool SV_JoinRetry( int clientNum, const joinClaims_t &claims, int challenge );

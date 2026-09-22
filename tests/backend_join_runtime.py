@@ -55,11 +55,21 @@ with tempfile.TemporaryDirectory(prefix='aftershock-backend-join-', dir=SCRATCH)
         def command(text):
             server.stdin.write(text+'\n')
             server.stdin.flush()
-        def connect(sock, token='', qport=1234, handshake=None):
-            time.sleep(.15)  # Stay below the existing per-address connection rate limit.
+        def response(sock, prefixes):
+            deadline = time.monotonic()+5
+            while time.monotonic() < deadline:
+                sock.settimeout(max(.01, deadline-time.monotonic()))
+                data, peer = sock.recvfrom(4096)
+                if peer == address and data.startswith(b'\xff'*4):
+                    text = data[4:].decode()
+                    if text.startswith(prefixes):
+                        return text
+            raise TimeoutError('no matching handshake response')
+        def connect(sock, token='', qport=1234, handshake=None, delay=2.1):
+            time.sleep(delay)  # The shared leaky bucket drains one query per second; a connect uses two.
             if handshake is None:
                 sock.sendto(b'\xff'*4+b'getchallenge 123', address)
-                handshake = sock.recv(2048)[4:].decode().split()
+                handshake = response(sock, ('challengeResponse ',)).split()
                 assert handshake[0] == 'challengeResponse' and handshake[4] == 'aftershock'
             info = dict(challenge=handshake[1], protocol=handshake[3], as_protocol=handshake[5],
                         as_schema=handshake[6], qport=str(qport), client='aftershock', name='backend-test')
@@ -68,7 +78,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-backend-join-', dir=SCRATCH)
             text = 'connect "'+''.join('\\'+k+'\\'+v for k,v in info.items())+'"'
             encoded = subprocess.check_output([packet], input=b'\xff'*4+text.encode())
             sock.sendto(encoded, address)
-            return sock.recv(4096)[4:].decode(errors='replace'), handshake
+            return response(sock, ('connectResponse ', 'print\n')), handshake
         try:
             wait_log('Static game loaded.')
             wait_log('Join configuration rejected;')
@@ -90,11 +100,13 @@ with tempfile.TemporaryDirectory(prefix='aftershock-backend-join-', dir=SCRATCH)
                 reply, handshake = connect(first, valid)
                 assert reply.startswith('connectResponse '), reply
                 # Discard the first response, then retransmit the exact handshake.
-                retry, _ = connect(first, valid, handshake=handshake)
+                retry, _ = connect(first, valid, handshake=handshake, delay=.15)
                 assert retry == reply, retry
                 # The same token from a different endpoint cannot replace the owner.
-                denied, _ = connect(other, valid)
+                denied, _ = connect(other, valid, delay=.15)
                 assert 'Join ticket rejected' in denied, denied
+                retry, _ = connect(first, valid, handshake=handshake, delay=.15)
+                assert retry == reply, 'rejected alternate peer disturbed the admitted session'
                 command('dumpuser 0')
                 command('kickall')
                 wait_log('was kicked')

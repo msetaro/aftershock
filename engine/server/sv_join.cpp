@@ -60,16 +60,31 @@ bool SV_ValidateJoin( const char *token, joinClaims_t *out ) {
 	*out = claims;
 	return true;
 }
-bool SV_ApplyJoin( int clientNum, const joinClaims_t &claims ) {
-	if ( !SV_IdentitySession( clientNum ) || !Expected( claims.player ) || strcmp( claims.match, joinConfig.match ) != 0 )
-		return false;
-	auto *client = &svs.clients[clientNum];
-	if ( client->identityState != IDENTITY_ANONYMOUS )
+bool SV_JoinAvailable( const joinClaims_t &claims ) {
+	if ( !Expected( claims.player ) || strcmp( claims.match, joinConfig.match ) != 0 )
 		return false;
 	for ( int i = 0; i < sv.maxclients; ++i )
 		if ( svs.clients[i].identityId == claims.player &&
 			 ( svs.clients[i].identityState == IDENTITY_PENDING || svs.clients[i].identityState == IDENTITY_VERIFIED ) )
 			return false;
+	const auto now = Sys_Time( nullptr );
+	if ( now <= 0 || (uint64_t)now < claims.issued || (uint64_t)now >= claims.expires )
+		return false;
+	bool available = false;
+	for ( const auto &used : joinReplay.used ) {
+		if ( used.expires <= (uint64_t)now )
+			available = true;
+		else if ( !memcmp( used.nonce, claims.nonce, sizeof( claims.nonce ) ) )
+			return false;
+	}
+	return available;
+}
+bool SV_ApplyJoin( int clientNum, const joinClaims_t &claims ) {
+	if ( !SV_IdentitySession( clientNum ) || !SV_JoinAvailable( claims ) )
+		return false;
+	auto *client = &svs.clients[clientNum];
+	if ( client->identityState != IDENTITY_ANONYMOUS )
+		return false;
 	const auto now = Sys_Time( nullptr );
 	if ( now <= 0 || !Join_Consume( &joinReplay, claims, (uint64_t)now ) )
 		return false;

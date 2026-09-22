@@ -79,6 +79,23 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 signed UDP admission
+
+SV_DirectConnect now validates the configured ticket after protocol/challenge checks,
+rejects unavailable accounts/nonces before altering any existing slot, binds lost-
+response retries to the same endpoint/qport/challenge and connected identity, and
+applies the verified backend identity before sending connectResponse. The temporary
+ticket is removed from saved userinfo and subsequent userinfo changes. No simulation
+arithmetic or accepted golden changes. The probe uses the existing shared per-address
+rate limits and filters ordinary sequenced packets out of handshake responses.
+The actual loopback UDP gate passes with owned content, including endpoint rejection
+without disturbing the original session, disconnect/reload replay rejection and a
+fresh-ticket reconnect (backend-udp.log). A normal OpenArena pure-server/client join
+also passes (backend-anonymous.log). Both compiler UBSan owners, existing identity
+checks, production tidy and format/type/boundary checks pass. Next: connect the
+versioned allocation contract to controller configuration/readiness and real client
+HTTPS/UI; complete persistent services/kind acceptance before any #29 PR merge.
+
 ## #29 live admission contract, test first
 
 The new backend_join_runtime.py launches our dedicated server on loopback with owned
