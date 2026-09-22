@@ -56,6 +56,18 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 native runtime contract, test first
+
+Add tests/navigation_runtime.py using the existing owned two_lane level compiler,
+a cooked patrol behavior/navmesh, and the accepted weapon/animation asset sources.
+The OpenArena current-main client starts the map and native bot, then fails at
+absent actor AI state as intended (navigation-runtime-before.log). The remaining
+contract requires actual Pmove displacement over 128 units, a complete navmesh
+route, the configured data weapon and an AI inspector capture. Commit before
+connecting the existing core owners to game lifecycle and developer telemetry.
+Combat/cover, q3dm17 traversal and checkpoint continuation remain later acceptance
+steps; this initial patrol test does not claim them.
+
 ## #21 authoritative route following
 
 After 872f868f's failing contract, Nav_Follow keeps an eight-byte POD corner/
