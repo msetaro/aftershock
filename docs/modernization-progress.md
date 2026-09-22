@@ -77,6 +77,11 @@ content sets' unchanged bot goldens. Local MinGW rebuild, format/types/boundarie
 suite/affected contracts and actionlint pass. Added weapon acceptance to runtime
 CI and corrected the new audio artifact paths to a YAML literal list.
 Final hosted compiler/regression checks remain required; PR171 is still draft.
+Head 9708869b fixed the meter warning and passed hosted bot goldens; MSVC then
+reached a C4457 shadowed axis parameter in the new reverb-volume loop. Renamed
+that loop index to component; behavior is unchanged. The pinned Opus source
+manifest verifies byte-for-byte (upstream generated-file whitespace is retained).
+No accepted golden or known-good tag changed. Full checks must use the new head.
 
 ## #16 hosted feedback and weapon acceptance in progress
 

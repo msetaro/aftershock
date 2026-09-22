@@ -474,8 +474,8 @@ void S_AuthoredRespatialize( int entity, const vec3_t head, vec3_t axis[3] ) {
 	int selected = -1;
 	for ( uint32_t i = 0; i < zoneCount; ++i ) {
 		bool inside = true;
-		for ( int axis = 0; axis < 3; ++axis )
-			inside &= head[axis] >= zones[i].mins[axis] && head[axis] < zones[i].maxs[axis];
+		for ( int component = 0; component < 3; ++component )
+			inside &= head[component] >= zones[i].mins[component] && head[component] < zones[i].maxs[component];
 		if ( inside ) {
 			selected = int( i );
 			break;
