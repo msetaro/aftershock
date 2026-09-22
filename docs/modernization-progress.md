@@ -53,6 +53,14 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
 is currently needed. Do not end at a checkpoint or CI wait.
 
+## #20 offline/native limit agreement
+
+Self-review aligns offline mount limits with the native 64-package/65,536-visible-
+asset limits and uses a set for removal membership during writing. The complete
+functional package check still passes (content-native-final.log); artifact bytes
+and accepted fixtures are unchanged. GCC's full unit job variant has passed; the
+Clang/libc++ variant is running in content-unit-suite. No #20 PR is open yet.
+
 ## #20 final local gate checkpoint
 
 Full lifetime analysis passes 1,320 production compilation commands/147 paths,

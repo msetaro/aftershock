@@ -92,6 +92,8 @@ def payload(path, row):
 
 
 def mount(paths):
+    if len(paths) > 64:
+        raise ValueError('too many package mounts')
     view = {}
     for path in paths:
         manifest, rows = metadata(path)
@@ -107,6 +109,8 @@ def mount(paths):
                 del view[name]
             else:
                 view[name] = (path, row)
+        if len(view) > MAX_ASSETS:
+            raise ValueError('mounted view exceeds the native asset limit')
         if manifest['base'] is not None and identity({name: row['sha256'] for name, (_, row) in view.items()}) != manifest['identity']:
             raise ValueError('patch result identity differs')
     return view
@@ -136,7 +140,8 @@ def build(root, output, bases, store):
     manifest = dict(version=1, identity=identity(assets), base=identity(previous) if bases else None,
                     assets=changed, removed=removed)
     encoded = json.dumps(manifest, sort_keys=True, separators=(',', ':')).encode()
-    names = sorted(changed.keys() | set(removed))
+    removed_names = set(removed)
+    names = sorted(changed.keys() | removed_names)
     if len(names) > MAX_ASSETS or len(encoded) > MAX_MANIFEST:
         raise ValueError('package metadata exceeds native limits')
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -147,7 +152,7 @@ def build(root, output, bases, store):
             stream.write(bytes(HEADER.size+len(names)*ENTRY.size))
             index = bytearray()
             for name in names:
-                if name in removed:
+                if name in removed_names:
                     index.extend(ENTRY.pack(name.encode(), 0, 0, 0, bytes(32), 0, 1))
                     continue
                 data = files[name].read_bytes()
