@@ -71,6 +71,34 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
             engine.step(2)
             from PIL import Image
             Image.open(base/capture['path']).save(args.output/'navigation-inspector.png')
+            engine.request('cvar.set', name='dev_tools', value='0')
+            def pause():
+                engine.request('key', name='ESCAPE', down=True)
+                engine.request('key', name='ESCAPE', down=False)
+                engine.step(2)
+            pause()
+            assert engine.request('cvar.get', name='sv_paused')['value'] == '1'
+            before = engine.request('actor', owner=1)
+            engine.request('exec', command='savegame navigation')
+            engine.step(2)
+            assert (base/'saves/navigation.000.asstate').is_file(), 'AI checkpoint write failed'
+            pause()
+            engine.step(25)
+            continued = engine.request('actor', owner=1)
+            assert continued['ai']['position'] != before['ai']['position']
+            loaded = engine.log_path.read_text().count('Game loaded: ')
+            engine.request('exec', command='loadgame saves/navigation.000.asstate')
+            for _ in range(200):
+                engine.step()
+                if engine.log_path.read_text().count('Game loaded: ') > loaded:
+                    break
+            else:
+                raise AssertionError('AI checkpoint reconnect did not complete')
+            assert engine.request('actor', owner=1) == before, 'AI actor did not restore exactly'
+            pause()
+            engine.step(25)
+            assert engine.request('actor', owner=1) == continued, 'AI path/behavior/weapon continuation differs'
+
         finally:
             shutil.copyfile(engine.log_path, args.output/'client.log')
             (args.output/'actors.json').write_text(json.dumps(rows, indent=2))

@@ -52,6 +52,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 live AI checkpoint contract, test first
+
+Extend native patrol acceptance with a paused full-game save, 25 live ticks,
+restore, and exact actor/weapon/route/behavior continuation. The new AI owner and
+its two latched cvars are not yet serialized. Run this contract against the
+patrol client before implementing the owner. It fails at checkpoint capture
+(navigation-checkpoint-before.log); the existing owner validation cannot account
+for a connected bot without a legacy bot-state allocation. Preserve all accepted
+fixtures and add explicit navmesh actor ownership.
+
 ## #21 optional owner lookup
 
 After e6ba42de's failing contract, State_Find can optionally report whether the
