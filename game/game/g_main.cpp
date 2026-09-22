@@ -1841,6 +1841,7 @@ void G_RunFrame( int levelTime ) {
 	}
 }
 
+#ifdef __cplusplus
 static constexpr uint32_t SAVED_GAME_CVARS = sizeof( gameCvarTable ) / sizeof( gameCvarTable[0] );
 static_assert( SAVED_GAME_CVARS <= 128 );
 struct gameCvarTracking_t {
@@ -1876,3 +1877,4 @@ bool G_ReadMainCvarState( const stateReader_t &reader, int apply ) {
 	}
 	return true;
 }
+#endif

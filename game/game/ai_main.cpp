@@ -2173,7 +2173,6 @@ bool G_ReadBotPoolState( const stateReader_t &reader, bool apply ) {
 		}
 	return true;
 }
-#endif
 
 static const gCachedCvar_t savedBotCvars[] = {
 	{ "bot_thinktime", &bot_thinktime },
@@ -2222,3 +2221,4 @@ bool G_ValidateBotReferences( const stateReader_t &reader, const gentity_t *enti
 	}
 	return true;
 }
+#endif

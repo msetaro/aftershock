@@ -290,7 +290,7 @@ static bool SaveCheckpoint( const char *name ) {
 	const bool success = readable && Sys_SaveRevision( saveKind_t::Game, name, data, int( size ), path, sizeof( path ) );
 	Z_Free( data );
 	if ( success )
-		Com_Printf( "Game saved: %s (%zu bytes)\n", path, size );
+		Com_Printf( "Game saved: %s (%u bytes)\n", path, unsigned( size ) );
 	else
 		Com_Printf( "Checkpoint capture failed (%s).\n", !server ? "server" : !game ? "game"
 																		  : !bots	? "botlib"

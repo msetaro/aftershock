@@ -23,7 +23,7 @@ int main() {
 	}
 	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i )
 		game::lastRewindReport[i] = i * 20;
-	static unsigned char entities[sizeof( game::rewindEntities )];
+	static decltype( game::rewindEntities ) entities;
 	memcpy( entities, game::rewindEntities, sizeof( entities ) );
 	static unsigned char archive[8388608];
 	stateWriter_t writer{ archive, sizeof( archive ) };
@@ -47,7 +47,13 @@ int main() {
 	game::nextGeneration = 0;
 	assert(game::G_ReadRewindState(reader,false)&&!restored.count&&!game::nextGeneration);
 	assert(game::G_ReadRewindState(reader,true));
-	assert(game::nextGeneration==generation+1&&!memcmp(entities,game::rewindEntities,sizeof(entities)));
+	assert(game::nextGeneration==generation+1);
+	// Compare every owned field, not compiler-dependent alignment padding.
+	for ( uint32_t i = 0; i < MAX_GENTITIES; ++i ) {
+		const auto &expected = entities[i], &actual = game::rewindEntities[i];
+		assert(expected.spawn==actual.spawn && expected.playerSpawn==actual.playerSpawn &&
+		       expected.teleport==actual.teleport && expected.generation==actual.generation);
+	}
 	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i )
 		assert(game::lastRewindReport[i]==i*20);
 	assert(NET_HistoryQuery(&restored,380,345,200,&query));

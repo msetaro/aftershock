@@ -42,14 +42,15 @@ view angles, selected weapon/sensitivity and pending loopback input. Full OpenAr
 save/load passes exact entity restoration and identical player/bot continuation in
 both the same process and a fresh process seeded differently
 (state-client-clock-runtime.log). Quake 3 same/fresh-process continuation also passes (state-client-clock-q3.log). The frozen full-game v1 fixture now migrates into v2 and continues identically.
-Final runtime CI and command documentation are registered. Both full compiler
-owner suites, interrupted-load lifecycle and full tidy pass. Lifetime passed all 1,344 compilation commands/150 paths. Draft PR175
-head cb46c7dd is running build 35717968746 and regression 35717968784;
-MSVC reports C4459 for three new level parameters shadowing the global. Rename
-those parameters, rerun local owner checks, then push and require all 26 checks.
-Finish hosted checks before merge. Quake 3 fixed replay and both bot-smoke hashes
-remain identical; final Quake 3 checkpoint and OpenArena profile migration pass.
-No partial checkpoint acceptance.
+Final runtime CI and command documentation are registered. Draft PR175 targets
+main; its first two hosted heads exposed MSVC/MinGW portability and legacy test
+adapter gaps, now corrected. Both full local unit command sets pass using their
+recorded passed prefixes plus resumed tails (state-unit-{gcc,clang}-suite/ and
+state-unit-*-resume*.log). Full tidy/lifetime, profile migration, both content
+sets' checkpoint continuation, legacy bot goldens and fixed replay frames pass.
+Push this combined correction, require all 26 checks on the new exact head, and
+recheck current main/base before ready/merge. Also finish PR174's rerun integration
+gate before closing #31. No partial checkpoint acceptance.
 
 Named fields/archives, native entity/client/level owners, botlib reconstruction,
 cvar preparation/capacity, portal/spatial state, platform save routing, profiles
@@ -61,6 +62,71 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 combined CI corrections verified locally
+
+Both full unit-job command sets now pass: initial suite reports retain all passed
+prefix steps, and resume reports/logs retain the remaining commands after each
+adapter correction. This includes both compiler state suites, format diagnostics
+under ASan/UBSan, native math, protocol/replication/rewind and differential goldens
+with the one-ULP negative control. No test assertion or sanitizer was removed.
+
+The 68 changed production source configurations also pass an extra shadowing
+review. Format, types, boundaries and native ABI pass. Rebuilt profile migration
+passes after the local name change. Local MinGW compiles the corrected save
+message. Quake 3 and OpenArena bot/replay goldens remain unchanged; the frozen
+profile/game gzip and raw hashes still match their committed provenance.
+Origin main remains 5caa2c1c and the known-good tag object/target are unchanged.
+Push the combined corrections to PR175 and require fresh hosted acceptance.
+
+## #19 legacy probe compiler integration
+
+Both full local unit jobs pass cooking, state owners, level/protocol/RHI and ABI
+steps, then expose the bot-command driver compiling the new C++-only owner tail
+of ai_main.cpp as C. Extend that file's existing __cplusplus owner guard through
+its newly added cvar/reference helpers, and guard the new g_main.cpp cvar owner
+likewise. This preserves the existing C regression probes and produces identical
+production C++ code. No assertion, test language, fixture or golden changes.
+Resume the unit jobs from their first failed step instead of repeating passed
+asset cooking. The full exact-head hosted jobs remain required.
+
+ASan keeps the new callback-identity tables live even in isolated formatting
+probes. Their table-referenced gameplay functions now need explicit aborting test
+doubles for unrelated engine services/bot nodes. Add only those doubles and the
+normal native service header; all original formatter assertions and ASan/UBSan
+instrumentation stay enabled. Base/missionpack team formatting and all four
+native diagnostic owners pass after adaptation.
+
+## #19 first hosted matrix findings
+
+MSVC parameter-shadowing correction is pushed at 79308321. The first full matrix
+also found MinGW's legacy printf annotation rejecting %zu; checkpoint size is
+bounded to 64 MiB, so print its checked value as unsigned. The second MSVC
+pass also finds the profile validator local keys array shadowing the engine
+global; rename it keyNumbers without altering the profile schema. A direct local MinGW
+compilation passes after that correction.
+
+Hosted GCC reached the rewind probe and exposed a test comparison of four bytes
+of alignment padding between teleport and generation. Compare all four owned
+fields exactly instead; no production rewind behavior or accepted data changes.
+The hosted legacy OpenArena C smoke also needs its test adapter to reject the four
+new checkpoint exports explicitly, since that pinned C game has no state owners.
+The native Aftershock game remains the implementation exercised by full game
+save/load tests on OpenArena content. Reproduce the old-adapter compilation failure
+locally, then both legacy OpenArena bot goldens pass unchanged after adapting it
+(state-final-oa-smoke.log). Both OpenArena fixed replay frame goldens also pass
+unchanged (state-final-oa-demo.log).
+
+The Clang/libc++ unit job also exposed an old direct-include hitscan probe
+missing the <cmath> prelude that game/module.cpp normally supplies. Add that
+standard header to the probe so the new saved-weapon finite check compiles under
+the runner's libc++ too. Run both complete local unit job variants to catch
+additional test integrations before the next push.
+
+PR174's integration diagnostics show 865 rewind traces and 45.06 seconds of
+advancing simulation when the existing client-frame script hit its 45-second
+wall deadline. No engine error/disconnect appears. Rerun only the failed runtime
+job (35715942143 attempt 2); acceptance still requires it to finish green.
 
 ## #19 hosted portability correction
 

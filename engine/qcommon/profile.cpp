@@ -98,15 +98,15 @@ static bool ValidProfile( const profile_t &profile ) {
 	}
 	if ( variables > Cvar_Capacity() )
 		return false;
-	int keys[PROFILE_KEYS];
+	int keyNumbers[PROFILE_KEYS];
 	for ( uint32_t i = 0; i < profile.keyCount; ++i ) {
 		if ( !memchr( profile.keys[i], 0, sizeof( profile.keys[i] ) ) || !memchr( profile.bindings[i], 0, PROFILE_STRING ) )
 			return false;
-		keys[i] = Key_StringToKeynum( profile.keys[i] );
-		if ( keys[i] < 0 || keys[i] >= MAX_KEYS )
+		keyNumbers[i] = Key_StringToKeynum( profile.keys[i] );
+		if ( keyNumbers[i] < 0 || keyNumbers[i] >= MAX_KEYS )
 			return false;
 		for ( uint32_t j = 0; j < i; ++j )
-			if ( keys[i] == keys[j] )
+			if ( keyNumbers[i] == keyNumbers[j] )
 				return false;
 	}
 	return true;
