@@ -26,9 +26,9 @@ attempt 2) is still running after an earlier advancing-gameplay timeout.
 
 #19 is draft PR175, branch issue/19-state-serialization in the sibling state-tree.
 Its full save/load and both frozen migrations work, local unit command sets and
-both-content bot/replay goldens pass. Current hosted head db9a51db exposed a final
-MSVC profile-output initialization warning; that branch is correcting it and
-rerunning profile migration before another push. Require all 26 exact-head checks
+both-content bot/replay goldens pass. Current hosted head 312048f0 passes all 16 builds and eight active regression
+jobs; lifetime/runtime remain in progress. The MSVC initialization correction
+and profile migration pass. Require all 26 exact-head checks
 and current main/base before merge, then merged-tree gates. The state-tree progress
 file is authoritative for the complete #19 evidence; do not redo its owners.
 
@@ -41,14 +41,25 @@ and an explicit removed-file entry. No accepted source, golden or fixture change
 The initial failing check is committed at 40322427. The offline writer now passes
 (content-first-after.log): base 15,063 bytes, texture delta 2,089, removal 460.
 Its v1 format, content identity, compression and patch rules are documented in
-docs/design/packages.md. The native/platform stream contract now fails before implementation. Implement
-those owners next; filesystem mounting/runtime acceptance follows on top of
+docs/design/packages.md. The native/platform stream contract now passes GCC and Clang/libc++ UBSan.
+Filesystem mounting/runtime acceptance follows on top of
 accepted #19 main. Do not merge #20 before #19.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
 is currently needed. Do not end at a checkpoint or CI wait.
+
+## #20 native stream implementation
+
+The production reader validates fixed layouts, canonical metadata hashes and
+ordered patch identities, then verifies each complete asset before exposing bytes.
+Stored assets use 64-bit platform offset reads; compressed assets reuse puff with
+a bounded zone buffer. Read/seek do not allocate. Explicit close/free releases all
+resources. GCC and Clang/libc++ UBSan pass (content-native-after.log,
+content-native-clang.log). Raw DEFLATE packages measure 14,949 bytes for the base,
+2,077 for the one-texture delta and 460 for removal. No new dependency.
+The filesystem has not mounted these packages yet; this is not #20 acceptance.
 
 ## #20 native stream contract, test first
 
