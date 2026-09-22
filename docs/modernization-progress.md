@@ -50,6 +50,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
 is currently needed. Do not end at a checkpoint or CI wait.
 
+## #20 filesystem acceptance, test first
+
+The real-engine test packages owned configuration files in separate engine/game/
+user roots. It requires a base/patch view, tombstone hiding of lower loose files,
+additional DLC mounts, filesystem restart, user-only writes and playable legacy
+pk3 maps. The accepted binary fails at the absent engine package mount
+(content-mount-before.log). Commit the test before filesystem integration.
+Implementation may proceed while #19's last runtime job runs; #20 final gates
+must include accepted #19 main before its own PR can merge.
+
 ## #20 native stream implementation
 
 The production reader validates fixed layouts, canonical metadata hashes and
