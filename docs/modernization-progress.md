@@ -67,6 +67,25 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 botlib checkpoint phases
+
+BotLib_WriteState now groups every owner behind a setup/navigation header.
+PrepareSettings restores library variables before normal setup/map loading;
+PrepareState reconstructs saved actor/cache slots in the freshly loaded world.
+ReadState validates all owners before applying their values, then restores parser
+and variable state after content loading. Preparation failure requires discarding
+the fresh world; no simulation may run during restore. Disabled botlib and worlds
+without AAS are supported explicitly; a loaded but unfinished AAS is not savable.
+
+A real-library probe links all production botlib sources, with owned empty config
+text and test memory/filesystem services. Disabled capture and normal setup,
+shutdown, preparation and restoration pass GCC/Clang libc++ UBSan. Saved queued
+chat and pending input survive; validation leaves live input unchanged; all zone
+and hunk allocations are accounted for at shutdown. Navigation owner probes remain
+separate until the full runtime integration. Client/server build, focused tidy and
+format/type/boundary gates pass (state-aggregate-*). Native/engine coordinator,
+cross-owner handle checks and fullgame acceptance remain unfinished.
+
 ## #19 collision portal reconstruction
 
 The collision owner now records the BSP checksum, area count and symmetric portal

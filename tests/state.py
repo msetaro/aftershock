@@ -330,6 +330,16 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-fsanitize=undefined','-fno-sanitize-recover=all',
      'tests/probes/state_portals.cpp','engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
 run([probe])
+# Real botlib phases with owned empty configs, including normal setup/shutdown.
+bot_sources=re.findall(r'^  (engine/botlib/[^ ]+\.cpp)$', (ROOT/'cmake/Sources.cmake').read_text(), re.M)
+assert len(bot_sources)>20 and len(bot_sources)==len(set(bot_sources))
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-DBOTLIB','-ffunction-sections','-fdata-sections','-fsanitize=undefined',
+     '-fno-sanitize-recover=all','tests/probes/state_bot_aggregate.cpp',
+     *[path for path in bot_sources if not path.endswith('/l_log.cpp')],
+     'engine/qcommon/q_math.cpp','engine/qcommon/state.cpp',shared,sha,
+     '-Wl,--gc-sections','-o',probe])
+run([probe])
 for definitions in ([], ['-DSTATE_NATIVE_CACHE']):
     run([*shlex.split(args.cxx),*definitions,'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
