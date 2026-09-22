@@ -40,8 +40,9 @@ then PR/merge #18 after all active hosted checks and self-review.
 #19 only has its first failing migration probe in this separate worktree,
 /home/matt/.cache/aftershock-modernization/state-tree, branch
 issue/19-state-serialization from current main. No state runtime is implemented.
-After #18 integration, use named typed POD fields with explicit schema versions
-and migrations. Full checkpoints must cover game/entity/client state, references,
+The pure named-field serializer can be implemented independently while earlier
+gates run; game/checkpoint integration follows accepted #18. Use typed POD fields
+with explicit schema versions and migrations. Full checkpoints must cover game/entity/client state, references,
 callbacks and supporting subsystem state; no raw native-pointer dump or partial
 checkpoint acceptance. Settings/bindings and developer state must use existing
 filesystem/platform ownership. Read #19 before the remaining implementation.
@@ -58,7 +59,9 @@ position and name; version 2 reorders fields, removes that item and adds armor.
 It requires bit-preserved common values, an explicit armor-default migration,
 and a version-2 round trip. The initial command fails on the absent
 engine/public/state_public.h and engine/qcommon/state.cpp (state-before.log).
-This test fixes only the serialization contract; it is not full savegame acceptance.
+New fields record their introduction version so missing required old fields cannot
+be mistaken for a migration default. This test fixes only the serialization
+contract; it is not full savegame acceptance.
 
 ## #16 weapon acceptance and final gates
 

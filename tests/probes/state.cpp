@@ -23,7 +23,7 @@ static constexpr stateField_t previousFields[] = {
 static constexpr stateField_t currentFields[] = {
 	{ "name", offsetof( current_t, name ), 32, stateType_t::Bytes },
 	{ "position", offsetof( current_t, position ), 3, stateType_t::Float32 },
-	{ "armor", offsetof( current_t, armor ), 1, stateType_t::Int32 },
+	{ "armor", offsetof( current_t, armor ), 1, stateType_t::Int32, 2 },
 	{ "health", offsetof( current_t, health ), 1, stateType_t::Int32 }
 };
 static constexpr stateSchema_t previousSchema = { "example", 1, 1, sizeof( previous_t ), previousFields, 4 };
