@@ -235,8 +235,8 @@ for component in ('COMBAT','TEAM','PODIUM'):
     run([probe])
 
 for definitions in ([],['-DAFTERSHOCK_DEVTOOLS']):
-    run([*shlex.split(args.cxx),*definitions,'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
-         '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+    run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror',*definitions,'-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',
          'tests/probes/state_definitions.cpp','engine/entities/entities.cpp','engine/qcommon/state.cpp',sha,
          '-Wl,--gc-sections','-o',probe])
@@ -250,12 +250,15 @@ for component in ('QUEUE','CLOCK','TEAM'):
          '-Wl,--gc-sections','-o',probe])
     run([probe])
 
-run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
-     '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
-     '-fsanitize=undefined','-fno-sanitize-recover=all',
-     'tests/probes/state_waypoints.cpp','engine/qcommon/state.cpp',sha,
-     '-Wl,--gc-sections','-o',probe])
-run([probe])
+# Optional legacy mission-pack code has writable string literals and unused parameters.
+for definitions in ([],['-DMISSIONPACK','-Wno-write-strings','-Wno-unused-parameter']):
+    run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror',*definitions,'-ffunction-sections','-fdata-sections',
+         '-fsanitize=undefined','-fno-sanitize-recover=all',
+         'tests/probes/state_waypoints.cpp','engine/qcommon/state.cpp',sha,
+         '-Wl,--gc-sections','-o',probe])
+    run([probe])
+
 
 run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',

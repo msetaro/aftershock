@@ -5660,3 +5660,140 @@ bool G_ReadWaypointState( const stateReader_t &reader, bool apply ) {
 	return true;
 }
 #endif
+
+#ifdef __cplusplus
+struct botNavigationSave_t {
+	int32_t gametype, maxclients, maxmodel, alternatives;
+	float teleportOrigin[3], teleportTime;
+};
+static_assert( sizeof( botNavigationSave_t ) == 32 );
+static constexpr stateField_t botNavigationFields[] = {
+	{ "gametype", offsetof( botNavigationSave_t, gametype ), 1, stateType_t::Int32 },
+	{ "maxclients", offsetof( botNavigationSave_t, maxclients ), 1, stateType_t::Int32 },
+	{ "maxmodel", offsetof( botNavigationSave_t, maxmodel ), 1, stateType_t::Int32 },
+	{ "alternatives", offsetof( botNavigationSave_t, alternatives ), 1, stateType_t::Int32 },
+	{ "teleportOrigin", offsetof( botNavigationSave_t, teleportOrigin ), 3, stateType_t::Float32 },
+	{ "teleportTime", offsetof( botNavigationSave_t, teleportTime ), 1, stateType_t::Float32 }
+};
+static constexpr stateSchema_t botNavigationSchema = { "game.botNavigation", 1, 1, sizeof( botNavigationSave_t ), botNavigationFields, 6 };
+struct botRoutesSave_t {
+	int32_t count, areas[MAX_ALTROUTEGOALS];
+	float origins[MAX_ALTROUTEGOALS][3];
+	uint32_t startTimes[MAX_ALTROUTEGOALS], goalTimes[MAX_ALTROUTEGOALS], extraTimes[MAX_ALTROUTEGOALS];
+};
+static_assert( sizeof( botRoutesSave_t ) == 900 );
+static constexpr stateField_t botRoutesFields[] = {
+	{ "count", offsetof( botRoutesSave_t, count ), 1, stateType_t::Int32 },
+	{ "areas", offsetof( botRoutesSave_t, areas ), MAX_ALTROUTEGOALS, stateType_t::Int32 },
+	{ "origins", offsetof( botRoutesSave_t, origins ), MAX_ALTROUTEGOALS * 3, stateType_t::Float32 },
+	{ "startTimes", offsetof( botRoutesSave_t, startTimes ), MAX_ALTROUTEGOALS, stateType_t::UInt32 },
+	{ "goalTimes", offsetof( botRoutesSave_t, goalTimes ), MAX_ALTROUTEGOALS, stateType_t::UInt32 },
+	{ "extraTimes", offsetof( botRoutesSave_t, extraTimes ), MAX_ALTROUTEGOALS, stateType_t::UInt32 }
+};
+static constexpr stateSchema_t botRoutesSchema = { "game.botRoutes", 1, 1, sizeof( botRoutesSave_t ), botRoutesFields, 6 };
+static bot_goal_t *const botMapGoals[] = { &ctf_redflag, &ctf_blueflag,
+#ifdef MISSIONPACK
+	&ctf_neutralflag, &redobelisk, &blueobelisk, &neutralobelisk
+#endif
+};
+static bool ValidBotNavigation( const botNavigationSave_t &saved ) {
+	if ( saved.gametype != gametype || saved.maxclients != maxclients || saved.maxmodel != max_bspmodelindex ||
+		 saved.alternatives < 0 || saved.alternatives > 1 || !std::isfinite( saved.teleportTime ) )
+		return false;
+	for ( float value : saved.teleportOrigin )
+		if ( !std::isfinite( value ) )
+			return false;
+	return true;
+}
+static bool ValidBotRoutes( const botRoutesSave_t &saved ) {
+	if ( saved.count < 0 || saved.count > MAX_ALTROUTEGOALS )
+		return false;
+	for ( int i = 0; i < saved.count; ++i ) {
+		if ( saved.areas[i] < 0 || saved.startTimes[i] > UINT16_MAX || saved.goalTimes[i] > UINT16_MAX || saved.extraTimes[i] > UINT16_MAX )
+			return false;
+		for ( float value : saved.origins[i] )
+			if ( !std::isfinite( value ) )
+				return false;
+	}
+	return true;
+}
+bool G_WriteBotNavigationState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	const botNavigationSave_t saved{ gametype, maxclients, max_bspmodelindex, altroutegoals_setup,
+		{ lastteleport_origin[0], lastteleport_origin[1], lastteleport_origin[2] }, lastteleport_time };
+	if ( !ValidBotNavigation( saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, botNavigationSchema, 0, &saved ) )
+		return false;
+	uint32_t slot = 128;
+	for ( const auto *goal : botMapGoals ) {
+		if ( !G_ValidBotGoal( *goal ) ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( !State_Append( writer, botGoalSchema, slot++, goal ) )
+			return false;
+	}
+	for ( uint32_t team = 0; team < 2; ++team ) {
+		botRoutesSave_t routes{};
+		routes.count = team ? blue_numaltroutegoals : red_numaltroutegoals;
+		if ( routes.count < 0 || routes.count > MAX_ALTROUTEGOALS ) {
+			writer->failed = true;
+			return false;
+		}
+		const auto *source = team ? blue_altroutegoals : red_altroutegoals;
+		for ( int i = 0; i < routes.count; ++i ) {
+			routes.areas[i] = source[i].areanum;
+			memcpy( routes.origins[i], source[i].origin, sizeof( source[i].origin ) );
+			routes.startTimes[i] = source[i].starttraveltime;
+			routes.goalTimes[i] = source[i].goaltraveltime;
+			routes.extraTimes[i] = source[i].extratraveltime;
+		}
+		if ( !ValidBotRoutes( routes ) ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( !State_Append( writer, botRoutesSchema, team, &routes ) )
+			return false;
+	}
+	return true;
+}
+bool G_ReadBotNavigationState( const stateReader_t &reader, bool apply ) {
+	botNavigationSave_t saved;
+	botRoutesSave_t routes[2];
+	bot_goal_t goals[sizeof( botMapGoals ) / sizeof( botMapGoals[0] )];
+	uint32_t version;
+	if ( !State_Find( reader, botNavigationSchema, 0, &saved, &version ) || !ValidBotNavigation( saved ) )
+		return false;
+	for ( uint32_t i = 0; i < sizeof( botMapGoals ) / sizeof( botMapGoals[0] ); ++i )
+		if ( !State_Find( reader, botGoalSchema, 128 + i, &goals[i], &version ) || !G_ValidBotGoal( goals[i] ) )
+			return false;
+	for ( uint32_t i = 0; i < 2; ++i )
+		if ( !State_Find( reader, botRoutesSchema, i, &routes[i], &version ) || !ValidBotRoutes( routes[i] ) )
+			return false;
+	if ( apply ) {
+		altroutegoals_setup = saved.alternatives;
+		memcpy( lastteleport_origin, saved.teleportOrigin, sizeof( lastteleport_origin ) );
+		lastteleport_time = saved.teleportTime;
+		for ( uint32_t i = 0; i < sizeof( botMapGoals ) / sizeof( botMapGoals[0] ); ++i )
+			*botMapGoals[i] = goals[i];
+		for ( uint32_t team = 0; team < 2; ++team ) {
+			auto *target = team ? blue_altroutegoals : red_altroutegoals;
+			memset( target, 0, sizeof( red_altroutegoals ) );
+			for ( int i = 0; i < routes[team].count; ++i ) {
+				target[i].areanum = routes[team].areas[i];
+				memcpy( target[i].origin, routes[team].origins[i], sizeof( target[i].origin ) );
+				target[i].starttraveltime = uint16_t( routes[team].startTimes[i] );
+				target[i].goaltraveltime = uint16_t( routes[team].goalTimes[i] );
+				target[i].extratraveltime = uint16_t( routes[team].extraTimes[i] );
+			}
+		}
+		red_numaltroutegoals = routes[0].count;
+		blue_numaltroutegoals = routes[1].count;
+	}
+	return true;
+}
+#endif

@@ -39,7 +39,7 @@ with typed callbacks, checked references and nullable strings. Composed, authore
 animation/weapon, rewind, utility/spawn-generation, combat, team and podium owners
 also have validated local checkpoint records. Definition/editor state restores
 against matching map registry topology. Remaining work: other game globals and
-bot map-navigation and botlib owners (actor, activation, waypoint, scheduler,
+botlib owners (game map-navigation, actor, activation, waypoint, scheduler,
 queue and team draft records are complete), gameplay validation, live
 restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
 
@@ -57,6 +57,20 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 bot map-navigation ownership
+
+Navigation records retain last-teleport memory, map/team goals and alternative
+route goals/costs. Reloaded game type, client count and BSP model identity must
+match before publication. Live route costs widen to uint32 in the save record
+and validate back into their original uint16 range. Unused route slots are not
+read from stale storage. GCC and Clang/libc++ UBSan pass normal and optional
+mission-pack probes (state-navigation-{gcc,clang}.log), including changed-map
+identity and missing-later-record rejection. The optional legacy variant needs
+its existing writable-string and unused-parameter warnings tolerated in the
+probe only; production gates are unchanged. Build and focused tidy pass.
+Bot node-switch diagnostics reset at the start of BotDeathmatchAI and are frame
+scratch. Full botlib owners and checkpoint coordination remain open.
+
 ## #19 bot actor and activation drafts
 
 Actor records describe all 134 scalar fields, shared player/input state, goals,
@@ -71,7 +85,7 @@ objects and verify live actor counts before application. These are not complete
 checkpoint acceptance. The combined state driver through waypoint support also
 passes with both compilers (state-combined-{gcc,clang}.log).
 
-Next: bot map-navigation globals, all botlib mutable owners and immutable-content
+Next: all botlib mutable owners and immutable-content
 checks; then global cvar/configstring/content state and server/game/client restore
 coordination, both RNG integrations, platform save routing and full saved-game
 N-to-N+1 fixture acceptance. No accepted fixture has been regenerated.

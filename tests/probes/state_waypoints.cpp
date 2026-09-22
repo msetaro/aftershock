@@ -53,4 +53,56 @@ int main() {
 	writer = { bytes, sizeof( bytes ) };
 	assert(!G_WriteWaypointState(&writer) && !State_Finish(&writer));
 	puts( "PASS: waypoint chains and free-list order restore before identical next allocation" );
+
+	gametype = GT_CTF;
+	maxclients = 4;
+	max_bspmodelindex = 11;
+	altroutegoals_setup = 1;
+	lastteleport_time = 73.25f;
+	lastteleport_origin[0] = -0.0f;
+	lastteleport_origin[1] = 125.5f;
+	ctf_redflag.areanum = 9;
+	ctf_blueflag.areanum = 19;
+	ctf_redflag.entitynum = 84;
+	ctf_blueflag.entitynum = 85;
+	red_numaltroutegoals = 1;
+	blue_numaltroutegoals = 3;
+	red_altroutegoals[0] = { { 1, 2, 3 }, 17, UINT16_MAX, 123, 456 };
+	for ( int i = 0; i < 3; ++i )
+		blue_altroutegoals[i] = { { -4, 5, -6 }, 19 + i, uint16_t( 10 + i ), uint16_t( 20 + i ), uint16_t( 30 + i ) };
+	const auto red = red_altroutegoals[0];
+	aas_altroutegoal_t blue[3];
+	memcpy( blue, blue_altroutegoals, sizeof( blue ) );
+	writer = { bytes, sizeof( bytes ) };
+	assert(G_WriteBotNavigationState(&writer));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	altroutegoals_setup = 0;
+	lastteleport_time = 0;
+	red_numaltroutegoals = blue_numaltroutegoals = 0;
+	ctf_redflag = {};
+	ctf_blueflag = {};
+	assert(G_ReadBotNavigationState(reader,false) && !altroutegoals_setup);
+	assert(G_ReadBotNavigationState(reader,true));
+	assert(altroutegoals_setup==1 && lastteleport_time==73.25f && std::signbit(lastteleport_origin[0]));
+	assert(ctf_redflag.areanum==9 && ctf_blueflag.entitynum==85);
+	assert(red_numaltroutegoals==1 && blue_numaltroutegoals==3);
+	assert(!memcmp(&red,&red_altroutegoals[0],sizeof(red)) && !memcmp(blue,blue_altroutegoals,sizeof(blue)));
+	maxclients = 5;
+	assert(!G_ReadBotNavigationState(reader,true) && maxclients==5 && red_numaltroutegoals==1);
+	maxclients = 4;
+	// A later missing team route record must not publish earlier teleport/goal data.
+	botNavigationSave_t navigation{};
+	botRoutesSave_t route{};
+	uint32_t version;
+	assert(State_Find(reader,botNavigationSchema,0,&navigation,&version));
+	assert(State_Find(reader,botRoutesSchema,0,&route,&version));
+	writer = { bytes, sizeof( bytes ) };
+	assert(State_Append(&writer,botNavigationSchema,0,&navigation));
+	for ( uint32_t i = 0; i < sizeof( botMapGoals ) / sizeof( botMapGoals[0] ); ++i )
+		assert(State_Append(&writer,botGoalSchema,128+i,botMapGoals[i]));
+	assert(State_Append(&writer,botRoutesSchema,0,&route));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	lastteleport_time = 999;
+	assert(!G_ReadBotNavigationState(reader,true) && lastteleport_time==999);
+	puts( "PASS: map bot goals, teleport memory and 16-bit alternative-route costs survive checkpoint restore" );
 }
