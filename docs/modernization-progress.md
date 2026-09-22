@@ -67,6 +67,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 platform storage test first
+
+The new state_storage probe requires a platform save provider, immutable numbered
+revisions, bounded profile/game paths, and errors without fallback to PC storage.
+It fails compilation on the absent save_public.h before implementation
+(state-storage-before.log). Existing profiles and checkpoints still call the
+filesystem directly; route both through this boundary next. PC storage must stay
+in the active game's user directory and never overwrite an existing revision.
+
 ## #19 cross-owner cvar capacity
 
 Checkpoint preflight now counts missing owner-selected cvar names across the
