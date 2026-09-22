@@ -7,7 +7,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import best_match
 
 ROOT = Path(__file__).resolve().parents[2]
-KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'decal', 'post', 'entities', 'sound-event', 'match-spec')
+KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'decal', 'post', 'entities', 'ui', 'sound-event', 'match-spec')
 
 
 def obj(properties, required=None, extra=False):
@@ -204,9 +204,25 @@ def entities_schema():
     return obj(dict(version=dict(const=1),name=dict(identity,maxLength=31),definitions=array(definition,1,256)))
 
 
+def ui_schema():
+    identity=dict(type='string',pattern='^[a-z][a-z0-9_]{0,30}$')
+    localized=dict(type='object',minProperties=1,maxProperties=8,
+                   propertyNames=dict(type='string',pattern='^[a-z]{2,3}(-[a-z0-9]{2,8})?$'),
+                   additionalProperties=dict(type='string',minLength=1,maxLength=256,pattern=r'^[^\x00-\x1f\x7f]+$'))
+    item=obj(dict(id=identity,kind=enum('label','button','slider','binding','value'),text=identity,
+                  rect=vector(-8192,8192,False,4),anchor=vector(0,1,False,2),color=vector(0,1,False,4),
+                  action=enum('none','page','resume','map','quit'),
+                  target=dict(type='string',maxLength=63,pattern=r'^[a-z0-9_+./-]*$'),
+                  range=vector(0,30,False,3)),['id','kind','text','rect','anchor'])
+    return obj(dict(version=dict(const=1),name=identity,font=qpath(),canvas=vector(320,8192,True,2),
+                    locales=array(obj(dict(id=dict(type='string',pattern='^[a-z]{2,3}(-[a-z0-9]{2,8})?$'),direction=enum('ltr','rtl'))),1,8),
+                    texts=array(obj(dict(id=identity,size=num(12,96,True),values=localized)),1,64),
+                    pages=array(obj(dict(id=identity,items=array(item,1,128))),3,16)))
+
+
 def schema(kind):
     schemas = dict(level=level_schema,weapon=weapon_schema,animation=animation_schema,material=material_schema,
-                   effect=effect_schema,decal=decal_schema,post=post_schema,entities=entities_schema,**{'match-spec':match_schema,'sound-event':sound_event_schema})
+                   effect=effect_schema,decal=decal_schema,post=post_schema,entities=entities_schema,ui=ui_schema,**{'match-spec':match_schema,'sound-event':sound_event_schema})
     schema = schemas[kind]()
     schema['$schema'] = 'https://json-schema.org/draft/2020-12/schema'
     return schema
@@ -221,6 +237,8 @@ def describe(kind):
                        props=[],pickups=[],lighting=dict(ambient=32,lights=[]))
     elif kind == 'entities':
         example = json.loads((ROOT/'tests/assets/entities/pickups.json').read_text())
+    elif kind == 'ui':
+        example = json.loads((ROOT/'tests/assets/ui/shell.json').read_text())
     elif kind == 'weapon':
         example = json.loads((ROOT/'tests/assets/weapons/rifle.weapon.json').read_text())
         example.update(recoil=[[0,0]],materials=[example['materials'][0]],attachments=[],sounds={})

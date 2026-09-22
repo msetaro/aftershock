@@ -20,39 +20,37 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#16 accepted in PR171, merge d2411083325edaa0213fa5680a63d6e8644f291e. All 26
-active gates passed head 4c8dc002 (build 35673913679, regression 35673913655), with
-exact head/base/main and rollback tag rechecked before merge. Monitor merged-tree
-build 35678588496 and regression 35678588538; not all have completed yet.
+#17 accepted in PR172, merge ebc03f37c1393f13cb1d33355eda53a9caf911f7 on
+2026-09-22 UTC. All 26 active gates passed exact head fcfd6507 (build 35679134924,
+regression 35679134926); head/base/current main and known-good tag were rechecked
+immediately before ready/merge. Private ui-final-gates.json records the results.
+Monitor the new main build/regression. #16 is accepted in PR171 (d2411083);
+its merged-tree build 35678588496 passes, runtime in 35678588538 is finishing.
 
-#17 is draft PR172 into main, branch issue/17-ui-framework, worktree
-/home/matt/.cache/aftershock-modernization/ui-tree. It includes d2411083. Current
-head is fcfd6507 after fixing Windows min/max macro expansion; hosted build
-35679134924 has all 16 compiler legs green; regression 35679134926 has nine
-active jobs green and runtime still running. Old 522f9904 build failed MSVC and its regression was cancelled. Superseded aa5cd964
-runs 35678751260/35678751264 were cancelled to free runners; not merge evidence.
-Local full UI/runtime/style/type/boundary/lifetime/tidy/cross checks pass; focused
-checks after merging audio also pass. Require every one of 26 current active
-hosted gates green, recheck exact main/base, then ready/merge with a merge commit.
+#18 draft PR173 uses issue/18-entity-definitions in
+/home/matt/.cache/aftershock-modernization/entities-tree. Merge accepted UI main
+forward now, preserving both asset kinds/schemas and all CI checks, then run local
+integration gates and push the merged head for final hosted checks. Previous
+5e666dff passes all 16 compiler legs in 35682073149; regression 35682073081 is
+superseded when this merge is pushed. Initial cb84dadb failed old libc++ floating
+from_chars and is not acceptance; strtof with fixed-decimal/range validation fixes
+that portability issue. Both-content component/editor/flag acceptance, full
+lifetime/tidy and unchanged classic bot/replay gates pass locally before this merge.
+Require all 26 active jobs on the final head including ebc03f37, then recheck main,
+self-review, ready and merge with a merge commit. No accepted fixture regeneration.
 
-#18 is draft PR173 on issue/18-entity-definitions in
-/home/matt/.cache/aftershock-modernization/entities-tree, pushed code head 5e666dff. Current step:
-accepted audio main is merged forward. Both-content component/editor acceptance,
-full lifetime/tidy and unchanged fixed replay pass at 731bd28d. Self-review added
-a failing prefab flag test; cb84dadb preserves native callback identity and passes
-flags on both content sets. Initial build 35681818460 fails hosted libc++ floating from_chars availability;
-regression 35681818499 is superseded and cancelled. Replace that conversion with
-strtof plus fixed-decimal syntax/range validation, preserving the spawn format.
-GCC and Clang/libc++ UBSan pass again (entities-libcxx-{gcc,clang}.log). Fresh
-build 35682073149 passes all 16 legs; regression 35682073081 is running. No final
-acceptance before #17. UI kind 13 arrives
-when #17 is accepted; entities kind 14 remains alongside sound kind 12.
-Merge accepted #17 main before final #18 gates. No accepted golden regeneration.
+#19 isolated preparation is in /home/matt/.cache/aftershock-modernization/state-tree,
+issue/19-state-serialization from main d2411083, local head a8195301. The common
+named-field serializer and added/removed/reordered-field migration pass GCC and
+Clang/libc++ UBSan, including 64-bit identities. No full checkpoint/settings/editor
+integration is implemented. Merge accepted #18 main before that integration.
+Private state-preflight.md records the source inventory and remaining full-state
+requirements; no partial checkpoint acceptance.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue #18 through #24 (SDK dependency), #29 and #30 per #25. No maintainer
-input is currently needed. Do not end at a checkpoint or CI wait.
+Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
+is currently needed. Do not end at a checkpoint or CI wait.
 
 ## #18 hosted standard-library compatibility
 

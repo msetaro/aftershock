@@ -23,6 +23,10 @@ hit-box evaluation. Its public contract contains POD records; filesystem loading
 uses qcommon handles and zone ownership outside frame evaluation. Game/cgame own
 replicated inputs and presentation policy; render owns copied skin matrices.
 
+`engine/ui` owns cooked UI records, safe-area geometry and bounded focus state.
+It has no device, cvar or renderer access; the client adapter owns those services.
+Font shaping and atlas construction belong to the offline cooker.
+
 `engine/physics` owns the single cosmetic Jolt world behind a POD public contract.
 Caller-supplied map storage owns all dependency allocations; shapes, slots and
 constraints are prepared before fixed stepping. Unused slots remain asleep on a

@@ -7,6 +7,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+int CGameImport_DrawAuthoredHUD( int health, int armor, int ammo, int ping );
 void CGameImport_Print( const char *fmt );
 void CGameImport_Error( const char *fmt );
 int CGameImport_Milliseconds( void );

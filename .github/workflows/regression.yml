@@ -93,7 +93,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build libc++-dev libc++abi-dev
       - name: Cook owned source assets and verify production poses
         run: |
-          sudo apt-get update && sudo apt-get install -y python3-venv python3-jsonschema ninja-build libsdl2-dev pkg-config
+          sudo apt-get update && sudo apt-get install -y python3-venv python3-jsonschema ninja-build fonts-dejavu-core libsdl2-dev pkg-config
           python3 -m venv ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/cook.py --cxx '${{ matrix.cxx }}'
@@ -102,6 +102,8 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/physics.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/entities.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/ui_framework.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/post.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
@@ -242,7 +244,7 @@ jobs:
             ~/.cache/aftershock-modernization/blender-5.0.1
           key: content-tools-${{ runner.os }}-${{ hashFiles('tools/level/toolchain.py', 'tools/blender/toolchain.py', 'tools/assets/themes/manhattan.json') }}
       - name: Install runtime tools and OpenArena content
-        run: sudo apt-get update && sudo apt-get install -y python3-venv python3-pil python3-jsonschema ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data libarchive-dev
+        run: sudo apt-get update && sudo apt-get install -y python3-venv python3-pil python3-jsonschema ninja-build faketime xvfb x11-utils libxtst6 mesa-vulkan-drivers libsdl2-dev libcurl4-openssl-dev libasound2-dev mesa-common-dev openarena-data libarchive-dev fonts-dejavu-core
       - uses: actions/setup-go@v7
         with:
           go-version: '1.27.1'
@@ -365,6 +367,17 @@ jobs:
           path: |
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-entities-runtime/*.log
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-entities-runtime/*.png
+
+      - name: Authored menus and HUD at 1080p, 1440p and 4K
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/ui_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Authored UI evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: authored-ui
+          path: |
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-ui-runtime/*/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-ui-runtime/*/*.log
       - name: Cosmetic props and grenade contacts
         run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/physics_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Authored audio playback and cache lifetime

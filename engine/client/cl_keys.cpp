@@ -582,6 +582,9 @@ static void CL_KeyDownEvent( int key, unsigned time ) {
 		}
 	}
 
+	if ( CL_DataUIKey( key ) )
+		return;
+
 	// escape is always handled special
 	if ( key == K_ESCAPE ) {
 #ifdef USE_CURL

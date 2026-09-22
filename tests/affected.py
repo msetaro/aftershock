@@ -12,7 +12,7 @@ from run import ROOT, SCRATCH
 
 # These are asset-independent entry points with no required binary arguments.
 FAST = ('agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
-        'animation', 'entities', 'physics', 'audio_spatial', 'audio_events', 'audio_streams', 'audio_voice', 'capture', 'weapons', 'effects', 'effects_reference', 'post', 'temporal', 'lod', 'streaming', 'native_math', 'native_shared', 'replication',
+        'animation', 'entities', 'physics', 'ui_framework', 'audio_spatial', 'audio_events', 'audio_streams', 'audio_voice', 'capture', 'weapons', 'effects', 'effects_reference', 'post', 'temporal', 'lod', 'streaming', 'native_math', 'native_shared', 'replication',
         'protocol', 'rewind', 'replication_policy', 'identity', 'rhi', 'render_graph',
         'shadow_views', 'probes', 'materials', 'cook', 'level', 'lighting',
         'devtools_data', 'check_boundaries', 'check_types', 'check_format',
@@ -24,6 +24,7 @@ COMMANDS['match_go'] = ['go', '-C', 'tools/match', 'test', '-race', './...']
 # Prefix matches compose: a cooker animation edit needs both cooker and animation checks.
 RULES = (
     (('engine/entities/', 'tools/cook/entities', 'tests/entities', 'tests/probes/entities', 'tests/assets/entities/'), ('entities',)),
+    (('engine/ui/', 'engine/client/cl_data_ui', 'tools/cook/ui', 'tests/ui_framework', 'tests/probes/ui_framework', 'tests/assets/ui/'), ('ui_framework',)),
     (('engine/client/cl_voice', 'engine/qcommon/voice_public.h', 'cmake/Audio.cmake', 'third_party/opus/'), ('audio_voice',)),
     (('engine/platform/sdl/sdl_snd.cpp', 'tests/probes/capture.cpp'), ('capture',)),
     (('tools/cook/audio.py', 'tests/audio_events'), ('audio_events',)),

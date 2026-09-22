@@ -1152,6 +1152,7 @@ CL_ShutdownUI
 ====================
 */
 void CL_ShutdownUI( void ) {
+	CL_DataUIShutdown();
 	Sys_StopServerSearch( uiServiceSearch );
 	uiServiceSearch = 0;
 	Key_SetCatcher( Key_GetCatcher() & ~KEYCATCH_UI );
@@ -1176,6 +1177,7 @@ void CL_InitUI( void ) {
 	NativeUI_Running = true;
 	Com_Printf( "Static ui loaded.\n" );
 	NativeUI_Init( cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE );
+	CL_DataUIInit();
 }
 
 

@@ -1,0 +1,268 @@
+{
+  "version": 1,
+  "name": "shell",
+  "font": "font.ttf",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "locales": [
+    {
+      "id": "en",
+      "direction": "ltr"
+    },
+    {
+      "id": "ar",
+      "direction": "rtl"
+    }
+  ],
+  "texts": [
+    {
+      "id": "title",
+      "size": 48,
+      "values": {
+        "en": "AFTERSHOCK",
+        "ar": "أفترشوك"
+      }
+    },
+    {
+      "id": "play",
+      "size": 32,
+      "values": {
+        "en": "Play",
+        "ar": "ابدأ"
+      }
+    },
+    {
+      "id": "options",
+      "size": 32,
+      "values": {
+        "en": "Options",
+        "ar": "الإعدادات"
+      }
+    },
+    {
+      "id": "quit",
+      "size": 32,
+      "values": {
+        "en": "Quit",
+        "ar": "خروج"
+      }
+    },
+    {
+      "id": "volume",
+      "size": 28,
+      "values": {
+        "en": "Volume",
+        "ar": "الصوت"
+      }
+    },
+    {
+      "id": "fire",
+      "size": 28,
+      "values": {
+        "en": "Fire binding",
+        "ar": "زر الإطلاق"
+      }
+    },
+    {
+      "id": "back",
+      "size": 28,
+      "values": {
+        "en": "Back",
+        "ar": "رجوع"
+      }
+    },
+    {
+      "id": "health",
+      "size": 24,
+      "values": {
+        "en": "Health",
+        "ar": "الصحة"
+      }
+    }
+  ],
+  "pages": [
+    {
+      "id": "main",
+      "items": [
+        {
+          "id": "title",
+          "kind": "label",
+          "text": "title",
+          "rect": [
+            120,
+            100,
+            960,
+            96
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "play",
+          "kind": "button",
+          "text": "play",
+          "rect": [
+            120,
+            320,
+            600,
+            80
+          ],
+          "anchor": [
+            0,
+            0
+          ],
+          "action": "map",
+          "target": "two_lane"
+        },
+        {
+          "id": "options",
+          "kind": "button",
+          "text": "options",
+          "rect": [
+            120,
+            420,
+            600,
+            80
+          ],
+          "anchor": [
+            0,
+            0
+          ],
+          "action": "page",
+          "target": "options"
+        },
+        {
+          "id": "quit",
+          "kind": "button",
+          "text": "quit",
+          "rect": [
+            120,
+            520,
+            600,
+            80
+          ],
+          "anchor": [
+            0,
+            0
+          ],
+          "action": "quit",
+          "target": ""
+        }
+      ]
+    },
+    {
+      "id": "options",
+      "items": [
+        {
+          "id": "title",
+          "kind": "label",
+          "text": "options",
+          "rect": [
+            120,
+            100,
+            960,
+            96
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "volume",
+          "kind": "slider",
+          "text": "volume",
+          "rect": [
+            120,
+            320,
+            900,
+            80
+          ],
+          "anchor": [
+            0,
+            0
+          ],
+          "target": "s_volume",
+          "range": [
+            0,
+            1,
+            0.1
+          ]
+        },
+        {
+          "id": "fire",
+          "kind": "binding",
+          "text": "fire",
+          "rect": [
+            120,
+            420,
+            900,
+            80
+          ],
+          "anchor": [
+            0,
+            0
+          ],
+          "target": "+attack"
+        },
+        {
+          "id": "back",
+          "kind": "button",
+          "text": "back",
+          "rect": [
+            120,
+            520,
+            600,
+            80
+          ],
+          "anchor": [
+            0,
+            0
+          ],
+          "action": "page",
+          "target": "main"
+        }
+      ]
+    },
+    {
+      "id": "hud",
+      "items": [
+        {
+          "id": "health_label",
+          "kind": "label",
+          "text": "health",
+          "rect": [
+            48,
+            -140,
+            250,
+            48
+          ],
+          "anchor": [
+            0,
+            1
+          ]
+        },
+        {
+          "id": "health",
+          "kind": "value",
+          "text": "health",
+          "rect": [
+            48,
+            -85,
+            250,
+            64
+          ],
+          "anchor": [
+            0,
+            1
+          ],
+          "target": "health"
+        }
+      ]
+    }
+  ]
+}
