@@ -72,16 +72,19 @@ with tempfile.TemporaryDirectory(prefix='aftershock-audio-runtime-') as temporar
                 'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',
                 'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',
                 'set s_hrtf 1', 'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',
-                'devmap audio_room', 'wait 120', 'setviewpos -160 -160 24 0', 'wait 10', 's_stop',
+                'devmap audio_room', 'wait 120', 'setviewpos -160 -160 24 0', 'wait 60', 's_stop',
                 'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',
-                'setviewpos 1696 160 56 180', 'wait 10', 's_stop',
+                'setviewpos 1696 160 56 180', 'wait 60', 's_stop',
                 'play sound/audio_event.asevt', 'wait 90', 's_audioInfo',
-                'setviewpos -160 -160 24 0', 'wait 10', 's_stop',
+                'setviewpos -160 -160 24 0', 'wait 60', 's_stop',
                 's_event sound/audio_event.asevt 768 0 50', 'wait 90', 's_audioInfo',
                 's_stop', 's_stream 0 music sound/audio_test.wav 1',
                 's_stream 1 ambient sound/audio_test.wav 1', 'wait 240', 's_streamInfo', 's_audioInfo',
                 'wait 240', 's_streamInfo', 's_audioInfo', 's_streamStop 0', 's_streamStop 1',
-                'wait 10', 's_streamInfo', 's_audioInfo', 'disconnect', 'quit']
+                'wait 10', 's_streamInfo', 's_audioInfo',
+                's_stream 0 music sound/audio_test.wav 1', 'wait 60', 's_streamInfo',
+                's_streamStop 0', 's_stream 1 ambient sound/audio_test.wav 0',
+                'wait 60', 's_streamInfo', 'disconnect', 'quit']
     (base / 'audio-test.cfg').write_text('\n'.join(commands) + '\n')
     command = ['xvfb-run', '-a', str(args.binary.resolve()), '+set', 'fs_basepath', str(home),
                '+set', 'fs_homepath', str(home), *content_settings(args.content),
@@ -105,11 +108,11 @@ assert room[:2] == ('1', '0') and float(room[2]) > .59 and float(room[5]) > 1, r
 assert outdoors[:2] == ('1', '-1') and float(outdoors[5]) == 0, outdoors
 assert int(wall[3]) > 0 and int(wall[4]) > 0, wall
 streams = re.findall(r'Audio streams: prepared=(\d+) active=(\d+) bytes=(\d+) buffers=(\d+) loops=(\d+) reads=(\d+) failures=(\d+)', text)
-assert len(streams) == 3, streams
+assert len(streams) == 5, streams
 assert all(row[0] == '2' and row[2] == '57600' and row[3] == '40960' and row[6] == '0' for row in streams), streams
-assert [row[1] for row in streams] == ['2','2','0'], streams
+assert [row[1] for row in streams] == ['2','2','0','1','0'], streams
 assert int(streams[1][4]) > int(streams[0][4]) >= 4, streams
 assert int(streams[1][5]) > int(streams[0][5]), streams
 assert float(stats[7][6]) > 1000 and int(stats[7][5]) > int(stats[6][5]), stats
 assert 'Audio event rejected' not in text and 'Audio zone rejected' not in text
-print('PASS: cooked PCM playback, fixed cache, HRTF retirement, authored room/outdoor reverb and native wall occlusion')
+print('PASS: cooked PCM playback, fixed cache, HRTF retirement, authored room/outdoor reverb native wall occlusion and reusable compressed-source streams')

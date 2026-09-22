@@ -48,6 +48,167 @@ bool S_AuthoredHandle( sfxHandle_t handle ) {
 	return handle >= 65536 && handle < 65536 + 128;
 }
 
+// Decode only at preparation. Loops read a retained, uncompressed temporary file.
+// ponytail: four 256 MiB streams and synchronous buffered reads; add I/O prefetch if measured stalls require it.
+static struct audioStream_t {
+	char name[MAX_QPATH], ioBuffer[4096];
+	int16_t pcm[4096 * 2];
+	fileHandle_t file;
+	uint32_t frames, rate, channels, first, count;
+	double cursor;
+	sBus_t bus;
+	bool active, loop;
+} streams[4];
+static uint32_t streamPrepared, streamLoops, streamReads, streamFailures;
+
+static void ClearStreams() {
+	for ( auto &stream : streams ) {
+		if ( stream.file )
+			FS_FCloseFile( stream.file );
+		stream = {};
+	}
+	streamPrepared = streamLoops = streamReads = streamFailures = 0;
+}
+
+static bool PrepareStream( audioStream_t &stream, const char *name ) {
+	if ( stream.file && !strcmp( stream.name, name ) )
+		return true;
+	if ( stream.file )
+		FS_FCloseFile( stream.file );
+	stream = {};
+	if ( strlen( name ) >= MAX_QPATH || Q_stricmp( COM_GetExtension( name ), "wav" ) )
+		return false;
+	stream.file = FS_OpenTemporaryFile( stream.ioBuffer, sizeof( stream.ioBuffer ) );
+	if ( !stream.file )
+		return false;
+	auto *source = S_CodecOpenStream( name );
+	bool ready = false;
+	if ( source ) {
+		const auto info = source->info;
+		if ( info.width == 2 && ( info.channels == 1 || info.channels == 2 ) &&
+			 info.rate >= 8000 && info.rate <= 192000 && info.samples > 0 && info.size > 0 &&
+			 info.size <= 256 * 1024 * 1024 && uint64_t( info.samples ) * info.channels * 2 == uint32_t( info.size ) ) {
+			int remaining = info.size;
+			while ( remaining > 0 ) {
+				const int count = std::min( remaining, int( sizeof( stream.pcm ) ) );
+				if ( S_CodecReadStream( source, count, stream.pcm ) != count || FS_Write( stream.pcm, count, stream.file ) != count )
+					break;
+				remaining -= count;
+			}
+			ready = remaining == 0 && FS_Seek( stream.file, 0, FS_SEEK_SET ) == 0;
+			stream.frames = uint32_t( info.samples );
+			stream.rate = uint32_t( info.rate );
+			stream.channels = uint32_t( info.channels );
+		}
+		S_CodecCloseStream( source );
+	}
+	if ( !ready ) {
+		FS_FCloseFile( stream.file );
+		stream = {};
+		return false;
+	}
+	Q_strncpyz( stream.name, name, sizeof( stream.name ) );
+	++streamPrepared;
+	return true;
+}
+
+static bool StreamSample( audioStream_t &stream, uint32_t index, float out[2] ) {
+	if ( index < stream.first || index >= stream.first + stream.count ) {
+		stream.first = index / 4096 * 4096;
+		stream.count = std::min( 4096u, stream.frames - stream.first );
+		const int bytes = int( stream.count * stream.channels * 2 );
+		++streamReads;
+		if ( FS_Seek( stream.file, stream.first * stream.channels * 2, FS_SEEK_SET ) != 0 ||
+			 FS_Read( stream.pcm, bytes, stream.file ) != bytes ) {
+			stream.active = false;
+			stream.count = 0;
+			++streamFailures;
+			return false;
+		}
+	}
+	const uint32_t offset = ( index - stream.first ) * stream.channels;
+	out[0] = stream.pcm[offset];
+	out[1] = stream.pcm[offset + stream.channels - 1];
+	return true;
+}
+
+static bool StreamsActive() {
+	for ( const auto &stream : streams )
+		if ( stream.active )
+			return true;
+	return false;
+}
+
+static void MixStreams( sBusFrame_t *input, int frames ) {
+	for ( auto &stream : streams ) {
+		for ( int frame = 0; frame < frames && stream.active; ++frame ) {
+			if ( stream.cursor >= stream.frames ) {
+				if ( !stream.loop ) {
+					stream.active = false;
+					break;
+				}
+				streamLoops += uint32_t( stream.cursor / stream.frames );
+				stream.cursor = std::fmod( stream.cursor, double( stream.frames ) );
+			}
+			const uint32_t index = uint32_t( stream.cursor );
+			const uint32_t next = index + 1 < stream.frames ? index + 1 : ( stream.loop ? 0 : index );
+			const float fraction = float( stream.cursor - index );
+			float a[2], b[2];
+			if ( !StreamSample( stream, index, a ) || !StreamSample( stream, next, b ) )
+				break;
+			for ( int ear = 0; ear < 2; ++ear )
+				input[frame].samples[stream.bus][ear] += a[ear] + fraction * ( b[ear] - a[ear] );
+			stream.cursor += double( stream.rate ) / dma.speed;
+		}
+	}
+}
+
+static int StreamSlot() {
+	const char *text = Cmd_Argv( 1 );
+	return text[0] >= '0' && text[0] <= '3' && !text[1] ? text[0] - '0' : -1;
+}
+
+static void PlayStream() {
+	const int slot = StreamSlot();
+	const char *bus = Cmd_Argv( 2 ), *loop = Cmd_Argv( 4 );
+	if ( Cmd_Argc() != 5 || slot < 0 || ( strcmp( bus, "music" ) && strcmp( bus, "ambient" ) ) ||
+		 ( strcmp( loop, "0" ) && strcmp( loop, "1" ) ) ) {
+		Com_Printf( "Usage: s_stream <0..3> <music|ambient> <sample.wav> <0|1 loop>\n" );
+		return;
+	}
+	auto &stream = streams[slot];
+	if ( !PrepareStream( stream, Cmd_Argv( 3 ) ) ) {
+		++streamFailures;
+		Com_Printf( "Audio stream rejected: %s\n", Cmd_Argv( 3 ) );
+		return;
+	}
+	stream.cursor = 0;
+	stream.bus = !strcmp( bus, "music" ) ? S_BUS_MUSIC : S_BUS_AMBIENT;
+	stream.loop = loop[0] == '1';
+	stream.active = true;
+}
+
+static void StopStream() {
+	const int slot = StreamSlot();
+	if ( Cmd_Argc() == 2 && slot >= 0 )
+		streams[slot].active = false;
+	else
+		Com_Printf( "Usage: s_streamStop <0..3>\n" );
+}
+
+static void StreamInfo() {
+	uint32_t active = 0, bytes = 0, buffers = 0;
+	for ( const auto &stream : streams ) {
+		active += stream.active;
+		if ( stream.file ) {
+			bytes += stream.frames * stream.channels * 2;
+			buffers += sizeof( stream.pcm ) + sizeof( stream.ioBuffer );
+		}
+	}
+	Com_Printf( "Audio streams: prepared=%u active=%u bytes=%u buffers=%u loops=%u reads=%u failures=%u\n",
+		streamPrepared, active, bytes, buffers, streamLoops, streamReads, streamFailures );
+}
+
 static void Info() {
 	Com_Printf( "Audio events: events=%u samples=%u bytes=%u active=%u started=%u mixed=%" PRIu64 " peak=%.3f zones=%u zone=%d wet=%.3f traced=%u blocked=%u wetPeak=%.3f\n",
 		eventCount, sampleCount, sampleBytes, mixer.active, started, mixed, double( peak ), zoneCount, zoneIndex, double( reverb.wet ), traced, blocked, double( wetPeak ) );
@@ -87,9 +248,13 @@ void S_AuthoredInit() {
 	}
 	Cmd_AddCommand( "s_audioInfo", Info );
 	Cmd_AddCommand( "s_event", PlayAt );
+	Cmd_AddCommand( "s_stream", PlayStream );
+	Cmd_AddCommand( "s_streamStop", StopStream );
+	Cmd_AddCommand( "s_streamInfo", StreamInfo );
 }
 
 void S_AuthoredClear() {
+	ClearStreams();
 	mixer = {};
 	memset( sources, 0, sizeof( sources ) );
 	memset( entities, 0, sizeof( entities ) );
@@ -111,6 +276,9 @@ void S_AuthoredShutdown() {
 	eventCount = sampleCount = sampleBytes = 0;
 	Cmd_RemoveCommand( "s_audioInfo" );
 	Cmd_RemoveCommand( "s_event" );
+	Cmd_RemoveCommand( "s_stream" );
+	Cmd_RemoveCommand( "s_streamStop" );
+	Cmd_RemoveCommand( "s_streamInfo" );
 	hrtf = nullptr;
 	zoneCount = 0;
 }
@@ -340,15 +508,18 @@ void S_AuthoredRespatialize( int entity, const vec3_t head, vec3_t axis[3] ) {
 }
 
 void S_AuthoredPaint( portable_samplepair_t *paint, int frames, float volume ) {
-	if ( ( !mixer.active && !reverb.remaining ) || frames <= 0 || frames > PAINTBUFFER_SIZE )
+	if ( ( !mixer.active && !reverb.remaining && !StreamsActive() ) || frames <= 0 || frames > PAINTBUFFER_SIZE )
 		return;
 	volume = std::isfinite( volume ) ? std::clamp( volume, 0.0f, 127.0f ) : 0.0f;
 	static float output[PAINTBUFFER_SIZE][2], sends[PAINTBUFFER_SIZE];
+	static sBusFrame_t input[PAINTBUFFER_SIZE];
+	memset( input, 0, size_t( frames ) * sizeof( input[0] ) );
+	MixStreams( input, frames );
 	memset( sends, 0, size_t( frames ) * sizeof( sends[0] ) );
 	memset( output, 0, size_t( frames ) * sizeof( output[0] ) );
 	for ( uint32_t bus = 0; bus < S_BUS_COUNT; ++bus )
 		mixer.busGain[bus] = busVolumes[bus]->value;
-	S_MixEvents( &mixer, output, uint32_t( frames ), dma.speed, sends );
+	S_MixEvents( &mixer, output, uint32_t( frames ), dma.speed, sends, input );
 	mixed += uint32_t( frames );
 	for ( int frame = 0; frame < frames; ++frame ) {
 		float wet[2];

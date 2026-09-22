@@ -44,8 +44,8 @@ sufficient. Private read-only findings and primary references are in
 /home/matt/.cache/aftershock-modernization/audio-research.md. A private SDL dummy
 output baseline passed; it does not establish any #16 feature.
 
-Next add collision occlusion and authored map reverb volumes, followed by
-allocation-free streaming, functional VoIP and real weapon near/far acceptance.
+Authored map acoustics and reusable music/ambient streams now pass. Next complete
+functional VoIP and real weapon near/far acceptance.
 Prepared event registration/playback and both-content output checks now pass. Record failures before fixes. No maintainer input is currently needed.
 
 #15 is accepted and checked in #25: merged-tree build/publication 35658235970
@@ -61,6 +61,26 @@ Never install local system packages, copy game paks, or regenerate accepted gold
 After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
+
+## #16 stream playback checkpoint
+
+5cb833ed records the missing stream-command runtime failure; 6e5238f3 records the
+missing incoming-bus mixer API. The bounded adapter now prepares PCM once into a
+private temporary file and reads through retained 16 KiB PCM/4 KiB stdio buffers.
+Four slots support stereo music/ambient, loop and one-shot playback; restart reuses
+prepared content. The real OpenArena client read an owned compressed pk3 source,
+completed 122 combined loops with two preparations, 40,960 buffer bytes and zero
+I/O failures (audio-streaming-oa/). GCC/Clang UBSan bus probes pass, including
+stereo routing and muted-voice ducking. Format/types/boundaries pass (496/414/415).
+No engine allocation/reopen occurs in MixStreams; synchronous disk reads remain a
+known latency ceiling. No claim of general real-time storage latency is made.
+Both content sets pass restart reuse and one-shot retirement. A concurrent Quake 3
+run exposed an insufficient 10-frame teleport wait in the new test (outdoor zone
+was reached only after the sound began); the scenario now settles for 60 frames,
+and Quake 3 passes with zero outdoor wet output (audio-streaming-settle-q3/).
+Remote head 646dec73 passed all 16 compiler legs and nine active regression jobs.
+Runtime 35668445085 timed out in the existing delayed-hitscan scenario before the
+audio test ran; logs/artifacts are being inspected, and this is not merge acceptance.
 
 ## #16 reusable stream file checkpoint
 

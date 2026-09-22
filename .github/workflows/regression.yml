@@ -106,6 +106,7 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/post.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/audio_events.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           python3 tests/audio_spatial.py --cxx '${{ matrix.cxx }}'
+          python3 tests/audio_streams.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/temporal.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/streaming.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/effects_reference.py

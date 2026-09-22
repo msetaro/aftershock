@@ -12,7 +12,7 @@ from run import ROOT, SCRATCH
 
 # These are asset-independent entry points with no required binary arguments.
 FAST = ('agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
-        'animation', 'physics', 'audio_spatial', 'audio_events', 'weapons', 'effects', 'effects_reference', 'post', 'temporal', 'lod', 'streaming', 'native_math', 'native_shared', 'replication',
+        'animation', 'physics', 'audio_spatial', 'audio_events', 'audio_streams', 'weapons', 'effects', 'effects_reference', 'post', 'temporal', 'lod', 'streaming', 'native_math', 'native_shared', 'replication',
         'protocol', 'rewind', 'replication_policy', 'identity', 'rhi', 'render_graph',
         'shadow_views', 'probes', 'materials', 'cook', 'level', 'lighting',
         'devtools_data', 'check_boundaries', 'check_types', 'check_format',
@@ -24,7 +24,8 @@ COMMANDS['match_go'] = ['go', '-C', 'tools/match', 'test', '-race', './...']
 # Prefix matches compose: a cooker animation edit needs both cooker and animation checks.
 RULES = (
     (('tools/cook/audio.py', 'tests/audio_events'), ('audio_events',)),
-    (('engine/sound/', 'tests/audio_spatial', 'tests/probes/audio_spatial'), ('audio_spatial',)),
+    (('engine/sound/', 'tests/audio_spatial', 'tests/probes/audio_spatial'), ('audio_spatial', 'audio_events', 'audio_streams')),
+    (('engine/qcommon/files.cpp', 'engine/platform/unix/unix_shared.cpp', 'engine/platform/win32/win_shared.cpp'), ('audio_streams',)),
     (('engine/physics/', 'engine/client/cl_physics', 'engine/qcommon/cm_physics', 'game/cgame/cg_physics', 'third_party/jolt', 'cmake/Physics.cmake', 'tests/physics', 'tests/probes/physics', 'tests/assets/physics/'), ('physics',)),
     (('engine/devtools/', 'tools/agent/'), ('agent_protocol', 'agent_client', 'agent_formats', 'devtools_data')),
     (('engine/effects/', 'tools/cook/effect', 'tests/assets/effects/'), ('effects', 'effects_reference')),

@@ -59,6 +59,10 @@ struct sEventVoice_t {
 	float occlusion, occlusionSmooth, filtered;
 };
 
+struct sBusFrame_t {
+	float samples[S_BUS_COUNT][2];
+};
+
 struct sEventMixer_t {
 	sEventVoice_t voices[96];
 	float busGain[S_BUS_COUNT] = { 1, 1, 1, 1, 1 };
@@ -73,7 +77,7 @@ int S_StartEventVoice( sEventMixer_t *mixer, const sSoundEvent_t *event, const s
 	const sSpatialInput_t &spatial, bool binaural, int rate, float headRadius );
 bool S_UpdateEventVoice( sEventVoice_t *voice, const sSpatialInput_t &spatial, int rate, float headRadius );
 // Add PCM-unit stereo output. No allocation, file access or device calls.
-void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, int rate, float *reverbSend = nullptr );
+void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, int rate, float *reverbSend = nullptr, const sBusFrame_t *input = nullptr );
 
 struct sReverb_t {
 	float lines[4][16384];

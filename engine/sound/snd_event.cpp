@@ -145,19 +145,21 @@ static float MonoSample( const sEventPCM_t &pcm, uint32_t frame ) {
 	return pcm.channels == 2 ? ( float( samples[0] ) + samples[1] ) * 0.5f : samples[0];
 }
 
-void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, int rate, float *reverbSend ) {
+void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, int rate, float *reverbSend, const sBusFrame_t *input ) {
 	if ( !mixer || !output || rate < 8000 || rate > 192000 )
 		return;
-	if ( !mixer->active ) {
+	if ( !mixer->active && !input ) {
 		mixer->duck = 0.0f;
 		return;
 	}
 	const float closedAlpha = 1.0f - std::exp( -2.0f * 3.14159265f * 1200.0f / rate );
 	for ( uint32_t frame = 0; frame < frames; ++frame ) {
-		float buses[S_BUS_COUNT][2] = {};
+		sBusFrame_t incoming = input ? input[frame] : sBusFrame_t{};
+		auto &buses = incoming.samples;
 		float sends[S_BUS_COUNT] = {};
-		bool voiceAudible = false;
 		for ( auto &voice : mixer->voices ) {
+			if ( !mixer->active )
+				break;
 			if ( !voice.event )
 				continue;
 			float sample = 0.0f;
@@ -198,8 +200,9 @@ void S_MixEvents( sEventMixer_t *mixer, float ( *output )[2], uint32_t frames, i
 			buses[bus][0] += ears[0];
 			buses[bus][1] += ears[1];
 			sends[bus] += ( ears[0] + ears[1] ) * 0.5f * voice.event->reverbSend;
-			voiceAudible |= bus == S_BUS_VOICE && ( std::fabs( ears[0] ) + std::fabs( ears[1] ) > 1.0f );
 		}
+		const float voiceGain = std::isfinite( mixer->busGain[S_BUS_VOICE] ) ? std::clamp( mixer->busGain[S_BUS_VOICE], 0.0f, 1.0f ) : 0.0f;
+		const bool voiceAudible = ( std::fabs( buses[S_BUS_VOICE][0] ) + std::fabs( buses[S_BUS_VOICE][1] ) ) * voiceGain > 1.0f;
 		// Fast voice attack, slower release; a zeroed mixer begins unducked.
 		const float target = voiceAudible ? 1.0f : 0.0f;
 		const float seconds = voiceAudible ? 0.005f : 0.25f;

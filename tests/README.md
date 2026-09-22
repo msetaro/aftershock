@@ -328,8 +328,19 @@ Each optional zone contains `mins`, `maxs`, `wet` (0–1), `decay` (0.1–10 sec
 and `damping` (0–0.95); up to 32 zones are supported, first matching zone wins.
 `s_event path.asevt x y z` plays at a world position. Occlusion uses at most eight
 round-robin static-world traces per spatial update, with a smoothed low-pass/gain
-response; moving entity occluders are outside this implementation. Streaming and
-voice integration remain in progress.
+response; moving entity occluders are outside this implementation. `s_stream SLOT music|ambient sound/path.wav LOOP` prepares and starts a stereo
+stream (slots 0–3, loop 0/1); `s_streamStop SLOT` stops it while retaining its
+prepared file. `s_streamInfo` reports preparations, bytes, buffers, reads/loops
+and failures. Each slot decodes at preparation into an automatically removed
+private PCM file, capped at 256 MiB. Playback uses a fixed 16 KiB PCM block and
+4 KiB stdio buffer per slot; loops never reopen the compressed pk3 source.
+`s_stop`, map changes and sound shutdown close all streams. Reads are synchronous;
+this removes playback allocation but does not promise freedom from storage stalls.
+The runtime check packs its owned tone into a compressed pk3 and checks simultaneous
+music/ambient loops, restart reuse and one-shot retirement. Stereo streams share
+bus gains and voice ducking. `python3 tests/audio_streams.py` verifies exclusive
+temporary storage, reusable buffering and cleanup with GCC/Clang UBSan.
+Voice integration remains in progress.
 
 `python3 tests/audio_spatial.py` checks the authored-audio spatial component
 with UBSan (also accepts `--cxx 'clang++ -stdlib=libc++'`). It covers stereo
