@@ -41,6 +41,7 @@ static_assert( sizeof( aiBehaviorState_t ) == 48 && offsetof( aiBehaviorState_t,
 static_assert( sizeof( aiTransition_t ) == 20 && offsetof( aiTransition_t, value ) == 12 );
 static_assert( sizeof( aiState_t ) == 16 && std::is_trivially_copyable_v<aiState_t> );
 static_assert( std::is_trivially_copyable_v<aiBehavior_t> );
+bool AI_LoadBehavior( const char *path, aiBehavior_t *out, uint8_t hash[32] );
 bool AI_ReadBehavior( const void *data, size_t size, aiBehavior_t *out );
 // Requires a behavior returned by AI_ReadBehavior. One transition per fixed tick,
 // ordered leaf rules before inherited parent rules.

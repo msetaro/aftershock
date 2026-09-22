@@ -504,9 +504,11 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 		G_SoundIndex( (char *)"sound/player/gurp2.wav" );
 	}
 
+	G_InitNavigation();
 	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		BotAISetup( restart );
-		BotAILoadMap( restart );
+		if ( !G_NavigationEnabled() )
+			BotAILoadMap( restart );
 		G_InitBots( (qboolean)restart );
 	}
 
@@ -523,6 +525,7 @@ G_ShutdownGame
 =================
 */
 void G_ShutdownGame( int restart ) {
+	G_ShutdownNavigation();
 	BG_ClearWeapons();
 	G_ShutdownAnimation();
 	G_Printf( "==== ShutdownGame ====\n" );

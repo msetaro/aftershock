@@ -1,6 +1,10 @@
 # Explicit production source lists migrated from the verified Make build.
 
 set(COMMON_SOURCES
+  engine/navigation/navigation.cpp
+  engine/navigation/navigation_assets.cpp
+  engine/navigation/behavior.cpp
+  engine/navigation/perception.cpp
   engine/entities/entities.cpp
   engine/weapons/weapons_assets.cpp
   engine/weapons/weapons.cpp
@@ -234,6 +238,7 @@ set(VULKAN_SOURCES
 )
 
 set(NATIVE_GAME_SOURCES
+  game/game/g_navigation.cpp
   game/game/g_state.cpp
   game/game/g_callbacks.cpp
   game/game/g_rewind.cpp

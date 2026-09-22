@@ -52,6 +52,24 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 first native patrol integration
+
+Wire the existing navigation/behavior/perception owners and pinned Detour sources
+into client/server builds with strict FP options. Cook index kinds 15/16 are
+recognized; navigation and behavior load through existing filesystem services.
+Latched g_navigation/g_behavior opt into the new controller; ordinary bot matches
+keep their existing path. The controller emits the existing bot input/usercmd
+format and Pmove remains movement authority. New bots bypass legacy AAS client
+setup; a runtime run with the owned map's AAS removed passes.
+
+After 7d40e273's failing runtime contract, the OpenArena native patrol moves about
+1195 units over complete three/four-corner routes with the data-driven rifle
+active. Actor telemetry and the AI ImGui panel expose state age, transitions,
+route cursor and colored path segments. The inspector capture was viewed.
+Evidence: navigation-runtime-patrol2/ and navigation-runtime-no-aas/; Linux client
+and server build and format/type/boundary checks pass. This is initial patrol,
+not combat/cover, q3dm17 traversal or checkpoint acceptance; those are next.
+
 ## #21 private map-pad observations
 
 Observed all 13 existing q3dm17 pads through current-main native movement. Twelve

@@ -31,6 +31,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
         subprocess.run([sys.executable, 'tools/level', 'tests/assets/levels/two_lane.json', '--output', str(source)],
                        cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=600)
     shutil.copytree(source, base)
+    (base/'maps/two_lane.aas').unlink(missing_ok=True)  # New bots must not depend on legacy AAS.
     navigation = dict(version=1, collision='maps/two_lane.bsp', agent=dict(radius=15,height=56,climb=18,slope=46),
                       cell_size=4, cell_height=2, links=[])
     behavior = dict(version=1, name='patrol', initial='patrol', states=[dict(name='patrol', action='patrol', transitions=[])])

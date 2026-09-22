@@ -4,6 +4,8 @@
 #include "../weapons/weapons_public.h"
 #include "../animation/animation_public.h"
 #include "../entities/entities_public.h"
+#include "../navigation/navigation_public.h"
+#include "../navigation/behavior_public.h"
 
 struct devEntity_t {
 	char classname[64];
@@ -22,6 +24,14 @@ struct devAnimationState_t {
 	animState_t state;
 	char name[64];
 };
+struct devAIState_t {
+	navPath_t path;
+	navFollowState_t cursor;
+	aiState_t behavior;
+	aiAction_t action;
+	float position[3], goal[3];
+	char name[32];
+};
 // Registered by the local native game; external content modules may omit tools.
 struct devGameTools_t {
 	bool ( *ReadEntity )( int index, devEntity_t *entity );
@@ -36,6 +46,7 @@ struct devGameTools_t {
 	bool ( *ReadAnimation )( int owner, int rig, devAnimationState_t *state ) = nullptr;
 	const entityDefinitions_t *( *Definitions )() = nullptr;
 	bool ( *WriteDefinition )( const char *name, const char *key, const char *value ) = nullptr;
+	bool ( *ReadAI )( int owner, devAIState_t *state ) = nullptr;
 };
 void Dev_RegisterGameTools( const devGameTools_t *tools );
 #endif

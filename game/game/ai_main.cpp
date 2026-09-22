@@ -1173,6 +1173,8 @@ BotAISetupClient
 ==============
 */
 int BotAISetupClient( int client, struct bot_settings_s *settings, qboolean restart ) {
+	if ( G_NavigationEnabled() )
+		return qtrue;
 	char filename[MAX_PATH], name[MAX_PATH], gender[MAX_PATH];
 	bot_state_t *bs;
 	int errnum;
@@ -1413,6 +1415,8 @@ int BotAIStartFrame( int time ) {
 	int elapsed_time, thinktime;
 
 	G_CheckBotSpawn();
+	if ( G_NavigationFrame( time ) )
+		return qtrue;
 
 	trap_Cvar_Update( &bot_rocketjump );
 	trap_Cvar_Update( &bot_grapple );

@@ -1097,7 +1097,7 @@ static struct {
 } worldDebug;
 
 bool DevTools_SelectPanel( const char *name ) {
-	static constexpr const char *panels[] = { "Console", "Cvars", "Textures", "Materials", "Profile", "Memory", "Animation", "Entities", "World", "Graph", "Range", "Effects", "Physics", "Definitions" };
+	static constexpr const char *panels[] = { "Console", "Cvars", "Textures", "Materials", "Profile", "Memory", "Animation", "Entities", "World", "Graph", "Range", "Effects", "Physics", "Definitions", "AI" };
 	for ( const char *panel : panels ) {
 		if ( !strcmp( name, panel ) ) {
 			Q_strncpyz( requestedPanel, panel, sizeof( requestedPanel ) );
@@ -1323,6 +1323,41 @@ static struct {
 	char name[64], key[32], value[128], original[128], status[128];
 	int action;
 } definitionEditor;
+
+static void InspectAI() {
+	if ( !BeginPanel( "AI" ) )
+		return;
+	const auto *game = DevTools_Game();
+	bool found = false;
+	static int selected = -1;
+	for ( int owner = 0; game && game->ReadAI && owner < MAX_CLIENTS; ++owner ) {
+		devAIState_t actor;
+		if ( !game->ReadAI( owner, &actor ) )
+			continue;
+		if ( !found && selected < 0 )
+			selected = owner;
+		found = true;
+		char label[80];
+		snprintf( label, sizeof( label ), "Bot %d: %s", owner, actor.name );
+		if ( ImGui::Selectable( label, selected == owner ) )
+			selected = owner;
+		if ( selected != owner )
+			continue;
+		ImGui::Text( "State age %u ms | transitions %u", actor.behavior.elapsed, actor.behavior.transitions );
+		ImGui::Text( "Path %u / %u | %s | traversal phase %u", actor.cursor.point, actor.path.count,
+			actor.path.complete ? "complete" : "partial", actor.cursor.phase );
+		ImGui::Text( "Goal %.1f %.1f %.1f", double( actor.goal[0] ), double( actor.goal[1] ), double( actor.goal[2] ) );
+		for ( uint32_t point = 1; point < actor.path.count; ++point )
+			Dev_DrawLine( actor.path.points[point - 1].position, actor.path.points[point].position,
+				actor.path.points[point - 1].link ? 0xff4080ff : 0xff40ff40, 0 );
+		Dev_DrawText( actor.position, actor.name, 0xffffffff, 0 );
+	}
+	if ( !found ) {
+		selected = -1;
+		ImGui::TextWrapped( "Load g_navigation and g_behavior cooked assets on a local map, then add a bot." );
+	}
+	ImGui::EndTabItem();
+}
 
 static void InspectDefinitions() {
 	if ( !BeginPanel( "Definitions" ) )
@@ -1894,6 +1929,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 			InspectAnimation( renderer, elapsed );
 			InspectEntities();
 			InspectDefinitions();
+			InspectAI();
 			InspectWorld();
 			InspectGraph( elapsed );
 			InspectWeaponRange();

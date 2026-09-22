@@ -78,7 +78,7 @@ int main( int argc, char **argv ) {
 	navFollowState_t cursor{};
 	navFollowOutput_t follow{};
 	const float origin[3] = { 0, 0, 0 }, pad[3] = { 100, 0, 0 },
-		flight[3] = { 150, 0, 150 }, landed[3] = { 200, 0, 100 };
+				flight[3] = { 150, 0, 150 }, landed[3] = { 200, 0, 100 };
 	assert(Nav_Follow(route,origin,true,12,&cursor,&follow));
 	assert(cursor.point == 1 && follow.position[0] == 100 && !follow.arrived);
 	assert(Nav_Follow(route,pad,true,12,&cursor,&follow));

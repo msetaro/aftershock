@@ -54,6 +54,7 @@ struct navWorld_t;
 // capacity until Close. Queries, agent changes and updates allocate no memory.
 navWorld_t *Nav_Open( const void *data, size_t size, uint32_t collisionChecksum, uint32_t maxAgents );
 void Nav_Close( navWorld_t *world );
+navWorld_t *Nav_LoadFile( const char *path, uint32_t collisionChecksum, uint32_t maxAgents, uint8_t hash[32] );
 bool Nav_Path( navWorld_t *world, const float start[3], const float end[3], bool links, navPath_t *out );
 // Nearby collision-boundary candidates, closest first. Caller checks actual
 // threat occlusion/reachability; complete is false if query capacity was exceeded.

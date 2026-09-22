@@ -1002,7 +1002,7 @@ static void G_DevReset( void ) {
 	devCurrentSource = -1;
 	devComplete = true;
 	static const devGameTools_t tools = { Dev_ReadEntity, Dev_FieldName, Dev_ReadField, Dev_WriteField,
-		Dev_Spawn, Dev_Delete, Dev_MapCount, Dev_MapText, G_DevWeapon, G_DevAnimation, Dev_Definitions, Dev_WriteDefinition };
+		Dev_Spawn, Dev_Delete, Dev_MapCount, Dev_MapText, G_DevWeapon, G_DevAnimation, Dev_Definitions, Dev_WriteDefinition, G_DevAI };
 	Dev_RegisterGameTools( &tools );
 }
 #endif
