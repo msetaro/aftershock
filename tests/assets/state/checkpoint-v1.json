@@ -1,0 +1,4411 @@
+{
+  "writer_commit": "308b70c2fade4461c284dd77bcc6e09fe1c23aae",
+  "binary_sha256": "ae9c8896a90a970ecc00ab146d3beff35d338f9976aebe47f72fd5e4f3b922ba",
+  "raw_sha256": "1d3d0762caf2f464e242d0e485de429f5a9a53e91e2327efff4f2fcf742fa977",
+  "gzip_sha256": "946d1991efd407e7eebd6182485ebe1325a369a7366bac9f1fb436e165a99b74",
+  "bytes": 17407471,
+  "content": "openarena",
+  "map": "oa_dm1",
+  "format_version": 1,
+  "checkpoint_version": 1,
+  "dt": 20,
+  "seed": 19,
+  "before": [
+    {
+      "entity": 0,
+      "classname": "player",
+      "origin": [
+        289.214325,
+        1412.47485,
+        -119.869911
+      ],
+      "mins": [
+        273,
+        1396,
+        -144
+      ],
+      "maxs": [
+        305,
+        1428,
+        -86
+      ],
+      "health": 100,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 33554432,
+      "source": -1,
+      "linked": true
+    },
+    {
+      "entity": 1,
+      "classname": "player",
+      "origin": [
+        141.403168,
+        1469.13928,
+        24.125
+      ],
+      "mins": [
+        125,
+        1453,
+        -1
+      ],
+      "maxs": [
+        157,
+        1485,
+        57
+      ],
+      "health": 113,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 33554432,
+      "source": -1,
+      "linked": true
+    },
+    {
+      "entity": 64,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 65,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 66,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 67,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 68,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 69,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 70,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 71,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 72,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        280,
+        1416,
+        -120
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 1,
+      "linked": false
+    },
+    {
+      "entity": 73,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        1128,
+        1424,
+        72
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 2,
+      "linked": false
+    },
+    {
+      "entity": 74,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        104,
+        1392,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 3,
+      "linked": false
+    },
+    {
+      "entity": 75,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        -432,
+        1596,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 4,
+      "linked": false
+    },
+    {
+      "entity": 76,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        -656,
+        976,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 5,
+      "linked": false
+    },
+    {
+      "entity": 77,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        -560,
+        768,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 6,
+      "linked": false
+    },
+    {
+      "entity": 78,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        576,
+        752,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 7,
+      "linked": false
+    },
+    {
+      "entity": 79,
+      "classname": "func_button",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        -402,
+        1558,
+        -6
+      ],
+      "maxs": [
+        -334,
+        1626,
+        6
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 8,
+      "linked": true
+    },
+    {
+      "entity": 80,
+      "classname": "func_door",
+      "origin": [
+        -234.000015,
+        -2.04569315e-05,
+        0
+      ],
+      "mins": [
+        -540,
+        1358,
+        -18
+      ],
+      "maxs": [
+        -296,
+        1474,
+        -2
+      ],
+      "health": 0,
+      "model": 2,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 9,
+      "linked": true
+    },
+    {
+      "entity": 81,
+      "classname": "func_button",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        502,
+        1230,
+        -130
+      ],
+      "maxs": [
+        514,
+        1282,
+        -78
+      ],
+      "health": 0,
+      "model": 3,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 10,
+      "linked": true
+    },
+    {
+      "entity": 82,
+      "classname": "func_door",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        446,
+        1350,
+        -146
+      ],
+      "maxs": [
+        466,
+        1370,
+        -22
+      ],
+      "health": 0,
+      "model": 4,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 11,
+      "linked": true
+    },
+    {
+      "entity": 83,
+      "classname": "func_door",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        410,
+        1350,
+        -146
+      ],
+      "maxs": [
+        430,
+        1370,
+        -22
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 12,
+      "linked": true
+    },
+    {
+      "entity": 84,
+      "classname": "info_player_start",
+      "origin": [
+        324,
+        1156,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 13,
+      "linked": false
+    },
+    {
+      "entity": 85,
+      "classname": "misc_teleporter_dest",
+      "origin": [
+        448,
+        1024,
+        40
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 14,
+      "linked": false
+    },
+    {
+      "entity": 86,
+      "classname": "item_armor_combat",
+      "origin": [
+        -392,
+        1416,
+        15.125
+      ],
+      "mins": [
+        -408,
+        1400,
+        -0.875
+      ],
+      "maxs": [
+        -376,
+        1432,
+        31.125
+      ],
+      "health": 0,
+      "model": 2,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 15,
+      "linked": true
+    },
+    {
+      "entity": 87,
+      "classname": "target_position",
+      "origin": [
+        -8,
+        1152,
+        48
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 16,
+      "linked": false
+    },
+    {
+      "entity": 88,
+      "classname": "trigger_teleport",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        270,
+        1574,
+        -134
+      ],
+      "maxs": [
+        278,
+        1626,
+        -26
+      ],
+      "health": 0,
+      "model": 6,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 17,
+      "linked": true
+    },
+    {
+      "entity": 89,
+      "classname": "misc_portal_surface",
+      "origin": [
+        272,
+        1600,
+        -80
+      ],
+      "mins": [
+        271,
+        1599,
+        -81
+      ],
+      "maxs": [
+        273,
+        1601,
+        -79
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 18,
+      "linked": true
+    },
+    {
+      "entity": 90,
+      "classname": "trigger_hurt",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        -306,
+        1358,
+        -234
+      ],
+      "maxs": [
+        -238,
+        1666,
+        -226
+      ],
+      "health": 0,
+      "model": 7,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 19,
+      "linked": true
+    },
+    {
+      "entity": 91,
+      "classname": "func_door",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        446,
+        666,
+        6
+      ],
+      "maxs": [
+        514,
+        686,
+        90
+      ],
+      "health": 1,
+      "model": 8,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 20,
+      "linked": true
+    },
+    {
+      "entity": 92,
+      "classname": "weapon_rocketlauncher",
+      "origin": [
+        61,
+        1152,
+        15.125
+      ],
+      "mins": [
+        45,
+        1136,
+        -0.875
+      ],
+      "maxs": [
+        77,
+        1168,
+        31.125
+      ],
+      "health": 0,
+      "model": 12,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 21,
+      "linked": true
+    },
+    {
+      "entity": 93,
+      "classname": "item_health",
+      "origin": [
+        307,
+        1248,
+        15.125
+      ],
+      "mins": [
+        291,
+        1232,
+        -0.875
+      ],
+      "maxs": [
+        323,
+        1264,
+        31.125
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 22,
+      "linked": true
+    },
+    {
+      "entity": 94,
+      "classname": "item_health",
+      "origin": [
+        307,
+        1056,
+        15.125
+      ],
+      "mins": [
+        291,
+        1040,
+        -0.875
+      ],
+      "maxs": [
+        323,
+        1072,
+        31.125
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 23,
+      "linked": true
+    },
+    {
+      "entity": 95,
+      "classname": "weapon_plasmagun",
+      "origin": [
+        603,
+        894,
+        15.125
+      ],
+      "mins": [
+        587,
+        878,
+        -0.875
+      ],
+      "maxs": [
+        619,
+        910,
+        31.125
+      ],
+      "health": 0,
+      "model": 15,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 24,
+      "linked": true
+    },
+    {
+      "entity": 96,
+      "classname": "item_health",
+      "origin": [
+        897,
+        896,
+        15.125
+      ],
+      "mins": [
+        881,
+        880,
+        -0.875
+      ],
+      "maxs": [
+        913,
+        912,
+        31.125
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 25,
+      "linked": true
+    },
+    {
+      "entity": 97,
+      "classname": "ammo_cells",
+      "origin": [
+        1117,
+        718,
+        63.125
+      ],
+      "mins": [
+        1101,
+        702,
+        47.125
+      ],
+      "maxs": [
+        1133,
+        734,
+        79.125
+      ],
+      "health": 0,
+      "model": 21,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 26,
+      "linked": true
+    },
+    {
+      "entity": 98,
+      "classname": "ammo_rockets",
+      "origin": [
+        627,
+        578,
+        15.125
+      ],
+      "mins": [
+        611,
+        562,
+        -0.875
+      ],
+      "maxs": [
+        643,
+        594,
+        31.125
+      ],
+      "health": 0,
+      "model": 23,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 27,
+      "linked": true
+    },
+    {
+      "entity": 99,
+      "classname": "item_armor_shard",
+      "origin": [
+        -385,
+        766,
+        15.125
+      ],
+      "mins": [
+        -401,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -369,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 28,
+      "linked": true
+    },
+    {
+      "entity": 100,
+      "classname": "item_armor_shard",
+      "origin": [
+        65,
+        766,
+        15.125
+      ],
+      "mins": [
+        49,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        81,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 29,
+      "linked": true
+    },
+    {
+      "entity": 101,
+      "classname": "item_armor_shard",
+      "origin": [
+        1,
+        766,
+        15.125
+      ],
+      "mins": [
+        -15,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        17,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 30,
+      "linked": true
+    },
+    {
+      "entity": 102,
+      "classname": "item_armor_shard",
+      "origin": [
+        -65,
+        766,
+        15.125
+      ],
+      "mins": [
+        -81,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -49,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 31,
+      "linked": true
+    },
+    {
+      "entity": 103,
+      "classname": "item_armor_shard",
+      "origin": [
+        -129,
+        766,
+        15.125
+      ],
+      "mins": [
+        -145,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -113,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 32,
+      "linked": true
+    },
+    {
+      "entity": 104,
+      "classname": "item_quad",
+      "origin": [
+        447,
+        830,
+        15.125
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 28,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 33,
+      "linked": false
+    },
+    {
+      "entity": 105,
+      "classname": "ammo_bullets",
+      "origin": [
+        -639,
+        1598,
+        15.125
+      ],
+      "mins": [
+        -655,
+        1582,
+        -0.875
+      ],
+      "maxs": [
+        -623,
+        1614,
+        31.125
+      ],
+      "health": 0,
+      "model": 19,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 34,
+      "linked": true
+    },
+    {
+      "entity": 106,
+      "classname": "item_invis",
+      "origin": [
+        -397,
+        1104,
+        63.125
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 31,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 35,
+      "linked": false
+    },
+    {
+      "entity": 107,
+      "classname": "item_armor_shard",
+      "origin": [
+        -193,
+        766,
+        15.125
+      ],
+      "mins": [
+        -209,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -177,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 36,
+      "linked": true
+    },
+    {
+      "entity": 108,
+      "classname": "item_armor_shard",
+      "origin": [
+        -257,
+        766,
+        15.125
+      ],
+      "mins": [
+        -273,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -241,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 37,
+      "linked": true
+    },
+    {
+      "entity": 109,
+      "classname": "item_armor_shard",
+      "origin": [
+        -319,
+        766,
+        15.125
+      ],
+      "mins": [
+        -335,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -303,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 38,
+      "linked": true
+    },
+    {
+      "entity": 110,
+      "classname": "weapon_shotgun",
+      "origin": [
+        -64,
+        1279,
+        -128.875
+      ],
+      "mins": [
+        -80,
+        1263,
+        -144.875
+      ],
+      "maxs": [
+        -48,
+        1295,
+        -112.875
+      ],
+      "health": 0,
+      "model": 9,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 39,
+      "linked": true
+    },
+    {
+      "entity": 111,
+      "classname": "weapon_lightning",
+      "origin": [
+        -321,
+        747,
+        -128.875
+      ],
+      "mins": [
+        -337,
+        731,
+        -144.875
+      ],
+      "maxs": [
+        -305,
+        763,
+        -112.875
+      ],
+      "health": 0,
+      "model": 13,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 40,
+      "linked": true
+    },
+    {
+      "entity": 112,
+      "classname": "item_health",
+      "origin": [
+        -205,
+        1394,
+        -128.875
+      ],
+      "mins": [
+        -221,
+        1378,
+        -144.875
+      ],
+      "maxs": [
+        -189,
+        1410,
+        -112.875
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 41,
+      "linked": true
+    },
+    {
+      "entity": 113,
+      "classname": "item_health",
+      "origin": [
+        -205,
+        1641,
+        -128.875
+      ],
+      "mins": [
+        -221,
+        1625,
+        -144.875
+      ],
+      "maxs": [
+        -189,
+        1657,
+        -112.875
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 42,
+      "linked": true
+    },
+    {
+      "entity": 114,
+      "classname": "ammo_shells",
+      "origin": [
+        -21,
+        1501,
+        15.125
+      ],
+      "mins": [
+        -37,
+        1485,
+        -0.875
+      ],
+      "maxs": [
+        -5,
+        1517,
+        31.125
+      ],
+      "health": 0,
+      "model": 18,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 43,
+      "linked": true
+    },
+    {
+      "entity": 115,
+      "classname": "weapon_grenadelauncher",
+      "origin": [
+        445,
+        1313,
+        11.125
+      ],
+      "mins": [
+        429,
+        1297,
+        -4.875
+      ],
+      "maxs": [
+        461,
+        1329,
+        27.125
+      ],
+      "health": 0,
+      "model": 11,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 44,
+      "linked": true
+    },
+    {
+      "entity": 116,
+      "classname": "ammo_grenades",
+      "origin": [
+        -507,
+        1000,
+        15.125
+      ],
+      "mins": [
+        -523,
+        984,
+        -0.875
+      ],
+      "maxs": [
+        -491,
+        1016,
+        31.125
+      ],
+      "health": 0,
+      "model": 20,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 45,
+      "linked": true
+    },
+    {
+      "entity": 117,
+      "classname": "ammo_rockets",
+      "origin": [
+        -515,
+        734,
+        15.125
+      ],
+      "mins": [
+        -531,
+        718,
+        -0.875
+      ],
+      "maxs": [
+        -499,
+        750,
+        31.125
+      ],
+      "health": 0,
+      "model": 23,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 46,
+      "linked": true
+    },
+    {
+      "entity": 118,
+      "classname": "weapon_rocketlauncher",
+      "origin": [
+        894,
+        1217,
+        15.125
+      ],
+      "mins": [
+        878,
+        1201,
+        -0.875
+      ],
+      "maxs": [
+        910,
+        1233,
+        31.125
+      ],
+      "health": 0,
+      "model": 12,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 47,
+      "linked": true
+    },
+    {
+      "entity": 119,
+      "classname": "item_health_mega",
+      "origin": [
+        232,
+        1600,
+        -112
+      ],
+      "mins": [
+        216,
+        1584,
+        -128
+      ],
+      "maxs": [
+        248,
+        1616,
+        -96
+      ],
+      "health": 0,
+      "model": 7,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 48,
+      "linked": true
+    },
+    {
+      "entity": 120,
+      "classname": "target_position",
+      "origin": [
+        448,
+        1024,
+        280
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 49,
+      "linked": false
+    },
+    {
+      "entity": 121,
+      "classname": "target_position",
+      "origin": [
+        448,
+        1200,
+        280
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 50,
+      "linked": false
+    },
+    {
+      "entity": 122,
+      "classname": "target_position",
+      "origin": [
+        448,
+        1328,
+        280
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 51,
+      "linked": false
+    },
+    {
+      "entity": 123,
+      "classname": "target_position",
+      "origin": [
+        448,
+        1456,
+        280
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 52,
+      "linked": false
+    },
+    {
+      "entity": 124,
+      "classname": "target_position",
+      "origin": [
+        448,
+        1584,
+        280
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 53,
+      "linked": false
+    },
+    {
+      "entity": 125,
+      "classname": "target_position",
+      "origin": [
+        240,
+        1584,
+        264
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 54,
+      "linked": false
+    },
+    {
+      "entity": 126,
+      "classname": "target_position",
+      "origin": [
+        240,
+        1424,
+        264
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 55,
+      "linked": false
+    },
+    {
+      "entity": 127,
+      "classname": "target_position",
+      "origin": [
+        -168,
+        1424,
+        264
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 56,
+      "linked": false
+    },
+    {
+      "entity": 128,
+      "classname": "target_position",
+      "origin": [
+        -168,
+        1600,
+        248
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 57,
+      "linked": false
+    },
+    {
+      "entity": 129,
+      "classname": "target_position",
+      "origin": [
+        -176,
+        1072,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 58,
+      "linked": false
+    },
+    {
+      "entity": 130,
+      "classname": "target_position",
+      "origin": [
+        432,
+        944,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 59,
+      "linked": false
+    },
+    {
+      "entity": 131,
+      "classname": "target_position",
+      "origin": [
+        304,
+        944,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 60,
+      "linked": false
+    },
+    {
+      "entity": 132,
+      "classname": "target_position",
+      "origin": [
+        176,
+        944,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 61,
+      "linked": false
+    },
+    {
+      "entity": 133,
+      "classname": "target_position",
+      "origin": [
+        48,
+        944,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 62,
+      "linked": false
+    },
+    {
+      "entity": 134,
+      "classname": "target_position",
+      "origin": [
+        -88,
+        944,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 63,
+      "linked": false
+    },
+    {
+      "entity": 135,
+      "classname": "target_position",
+      "origin": [
+        488,
+        816,
+        234
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 64,
+      "linked": false
+    },
+    {
+      "entity": 136,
+      "classname": "item_health_large",
+      "origin": [
+        -202,
+        1096,
+        -128.875
+      ],
+      "mins": [
+        -218,
+        1080,
+        -144.875
+      ],
+      "maxs": [
+        -186,
+        1112,
+        -112.875
+      ],
+      "health": 0,
+      "model": 6,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 65,
+      "linked": true
+    },
+    {
+      "entity": 137,
+      "classname": "item_health_large",
+      "origin": [
+        -376,
+        1096,
+        -128.875
+      ],
+      "mins": [
+        -392,
+        1080,
+        -144.875
+      ],
+      "maxs": [
+        -360,
+        1112,
+        -112.875
+      ],
+      "health": 0,
+      "model": 6,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 66,
+      "linked": true
+    },
+    {
+      "entity": 138,
+      "classname": "target_position",
+      "origin": [
+        -218,
+        779,
+        -126
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 67,
+      "linked": false
+    },
+    {
+      "entity": 139,
+      "classname": "target_position",
+      "origin": [
+        135,
+        779,
+        -126
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 68,
+      "linked": false
+    },
+    {
+      "entity": 140,
+      "classname": "target_position",
+      "origin": [
+        1124,
+        1239,
+        72
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 69,
+      "linked": false
+    },
+    {
+      "entity": 141,
+      "classname": "target_position",
+      "origin": [
+        1124,
+        1096,
+        72
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 70,
+      "linked": false
+    },
+    {
+      "entity": 142,
+      "classname": "target_position",
+      "origin": [
+        1124,
+        911,
+        72
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 71,
+      "linked": false
+    },
+    {
+      "entity": 143,
+      "classname": "target_position",
+      "origin": [
+        1124,
+        1005,
+        72
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 72,
+      "linked": false
+    },
+    {
+      "entity": 144,
+      "classname": "info_player_intermission",
+      "origin": [
+        296,
+        1152,
+        200
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 73,
+      "linked": false
+    },
+    {
+      "entity": 149,
+      "classname": "tempEntity",
+      "origin": [
+        113,
+        1478,
+        24
+      ],
+      "mins": [
+        112,
+        1477,
+        23
+      ],
+      "maxs": [
+        114,
+        1479,
+        25
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": true
+    },
+    {
+      "entity": 150,
+      "classname": "tempEntity",
+      "origin": [
+        270,
+        1414,
+        -97
+      ],
+      "mins": [
+        269,
+        1413,
+        -98
+      ],
+      "maxs": [
+        271,
+        1415,
+        -96
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": true
+    },
+    {
+      "entity": 151,
+      "classname": "tempEntity",
+      "origin": [
+        191,
+        1447,
+        -4
+      ],
+      "mins": [
+        190,
+        1446,
+        -5
+      ],
+      "maxs": [
+        192,
+        1448,
+        -3
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": true
+    }
+  ],
+  "continued": [
+    {
+      "entity": 0,
+      "classname": "player",
+      "origin": [
+        291.844147,
+        1411.51318,
+        -119.868462
+      ],
+      "mins": [
+        275,
+        1395,
+        -144
+      ],
+      "maxs": [
+        307,
+        1427,
+        -86
+      ],
+      "health": 98,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 33554432,
+      "source": -1,
+      "linked": true
+    },
+    {
+      "entity": 1,
+      "classname": "player",
+      "origin": [
+        111.176033,
+        1477.46765,
+        24.125
+      ],
+      "mins": [
+        95,
+        1461,
+        -1
+      ],
+      "maxs": [
+        127,
+        1493,
+        57
+      ],
+      "health": 113,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 33554432,
+      "source": -1,
+      "linked": true
+    },
+    {
+      "entity": 64,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 65,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 66,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 67,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 68,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 69,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 70,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 71,
+      "classname": "bodyque",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": -1,
+      "linked": false
+    },
+    {
+      "entity": 72,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        280,
+        1416,
+        -120
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 1,
+      "linked": false
+    },
+    {
+      "entity": 73,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        1128,
+        1424,
+        72
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 2,
+      "linked": false
+    },
+    {
+      "entity": 74,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        104,
+        1392,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 3,
+      "linked": false
+    },
+    {
+      "entity": 75,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        -432,
+        1596,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 4,
+      "linked": false
+    },
+    {
+      "entity": 76,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        -656,
+        976,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 5,
+      "linked": false
+    },
+    {
+      "entity": 77,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        -560,
+        768,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 6,
+      "linked": false
+    },
+    {
+      "entity": 78,
+      "classname": "info_player_deathmatch",
+      "origin": [
+        576,
+        752,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 7,
+      "linked": false
+    },
+    {
+      "entity": 79,
+      "classname": "func_button",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        -402,
+        1558,
+        -6
+      ],
+      "maxs": [
+        -334,
+        1626,
+        6
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 8,
+      "linked": true
+    },
+    {
+      "entity": 80,
+      "classname": "func_door",
+      "origin": [
+        -234.000015,
+        -2.04569315e-05,
+        0
+      ],
+      "mins": [
+        -540,
+        1358,
+        -18
+      ],
+      "maxs": [
+        -296,
+        1474,
+        -2
+      ],
+      "health": 0,
+      "model": 2,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 9,
+      "linked": true
+    },
+    {
+      "entity": 81,
+      "classname": "func_button",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        502,
+        1230,
+        -130
+      ],
+      "maxs": [
+        514,
+        1282,
+        -78
+      ],
+      "health": 0,
+      "model": 3,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 10,
+      "linked": true
+    },
+    {
+      "entity": 82,
+      "classname": "func_door",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        446,
+        1350,
+        -146
+      ],
+      "maxs": [
+        466,
+        1370,
+        -22
+      ],
+      "health": 0,
+      "model": 4,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 11,
+      "linked": true
+    },
+    {
+      "entity": 83,
+      "classname": "func_door",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        410,
+        1350,
+        -146
+      ],
+      "maxs": [
+        430,
+        1370,
+        -22
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 12,
+      "linked": true
+    },
+    {
+      "entity": 84,
+      "classname": "info_player_start",
+      "origin": [
+        324,
+        1156,
+        24
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 13,
+      "linked": false
+    },
+    {
+      "entity": 85,
+      "classname": "misc_teleporter_dest",
+      "origin": [
+        448,
+        1024,
+        40
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 14,
+      "linked": false
+    },
+    {
+      "entity": 86,
+      "classname": "item_armor_combat",
+      "origin": [
+        -392,
+        1416,
+        15.125
+      ],
+      "mins": [
+        -408,
+        1400,
+        -0.875
+      ],
+      "maxs": [
+        -376,
+        1432,
+        31.125
+      ],
+      "health": 0,
+      "model": 2,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 15,
+      "linked": true
+    },
+    {
+      "entity": 87,
+      "classname": "target_position",
+      "origin": [
+        -8,
+        1152,
+        48
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 16,
+      "linked": false
+    },
+    {
+      "entity": 88,
+      "classname": "trigger_teleport",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        270,
+        1574,
+        -134
+      ],
+      "maxs": [
+        278,
+        1626,
+        -26
+      ],
+      "health": 0,
+      "model": 6,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 17,
+      "linked": true
+    },
+    {
+      "entity": 89,
+      "classname": "misc_portal_surface",
+      "origin": [
+        272,
+        1600,
+        -80
+      ],
+      "mins": [
+        271,
+        1599,
+        -81
+      ],
+      "maxs": [
+        273,
+        1601,
+        -79
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 18,
+      "linked": true
+    },
+    {
+      "entity": 90,
+      "classname": "trigger_hurt",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        -306,
+        1358,
+        -234
+      ],
+      "maxs": [
+        -238,
+        1666,
+        -226
+      ],
+      "health": 0,
+      "model": 7,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 19,
+      "linked": true
+    },
+    {
+      "entity": 91,
+      "classname": "func_door",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "mins": [
+        446,
+        666,
+        6
+      ],
+      "maxs": [
+        514,
+        686,
+        90
+      ],
+      "health": 1,
+      "model": 8,
+      "frame": 0,
+      "sound": 0,
+      "contents": -1,
+      "source": 20,
+      "linked": true
+    },
+    {
+      "entity": 92,
+      "classname": "weapon_rocketlauncher",
+      "origin": [
+        61,
+        1152,
+        15.125
+      ],
+      "mins": [
+        45,
+        1136,
+        -0.875
+      ],
+      "maxs": [
+        77,
+        1168,
+        31.125
+      ],
+      "health": 0,
+      "model": 12,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 21,
+      "linked": true
+    },
+    {
+      "entity": 93,
+      "classname": "item_health",
+      "origin": [
+        307,
+        1248,
+        15.125
+      ],
+      "mins": [
+        291,
+        1232,
+        -0.875
+      ],
+      "maxs": [
+        323,
+        1264,
+        31.125
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 22,
+      "linked": true
+    },
+    {
+      "entity": 94,
+      "classname": "item_health",
+      "origin": [
+        307,
+        1056,
+        15.125
+      ],
+      "mins": [
+        291,
+        1040,
+        -0.875
+      ],
+      "maxs": [
+        323,
+        1072,
+        31.125
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 23,
+      "linked": true
+    },
+    {
+      "entity": 95,
+      "classname": "weapon_plasmagun",
+      "origin": [
+        603,
+        894,
+        15.125
+      ],
+      "mins": [
+        587,
+        878,
+        -0.875
+      ],
+      "maxs": [
+        619,
+        910,
+        31.125
+      ],
+      "health": 0,
+      "model": 15,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 24,
+      "linked": true
+    },
+    {
+      "entity": 96,
+      "classname": "item_health",
+      "origin": [
+        897,
+        896,
+        15.125
+      ],
+      "mins": [
+        881,
+        880,
+        -0.875
+      ],
+      "maxs": [
+        913,
+        912,
+        31.125
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 25,
+      "linked": true
+    },
+    {
+      "entity": 97,
+      "classname": "ammo_cells",
+      "origin": [
+        1117,
+        718,
+        63.125
+      ],
+      "mins": [
+        1101,
+        702,
+        47.125
+      ],
+      "maxs": [
+        1133,
+        734,
+        79.125
+      ],
+      "health": 0,
+      "model": 21,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 26,
+      "linked": true
+    },
+    {
+      "entity": 98,
+      "classname": "ammo_rockets",
+      "origin": [
+        627,
+        578,
+        15.125
+      ],
+      "mins": [
+        611,
+        562,
+        -0.875
+      ],
+      "maxs": [
+        643,
+        594,
+        31.125
+      ],
+      "health": 0,
+      "model": 23,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 27,
+      "linked": true
+    },
+    {
+      "entity": 99,
+      "classname": "item_armor_shard",
+      "origin": [
+        -385,
+        766,
+        15.125
+      ],
+      "mins": [
+        -401,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -369,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 28,
+      "linked": true
+    },
+    {
+      "entity": 100,
+      "classname": "item_armor_shard",
+      "origin": [
+        65,
+        766,
+        15.125
+      ],
+      "mins": [
+        49,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        81,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 29,
+      "linked": true
+    },
+    {
+      "entity": 101,
+      "classname": "item_armor_shard",
+      "origin": [
+        1,
+        766,
+        15.125
+      ],
+      "mins": [
+        -15,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        17,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 30,
+      "linked": true
+    },
+    {
+      "entity": 102,
+      "classname": "item_armor_shard",
+      "origin": [
+        -65,
+        766,
+        15.125
+      ],
+      "mins": [
+        -81,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -49,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 31,
+      "linked": true
+    },
+    {
+      "entity": 103,
+      "classname": "item_armor_shard",
+      "origin": [
+        -129,
+        766,
+        15.125
+      ],
+      "mins": [
+        -145,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -113,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 32,
+      "linked": true
+    },
+    {
+      "entity": 104,
+      "classname": "item_quad",
+      "origin": [
+        447,
+        830,
+        15.125
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 28,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 33,
+      "linked": false
+    },
+    {
+      "entity": 105,
+      "classname": "ammo_bullets",
+      "origin": [
+        -639,
+        1598,
+        15.125
+      ],
+      "mins": [
+        -655,
+        1582,
+        -0.875
+      ],
+      "maxs": [
+        -623,
+        1614,
+        31.125
+      ],
+      "health": 0,
+      "model": 19,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 34,
+      "linked": true
+    },
+    {
+      "entity": 106,
+      "classname": "item_invis",
+      "origin": [
+        -397,
+        1104,
+        63.125
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 31,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 35,
+      "linked": false
+    },
+    {
+      "entity": 107,
+      "classname": "item_armor_shard",
+      "origin": [
+        -193,
+        766,
+        15.125
+      ],
+      "mins": [
+        -209,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -177,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 36,
+      "linked": true
+    },
+    {
+      "entity": 108,
+      "classname": "item_armor_shard",
+      "origin": [
+        -257,
+        766,
+        15.125
+      ],
+      "mins": [
+        -273,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -241,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 37,
+      "linked": true
+    },
+    {
+      "entity": 109,
+      "classname": "item_armor_shard",
+      "origin": [
+        -319,
+        766,
+        15.125
+      ],
+      "mins": [
+        -335,
+        750,
+        -0.875
+      ],
+      "maxs": [
+        -303,
+        782,
+        31.125
+      ],
+      "health": 0,
+      "model": 1,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 38,
+      "linked": true
+    },
+    {
+      "entity": 110,
+      "classname": "weapon_shotgun",
+      "origin": [
+        -64,
+        1279,
+        -128.875
+      ],
+      "mins": [
+        -80,
+        1263,
+        -144.875
+      ],
+      "maxs": [
+        -48,
+        1295,
+        -112.875
+      ],
+      "health": 0,
+      "model": 9,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 39,
+      "linked": true
+    },
+    {
+      "entity": 111,
+      "classname": "weapon_lightning",
+      "origin": [
+        -321,
+        747,
+        -128.875
+      ],
+      "mins": [
+        -337,
+        731,
+        -144.875
+      ],
+      "maxs": [
+        -305,
+        763,
+        -112.875
+      ],
+      "health": 0,
+      "model": 13,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 40,
+      "linked": true
+    },
+    {
+      "entity": 112,
+      "classname": "item_health",
+      "origin": [
+        -205,
+        1394,
+        -128.875
+      ],
+      "mins": [
+        -221,
+        1378,
+        -144.875
+      ],
+      "maxs": [
+        -189,
+        1410,
+        -112.875
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 41,
+      "linked": true
+    },
+    {
+      "entity": 113,
+      "classname": "item_health",
+      "origin": [
+        -205,
+        1641,
+        -128.875
+      ],
+      "mins": [
+        -221,
+        1625,
+        -144.875
+      ],
+      "maxs": [
+        -189,
+        1657,
+        -112.875
+      ],
+      "health": 0,
+      "model": 5,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 42,
+      "linked": true
+    },
+    {
+      "entity": 114,
+      "classname": "ammo_shells",
+      "origin": [
+        -21,
+        1501,
+        15.125
+      ],
+      "mins": [
+        -37,
+        1485,
+        -0.875
+      ],
+      "maxs": [
+        -5,
+        1517,
+        31.125
+      ],
+      "health": 0,
+      "model": 18,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 43,
+      "linked": true
+    },
+    {
+      "entity": 115,
+      "classname": "weapon_grenadelauncher",
+      "origin": [
+        445,
+        1313,
+        11.125
+      ],
+      "mins": [
+        429,
+        1297,
+        -4.875
+      ],
+      "maxs": [
+        461,
+        1329,
+        27.125
+      ],
+      "health": 0,
+      "model": 11,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 44,
+      "linked": true
+    },
+    {
+      "entity": 116,
+      "classname": "ammo_grenades",
+      "origin": [
+        -507,
+        1000,
+        15.125
+      ],
+      "mins": [
+        -523,
+        984,
+        -0.875
+      ],
+      "maxs": [
+        -491,
+        1016,
+        31.125
+      ],
+      "health": 0,
+      "model": 20,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 45,
+      "linked": true
+    },
+    {
+      "entity": 117,
+      "classname": "ammo_rockets",
+      "origin": [
+        -515,
+        734,
+        15.125
+      ],
+      "mins": [
+        -531,
+        718,
+        -0.875
+      ],
+      "maxs": [
+        -499,
+        750,
+        31.125
+      ],
+      "health": 0,
+      "model": 23,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 46,
+      "linked": true
+    },
+    {
+      "entity": 118,
+      "classname": "weapon_rocketlauncher",
+      "origin": [
+        894,
+        1217,
+        15.125
+      ],
+      "mins": [
+        878,
+        1201,
+        -0.875
+      ],
+      "maxs": [
+        910,
+        1233,
+        31.125
+      ],
+      "health": 0,
+      "model": 12,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 47,
+      "linked": true
+    },
+    {
+      "entity": 119,
+      "classname": "item_health_mega",
+      "origin": [
+        232,
+        1600,
+        -112
+      ],
+      "mins": [
+        216,
+        1584,
+        -128
+      ],
+      "maxs": [
+        248,
+        1616,
+        -96
+      ],
+      "health": 0,
+      "model": 7,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 48,
+      "linked": true
+    },
+    {
+      "entity": 120,
+      "classname": "target_position",
+      "origin": [
+        448,
+        1024,
+        280
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 49,
+      "linked": false
+    },
+    {
+      "entity": 121,
+      "classname": "target_position",
+      "origin": [
+        448,
+        1200,
+        280
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 50,
+      "linked": false
+    },
+    {
+      "entity": 122,
+      "classname": "target_position",
+      "origin": [
+        448,
+        1328,
+        280
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 51,
+      "linked": false
+    },
+    {
+      "entity": 123,
+      "classname": "target_position",
+      "origin": [
+        448,
+        1456,
+        280
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 52,
+      "linked": false
+    },
+    {
+      "entity": 124,
+      "classname": "target_position",
+      "origin": [
+        448,
+        1584,
+        280
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 53,
+      "linked": false
+    },
+    {
+      "entity": 125,
+      "classname": "target_position",
+      "origin": [
+        240,
+        1584,
+        264
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 54,
+      "linked": false
+    },
+    {
+      "entity": 126,
+      "classname": "target_position",
+      "origin": [
+        240,
+        1424,
+        264
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 55,
+      "linked": false
+    },
+    {
+      "entity": 127,
+      "classname": "target_position",
+      "origin": [
+        -168,
+        1424,
+        264
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 56,
+      "linked": false
+    },
+    {
+      "entity": 128,
+      "classname": "target_position",
+      "origin": [
+        -168,
+        1600,
+        248
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 57,
+      "linked": false
+    },
+    {
+      "entity": 129,
+      "classname": "target_position",
+      "origin": [
+        -176,
+        1072,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 58,
+      "linked": false
+    },
+    {
+      "entity": 130,
+      "classname": "target_position",
+      "origin": [
+        432,
+        944,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 59,
+      "linked": false
+    },
+    {
+      "entity": 131,
+      "classname": "target_position",
+      "origin": [
+        304,
+        944,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 60,
+      "linked": false
+    },
+    {
+      "entity": 132,
+      "classname": "target_position",
+      "origin": [
+        176,
+        944,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 61,
+      "linked": false
+    },
+    {
+      "entity": 133,
+      "classname": "target_position",
+      "origin": [
+        48,
+        944,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 62,
+      "linked": false
+    },
+    {
+      "entity": 134,
+      "classname": "target_position",
+      "origin": [
+        -88,
+        944,
+        -136
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 63,
+      "linked": false
+    },
+    {
+      "entity": 135,
+      "classname": "target_position",
+      "origin": [
+        488,
+        816,
+        234
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 64,
+      "linked": false
+    },
+    {
+      "entity": 136,
+      "classname": "item_health_large",
+      "origin": [
+        -202,
+        1096,
+        -128.875
+      ],
+      "mins": [
+        -218,
+        1080,
+        -144.875
+      ],
+      "maxs": [
+        -186,
+        1112,
+        -112.875
+      ],
+      "health": 0,
+      "model": 6,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 65,
+      "linked": true
+    },
+    {
+      "entity": 137,
+      "classname": "item_health_large",
+      "origin": [
+        -376,
+        1096,
+        -128.875
+      ],
+      "mins": [
+        -392,
+        1080,
+        -144.875
+      ],
+      "maxs": [
+        -360,
+        1112,
+        -112.875
+      ],
+      "health": 0,
+      "model": 6,
+      "frame": 0,
+      "sound": 0,
+      "contents": 1073741824,
+      "source": 66,
+      "linked": true
+    },
+    {
+      "entity": 138,
+      "classname": "target_position",
+      "origin": [
+        -218,
+        779,
+        -126
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 67,
+      "linked": false
+    },
+    {
+      "entity": 139,
+      "classname": "target_position",
+      "origin": [
+        135,
+        779,
+        -126
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 68,
+      "linked": false
+    },
+    {
+      "entity": 140,
+      "classname": "target_position",
+      "origin": [
+        1124,
+        1239,
+        72
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 69,
+      "linked": false
+    },
+    {
+      "entity": 141,
+      "classname": "target_position",
+      "origin": [
+        1124,
+        1096,
+        72
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 70,
+      "linked": false
+    },
+    {
+      "entity": 142,
+      "classname": "target_position",
+      "origin": [
+        1124,
+        911,
+        72
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 71,
+      "linked": false
+    },
+    {
+      "entity": 143,
+      "classname": "target_position",
+      "origin": [
+        1124,
+        1005,
+        72
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 72,
+      "linked": false
+    },
+    {
+      "entity": 144,
+      "classname": "info_player_intermission",
+      "origin": [
+        296,
+        1152,
+        200
+      ],
+      "mins": [
+        0,
+        0,
+        0
+      ],
+      "maxs": [
+        0,
+        0,
+        0
+      ],
+      "health": 0,
+      "model": 0,
+      "frame": 0,
+      "sound": 0,
+      "contents": 0,
+      "source": 73,
+      "linked": false
+    }
+  ]
+}

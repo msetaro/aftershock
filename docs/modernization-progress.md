@@ -41,8 +41,7 @@ Local input clock ownership now also restores paused clock lead, timing flags,
 view angles, selected weapon/sensitivity and pending loopback input. Full OpenArena
 save/load passes exact entity restoration and identical player/bot continuation in
 both the same process and a fresh process seeded differently
-(state-client-clock-runtime.log). Quake 3 same/fresh-process continuation also passes (state-client-clock-q3.log). Freeze and
-migrate the full-game N-to-N+1 OpenArena fixture, register final runtime CI, and run
+(state-client-clock-runtime.log). Quake 3 same/fresh-process continuation also passes (state-client-clock-q3.log). The v1 fixture is now frozen and reviewed; implement/test v2 migration, register final runtime CI, and run
 all required gates before a PR/merge. No partial checkpoint acceptance.
 
 Named fields/archives, native entity/client/level owners, botlib reconstruction,
@@ -55,6 +54,19 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 full-game v1 fixture frozen
+
+The explicit OpenArena-only command passed all same/fresh-process exact assertions
+and created checkpoint-v1.asstate.gz once at writer 308b70c2. Real-client screenshot
+review confirms the restored oa_dm1 scene, local player HUD and Sarge. The archive
+contains 86 saved/83 continued entity rows; raw size 17,407,471, gzip size 340,020.
+Raw SHA256: 1d3d0762caf2f464e242d0e485de429f5a9a53e91e2327efff4f2fcf742fa977.
+Gzip SHA256: 946d1991efd407e7eebd6182485ebe1325a369a7366bac9f1fb436e165a99b74.
+Source/binary provenance and entity projections are checkpoint-v1.json. The fixture
+README records OpenArena GPL attribution from the installed Debian data package.
+No proprietary content is included; no accepted fixture is regenerated. Freeze
+this commit before v2 removes redundant pure metadata and adds protocol context.
 
 ## #19 full-game v1 fixture creation command
 
