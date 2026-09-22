@@ -26,7 +26,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-agent-protocol-', dir=scratc
          '-Wl,--gc-sections', '-o', binary])
     result = run([binary], capture_output=True, timeout=10)
     replies = [json.loads(line) for line in result.stdout.splitlines()]
-    assert [row['id'] for row in replies] == list(range(1, 11))
+    assert [row['id'] for row in replies] == list(range(1, 15))
     assert replies[0]['ok'] and replies[0]['result']['protocol'] == 1
     assert {'hello', 'exec', 'cvar.get', 'cvar.set'} <= set(replies[0]['result']['commands'])
     assert replies[1]['result'] == {'name': 'example', 'value': 'initial'}
@@ -40,6 +40,18 @@ with tempfile.TemporaryDirectory(prefix='aftershock-agent-protocol-', dir=scratc
         reply = replies[index]
         assert not reply['ok'] and reply['error']['code'] == code
         assert reply['error']['path'] == path and reply['error']['hint']
+    profile = replies[10]['result']
+    assert profile['frame'] == dict(serial=7, milliseconds=50, dropped=1)
+    assert profile['cpu'] == [dict(name='frame', milliseconds=50, self_ms=30, parent=None),
+                              dict(name='commands', milliseconds=20, self_ms=20, parent=0)]
+    assert profile['selected'] == 7
+    assert profile['history'] == [dict(serial=7, milliseconds=50)]
+    assert profile['network']['packets'] == [dict(time=123, bytes=1400, outgoing=True)]
+    assert profile['network']['fields'] == [dict(name='player.origin[0]', readBits=12, writtenBits=24, reads=1, writes=2)]
+    assert replies[11]['error']['code'] == replies[12]['error']['code'] == 'invalid_argument'
+    assert replies[13]['result']['selected'] is None
+    assert replies[13]['ok'] and replies[13]['result']['frame'] is None
+    assert replies[13]['result']['cpu'] == replies[13]['result']['history'] == []
     resource.setrlimit(resource.RLIMIT_CORE, (0, resource.getrlimit(resource.RLIMIT_CORE)[1]))
     failed = subprocess.run([binary, '--assert'], cwd=temporary, capture_output=True, timeout=10)
     assert failed.returncode == -signal.SIGABRT and b'agent assertion contract' in failed.stderr

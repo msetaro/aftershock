@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check shipping exclusion, shared panel controls, idle allocation and input release."""
 import argparse
+import json
 import os
 from pathlib import Path
 import re
@@ -71,10 +72,26 @@ with tempfile.TemporaryDirectory(prefix='aftershock-devtools-', dir=os.environ.g
         assert 0 < after['arena'] < 16777216 and after['enabled'], after
         profile = engine.request('profile')
         assert profile['cpu'] and profile['network']['snapshots'] > 0, profile
+        engine.request('profile', reset=True)
         engine.request('exec', command='vid_restart')
         engine.step(60)
         assert engine.request('editor.state')['frames'] > after['frames']
         assert engine.request('cvar.get', name='devtest')['value'] == '7'
+        peak = engine.request('profile', peak=True, select=True)
+        assert peak['selected'] == peak['frame']['serial']
+        scopes = peak['cpu']
+        root = next(i for i, scope in enumerate(scopes) if scope['name'] == 'frame')
+        command = next(scope for scope in scopes if scope['name'] == 'events and commands')
+        assert command['parent'] == root and command['milliseconds'] > 0
+        assert scopes[root]['milliseconds'] >= command['milliseconds'] >= command['self_ms']
+        assert command['milliseconds'] > peak['p50_ms'], 'renderer restart must be an attributable spike'
+        assert len(peak['history']) >= 50
+        assert peak['render']['drawCalls'] > 0 and peak['render']['triangles'] > 0
+        assert sum(tag['bytes'] for tag in peak['memory']['hunkTags']) == peak['memory']['hunkPermanent'] + peak['memory']['hunkTemporary']
+        fields = peak['network']['fields']
+        assert any(field['name'].startswith('player.') and field['readBits'] > 0 for field in fields)
+        assert peak['network']['packets'], 'connected snapshot datagrams must be retained'
+        (out/'profile.json').write_text(json.dumps(peak, indent=2))
         for panel in ('Cvars', 'Textures', 'Materials', 'Profile', 'Memory', 'Animation', 'Physics'):
             engine.request('panel', name=panel)
             if panel == 'Animation':
@@ -115,5 +132,15 @@ with tempfile.TemporaryDirectory(prefix='aftershock-devtools-', dir=os.environ.g
         assert engine.request('cvar.get', name='-devbutton')['value'] != '0', 'reopening UI left a game key pressed'
         engine.request('key', name='F8', down=False)
         engine.step(2)
+        engine.request('exec', command='quit')
+        try:
+            engine.step()
+        except RuntimeError as error:
+            assert 'closed its response pipe' in str(error), error
+        else:
+            raise AssertionError('quit did not terminate the engine')
+        assert engine.process.wait(timeout=10) == 0
+        report = engine.log_path.read_text(errors='replace')
+        assert 'Developer shutdown allocation report' in report and 'HUNK-LOW-PERMANENT:' in report
         shutil.copyfile(engine.log_path, out / 'client.log')
 print('PASS: shared cvar/console controls, held-key release, animation, bounded memory, allocation-free idle and renderer restart')

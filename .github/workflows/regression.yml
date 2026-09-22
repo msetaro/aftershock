@@ -537,6 +537,7 @@ jobs:
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-animation-demo-modules/*.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-devtools-tests/**/*.log
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-devtools-tests/runtime/*.png
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-devtools-tests/runtime/*.json
             ${{ env.AFTERSHOCK_SCRATCH }}/tests-native-runtime/**/*.log
             ${{ env.AFTERSHOCK_SCRATCH }}/tests-native-demo/**/*.log
             ${{ env.AFTERSHOCK_SCRATCH }}/tests-native-demo/*.tga

@@ -42,6 +42,12 @@ static int r_firstScenePoly;
 
 static int r_numpolyverts;
 
+#ifdef AFTERSHOCK_DEVTOOLS
+uint32_t R_DeveloperEntityCount() {
+	return (uint32_t)r_numentities;
+}
+#endif
+
 
 /*
 ====================

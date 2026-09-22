@@ -42,6 +42,11 @@ struct devMaterial_t {
 	uint32_t stateBits[8];
 	uint32_t textures[8][3];
 };
+struct devRenderStats_t {
+	uint32_t drawCalls, triangles, surfaces, entities;
+	uint64_t geometryBytes, stagingBytes;
+};
+static_assert( std::is_trivially_copyable_v<devRenderStats_t> );
 struct devGpuTiming_t {
 	char name[32];
 	double microseconds;

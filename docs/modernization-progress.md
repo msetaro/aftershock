@@ -18,6 +18,16 @@ Maintainer ruling (2026-09-19): keep all future changes and PRs in
 repository. This replaces the earlier requirement to submit applicable #31 fixes
 upstream; historical upstream PR references below are completed past work.
 
+## Maintainer Steam deferral — 2026-09-22
+
+Steam SDK setup, provider implementation, authenticated ticket transport and
+live presence/invite acceptance move to follow-up #180 at the maintainer's
+request. #23 now completes the bounded existing-provider interface and null
+backend with deterministic-provider contract tests. Do not claim Steam support
+from those tests. This dependency no longer blocks modernization; continue #24's
+existing SDK dependency checkpoint, then #29 and #30. No SDK/account answer is
+needed for the current scope. #23 and tracking issue #25 record the same ruling.
+
 ## Next action
 
 Resume the active predecessor gates before any later issue can merge:
@@ -29,36 +39,151 @@ Resume the active predecessor gates before any later issue can merge:
   2026-09-22 14:59:32 UTC after all 26 exact-head jobs passed at 4d06f25b.
   Self-review and fresh main/base/head/tag checks passed. Merge tree 11bc602c
   equals the tested head. Integrated build 35744183979 and regression 35744184060
-  are running; require their acceptance before any later issue merges.
+  pass all 26 required jobs. #20 is fully accepted; issue #20 and #25 are updated.
 
-This is issue/21-ai-navigation in navigation-tree, including main 13106135 via af12d732.
-The native controller now passes patrol, combat, occluded hearing and exact
-same/fresh-process checkpoint continuation on owned geometry. Actual local
-q3dm17 acceptance passes: two native pad flights, data-weapon damage and movement
-into protected cover. Engine/simulation expressions and accepted fixtures remain
-unchanged. Legacy botlib remains pending full legacy-match parity.
+#21 PR177 merged into main as 7c24808f16f9a72d9ed21ba9af736cd54adba386
+at 2026-09-22 16:55:35 UTC after final head 2cefd7e3 passed build 35748014590
+and regression 35748014600 (all 26 required jobs). Self-review and fresh current
+main/base/head/tag checks passed. Merge tree c14c33d3 equals the tested tree.
+Integrated main build/regression are starting; require both before accepting #21
+and merging #22.
 
-Fixed replays for both content sets, legacy runtime smoke, differential/unit
-goldens, sanitizer units and full policy gates pass. Cooker/schema checks pass
-(the schema command uses the documented private Go PATH). Final MinGW rebuild
-also passes. Final review added and verified collision-header cache dependencies;
-The combined package/AI build and OpenArena package/pure/render plus AI combat
-and checkpoint continuation pass (navigation-content-{package,combat}.log).
-CI/docs registration is committed. Draft PR177 is open against main for hosted
-checks; #21 merge waits for both its exact-head 26 checks and integrated #20's
-26 checks. Recheck current main/base/head immediately before merge.
+This is issue/22-profiling in profiling-tree. The accepted #21 main commit is
+merged forward after the combined local overlay/AI validation. All local gates
+pass, including full tidy/lifetimes, both compilers/sanitizers, both content sets'
+fixed replay/smoke, optional developer renderer modules and byte-identical
+shipping msg/common objects. Push this final main-inclusive head to PR178 and
+require all 26 fresh hosted jobs, integrated #21 acceptance and a fresh main/base/
+head/tag check before readiness/self-merge. The original pre-AI PR head's gates
+are useful feedback, not final acceptance.
 
-PR177 head 9fd94edb exposed two hosted portability/setup failures; correct them
-and require all fresh checks before merge. Isolated #22 profiling work has begun
-from current main while predecessor checks run. Reuse the
-existing developer timers/GPU/allocator/network owners; preserve issue branches
-and merge order. Merge accepted #21 main forward before #22 final checks/merge.
-Follow the specific gate evidence below, not historical next steps.
+Draft PR179 preserves #23's bounded null/provider interface preparation; all 16
+initial hosted builds pass. Its combined local AI/profiling/service and identity
+checks pass. Merge accepted #22 main forward and rerun its final gates before
+#23 merge. SDK-dependent Steam integration is deferred to #180 by the maintainer.
+Isolated #29 contract preparation has started in backend-tree; preserve merge
+order while continuing useful independent work.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
-currently needed. Do not end at a checkpoint or CI wait.
+Continue through #24's SDK dependency, #29 and #30 per #25. The Steam dependency is deferred to #180; no maintainer input is needed.
+Do not end at a checkpoint or CI wait.
+
+## #21 merge and #22 final-main integration
+
+PR177 is merged after all 26 exact-head required checks pass. Main 7c24808f has
+the same c14c33d3 tree as tested head 2cefd7e3. The immutable rollback tag remains
+unchanged. #22 merges that main forward before its final hosted gate; production
+content is unchanged from the previously validated local AI/profiling combination.
+The merged-main #21 workflow still must pass before #22 can merge. Issue #21's
+final self-review is comment 5780532779. No accepted fixtures changed.
+
+## #22 combined AI validation
+
+Local merge a203c2e4 incorporates final #21 branch 2cefd7e3 without accepting it
+before hosted checks. The production merge is automatic; the progress conflict
+retains both issues' evidence. Complete developer client/server rebuild, agent
+protocol and developer data probes pass, followed serially by OpenArena overlay
+controls/renderer restart/idle allocation/shutdown reporting and AI combat with
+same/fresh-process checkpoint continuation. Evidence is
+profiling-navigation-{build,agent,data,ui,combat}.log. The actual selected peak
+capture attributes 370.939 ms of a 378.521 ms frame to events/commands; the
+hierarchy remains readable after the AI inspector merge. Formatting (589 files),
+type policy (448), boundaries (449) and targeted production-flags tidy on both
+shared developer owners pass. No fixture changes. The accepted main merge and
+all final-head/integrated hosted gates remain required.
+
+## #22 local gate evidence
+
+Full tidy passes 1426 production configurations (profiling-tidy.log). GCC/Clang
+units and Clang sanitizer known-bug classification pass the unchanged unit hash
+8d44421dfd5f31912bb7ffc942c6f0e1f32cd9a445e1dbcf38b658f555598ede. The one-ULP
+negative control passes; no finished network command is rerun. Isolation, suite
+contract, workflow lint and agent transport checks pass. The extended developer
+runtime also passes local Quake 3 (profiling-runtime-q3.log). Lifetime analysis,
+developer renderer modules pass (profiling-runtime-modules.log), as does the
+unchanged OpenArena fixed replay 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+The unchanged Quake 3 fixed replay also passes
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+Lifetime analysis passes 1356 commands across 151 paths. Final
+UI review gives the plot its full labeled row and accounts for frame padding,
+so click-to-retain indexes the plotted area instead of including the label width.
+The final plot owner passes both static/module tidy configurations and a fresh
+OpenArena runtime check; its capture is reviewed. Prepare a draft PR against main
+for hosted feedback while #21 finishes; merge accepted #21 forward and rerun all
+final checks before any #22 merge.
+
+## #22 renderer and shutdown accounting contract, test first
+
+Reuse the existing RHI draw counter and frontend triangle/surface counters; retain
+them before the normal frame reset, alongside submitted entity count. Existing
+GPU geometry/staging budgets expose their real allocations. Hunk tags reflect its
+actual low/high permanent/temporary lifetime regions instead of inventing per-object
+ownership. Extend existing developer probes for these snapshots and an explicit
+shutdown retained-allocation report; process-lifetime cvars/arenas must not be
+misreported as proven leaks. Test-first 3ff812a4 fails on missing renderer APIs.
+The implementation passes both compiler developer probes, native command tests
+and full developer build. A real OpenArena quit reports zero BOTLIB, RENDERER,
+CLIENTS and DEVTOOLS blocks; remaining cached packs/process strings and permanent
+hunk regions are shown rather than silently discarded. Runtime verifies the
+report after clean exit. The developer renderer ABI advances 31 to 32; shipping
+ABI 25 stays unchanged. Explicit frame selection is shared by the overlay and
+JSON command, with retention/reset covered by probes and a reviewed capture.
+
+## #22 packet and field contract, test first
+
+Extend the same CPU/network probe with bounded packet history, timestamps/direction,
+exact compressed-bit accounting for transmitted entity/player fields and player
+arrays, reset and disabled instrumentation. Encode/decode real production deltas,
+require matching read/write field totals and identical bytes with telemetry off.
+This captures field payload/control bits, excluding message/header framing; it is
+not a second network serializer. The missing API contract fails first at
+8798763b (profiling-network-before.log). The owner now retains 256 packet records
+and 128 fixed field slots without allocations; both compiler probes pass after
+implementation. Production delta bytes match with telemetry enabled/disabled;
+the accepted replication fixture also passes unchanged. The overlay exposes all
+retained packet metadata and field bit totals; the command exposes the latest
+64 packets plus all observed fields. Reset clears the counters explicitly. The
+command probe and developer client/server build pass.
+
+## #22 profile command contract, test first
+
+Extend the existing native command probe: select the retained peak, expose parent
+and self-time fields plus bounded history summaries, reject out-of-range age and
+invalid booleans before a requested reset, and clear history explicitly. The old
+handler ignores those arguments; the new check fails before implementation
+(profiling-agent-before.log, a8ead056). The handler now exposes the retained
+frame/parent/self-time/history and validates before reset. GCC protocol probe
+passes (profiling-agent-gcc.log). The overlay consumes the same history, supports
+click-to-retain, peak and live selection, and displays indented inclusive/self
+timings. Explicit frame/pacing/event-command scopes extend existing server/client
+scopes; no RAII or simulation expressions change. GCC and Clang/libc++ protocol checks and a complete developer client/server
+build pass. Runtime overlay validation and remaining issue scope are next.
+
+## #22 profiling contract, test first
+
+The issue and existing instrumentation are reviewed. The engine already has
+explicit generation-checked CPU scope tokens, a flat previous-frame view, RHI GPU
+timestamps, zone tags/hunk totals, packet/snapshot/prediction totals, renderer
+subsystem counters and lifetime-bounded debug primitives. Extend those owners;
+do not introduce RAII guards across Com_Error or a second profiler framework.
+The first contract adds parent indexes/self time and retained bounded CPU frame
+history/peak attribution. Existing incomplete/stale/overflow/backwards-clock and
+network controls remain. Actual overlay spike attribution without rebuilding is
+required before #22 acceptance; optional Tracy must not become a mandatory build
+dependency. The existing asset/memory probes pass, then the extended CPU probe fails on its
+missing parent/self-time/frame APIs (profiling-history-before.log). No #22
+production changes existed at that checkpoint (c4d6a9ff). The initial hierarchy
+implementation passes that contract. Extend it before completion: external idle
+time between frames must not inflate CPU duration, history must wrap at 240
+frames while retaining the peak, and a finished child of an abandoned parent must
+remain inspectable. The idle-duration assertion fails first
+(profiling-idle-before.log); finalize time at the last completed scope instead of
+the next frame boundary. The correction passes GCC and Clang/libc++ developer-data probes
+(profiling-history-{gcc,clang}.log). The owner retains 240 POD frames, inclusive
+and self durations, parent indexes, drop counts and the worst complete frame.
+It uses existing explicit tokens and no dynamic allocation. Overlay/agent
+consumption and production scope coverage remain next.
 
 ## #21 Windows public-header macro contract, test first
 

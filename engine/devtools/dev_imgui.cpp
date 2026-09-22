@@ -1071,7 +1071,8 @@ static void InspectMemory( void ) {
 	Com_DeveloperMemory( &memory );
 	ImGui::Text( "Hunk: %d total, %d permanent, %d temporary, %d free", memory.hunkTotal,
 		memory.hunkPermanent, memory.hunkTemporary, memory.hunkFree );
-	ImGui::TextUnformatted( "Zone bytes include block headers; hunk has lifetime regions, no tags." );
+	ImGui::TextUnformatted( "Zone tags include block headers; hunk tags identify bank/lifetime regions." );
+	ImGui::Text( "Hunk low/high permanent %d / %d; low/high temporary %d / %d", memory.hunkBytes[0], memory.hunkBytes[1], memory.hunkBytes[2], memory.hunkBytes[3] );
 	if ( ImGui::BeginTable( "Tags", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg ) ) {
 		ImGui::TableSetupColumn( "Tag" );
 		ImGui::TableSetupColumn( "Bytes" );
@@ -1743,10 +1744,7 @@ static void DrawAnimation( const refexport_t *renderer, int milliseconds ) {
 	++animationFrames;
 }
 
-static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint32_t milliseconds ) {
-	static float history[240];
-	static uint32_t cursor;
-	history[cursor++ % ARRAY_LEN( history )] = (float)elapsed;
+static void InspectProfile( const refexport_t *renderer, uint32_t milliseconds ) {
 	const devNetwork_t *net = DevTools_Network();
 	static uint64_t previous[2];
 	static uint32_t previousTime;
@@ -1754,21 +1752,60 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 	const uint32_t interval = milliseconds - previousTime;
 	if ( interval >= 1000 ) {
 		for ( int i = 0; i < 2; ++i ) {
-			rate[i] = (double)( net->bytes[i] - previous[i] ) * 1000.0 / (double)interval;
+			rate[i] = (double)( net->bytes[i] >= previous[i] ? net->bytes[i] - previous[i] : net->bytes[i] ) * 1000.0 / (double)interval;
 			previous[i] = net->bytes[i];
 		}
 		previousTime = milliseconds;
 	}
 	if ( !BeginPanel( "Profile" ) )
 		return;
-	ImGui::PlotLines( "Frame ms", history, ARRAY_LEN( history ), (int)( cursor % ARRAY_LEN( history ) ), nullptr, 0, 100, ImVec2( 0, 80 ) );
+	float history[240];
+	uint32_t frames = 0;
+	while ( const auto *frame = DevTools_CpuFrame( frames ) ) {
+		history[frames++] = float( frame->microseconds ) / 1000.0f;
+	}
+	ImGui::TextUnformatted( "CPU frame ms (newest first)" );
+	ImGui::PlotLines( "##cpu-history", history, (int)frames, 0, nullptr, 0, FLT_MAX, ImVec2( ImGui::GetContentRegionAvail().x, 80 ) );
+	if ( frames && ImGui::IsItemHovered() && ImGui::IsMouseClicked( ImGuiMouseButton_Left ) ) {
+		const float padding = ImGui::GetStyle().FramePadding.x;
+		const float fraction = ( ImGui::GetMousePos().x - ImGui::GetItemRectMin().x - padding ) / MAX( 1.0f, ImGui::GetItemRectMax().x - ImGui::GetItemRectMin().x - 2.0f * padding );
+		const uint32_t age = MIN( frames - 1, (uint32_t)( MAX( 0.0f, fraction ) * float( frames ) ) );
+		DevTools_SelectCpuFrame( DevTools_CpuFrame( age ) );
+	}
+	if ( ImGui::Button( "Inspect peak" ) )
+		DevTools_SelectCpuFrame( DevTools_CpuPeak() );
+	ImGui::SameLine();
+	if ( ImGui::Button( "Live" ) )
+		DevTools_SelectCpuFrame( nullptr );
+	ImGui::SameLine();
+	if ( ImGui::Button( "Clear history" ) ) {
+		DevTools_ClearCpuHistory();
+		DevTools_SelectCpuFrame( nullptr );
+	}
+	const auto *selected = DevTools_CpuSelection();
+	const auto *frame = selected ? selected : DevTools_CpuFrame( 0 );
+	if ( frame ) {
+		ImGui::Text( "%s frame %u: %.3f ms; %u scope drops", selected ? "Selected" : "Latest",
+			frame->serial, double( frame->microseconds ) / 1000, frame->dropped );
+		ImGui::TextUnformatted( "Scope: inclusive / self ms (click history to retain a frame)" );
+		for ( uint32_t i = 0; i < frame->count; ++i ) {
+			const auto &scope = frame->scopes[i];
+			uint32_t depth = 0;
+			for ( uint32_t ancestor = scope.parent; ancestor != UINT32_MAX; ancestor = frame->scopes[ancestor].parent )
+				++depth;
+			const float indent = float( depth ) * 12.0f;
+			if ( depth )
+				ImGui::Indent( indent );
+			ImGui::Text( "%s: %.3f / %.3f ms", scope.name, double( scope.microseconds ) / 1000, double( scope.selfMicroseconds ) / 1000 );
+			if ( depth )
+				ImGui::Unindent( indent );
+		}
+	}
+	const auto render = renderer->GetDeveloperStats();
+	ImGui::Text( "Draw calls %u; scene triangles %u / surfaces %u / submitted entities %u", render.drawCalls, render.triangles, render.surfaces, render.entities );
+	ImGui::Text( "GPU geometry %.1f MiB / staging %.1f MiB", double( render.geometryBytes ) / ( 1024 * 1024 ), double( render.stagingBytes ) / ( 1024 * 1024 ) );
 	devGpuTiming_t timings[32];
 	const uint32_t count = renderer->GetDeveloperTimings( timings, ARRAY_LEN( timings ) );
-	const devCpuTiming_t *cpu;
-	const uint32_t cpuCount = DevTools_CpuTimings( &cpu );
-	ImGui::TextUnformatted( "Previous CPU frame (inclusive scopes)" );
-	for ( uint32_t i = 0; i < cpuCount; ++i )
-		ImGui::Text( "%s: %.3f ms", cpu[i].name, (double)cpu[i].microseconds / 1000.0 );
 	postRenderStats_t post;
 	renderer->PostStats( &post );
 	ImGui::Text( "Post draws %u / drops %u / profile loads %u", post.draws, post.dropped, post.loads );
@@ -1820,6 +1857,22 @@ static void InspectProfile( const refexport_t *renderer, uint32_t elapsed, uint3
 			net->rewindReports, net->rewindHits, net->rewindClamped );
 		ImGui::TextUnformatted( "Server samples the last shot at most four times per second." );
 	}
+	if ( ImGui::CollapsingHeader( "Recent datagrams (newest first)" ) ) {
+		for ( uint32_t age = 0; const auto *packet = DevTools_NetworkPacket( age ); ++age )
+			ImGui::Text( "%u ms: %s %u bytes", packet->milliseconds, packet->outgoing ? "TX" : "RX", packet->bytes );
+	}
+	if ( ImGui::CollapsingHeader( "Delta field bandwidth" ) ) {
+		const devNetworkField_t *fields;
+		const uint32_t fieldCount = DevTools_NetworkFields( &fields );
+		for ( uint32_t i = 0; i < fieldCount; ++i ) {
+			const auto &field = fields[i];
+			if ( field.samples[0] || field.samples[1] )
+				ImGui::Text( "%s: read %" PRIu64 " / written %" PRIu64 " bits", field.name, field.bits[0], field.bits[1] );
+		}
+	}
+	if ( ImGui::Button( "Clear network counters" ) )
+		DevTools_ClearNetwork();
+	ImGui::TextWrapped( "Field totals count compressed delta field/control bits, excluding message headers. Reads include replay; writes include local snapshot serialization." );
 	ImGui::TextWrapped( "Datagram payload sizes exclude transport headers; replay snapshots are not network traffic." );
 	ImGui::EndTabItem();
 }
@@ -1927,7 +1980,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 				ImGui::EndTabItem();
 			}
 			InspectAssets( renderer );
-			InspectProfile( renderer, elapsed, (uint32_t)milliseconds );
+			InspectProfile( renderer, (uint32_t)milliseconds );
 			InspectMemory();
 			InspectAnimation( renderer, elapsed );
 			InspectEntities();
