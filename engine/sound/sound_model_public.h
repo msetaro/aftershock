@@ -9,9 +9,9 @@ enum sDistanceModel_t : uint32_t { S_DISTANCE_LINEAR,
 // referenceDistance > 0, maxDistance > referenceDistance, rolloff >= 0, and
 // distance < maxDistance. Both users apply the same hard audible-range cutoff.
 inline double S_DistanceGain( double distance, float referenceDistance, float maxDistance, float rolloff, sDistanceModel_t model ) {
-	const double beyond = std::max( 0.0, distance - referenceDistance );
+	const double beyond = (std::max)( 0.0, distance - referenceDistance );
 	if ( model == S_DISTANCE_LINEAR )
-		return std::max( 0.0, 1.0 - rolloff * beyond / ( double( maxDistance ) - referenceDistance ) );
+		return (std::max)( 0.0, 1.0 - rolloff * beyond / ( double( maxDistance ) - referenceDistance ) );
 	return referenceDistance / ( referenceDistance + rolloff * beyond );
 }
 // Occlusion is [0,1]. Audio smooths this input; hearing uses the settled gain.

@@ -66,7 +66,16 @@ Corrected head d24ba4f4 reaches the developer client compilation and exposes
 Windows min/max macro expansion inside the new shared sound-distance header
 (C2589/C2059). Add the hostile-header condition to the existing audio spatial
 probe before correcting the shared helper. Both actual callers (authored audio
-and AI hearing) remain on the same implementation; do not restructure its math.
+and AI hearing) remain on the same implementation. Parenthesizing the function
+name prevents macro expansion without changing arithmetic; GCC optimized
+snd_spatial.o is byte-identical before/after. Both compiler spatial probes and
+the complete developer client/server rebuild pass. The same hosted run then
+reaches retained C99 bot/team-leader probes: new bool declarations require
+stdbool.h when g_local.h is consumed as C. Add that conditional standard include
+and verify bot byte conversion on GCC/Clang plus the team-leader check. All
+remaining hosted native probe steps also pass on both compiler configurations
+(navigation-native-tail.log). No accepted golden changes. Push the corrected
+head and require every fresh required check before readiness/merge.
 
 ## #21 hosted portability and cold tool setup
 

@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 // g_local.h -- local definitions for game module
 
+#ifndef __cplusplus
+#include <stdbool.h> // Retained C regression probes consume this header.
+#endif
 #include "../bg/q_shared.h"
 #include "../../engine/public/bg_public.h"
 #include "../../engine/public/g_public.h"
