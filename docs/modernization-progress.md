@@ -33,8 +33,7 @@ No accepted golden/demo or known-good tag changed.
 #16 main forward, preserving both cooker kinds (sound-event 12, UI 13), CI steps
 and documentation. Focused schema/native, format/types/boundaries, build and
 1080p runtime checks pass (ui-merged-{schema,native}.log, ui-with-audio.log).
-Current step: push/open its PR into main,
-then require all 26 hosted gates on that exact head and current main before
+Draft PR172 is open into main. Require all 26 hosted gates on that exact head and current main before
 ready/merge. Do not treat previous-base local checks as final merge acceptance.
 
 #18 preparation is isolated on issue/18-entity-definitions in
@@ -43,7 +42,9 @@ Commits through acd59b9e contain the initial JSON prefab cooker, bounded native
 lookup and test-first real pickup acceptance. The uncommitted game spawn adapter
 initially failed linking because its public header was included inside the game
 namespace. Added it to game/module.cpp's existing global public-header imports;
-rebuild and real pickup acceptance are now running.
+the initial OpenArena map/runtime pickup acceptance now passes
+(entities-runtime-second.log). The collection fixture no longer assigns a
+targetname, which correctly made the original pickup dormant until triggered.
 No #18 PR yet. Finish #17 acceptance and merge current main forward before its
 final gates. Remaining #18 component coverage is documented in that branch.
 
