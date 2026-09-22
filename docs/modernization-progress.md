@@ -51,6 +51,15 @@ Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
 
+## #19 native RNG state test before implementation
+
+The state test now also compiles the real native bg_lib through its module
+wrapper and production strict/wrap flags. It verifies 4096 original integer RNG
+steps, serializes the full seed and requires the next 256 draws after restore to
+match. It fails on the missing read-only Q_GetRandomSeed API (state-rng-before.log).
+Expose the existing seed only; retain srand/rand arithmetic and use the existing
+srand entry point for restoration. Botlib's separate libc RNG remains outstanding.
+
 ## #19 unsigned trajectory metadata correction test
 
 Review of q_shared.h found trType_t has explicit uint32_t storage. The new save
