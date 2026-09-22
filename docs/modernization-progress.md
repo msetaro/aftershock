@@ -58,6 +58,19 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 character-cache state and process-clock ages
+
+Character records verify immutable typed attributes, filename and skill, then
+restore reference counts and unreferenced ages. The coordinator supplies one
+process-clock reading for capture and one for load; timestamps are rebased with
+unsigned wrap-preserving arithmetic so a fresh process evicts the same oldest
+unreferenced handle. Original cache/eviction expressions are unchanged. GCC and
+Clang/libc++ UBSan pass changed-content, incomplete-pool, clock-wrap and actual
+same-next-eviction checks with relocated characters/strings
+(state-bot-characters-{gcc,clang}.log). Build and focused tidy pass. Cache handles
+still require reconstruction before application; chat/AAS/libvars and the full
+checkpoint coordinator remain open.
+
 ## #19 bot weapon-weight ownership
 
 Weapon-pool checkpoints verify pointer-free weapon/projectile descriptors and the

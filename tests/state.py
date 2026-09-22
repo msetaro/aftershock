@@ -57,7 +57,7 @@ def declared_members(body):
         if callback:
             fields.add(callback[1])
             continue
-        match=re.fullmatch(r'(?:(?:struct|const)\s+)?\w+\s+([\s\S]+)',declaration)
+        match=re.fullmatch(r'(?:(?:struct|const|union)\s+)?\w+\s+([\s\S]+)',declaration)
         assert match, f'unclassified native declaration: {declaration}'
         for declarator in match[1].split(','):
             member=re.fullmatch(r'\s*\*?\s*(\w+)(?:\[\w+\])*\s*',declarator)
@@ -196,6 +196,15 @@ weapon_source=(ROOT/'engine/botlib/be_ai_weap.cpp').read_text()
 weapon_state=weapon_source.split('typedef struct bot_weaponstate_s {',1)[1].split('} bot_weaponstate_t;',1)[0]
 assert declared_members(weapon_state)=={'weaponweightconfig','weaponweightindex'}
 print('PASS: botlib weapon state retains weight ownership and immutable index/content identity')
+character_source=(ROOT/'engine/botlib/be_ai_char.cpp').read_text()
+for tag,name,expected in (('bot_character_s','bot_character_t',{'c','filename','skill','refcnt','reftime'}),
+                          ('bot_characteristic_s','bot_characteristic_t',{'type','value'})):
+    body=character_source.split('typedef struct '+tag+' {',1)[1].split('} '+name+';',1)[0]
+    assert declared_members(body)==expected, f'{name}: character identity/clock ownership changed'
+union=character_source.split('union cvalue {',1)[1].split('};',1)[0]
+assert declared_members(union)=={'integer','_float','string'}
+print('PASS: character attributes, reference counts and rebased process-clock ages have explicit ownership')
+
 
 
 
@@ -311,7 +320,7 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wl,--gc-sections','-o',probe])
 run([probe])
 
-for component in ('input','move','weights'):
+for component in ('input','move','weights','characters'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',

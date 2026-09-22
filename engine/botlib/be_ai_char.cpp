@@ -43,6 +43,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_ai_char.h"
+#include "../../third_party/sha256/sha-256.h"
+#include <cmath>
 
 #define MAX_CHARACTERISTICS		80
 
@@ -816,3 +818,110 @@ void BotShutdownCharacters( void ) {
 		} //end if
 	} //end for
 } //end of the function BotShutdownCharacters
+
+struct characterSave_t {
+	char filename[MAX_QPATH];
+	float skill;
+	uint8_t characteristics[32];
+	int32_t references;
+	uint32_t age;
+};
+static_assert( sizeof( characterSave_t ) == 108 );
+static constexpr stateField_t characterSaveFields[] = {
+	{ "filename", offsetof( characterSave_t, filename ), MAX_QPATH, stateType_t::String },
+	{ "skill", offsetof( characterSave_t, skill ), 1, stateType_t::Float32 },
+	{ "characteristics", offsetof( characterSave_t, characteristics ), 32, stateType_t::Bytes },
+	{ "references", offsetof( characterSave_t, references ), 1, stateType_t::Int32 },
+	{ "age", offsetof( characterSave_t, age ), 1, stateType_t::UInt32 }
+};
+static constexpr stateSchema_t characterSaveSchema = { "botlib.character", 1, 1, sizeof( characterSave_t ), characterSaveFields, 5 };
+static constexpr stateField_t characterPoolFields[] = { { "present", 0, MAX_HANDLES + 1, stateType_t::UInt32 } };
+static constexpr stateSchema_t characterPoolSchema = { "botlib.characterPool", 1, 1, ( MAX_HANDLES + 1 ) * sizeof( uint32_t ), characterPoolFields, 1 };
+static bool CharacterIdentity( const bot_character_t &character, characterSave_t *saved ) {
+	*saved = {};
+	if ( !memchr( character.filename, 0, sizeof( character.filename ) ) || !std::isfinite( character.skill ) )
+		return false;
+	strcpy( saved->filename, character.filename );
+	saved->skill = character.skill;
+	Sha_256 hash;
+	sha_256_init( &hash, saved->characteristics );
+	for ( const auto &value : character.c ) {
+		sha_256_write( &hash, &value.type, sizeof( value.type ) );
+		switch ( value.type ) {
+		case 0:
+			break; // An unset union member has no active payload to read.
+		case CT_INTEGER:
+			sha_256_write( &hash, &value.value.integer, sizeof( int32_t ) );
+			break;
+		case CT_FLOAT:
+			if ( !std::isfinite( value.value._float ) )
+				return false;
+			sha_256_write( &hash, &value.value._float, sizeof( float ) );
+			break;
+		case CT_STRING: {
+			if ( !value.value.string )
+				return false;
+			const size_t length = strlen( value.value.string );
+			if ( length >= MAX_TOKEN )
+				return false;
+			sha_256_write( &hash, value.value.string, length + 1 );
+			break;
+		}
+		default:
+			return false;
+		}
+	}
+	sha_256_close( &hash );
+	return true;
+}
+bool Bot_WriteCharacterState( stateWriter_t *writer, uint32_t now ) {
+	if ( !writer )
+		return false;
+	if ( botcharacters[0] ) {
+		writer->failed = true;
+		return false;
+	}
+	uint32_t present[MAX_HANDLES + 1]{};
+	for ( int i = 1; i <= MAX_HANDLES; ++i )
+		present[i] = botcharacters[i] != nullptr;
+	if ( !State_Append( writer, characterPoolSchema, 0, present ) )
+		return false;
+	for ( uint32_t i = 1; i <= MAX_HANDLES; ++i )
+		if ( present[i] ) {
+			const auto &character = *botcharacters[i];
+			characterSave_t saved;
+			if ( character.refcnt < 0 || !CharacterIdentity( character, &saved ) ) {
+				writer->failed = true;
+				return false;
+			}
+			saved.references = character.refcnt;
+			saved.age = now - uint32_t( character.reftime );
+			if ( !State_Append( writer, characterSaveSchema, i, &saved ) )
+				return false;
+		}
+	return true;
+}
+bool Bot_ReadCharacterState( const stateReader_t &reader, uint32_t now, bool apply ) {
+	uint32_t present[MAX_HANDLES + 1], version;
+	if ( botcharacters[0] || !State_Find( reader, characterPoolSchema, 0, present, &version ) || present[0] )
+		return false;
+	characterSave_t saved[MAX_HANDLES + 1];
+	for ( uint32_t i = 1; i <= MAX_HANDLES; ++i ) {
+		if ( present[i] != uint32_t( botcharacters[i] != nullptr ) )
+			return false;
+		if ( !present[i] )
+			continue;
+		characterSave_t loaded;
+		if ( !State_Find( reader, characterSaveSchema, i, &saved[i], &version ) || saved[i].references < 0 ||
+			 !CharacterIdentity( *botcharacters[i], &loaded ) || strcmp( saved[i].filename, loaded.filename ) ||
+			 memcmp( &saved[i].skill, &loaded.skill, sizeof( float ) ) || memcmp( saved[i].characteristics, loaded.characteristics, sizeof( loaded.characteristics ) ) )
+			return false;
+	}
+	if ( apply )
+		for ( uint32_t i = 1; i <= MAX_HANDLES; ++i )
+			if ( present[i] ) {
+				botcharacters[i]->refcnt = saved[i].references;
+				botcharacters[i]->reftime = int32_t( now - saved[i].age );
+			}
+	return true;
+}
