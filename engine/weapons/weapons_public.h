@@ -1,5 +1,6 @@
 #ifndef WEAPONS_PUBLIC_H
 #define WEAPONS_PUBLIC_H
+#include "../public/state_public.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <type_traits>
@@ -73,6 +74,23 @@ struct weaponState_t {
 	uint32_t time, random, sequence, nextFire, magazine, reserve, chamber, previousButtons;
 	uint32_t reloadStage, reloadStart, burstRemaining, adsQ16, nextMelee, switchUntil;
 };
+inline constexpr stateField_t weaponStateFields[] = {
+	{ "time", offsetof( weaponState_t, time ), 1, stateType_t::UInt32 },
+	{ "random", offsetof( weaponState_t, random ), 1, stateType_t::UInt32 },
+	{ "sequence", offsetof( weaponState_t, sequence ), 1, stateType_t::UInt32 },
+	{ "nextFire", offsetof( weaponState_t, nextFire ), 1, stateType_t::UInt32 },
+	{ "magazine", offsetof( weaponState_t, magazine ), 1, stateType_t::UInt32 },
+	{ "reserve", offsetof( weaponState_t, reserve ), 1, stateType_t::UInt32 },
+	{ "chamber", offsetof( weaponState_t, chamber ), 1, stateType_t::UInt32 },
+	{ "previousButtons", offsetof( weaponState_t, previousButtons ), 1, stateType_t::UInt32 },
+	{ "reloadStage", offsetof( weaponState_t, reloadStage ), 1, stateType_t::UInt32 },
+	{ "reloadStart", offsetof( weaponState_t, reloadStart ), 1, stateType_t::UInt32 },
+	{ "burstRemaining", offsetof( weaponState_t, burstRemaining ), 1, stateType_t::UInt32 },
+	{ "adsQ16", offsetof( weaponState_t, adsQ16 ), 1, stateType_t::UInt32 },
+	{ "nextMelee", offsetof( weaponState_t, nextMelee ), 1, stateType_t::UInt32 },
+	{ "switchUntil", offsetof( weaponState_t, switchUntil ), 1, stateType_t::UInt32 },
+};
+inline constexpr stateSchema_t weaponStateSchema = { "weapon.state", 1, 1, sizeof( weaponState_t ), weaponStateFields, 14 };
 struct weaponEvent_t {
 	uint32_t kind, stage, sequence, time;
 	float spread[2], recoil[2];
@@ -98,6 +116,7 @@ static_assert( sizeof( weaponReload_t ) == 76 && sizeof( weaponMaterial_t ) == 1
 static_assert( sizeof( weaponState_t ) == 56 && std::is_trivially_copyable_v<weaponState_t> );
 static_assert( sizeof( weaponEvent_t ) == 32 && sizeof( weaponProjectile_t ) == 28 );
 
+void Weapon_DefinitionHash( const weaponDef_t *definition, uint8_t digest[32] );
 void Weapon_StateHash( const weaponState_t *state, uint8_t digest[32] );
 bool Weapon_StateValid( const weaponState_t *state );
 bool Weapon_Open( const void *data, size_t size, weaponDef_t *definition );

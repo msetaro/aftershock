@@ -429,3 +429,175 @@ void G_WeaponCommand( gentity_t *player, const usercmd_t *cmd, int commandStart 
 		}
 	}
 }
+
+struct weaponContentSave_t {
+	uint32_t count;
+	uint8_t hashes[WEAPON_MAX_DEFINITIONS][64];
+};
+struct weaponActorSave_t {
+	uint32_t active, epoch, attachments[2][WEAPON_MAX_DEFINITIONS];
+	int32_t spawn, selected[2], entity[2], animationEntity[2];
+	float parameters[2][ANIM_MAX_PARAMETERS];
+	weaponState_t inventory[2][WEAPON_MAX_DEFINITIONS];
+	animState_t animation[2];
+};
+static_assert( sizeof( weaponContentSave_t ) == 2052 );
+static constexpr stateField_t weaponContentFields[] = {
+	{ "count", offsetof( weaponContentSave_t, count ), 1, stateType_t::UInt32 },
+	{ "hashes", offsetof( weaponContentSave_t, hashes ), WEAPON_MAX_DEFINITIONS * 64, stateType_t::Bytes },
+};
+static constexpr stateSchema_t weaponContentSchema = { "game.weaponContent", 1, 1, sizeof( weaponContentSave_t ), weaponContentFields, 2 };
+static constexpr stateField_t weaponActorFields[] = {
+	{ "active", offsetof( weaponActorSave_t, active ), 1, stateType_t::UInt32 },
+	{ "epoch", offsetof( weaponActorSave_t, epoch ), 1, stateType_t::UInt32 },
+	{ "attachments", offsetof( weaponActorSave_t, attachments ), 2 * WEAPON_MAX_DEFINITIONS, stateType_t::UInt32 },
+	{ "spawn", offsetof( weaponActorSave_t, spawn ), 1, stateType_t::Int32 },
+	{ "selected", offsetof( weaponActorSave_t, selected ), 2, stateType_t::Int32 },
+	{ "entity", offsetof( weaponActorSave_t, entity ), 2, stateType_t::Int32 },
+	{ "animationEntity", offsetof( weaponActorSave_t, animationEntity ), 2, stateType_t::Int32 },
+	{ "parameters", offsetof( weaponActorSave_t, parameters ), 2 * ANIM_MAX_PARAMETERS, stateType_t::Float32 },
+};
+static constexpr stateSchema_t weaponActorSchema = { "game.weaponActor", 1, 1, sizeof( weaponActorSave_t ), weaponActorFields, 8 };
+// Shared animation records reserve [0, 2*MAX_CLIENTS) for body/rifle actors.
+static constexpr uint32_t WEAPON_ANIMATION_SLOT = 2 * MAX_CLIENTS;
+static bool WeaponContent( weaponContentSave_t *content ) {
+	const int count = BG_WeaponCount();
+	if ( count < 0 || count > int( WEAPON_MAX_DEFINITIONS ) )
+		return false;
+	*content = {};
+	content->count = uint32_t( count );
+	for ( int i = 0; i < count; ++i ) {
+		const auto *definition = BG_WeaponDefinition( i );
+		const auto *graph = BG_WeaponAnimation( i );
+		if ( !definition || !graph )
+			return false;
+		Weapon_DefinitionHash( definition, content->hashes[i] );
+		memcpy( content->hashes[i] + 32, graph->hash, 32 );
+	}
+	return true;
+}
+static bool ValidWeaponActor( const weaponActorSave_t &saved, const gStatePools_t &pools, weaponDef_t configured[2] ) {
+	const int count = BG_WeaponCount();
+	if ( saved.active > 1 || count < 0 || count > int( WEAPON_MAX_DEFINITIONS ) || ( saved.active && !count ) )
+		return false;
+	const weaponState_t zero{};
+	for ( int hand = 0; hand < 2; ++hand ) {
+		configured[hand] = {};
+		if ( saved.entity[hand] < -1 || saved.entity[hand] >= pools.entityCount || saved.animationEntity[hand] < -1 || saved.animationEntity[hand] >= pools.entityCount ||
+			 saved.selected[hand] < 0 || saved.selected[hand] >= int( WEAPON_MAX_DEFINITIONS ) || saved.animation[hand].initialized > 1 )
+			return false;
+		for ( float value : saved.parameters[hand] )
+			if ( !std::isfinite( value ) )
+				return false;
+		for ( int index = 0; index < int( WEAPON_MAX_DEFINITIONS ); ++index ) {
+			const auto &state = saved.inventory[hand][index];
+			if ( !saved.active || index >= count ) {
+				// Inactive/unconfigured inventory is reset before use; require exact zero before omitting it.
+				if ( saved.attachments[hand][index] || memcmp( &state, &zero, sizeof( zero ) ) )
+					return false;
+				continue;
+			}
+			weaponDef_t definition;
+			weaponEvents_t events;
+			auto checked = state;
+			if ( !Weapon_Configure( BG_WeaponDefinition( index ), saved.attachments[hand][index], &definition ) ||
+				 !Weapon_Command( &definition, 0, checked.time, &checked, &events ) )
+				return false;
+			if ( index == saved.selected[hand] )
+				configured[hand] = definition;
+		}
+		if ( saved.active ) {
+			if ( saved.selected[hand] >= count || saved.entity[hand] < 0 || saved.animationEntity[hand] < 0 )
+				return false;
+			animPose_t pose;
+			if ( !Anim_Evaluate( BG_WeaponAnimation( saved.selected[hand] ), &saved.animation[hand], saved.parameters[hand], saved.animation[hand].lastTime, &pose ) )
+				return false;
+		}
+	}
+	return true;
+}
+bool G_WriteWeaponState( stateWriter_t *writer, const gStatePools_t &pools ) {
+	if ( !writer )
+		return false;
+	weaponContentSave_t content;
+	if ( !G_StatePoolsValid( pools ) || !WeaponContent( &content ) ) {
+		writer->failed = true;
+		return false;
+	}
+	if ( !State_Append( writer, weaponContentSchema, 0, &content ) )
+		return false;
+	for ( uint32_t owner = 0; owner < MAX_CLIENTS; ++owner ) {
+		const auto &actor = weaponActors[owner];
+		weaponActorSave_t saved{};
+		saved.active = uint32_t( actor.active );
+		saved.epoch = actor.epoch;
+		saved.spawn = actor.spawn;
+		memcpy( saved.inventory, actor.inventory, sizeof( saved.inventory ) );
+		memcpy( saved.attachments, actor.attachments, sizeof( saved.attachments ) );
+		memcpy( saved.parameters, actor.parameters, sizeof( saved.parameters ) );
+		for ( int hand = 0; hand < 2; ++hand ) {
+			saved.selected[hand] = actor.selected[hand];
+			saved.entity[hand] = G_StateEntitySlot( actor.entity[hand], pools );
+			saved.animationEntity[hand] = G_StateEntitySlot( actor.animationEntity[hand], pools );
+			saved.animation[hand] = actor.animation[hand];
+		}
+		weaponDef_t configured[2];
+		if ( !ValidWeaponActor( saved, pools, configured ) || memcmp( configured, actor.configured, sizeof( configured ) ) ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( !State_Append( writer, weaponActorSchema, owner, &saved ) )
+			return false;
+		for ( uint32_t hand = 0; hand < 2; ++hand ) {
+			if ( !State_Append( writer, animationStateSchema, WEAPON_ANIMATION_SLOT + owner * 2 + hand, &saved.animation[hand] ) )
+				return false;
+			if ( saved.active )
+				for ( uint32_t index = 0; index < content.count; ++index )
+					if ( !State_Append( writer, weaponStateSchema, ( owner * 2 + hand ) * WEAPON_MAX_DEFINITIONS + index, &saved.inventory[hand][index] ) )
+						return false;
+		}
+	}
+	return true;
+}
+bool G_ReadWeaponState( const stateReader_t &reader, const gStatePools_t &pools, bool apply ) {
+	weaponContentSave_t content, current;
+	uint32_t version;
+	if ( !G_StatePoolsValid( pools ) || !State_Find( reader, weaponContentSchema, 0, &content, &version ) || !WeaponContent( &current ) || memcmp( &content, &current, sizeof( content ) ) )
+		return false;
+	// The immutable archive is validated in full before publishing any owner.
+	for ( int pass = 0; pass < ( apply ? 2 : 1 ); ++pass ) {
+		for ( uint32_t owner = 0; owner < MAX_CLIENTS; ++owner ) {
+			weaponActorSave_t saved{};
+			if ( !State_Find( reader, weaponActorSchema, owner, &saved, &version ) || saved.active > 1 )
+				return false;
+			for ( uint32_t hand = 0; hand < 2; ++hand ) {
+				if ( !State_Find( reader, animationStateSchema, WEAPON_ANIMATION_SLOT + owner * 2 + hand, &saved.animation[hand], &version ) )
+					return false;
+				if ( saved.active )
+					for ( uint32_t index = 0; index < content.count; ++index )
+						if ( !State_Find( reader, weaponStateSchema, ( owner * 2 + hand ) * WEAPON_MAX_DEFINITIONS + index, &saved.inventory[hand][index], &version ) )
+							return false;
+			}
+			weaponDef_t configured[2];
+			if ( !ValidWeaponActor( saved, pools, configured ) )
+				return false;
+			if ( !pass )
+				continue;
+			auto &actor = weaponActors[owner];
+			actor.active = saved.active != 0;
+			actor.spawn = saved.spawn;
+			actor.epoch = saved.epoch;
+			memcpy( actor.inventory, saved.inventory, sizeof( actor.inventory ) );
+			memcpy( actor.attachments, saved.attachments, sizeof( actor.attachments ) );
+			memcpy( actor.configured, configured, sizeof( actor.configured ) );
+			memcpy( actor.parameters, saved.parameters, sizeof( actor.parameters ) );
+			for ( int hand = 0; hand < 2; ++hand ) {
+				actor.selected[hand] = saved.selected[hand];
+				actor.entity[hand] = saved.entity[hand] == -1 ? nullptr : &pools.entities[saved.entity[hand]];
+				actor.animationEntity[hand] = saved.animationEntity[hand] == -1 ? nullptr : &pools.entities[saved.animationEntity[hand]];
+				actor.animation[hand] = saved.animation[hand];
+			}
+		}
+	}
+	return true;
+}

@@ -91,4 +91,6 @@ bool G_WriteComposedState( stateWriter_t *writer );
 bool G_ReadComposedState( const stateReader_t &reader, bool apply );
 bool G_WriteAnimationState( stateWriter_t *writer, const gStatePools_t &pools );
 bool G_ReadAnimationState( const stateReader_t &reader, const gStatePools_t &pools, bool apply );
+bool G_WriteWeaponState( stateWriter_t *writer, const gStatePools_t &pools );
+bool G_ReadWeaponState( const stateReader_t &reader, const gStatePools_t &pools, bool apply );
 #endif

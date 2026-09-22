@@ -110,6 +110,14 @@ animation_public=(ROOT/'engine/animation/animation_public.h').read_text()
 state_body=animation_public.split('struct animState_t {',1)[1].split('};',1)[0]
 assert set(re.findall(r'offsetof\( animState_t, (\w+) \)',animation_public))==declared_members(state_body)
 print('PASS: composed and animation state owners have complete checkpoint field coverage')
+weapon=(ROOT/'game/game/g_data_weapons.cpp').read_text()
+weapon_actor=weapon.split('} weaponActors[',1)[0].rsplit('static struct {',1)[1]
+weapon_fields=set(re.findall(r'offsetof\( weaponActorSave_t, (\w+) \)',weapon))
+assert weapon_fields | {'inventory','animation','configured'} == declared_members(weapon_actor)
+weapon_public=(ROOT/'engine/weapons/weapons_public.h').read_text()
+weapon_state=weapon_public.split('struct weaponState_t {',1)[1].split('};',1)[0]
+assert set(re.findall(r'offsetof\( weaponState_t, (\w+) \)',weapon_public)) == declared_members(weapon_state)
+print('PASS: weapon actor fields are saved or reconstructed from verified matching content')
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'
@@ -157,3 +165,14 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      'tests/probes/state_animation.cpp','engine/animation/animation.cpp','engine/render/tr_cooked.cpp',
      'engine/qcommon/state.cpp',sha,native,'-Wl,--gc-sections','-o',probe])
 run([probe,assets/'animations/anim_body.asanim',assets/'animations/anim_rifle.asanim'])
+
+weapons=args.output/'weapons-assets'
+range_assets=args.output/'range-assets'
+cook(ROOT/'tests/assets/weapons/assets.json',weapons)
+cook(ROOT/'tests/assets/range.json',range_assets)
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-ffp-contract=off','-fno-fast-math','-Wall','-Wextra','-Werror',
+     '-ffunction-sections','-fdata-sections','-fsanitize=undefined','-fno-sanitize-recover=all',
+     'tests/probes/state_weapons.cpp','engine/weapons/weapons.cpp','engine/animation/animation.cpp',
+     'engine/render/tr_cooked.cpp','engine/qcommon/state.cpp',sha,native,'-Wl,--gc-sections','-o',probe])
+run([probe,weapons/'weapons/range_rifle.asweapon',range_assets/'animations/range_rifle.asanim'])

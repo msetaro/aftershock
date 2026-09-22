@@ -52,6 +52,25 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 authored weapon state
+
+Weapon checkpoints retain both-hand inventory, RNG/cooldowns, attachment masks,
+selected definitions, animation state/parameters and checked auxiliary entity
+slots. Definition and graph digests must match the reloaded content. Configured
+attachments are rebuilt by the existing Weapon_Configure and must compare byte-
+identically before capture. Inactive/unconfigured inventory is omitted only after
+checking exact zero; active inventory uses shared named weaponState_t fields.
+GCC/Clang/libc++ UBSan continuation and changed-content/incomplete-owner checks
+pass (state-weapons-{gcc,clang}.log). Client/server build, focused tidy and source
+policies pass. Existing weapon lifecycle, deltas, hitscan and animation tests pass;
+the 1,000-shot trace remains
+0c1b0e259650e6c5c6c155244100b3e194abbfc75fe7d10717cdb25b919c746f
+(state-weapon-control.log). No original simulation expression changed.
+
+Next: rewind history and remaining global/bot/definition/editor owners, then the
+full save/load coordinator and fresh-process acceptance. Core records remain
+drafts until that acceptance passes. No accepted fixture was regenerated.
+
 ## #19 authored animation state
 
 Animation checkpoints retain rig hashes/calibration, actor clocks, manual inputs,
