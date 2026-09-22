@@ -4,6 +4,9 @@ import argparse
 from pathlib import Path
 import shlex
 import sys
+import re
+import subprocess
+from check_boundaries import TOKENS, blank
 from run import ROOT, SCRATCH, run
 
 parser=argparse.ArgumentParser(description=__doc__)
@@ -12,6 +15,16 @@ parser.add_argument('--cc',default='gcc')
 parser.add_argument('--cxx',default='g++')
 args=parser.parse_args()
 args.output.mkdir(parents=True,exist_ok=True)
+# Keep every owned engine libc draw visible to checkpoint capture.
+raw_random=re.compile(r'\b(?:rand|srand)\s*\(')
+assert raw_random.search('rand()') and raw_random.search('std::srand(1)')
+assert not raw_random.search(TOKENS.sub(lambda match: blank(match[0]), '// rand()\n"srand()"'))
+for name in subprocess.check_output(['git','ls-files','-z','--','engine'],cwd=ROOT).decode().split('\0'):
+    if Path(name).suffix not in ('.cpp','.h','.c','.inc') or name in (
+            'engine/qcommon/q_shared.cpp','engine/renderervk/shaders/spirv/shader_data.cpp'):
+        continue
+    source=TOKENS.sub(lambda match: blank(match[0]), (ROOT/name).read_text())
+    assert not raw_random.search(source), f'{name}: use Q_Rand/Q_Srand so checkpoints retain the stream'
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'

@@ -35,23 +35,49 @@ main/tag recheck, self-review and merge. No accepted fixture regeneration.
 
 #19 is local in /home/matt/.cache/aftershock-modernization/state-tree,
 issue/19-state-serialization, with accepted UI main merged at 38847576.
-The common named-field serializer is implemented through a8195301; explicit
-added/removed/reordered-field migration and UInt64 identity preservation pass GCC
-and Clang/libc++ UBSan. Focused tidy, MinGW/aarch64 compile and format/types/
+The common named-field serializer now includes bounded strings and an archive of
+records keyed by schema/slot. Explicit added/removed/reordered-field migration,
+UInt64 identity preservation and native/libc RNG continuation pass GCC and
+Clang/libc++ UBSan. Focused tidy, MinGW/aarch64 compile and format/types/
 boundaries pass for the initial module. Settings/bindings and editor workspace
 profiles now pass real clients on both content sets, including a frozen version-1
 profile migration. Shared replication-derived state descriptions also pass GCC/Clang, with
 unchanged network bytes. The first real checkpoint test now fails at the missing save file after loading
 a live bot and pausing through the existing menu. Continue source inventory while
 #18 gates run; merge accepted #18 main before game checkpoint integration.
-The native RNG getter also passes sequence/restoration tests and unchanged-codegen
-checks; botlib RNG capture remains outstanding. Private state-preflight.md records
+The native RNG getter has unchanged-codegen proof. Owned libc calls now use
+tracked wrappers, and accepted bot/replay hashes remain unchanged. Full checkpoint
+use of both RNG records still needs integration. Private state-preflight.md records
 the full-state source inventory. No native
 pointer dumps or partial checkpoint acceptance.
 
 Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
+
+## #19 libc RNG capture and preserved behavior
+
+Owned engine rand/srand calls now route through Q_Rand/Q_Srand, retaining libc's
+generator and tracking its seed, draw count and an eight-value signature. Explicit
+restore replays at most 100,000,000 draws; a mismatched generator signature rejects
+and restores the running stream. No per-frame allocation or FP arithmetic change.
+The existing token stripper enforces ownership of raw libc calls in tests/state.py.
+
+A follow-up pre-fix assertion exposed an initial-wrapper error: its first draw
+reset an inherited libc stream to seed 1. The corrected wrapper preserves all
+pre-seed draws and marks their state unavailable until the engine explicitly seeds
+it (as server map startup already does). state-libc-initial-before.log records the
+failure; both compiler tests now cover inherited state, same-sequence operation,
+restore, signature rejection and the replay bound. Capture never reseeds a stream.
+
+GCC/Clang UBSan, client/dedicated build, full tidy (1370 configurations),
+format/types/boundaries pass. Both accepted bot hashes remain unchanged:
+q3dm17 fea77580629db3b6d8b0130a64d41716e93b786b7d06b1ffea85e200eeb343e6;
+q3dm7 14c8ee7d86fd8712533e75cfc44462045714c143208412a440eb119ceab83dd1.
+Both fixed demos retain frame hash
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+Evidence: state-libc-{gcc,clang,build,tidy,format,types,boundaries,runtime,demo}.log.
+Full game-state loading is still unimplemented; these are supporting primitives.
 
 ## #19 libc RNG checkpoint test before implementation
 

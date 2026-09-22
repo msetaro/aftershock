@@ -1199,7 +1199,7 @@ static void Cvar_Rand( int *ival, float *fval ) {
 	int icap;
 	float fcap;
 
-	*ival = rand();
+	*ival = Q_Rand();
 	*fval = (float)( *ival );
 
 	if ( Cmd_Argc() > 3 ) { // base

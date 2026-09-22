@@ -4385,9 +4385,9 @@ void Com_RandomBytes( byte *string, int len ) {
 		return;
 
 	Com_Printf( S_COLOR_YELLOW "Com_RandomBytes: using weak randomization\n" );
-	srand( (unsigned int)Sys_Time( NULL ) );
+	Q_Srand( (unsigned int)Sys_Time( NULL ) );
 	for ( i = 0; i < len; i++ )
-		string[i] = (unsigned char)( rand() % 256 );
+		string[i] = (unsigned char)( Q_Rand() % 256 );
 }
 
 

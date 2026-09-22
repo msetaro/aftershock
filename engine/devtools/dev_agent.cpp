@@ -1739,7 +1739,7 @@ bool DevTools_AgentRequest( const char *request, uint32_t length, char *response
 		if ( reply.valid ) {
 			agentDt = (int)dt;
 			agentSeed = (int)seed;
-			srand( seed );
+			Q_Srand( seed );
 		}
 	} else if ( !strcmp( op, "step" ) ) {
 		uint32_t frames;

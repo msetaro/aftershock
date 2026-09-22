@@ -57,6 +57,13 @@ static void CheckReplicationState( const stateSchema_t &schema ) {
 
 #ifndef STATE_NATIVE_GAME
 static void CheckEngineRandomState() {
+	// A library may use the process stream before the engine's first explicit seed.
+	srand( 37 );
+	const int inherited = rand();
+	srand( 37 );
+	assert( Q_Rand() == inherited );
+	const qRandomState_t unseeded = Q_GetRandomState();
+	assert( unseeded.signature[0] < 0 && !Q_RestoreRandomState( &unseeded ) );
 	int32_t expected[256];
 	srand( 0x98765432U );
 	for ( int32_t &value : expected )
@@ -79,6 +86,12 @@ static void CheckEngineRandomState() {
 	assert( Q_RestoreRandomState( &current ) );
 	assert( !Q_RestoreRandomState( &incompatible ) );
 	assert( Q_Rand() == next ); // Failed restore must preserve the running stream.
+	assert( Q_RestoreRandomState( &current ) );
+	incompatible = saved;
+	incompatible.draws = Q_RANDOM_MAX_DRAWS + 1;
+	assert( !Q_RestoreRandomState( &incompatible ) && !Q_RestoreRandomState( nullptr ) );
+	assert( Q_Rand() == next );
+	puts( "PASS: engine libc sequence, saved continuation and failed-restore preservation" );
 }
 
 #endif

@@ -1581,7 +1581,10 @@ Arbitrary runtime Unicode chat shaping is outside this menu/HUD implementation.
 
 `python3 tests/state.py` checks named typed POD serialization and explicit
 version migration under UBSan, including field removal/addition/reordering and
-64-bit identities. Pass `--cc clang --cxx 'clang++ -stdlib=libc++'` for libc++.
+64-bit identities, bounded strings, multi-record archives and native/libc random
+stream continuation. Engine libc restoration retains the original generator and
+allows at most 100,000,000 draws since the last explicit seed; an incompatible
+generator signature rejects without replacing the running stream. Pass `--cc clang --cxx 'clang++ -stdlib=libc++'` for libc++.
 
 `python3 tests/profile_runtime.py --binary CLIENT` checks archived settings and
 real key bindings in an isolated devtools client home. Use `--content openarena

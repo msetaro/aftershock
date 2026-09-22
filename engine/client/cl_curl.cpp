@@ -913,7 +913,7 @@ qboolean Com_DL_Begin( download_t *dl, const char *localName, const char *remote
 	}
 
 	Com_sprintf( dl->TempName, sizeof( dl->TempName ),
-		"%s%c%s.%08x.tmp", dl->gameDir, PATH_SEP, dl->Name, rand() | ( rand() << 16 ) );
+		"%s%c%s.%08x.tmp", dl->gameDir, PATH_SEP, dl->Name, Q_Rand() | ( Q_Rand() << 16 ) );
 
 	if ( com_developer->integer )
 		dl->func.easy_setopt( dl->cURL, CURLOPT_VERBOSE, 1 );
