@@ -189,6 +189,10 @@ for i in range(stack):
     assert {name.split('.')[1] for name in goal_fields if name.startswith(f'goalstack[{i}].')}==declared_members(goal_record)
 assert len([name for name in goal_fields if name.startswith('goalstack[')])==stack*8
 print('PASS: botlib goal stack, avoidance and content-pointer ownership cover every member')
+level_item_body=goal_source.split('typedef struct levelitem_s {',1)[1].split('} levelitem_t;',1)[0]
+assert set(re.findall(r'offsetof\( levelItemsSave_t, (\w+) \)',goal_source))==declared_members(level_item_body)
+print('PASS: level-item payload and list-link ownership cover every native member')
+
 
 
 

@@ -58,6 +58,20 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 bot level-item allocation state
+
+Level-item checkpoints retain live payload, doubly linked live order, free-list
+order and the map item-number base. The allocator now records its existing bounded
+capacity for serialization and clears that bookkeeping on shutdown. Free payload
+is omitted because AllocLevelItem clears it before reuse. Every allocated slot
+must belong to exactly one terminating live/free list; overlaps, cycles and
+invalid item references reject before publication. GCC and Clang/libc++ UBSan
+prove that relocated heaps make the same next allocation, including a deliberately
+invalid unreachable payload that is correctly discarded (state-bot-items-{gcc,clang}.log).
+Build and focused tidy pass. This is checkpoint ownership, not a change to allocation
+or item simulation behavior. Immutable location/camp identity and the remaining
+botlib owners still need integration.
+
 ## #19 bot goal pools and shared weight cache
 
 Goal records preserve stack entries, avoided-goal timers and reachability memory.

@@ -119,3 +119,6 @@ void BotShutdownGoalAI( void );
 #include "../public/state_public.h"
 bool Bot_WriteGoalState( stateWriter_t *writer );
 bool Bot_ReadGoalState( const stateReader_t &reader, bool apply );
+
+bool Bot_WriteLevelItemState( stateWriter_t *writer );
+bool Bot_ReadLevelItemState( const stateReader_t &reader, bool apply );

@@ -1,6 +1,19 @@
 #include "../../engine/botlib/be_ai_goal.cpp"
 #include <assert.h>
 botlib_import_t botimport;
+static levelitem_t originalHeap[6], restoredHeap[6];
+void *GetClearedMemory(size_t size) {
+	assert(size==sizeof(originalHeap));
+	memset( originalHeap, 0, sizeof( originalHeap ) );
+	return originalHeap;
+}
+void FreeMemory( void *memory ) {
+	assert(memory==originalHeap);
+}
+int LibVarInteger( const char *name, const char *, int low, int high ) {
+	assert(!strcmp(name,"max_levelitems") && low==1 && high==4096);
+	return 6;
+}
 int main() {
 	static bot_goalstate_t original[2], restored[2];
 	iteminfo_t info{};
@@ -71,4 +84,62 @@ int main() {
 	writer = { bytes, sizeof( bytes ) };
 	assert(!Bot_WriteGoalState(&writer) && !State_Finish(&writer));
 	puts( "PASS: bot goals, avoid timers and private weights restore with relocated pool/content pointers" );
+
+	InitLevelItemHeap();
+	assert(allocatedLevelItems==6);
+	auto *first = AllocLevelItem(), *second = AllocLevelItem();
+	first->number = 1;
+	second->number = 2;
+	numlevelitems = 2;
+	first->goalareanum = 9;
+	second->goalareanum = 11;
+	second->origin[0] = 23.5f;
+	second->timeout = 900.25f;
+	AddLevelItemToList( first );
+	AddLevelItemToList( second );
+	RemoveLevelItemFromList( first );
+	FreeLevelItem( first );
+	first->weight = HUGE_VALF; // Unreachable payload is cleared by the next allocation.
+	writer = { bytes, sizeof( bytes ) };
+	assert(Bot_WriteLevelItemState(&writer));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	auto *next = AllocLevelItem();
+	assert(next==&originalHeap[0] && next->weight==0);
+	next->number = 44;
+	next->entitynum = 17;
+	AddLevelItemToList( next );
+	auto expectedItem = *next;
+	levelitemheap = restoredHeap;
+	levelitems = freelevelitems = nullptr;
+	assert(Bot_ReadLevelItemState(reader,false) && !levelitems && !freelevelitems);
+	assert(Bot_ReadLevelItemState(reader,true));
+	assert(levelitems==&restoredHeap[1] && freelevelitems==&restoredHeap[0]);
+	assert(restoredHeap[1].origin[0]==23.5f && restoredHeap[1].timeout==900.25f);
+	next = AllocLevelItem();
+	assert(next==&restoredHeap[0] && next->weight==0);
+	next->number = 44;
+	next->entitynum = 17;
+	AddLevelItemToList( next );
+	expectedItem.next = &restoredHeap[1];
+	assert(!memcmp(&expectedItem,next,sizeof(expectedItem)));
+	// Two lists sharing a node are not a valid allocation state.
+	auto *freeBefore = freelevelitems;
+	freelevelitems = levelitems;
+	writer = { bytes, sizeof( bytes ) };
+	assert(!Bot_WriteLevelItemState(&writer) && !State_Finish(&writer));
+	freelevelitems = freeBefore;
+	writer = { bytes, sizeof( bytes ) };
+	assert(Bot_WriteLevelItemState(&writer));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	levelItemsHeaderSave_t itemHeader;
+	assert(State_Find(reader,levelItemsHeaderSchema,0,&itemHeader,&version));
+	assert(LevelItemRecords(nullptr,&reader,uint32_t(itemHeader.count)));
+	savedLevelItems.next[itemHeader.live] = itemHeader.live;
+	writer = { bytes, sizeof( bytes ) };
+	assert(State_Append(&writer,levelItemsHeaderSchema,0,&itemHeader));
+	assert(LevelItemRecords(&writer,nullptr,uint32_t(itemHeader.count)));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	assert(!Bot_ReadLevelItemState(reader,true));
+	assert(levelitems==next && !memcmp(&expectedItem,next,sizeof(expectedItem)));
+	puts( "PASS: bot level-item links and free-list order restore before identical next allocation" );
 }
