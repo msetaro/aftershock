@@ -514,6 +514,8 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 #endif
 
 	// get latched value
+	sv_voip = Cvar_Get( "sv_voip", "1", CVAR_SERVERINFO | CVAR_ARCHIVE );
+	Cvar_CheckRange( sv_voip, "0", "1", CV_INTEGER );
 	sv_pure = Cvar_Get( "sv_pure", "1", CVAR_SYSTEMINFO | CVAR_LATCH );
 
 	// VMs can change latched cvars instantly which could cause side-effects in SV_UserMove()
@@ -767,6 +769,8 @@ void SV_Init( void ) {
 	// systeminfo
 	Cvar_Get( "sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );
 	sv_serverid = Cvar_Get( "sv_serverid", "0", CVAR_SYSTEMINFO | CVAR_ROM );
+	sv_voip = Cvar_Get( "sv_voip", "1", CVAR_SERVERINFO | CVAR_ARCHIVE );
+	Cvar_CheckRange( sv_voip, "0", "1", CV_INTEGER );
 	sv_pure = Cvar_Get( "sv_pure", "1", CVAR_SYSTEMINFO | CVAR_LATCH );
 	Cvar_SetDescription( sv_pure, "Requires clients to only get data from pk3 files the server is using." );
 	Cvar_Get( "sv_paks", "", CVAR_SYSTEMINFO | CVAR_ROM );

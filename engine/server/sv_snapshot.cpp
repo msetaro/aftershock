@@ -753,6 +753,7 @@ void SV_SendClientSnapshot( client_t *client ) {
 	// send over all the relevant entityState_t
 	// and the playerState_t
 	SV_WriteSnapshotToClient( client, &msg );
+	SV_WriteVoice( client, &msg );
 
 	// check for overflow
 	if ( msg.overflowed ) {

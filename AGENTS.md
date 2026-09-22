@@ -132,6 +132,9 @@ playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructi
   timeout/incomplete is a nonzero result, never merge acceptance).
 - Full local regression: `python3 tests/suite.py --glslang PATH --openarena-data PATH`.
   Each invocation/job owns its scratch root. Hosted compiler checks remain required.
+- Authored audio: `python3 tests/audio_events.py`, `python3 tests/audio_voice.py`,
+  `python3 tests/audio_runtime.py --binary CLIENT`, and
+  `python3 tests/voice_runtime.py --client CLIENT --server SERVER` (devtools client).
 - Cosmetic physics: `python3 tests/physics.py` and
   `python3 tests/physics_runtime.py --binary CLIENT` (both content sets supported).
 - Presentation controls: `python3 tests/fidelity_runtime.py --binary CLIENT` and

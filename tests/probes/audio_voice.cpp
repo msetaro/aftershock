@@ -59,7 +59,7 @@ int main() {
 		MSG_Init( &message, storage, sizeof( storage ) );
 		assert( MSG_WriteVoice( &message, sent, client ) );
 		MSG_BeginReading( &message );
-		assert( MSG_ReadByte( &message ) == ( client ? clc_voipOpus : svc_voipOpus ) );
+		assert( MSG_ReadByte( &message ) == ( client ? int( clc_voipOpus ) : int( svc_voipOpus ) ) );
 		assert( MSG_ReadVoice( &message, &received, client ) );
 		assert( received.generation == 3 && received.sequence == 99 && received.frames == 1 && received.size == 3 && received.flags == 2 );
 		assert( received.data[0] == 17 && ( client ? received.targets[7] == 128 : received.sender == 7 ) );
@@ -105,6 +105,11 @@ int main() {
 		assert( S_VoiceReceive( 1, 2, sequence, 1, packet, size ) );
 	S_VoiceStats( &stats );
 	assert( stats.queued <= 5760 && stats.overruns > 0 );
+	int16_t threeFrames[2880];
+	for ( int i = 0; i < 2880; ++i )
+		threeFrames[i] = tone[i % 960];
+	const int threeSize = S_VoiceEncode( threeFrames, packet, sizeof( packet ), 3 );
+	assert( threeSize > 0 && S_VoiceReceive( 2, 1, 0, 3, packet, threeSize ) );
 	S_VoiceReset();
 	memset( output, 0, sizeof( output ) );
 	S_VoiceMix( output, 960, 44100 );

@@ -676,6 +676,7 @@ SNDDMA_Shutdown
 ==================
 */
 void SNDDMA_Shutdown( void ) {
+	SNDDMA_StopVoiceCapture();
 	Com_DPrintf( "Shutting down sound system\n" );
 #if USE_WASAPI
 	if ( wasapi_init ) {
@@ -1066,4 +1067,93 @@ void SNDDMA_Activate( void ) {
 		Com_Printf( "sound SetCooperativeLevel failed\n" );
 		SNDDMA_Shutdown();
 	}
+}
+
+// Wave input remains available with the existing native DirectSound/WASAPI output.
+static HWAVEIN voiceDevice;
+static WAVEHDR voiceHeaders[8];
+static int16_t voiceSamples[8][960];
+static uint32_t voiceRead, voiceOffset;
+
+void SNDDMA_StopVoiceCapture() {
+	if ( voiceDevice ) {
+		waveInReset( voiceDevice );
+		for ( auto &header : voiceHeaders )
+			if ( header.dwFlags & WHDR_PREPARED )
+				waveInUnprepareHeader( voiceDevice, &header, sizeof( header ) );
+		waveInClose( voiceDevice );
+		voiceDevice = nullptr;
+		Com_Printf( "Voice capture device closed (Windows)\n" );
+	}
+	voiceRead = voiceOffset = 0;
+}
+
+bool SNDDMA_StartVoiceCapture() {
+	if ( voiceDevice )
+		return true;
+	const char *text = Cvar_Get( "s_captureDevice", "", CVAR_ARCHIVE )->string;
+	UINT device = WAVE_MAPPER;
+	if ( *text ) {
+		char *end;
+		const int64_t index = strtoll( text, &end, 10 );
+		if ( *end || index < 0 || uint64_t( index ) >= waveInGetNumDevs() )
+			return false;
+		device = UINT( index );
+	}
+	WAVEFORMATEX format = {};
+	format.wFormatTag = WAVE_FORMAT_PCM;
+	format.nChannels = 1;
+	format.nSamplesPerSec = 48000;
+	format.wBitsPerSample = 16;
+	format.nBlockAlign = 2;
+	format.nAvgBytesPerSec = 96000;
+	if ( waveInOpen( &voiceDevice, device, &format, 0, 0, CALLBACK_NULL ) != MMSYSERR_NOERROR ) {
+		voiceDevice = nullptr;
+		return false;
+	}
+	memset( voiceHeaders, 0, sizeof( voiceHeaders ) );
+	voiceRead = voiceOffset = 0;
+	for ( uint32_t i = 0; i < 8; ++i ) {
+		auto &header = voiceHeaders[i];
+		header.lpData = (LPSTR)voiceSamples[i];
+		header.dwBufferLength = sizeof( voiceSamples[i] );
+		if ( waveInPrepareHeader( voiceDevice, &header, sizeof( header ) ) != MMSYSERR_NOERROR ||
+			 waveInAddBuffer( voiceDevice, &header, sizeof( header ) ) != MMSYSERR_NOERROR ) {
+			SNDDMA_StopVoiceCapture();
+			return false;
+		}
+	}
+	if ( waveInStart( voiceDevice ) != MMSYSERR_NOERROR ) {
+		SNDDMA_StopVoiceCapture();
+		return false;
+	}
+	Com_Printf( "Voice capture device opened (Windows)\n" );
+	return true;
+}
+
+int SNDDMA_ReadVoiceCapture( int16_t *samples, int capacity ) {
+	if ( !voiceDevice || !samples || capacity < 1 || capacity > 2880 )
+		return 0;
+	int count = 0;
+	for ( int buffers = 0; buffers < 8 && count < capacity; ++buffers ) {
+		auto &header = voiceHeaders[voiceRead];
+		if ( !( header.dwFlags & WHDR_DONE ) )
+			break;
+		const uint32_t available = header.dwBytesRecorded / 2;
+		if ( available > 960 ) {
+			SNDDMA_StopVoiceCapture();
+			break;
+		}
+		while ( count < capacity && voiceOffset < available )
+			samples[count++] = voiceSamples[voiceRead][voiceOffset++];
+		if ( voiceOffset < available )
+			break;
+		if ( waveInAddBuffer( voiceDevice, &header, sizeof( header ) ) != MMSYSERR_NOERROR ) {
+			SNDDMA_StopVoiceCapture();
+			break;
+		}
+		voiceRead = ( voiceRead + 1 ) % 8;
+		voiceOffset = 0;
+	}
+	return count;
 }

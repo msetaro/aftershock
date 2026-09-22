@@ -53,6 +53,6 @@ int main( void ) {
 	SNDDMA_StopVoiceCapture();
 	assert( SNDDMA_ReadVoiceCapture( voice, 960 ) == 0 );
 	SNDDMA_Shutdown();
-	puts( "PASS: ALSA null sink received MMAP and DIRECT samples; both threads joined" );
+	puts( "PASS: ALSA null sink received MMAP and DIRECT samples; both threads joined; explicit null capture opened/read/closed" );
 	return 0;
 }

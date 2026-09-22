@@ -340,7 +340,33 @@ The runtime check packs its owned tone into a compressed pk3 and checks simultan
 music/ambient loops, restart reuse and one-shot retirement. Stereo streams share
 bus gains and voice ducking. `python3 tests/audio_streams.py` verifies exclusive
 temporary storage, reusable buffering and cleanup with GCC/Clang UBSan.
-Voice integration remains in progress.
+Voice uses pinned Opus 1.6.1 (static C, upstream notices installed with the client).
+`python3 tests/audio_voice.py` checks real 20/60 ms encode/decode, retained wire
+fields, duplicate/truncated packet rejection, bounded loss concealment and queues;
+linker interposition rejects malloc/calloc/realloc during codec/mix calls.
+`python3 tests/voice_runtime.py --client CLIENT --server SERVER` uses a devtools
+client and dedicated server with two real voice peers and synthesized owned PCM.
+It verifies received speech reaches the voice bus without opening a microphone,
+including a second fresh speaker reusing the same server client slot.
+`voip_test N` is a devtools-only, cheat-server command for that synthetic input.
+
+`sv_voip 1` enables bounded relay to clients advertising `cl_voip 1`.
+`bind v +voiprecord` provides push-to-talk; `cl_voipSend` defaults to 0. Capture
+opens only during an explicit send request and closes on release/disconnect/shutdown.
+`cl_voipShowMeter` displays the live input level; `cl_voipTarget -1` sends directly
+to all enabled clients (0–63 selects one), and `voip_mute CLIENT 0|1` controls local
+per-speaker playback. `s_busVoice` controls voice gain and its music/ambient duck.
+`s_voiceInfo` reports codec/queue counters. Speex IDs remain reserved and their
+packets are consumed without decoding. Direct voice uses the existing Opus fields;
+team/proximity policy is not implemented. Legacy live servers without the voice
+capability do not receive the new messages.
+
+Capture uses SDL's fixed callback ring, native ALSA, or Windows wave input with
+8 prepared buffers. `s_captureDevice` selects an SDL/ALSA device name or Windows
+numeric input index; empty uses the platform default. The legacy non-Linux OSS
+backend reports capture unavailable. `python3 tests/capture.py` exercises SDL's
+dummy device and bounded overflow/reopen; `tests/audio.py` also checks ALSA null
+capture. These do not claim testing a physical microphone or a Windows input device.
 
 `python3 tests/audio_spatial.py` checks the authored-audio spatial component
 with UBSan (also accepts `--cxx 'clang++ -stdlib=libc++'`). It covers stereo

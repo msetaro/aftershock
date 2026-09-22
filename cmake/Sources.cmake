@@ -80,6 +80,7 @@ set(CLIENT_SOURCES
   engine/client/cl_cin.cpp
   engine/client/cl_console.cpp
   engine/client/cl_input.cpp
+  engine/client/cl_voice.cpp
   engine/client/cl_keys.cpp
   engine/client/cl_main.cpp
   engine/client/cl_net_chan.cpp

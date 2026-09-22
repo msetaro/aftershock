@@ -31,7 +31,7 @@ void S_Shutdown( void );
 void S_LoadWorldAudio(); // After the client collision map is loaded.
 
 // 48 kHz mono PCM, 20 ms transmit frames; Opus payloads retain the ioq3 wire convention.
-int S_VoiceEncode( const int16_t *pcm, byte *data, int capacity );
+int S_VoiceEncode( const int16_t *pcm, byte *data, int capacity, int frames = 1 );
 bool S_VoiceReceive( int sender, byte generation, uint32_t sequence, int frames, const byte *data, int size );
 void S_VoiceReset();
 
@@ -79,6 +79,10 @@ void S_DisplayFreeMemory( void );
 void S_ClearSoundBuffer( void );
 
 void SNDDMA_Activate( void );
+// Capture devices open only on explicit push-to-talk; 48 kHz mono signed PCM16.
+bool SNDDMA_StartVoiceCapture();
+int SNDDMA_ReadVoiceCapture( int16_t *samples, int capacity );
+void SNDDMA_StopVoiceCapture();
 
 typedef struct {
 	unsigned int channels;

@@ -65,10 +65,10 @@ bool S_VoiceInit() {
 	return true;
 }
 
-int S_VoiceEncode( const int16_t *pcm, byte *data, int capacity ) {
-	if ( !encoder || !pcm || !data || capacity < 1 || capacity > 4000 )
+int S_VoiceEncode( const int16_t *pcm, byte *data, int capacity, int frames ) {
+	if ( !encoder || !pcm || !data || capacity < 1 || capacity > 4000 || frames < 1 || frames > 3 )
 		return 0;
-	const int size = opus_encode( encoder, pcm, 960, data, capacity );
+	const int size = opus_encode( encoder, pcm, frames * 960, data, capacity );
 	if ( size <= 0 )
 		return 0;
 	++counters.encoded;

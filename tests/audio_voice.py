@@ -20,7 +20,6 @@ aftershock_add_audio()
 add_executable(probe "''' + str(ROOT / 'tests/probes/audio_voice.cpp') + '''"
   "''' + str(ROOT / 'engine/sound/snd_voice.cpp') + '''")
 target_sources(probe PRIVATE
-  "''' + str(ROOT / 'engine/qcommon/voice.cpp') + '''"
   "''' + str(ROOT / 'engine/qcommon/msg.cpp') + '''"
   "''' + str(ROOT / 'engine/qcommon/huffman.cpp') + '''"
   "''' + str(ROOT / 'engine/qcommon/huffman_static.cpp') + '''"

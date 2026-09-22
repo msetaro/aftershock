@@ -45,7 +45,7 @@ sufficient. Private read-only findings and primary references are in
 output baseline passed; it does not establish any #16 feature.
 
 Authored map acoustics and reusable music/ambient streams now pass. Next complete
-functional VoIP and real weapon near/far acceptance.
+real weapon near/far acceptance and final regression/build gates.
 Prepared event registration/playback and both-content output checks now pass. Record failures before fixes. No maintainer input is currently needed.
 
 #15 is accepted and checked in #25: merged-tree build/publication 35658235970
@@ -61,6 +61,34 @@ Never install local system packages, copy game paks, or regenerate accepted gold
 After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
+
+## #16 voice transport/capture checkpoint
+
+eaeff8af records the missing voice-wire API; 8ca2828b records real two-client
+failure with zero encoded packets. The new client/server path keeps the reserved
+Opus packet IDs and field layout, negotiates sv_voip/cl_voip, bounds server queues
+and rates, and mixes decoded speech into the voice bus. The real OpenArena loopback
+passes: 100 packets encoded/decoded, zero rejection/concealment/overrun, receiver
+peak 8246.129, and no microphone opened (audio-voice-runtime-oa/).
+Capture is explicit push-to-talk, with bounded SDL callback, native ALSA and Windows
+wave-input storage; close on release/disconnect/shutdown. bf39439e records missing
+native capture functions. GCC/Clang ALSA null-device and SDL dummy-device checks
+pass, including buffer overflow/reuse and close/reopen. MinGW client/server build
+passes (audio-mingw-build.log); native Windows device execution is not claimed.
+The codec/wire probes also pass Clang/libc++ UBSan. Reconnect coverage now limits
+the test server to two clients and waits out its one-second minimum zombie period
+(the allocator deliberately prefers never-used slots). This reproduced the new
+voice-path defect: second speaker in slot 1 decoded 0/rejected 100 because its
+sequence restarted in the old generation (audio-voice-reconnect-before4/).
+The relay now assigns a server-owned generation on each new speaker stream;
+reconnect acceptance passes on OpenArena and Quake 3: 200 decoded packets, zero
+rejection/concealment/overrun, empty final queues, and no microphone opened
+(audio-voice-reconnect-oa/ and audio-voice-reconnect-q3/). Hosted MSVC also exposed a CRT include-order
+warning in the new temporary-file helper: win_local.h's close macro renamed a
+deprecated CRT declaration to _close. win_shared.cpp now includes io.h before
+those macros, preserving strict warnings; all four hosted MSVC legs must rerun.
+Final MinGW rebuild plus format/types/boundaries (502/418/419) pass. Actual layered
+weapon acceptance and complete hosted gates remain. PR171 remains draft; no final merge approval.
 
 ## #16 bounded Opus component checkpoint
 

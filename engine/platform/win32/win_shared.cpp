@@ -22,12 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../../qcommon/q_shared.h"
 #include "../../qcommon/qcommon_public.h"
+#include <io.h> // Read CRT declarations before win_local.h maps legacy POSIX names.
 #include "win_local.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <direct.h>
-#include <io.h>
 #include <conio.h>
 #include <intrin.h>
 
