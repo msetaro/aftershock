@@ -41,32 +41,42 @@ Resume the active predecessor gates before any later issue can merge:
   equals the tested head. Integrated build 35744183979 and regression 35744184060
   pass all 26 required jobs. #20 is fully accepted; issue #20 and #25 are updated.
 
-#21 draft PR177 is at 2cefd7e3 and includes main 13106135. Build 35748014590
-passes all 16 compiler legs; regression 35748014600 is running. Hosted corrections
-cover explicit float constants, cold level-tool dependencies, Windows min/max
-macros and C99 bool header compatibility. Existing spatial/native probes pass;
-optimized sound object bytes remain identical. Require all 26 final-head checks
-and integrated #20 acceptance before readiness/self-merge. Recheck current
-main/base/head immediately before merge; preserve merge commits only.
+#21 PR177 merged into main as 7c24808f16f9a72d9ed21ba9af736cd54adba386
+at 2026-09-22 16:55:35 UTC after final head 2cefd7e3 passed build 35748014590
+and regression 35748014600 (all 26 required jobs). Self-review and fresh current
+main/base/head/tag checks passed. Merge tree c14c33d3 equals the tested tree.
+Integrated main build/regression are starting; require both before accepting #21
+and merging #22.
 
-This is issue/22-profiling in profiling-tree. Draft PR178's original head
-7ab6ab9f passes all 16 compiler legs and nine regression jobs; runtime remains
-running. All local profiling gates pass. Merge the final #21 branch 2cefd7e3
-locally to validate the combined developer owners while PR177 finishes; the
-production files merge automatically, and both issues' progress evidence is
-retained. This does not accept #21 or replace the required final current-main
-merge. The combined rebuild, overlay/restart/idle accounting, AI combat and same/fresh
-checkpoint continuation pass. Merge accepted #21 main forward before
-pushing/running final #22 gates.
+This is issue/22-profiling in profiling-tree. The accepted #21 main commit is
+merged forward after the combined local overlay/AI validation. All local gates
+pass, including full tidy/lifetimes, both compilers/sanitizers, both content sets'
+fixed replay/smoke, optional developer renderer modules and byte-identical
+shipping msg/common objects. Push this final main-inclusive head to PR178 and
+require all 26 fresh hosted jobs, integrated #21 acceptance and a fresh main/base/
+head/tag check before readiness/self-merge. The original pre-AI PR head's gates
+are useful feedback, not final acceptance.
 
-Draft PR179 preserves #23's bounded null/provider interface preparation at
-0bb8070e. Actual Steam integration is deferred to #180. Keep the current interface PR
-draft until its current-main final gates pass. Preserve #21 -> #22 -> #23 merge order.
+Draft PR179 preserves #23's bounded null/provider interface preparation; all 16
+initial hosted builds pass. Its combined local AI/profiling/service and identity
+checks pass. Merge accepted #22 main forward and rerun its final gates before
+#23 merge. SDK-dependent Steam integration is deferred to #180 by the maintainer.
+Isolated #29 contract preparation has started in backend-tree; preserve merge
+order while continuing useful independent work.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The Steam dependency is deferred to #180; no maintainer input is needed.
 Do not end at a checkpoint or CI wait.
+
+## #21 merge and #22 final-main integration
+
+PR177 is merged after all 26 exact-head required checks pass. Main 7c24808f has
+the same c14c33d3 tree as tested head 2cefd7e3. The immutable rollback tag remains
+unchanged. #22 merges that main forward before its final hosted gate; production
+content is unchanged from the previously validated local AI/profiling combination.
+The merged-main #21 workflow still must pass before #22 can merge. Issue #21's
+final self-review is comment 5780532779. No accepted fixtures changed.
 
 ## #22 combined AI validation
 
