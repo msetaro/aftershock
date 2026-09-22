@@ -44,9 +44,13 @@ with tempfile.TemporaryDirectory(prefix='aftershock-packages-') as temporary:
 
     shared_files = {'package-engine.cfg': 'set package_engine shared\n'}
     shared_pack = pack(shared/'engine', '00-engine', shared_files)
-    game_files = {'package-order.cfg': 'set package_order base\n',
+    game_files = {'autoexec.cfg': 'set package_config injected\n',
+                  'q3config.cfg': 'set package_config injected\n',
+                  'package-order.cfg': 'set package_order base\n',
                   'package-removed.cfg': 'set package_removed base\n'}
     base_pack = pack(install/game, '00-base', game_files)
+    for name in ('autoexec.cfg', 'q3config.cfg'):
+        (home/game/name).write_text('set package_config user\n')
     patched = dict(shared_files, **game_files)
     patched['package-order.cfg'] = 'set package_order patched\n'
     del patched['package-removed.cfg']
@@ -70,6 +74,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-packages-') as temporary:
                 assert value('package_engine') == 'shared', 'engine data mount is missing'
                 assert value('package_order') == 'patched', 'patch must override its base'
                 assert value('package_dlc') == 'additional', 'additional package must mount'
+                execute('exec autoexec.cfg; exec q3config.cfg')
+                assert value('package_config') == 'user', 'packaged settings must not replace reserved user configs'
                 execute('set package_removed absent')
                 execute('exec package-removed.cfg')
                 assert value('package_removed') == 'absent', 'removal must hide package and loose fallback'

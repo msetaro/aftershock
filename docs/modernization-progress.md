@@ -43,14 +43,30 @@ The initial failing check is committed at 40322427. The offline writer now passe
 Its v1 format, content identity, compression and patch rules are documented in
 docs/design/packages.md. The native/platform stream contract passes GCC and Clang/libc++ UBSan.
 Filesystem mounting and both-content runtime acceptance now pass, including
-rendered texture deltas and pure client/server sessions. Finish lifetime/replay
-checks, merge accepted #19 main forward, then open #20 with its full hosted gates.
+rendered texture deltas and pure client/server sessions. Lifetime/replay
+checks pass. Finish the two full local unit-job variants, merge accepted #19 main
+forward, then open #20 with its full hosted gates.
 Do not merge #20 before #19.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
 is currently needed. Do not end at a checkpoint or CI wait.
+
+## #20 final local gate checkpoint
+
+Full lifetime analysis passes 1,320 production compilation commands/147 paths,
+including shipping/devtools, static/module and all controls. Tidy covers 1,382
+configurations with the separately recorded eight-filesystem recheck after the
+single tool crash. Fixed Q3 and OpenArena replay hashes remain exactly
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4 and
+17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
+Evidence: content-lifetimes.log, content-tidy/results.json,
+content-tidy/recheck-results.json, content-demo.log, content-demo-oa.log.
+The runtime test also now proves that packaged autoexec/q3config entries do not
+replace loose user configuration; full OA package/pure/render acceptance passes
+again. Both full local unit job variants are running via tests/suite.py under
+content-unit-suite. PR175 and PR174 integration still await hosted runtime.
 
 ## #20 filesystem implementation and local acceptance
 
