@@ -67,6 +67,19 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 server record preflight
+
+Server capture now round-trips and validates its complete engine records: bounded
+map/game context and clocks, exactly one designated local human among anonymous
+bot/free slots, required input records, aggregate configstring capacity, and actual
+replication priority/radius limits. The probe covers invalid metadata/ownership,
+missing engine records, a complete valid archive and a bad final interest record.
+GCC/Clang libc++ UBSan, build, focused tidy and format/type/boundary checks pass.
+Live OpenArena capture/read validation passes at 17,313,632 bytes
+(state-server-*). The unused sv_gametype alias record was removed; actual
+g_gametype is already owned by native game cvars. No accepted fixture changed.
+Full load coordination and acceptance remain next; PR174 runtime is still running.
+
 ## #19 server restore preflight test first
 
 The new state_server probe requires bounded map/game names, valid server clocks,

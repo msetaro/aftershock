@@ -57,10 +57,74 @@ static constexpr stateField_t checkpointInterestFields[] = {
 };
 static constexpr stateSchema_t checkpointInterestSchema{ "engine.interest", 1, 1, sizeof( svEntity_t ), checkpointInterestFields, ARRAY_LEN( checkpointInterestFields ) };
 static const char *const checkpointCvars[] = {
-	"sv_fps", "sv_maxclients", "sv_pure", "sv_cheats", "sv_gametype", "sv_snapshotBudget",
+	"sv_fps", "sv_maxclients", "sv_pure", "sv_cheats", "sv_snapshotBudget",
 	"sv_minRate", "sv_maxRate", "sv_lanForceRate", "sv_padPackets", "sv_levelTimeReset",
 	"cm_noAreas", "cm_noCurves", "cm_playerCurveClip", "timescale", "cl_paused", "sv_paused"
 };
+static bool CheckpointPath( const char *name, bool map ) {
+	if ( !memchr( name, 0, MAX_QPATH ) || ( map && !name[0] ) || name[0] == '/' || strstr( name, ".." ) )
+		return false;
+	for ( const char *p = name; *p; ++p )
+		if ( !( ( *p >= 'a' && *p <= 'z' ) || ( *p >= 'A' && *p <= 'Z' ) || ( *p >= '0' && *p <= '9' ) ||
+				 *p == '_' || *p == '-' || ( map && *p == '/' && p[1] && p[1] != '/' ) ) )
+			return false;
+	return true;
+}
+static bool ValidCheckpointHeader( const checkpointHeader_t &header ) {
+	return CheckpointPath( header.map, true ) && CheckpointPath( header.game, false ) &&
+		   header.time >= 0 && header.time < 0x78000000 && header.serverTime >= 0 && header.serverTime < 0x78000000 &&
+		   header.residual >= 0 && header.residual <= 1000000 && header.restartTime >= 0 && header.restartTime < 0x78000000 &&
+		   header.maxclients >= 1 && header.maxclients <= MAX_CLIENTS && header.localClient >= 0 && header.localClient < header.maxclients &&
+		   ( header.pure == 0 || header.pure == 1 );
+}
+static bool ValidCheckpointClient( const checkpointHeader_t &header, int slot, const checkpointClient_t &client, const usercmd_t &command ) {
+	if ( slot < 0 || slot >= header.maxclients || client.active > 1 || client.bot > client.active ||
+		 !memchr( client.userinfo, 0, sizeof( client.userinfo ) ) || !memchr( client.name, 0, sizeof( client.name ) ) ||
+		 !Info_Validate( client.userinfo ) || client.identity || client.identityState != IDENTITY_ANONYMOUS ||
+		 client.ping < 0 || client.rate < 0 || client.snapshotMsec < 0 || client.snapshotMsec > 1000 ||
+		 command.serverTime < 0 || command.serverTime >= 0x78000000 )
+		return false;
+	// Authentication is connection-owned; this format accepts only local anonymous play.
+	if ( slot == header.localClient )
+		return client.active && !client.bot && client.snapshotMsec;
+	return !client.active || ( client.bot && client.snapshotMsec );
+}
+static bool ReadServerCheckpoint( const stateReader_t &reader, checkpointHeader_t *header ) {
+	uint32_t version;
+	qRandomState_t random;
+	if ( !State_Find( reader, checkpointHeaderSchema, 0, header, &version ) || !ValidCheckpointHeader( *header ) ||
+		 !State_Find( reader, checkpointRandomSchema, 0, &random, &version ) || random.draws > Q_RANDOM_MAX_DRAWS )
+		return false;
+	for ( int32_t value : random.signature )
+		if ( value < 0 )
+			return false;
+	for ( int i = 0; i < header->maxclients; ++i ) {
+		checkpointClient_t client;
+		usercmd_t command;
+		if ( !State_Find( reader, checkpointClientSchema, uint32_t( i ), &client, &version ) ||
+			 !State_Find( reader, checkpointCommandSchema, uint32_t( i ), &command, &version ) || !ValidCheckpointClient( *header, i, client, command ) )
+			return false;
+	}
+	char value[MAX_GAMESTATE_CHARS];
+	const stateField_t field{ "value", 0, sizeof( value ), stateType_t::String };
+	const stateSchema_t schema{ "engine.configstring", 1, 1, sizeof( value ), &field, 1 };
+	size_t characters = 1;
+	for ( uint32_t i = 0; i < MAX_CONFIGSTRINGS; ++i ) {
+		if ( !State_Find( reader, schema, i, value, &version ) )
+			return false;
+		if ( value[0] )
+			characters += strlen( value ) + 1;
+		if ( characters > MAX_GAMESTATE_CHARS )
+			return false;
+	}
+	for ( uint32_t i = 0; i < MAX_GENTITIES; ++i ) {
+		svEntity_t entity{};
+		if ( !State_Find( reader, checkpointInterestSchema, i, &entity, &version ) || entity.replicationPriority < 0 || entity.replicationPriority > 3 ||
+			 !std::isfinite( entity.interestRadius ) || entity.interestRadius < 0 || entity.interestRadius > 65536 )
+			return false;
+	}
+	return true;
+}
 static bool CheckpointHeader( checkpointHeader_t *header ) {
 	if ( !com_sv_running->integer || sv.state != SS_GAME || sv.restarting || com_dedicated->integer ||
 		 sv.maxclients < 1 || sv.maxclients > MAX_CLIENTS || !svs.clients )
@@ -90,7 +154,7 @@ static bool CheckpointHeader( checkpointHeader_t *header ) {
 	header->restartTime = sv.restartTime;
 	header->maxclients = sv.maxclients;
 	header->pure = sv.pure;
-	return true;
+	return ValidCheckpointHeader( *header );
 }
 static bool WriteServerCheckpoint( stateWriter_t *writer ) {
 	checkpointHeader_t header;
@@ -112,7 +176,7 @@ static bool WriteServerCheckpoint( stateWriter_t *writer ) {
 			saved.identity = client.identityId;
 			saved.identityState = uint32_t( client.identityState );
 		}
-		if ( !State_Append( writer, checkpointClientSchema, i, &saved ) || !State_Append( writer, checkpointCommandSchema, i, &client.lastUsercmd ) )
+		if ( !ValidCheckpointClient( header, int( i ), saved, client.lastUsercmd ) || !State_Append( writer, checkpointClientSchema, i, &saved ) || !State_Append( writer, checkpointCommandSchema, i, &client.lastUsercmd ) )
 			return false;
 	}
 	for ( uint32_t i = 0; i < MAX_CONFIGSTRINGS; ++i ) {
@@ -127,7 +191,7 @@ static bool WriteServerCheckpoint( stateWriter_t *writer ) {
 	}
 	for ( uint32_t i = 0; i < MAX_GENTITIES; ++i ) {
 		const auto &entity = sv.svEntities[i];
-		if ( entity.replicationPriority < 0 || !std::isfinite( entity.interestRadius ) || entity.interestRadius < 0 ||
+		if ( entity.replicationPriority < 0 || entity.replicationPriority > 3 || !std::isfinite( entity.interestRadius ) || entity.interestRadius < 0 || entity.interestRadius > 65536 ||
 			 !State_Append( writer, checkpointInterestSchema, i, &entity ) )
 			return false;
 	}
@@ -152,7 +216,8 @@ static bool SaveCheckpoint( const char *name ) {
 	const bool bots = game && BotLib_WriteState( &writer, now );
 	const size_t size = bots ? State_Finish( &writer ) : 0;
 	stateReader_t reader;
-	const bool readable = size && State_Open( data, size, &reader ) && Cvar_CheckStateCapacity( reader, ValidateCheckpointCvars ) && Game_ReadCheckpoint( &reader, 0 ) &&
+	checkpointHeader_t header;
+	const bool readable = size && State_Open( data, size, &reader ) && ReadServerCheckpoint( reader, &header ) && Cvar_CheckStateCapacity( reader, ValidateCheckpointCvars ) && Game_ReadCheckpoint( &reader, 0 ) &&
 						  BotLib_ReadState( reader, now, false ) && CM_ReadPortalState( reader, false );
 	const bool success = readable && Sys_SaveRevision( saveKind_t::Game, name, data, int( size ), path, sizeof( path ) );
 	Z_Free( data );
