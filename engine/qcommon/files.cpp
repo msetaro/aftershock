@@ -4965,7 +4965,10 @@ static void FS_Startup( void ) {
 
 	fs_enginepath = Cvar_Get( "fs_enginepath", fs_basepath->string, CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
 	Cvar_SetDescription( fs_enginepath, "Read-only engine data root; its engine directory is below game/mod packages. Writes use fs_homepath." );
-	FS_AddGameDirectory( fs_enginepath->string, "engine" );
+	fileOffset_t engineSize;
+	fileTime_t engineModified, engineCreated;
+	if ( Sys_GetFileStats( FS_BuildOSPath( fs_enginepath->string, "engine", NULL ), &engineSize, &engineModified, &engineCreated ) )
+		FS_AddGameDirectory( fs_enginepath->string, "engine" );
 
 	// add search path elements in reverse priority order
 	if ( fs_steampath->string[0] ) {

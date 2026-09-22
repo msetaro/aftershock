@@ -44,7 +44,7 @@ Its v1 format, content identity, compression and patch rules are documented in
 docs/design/packages.md. The native/platform stream contract passes GCC and Clang/libc++ UBSan.
 Filesystem mounting and both-content runtime acceptance now pass, including
 rendered texture deltas and pure client/server sessions. Lifetime/replay
-and both full local unit-job variants pass. Open #20 as a draft for early hosted
+and both full local unit-job variants pass. PR176 is draft for early hosted
 compiler feedback while #19 finishes; merge accepted #19 main forward before
 #20 final acceptance and require fresh checks on the combined tree.
 Do not merge #20 before #19.
@@ -53,6 +53,23 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
 is currently needed. Do not end at a checkpoint or CI wait.
+
+## #20 first hosted feedback: optional engine root
+
+Draft PR176 at c95761ed passes all 16 hosted compiler builds (35724337548).
+Regression 35724337593 runtime fails before the new package test: the existing
+OpenArena bot golden contains one fewer search-path line. #20 unconditionally
+added the absent engine directory to legacy installs; gameplay/bot rows are
+unchanged. The failure reproduces locally (content-oa-bots-before.log).
+
+Only mount the optional engine directory when present, using existing platform
+file-stat access. Both unchanged OA bot goldens now pass, with hashes
+51d66d9a8104db0cbc972a48a7911e00ca410db6ce675af7665947bd95a7bef9 and
+0f2e6b686b63df73a054db39b886e7f82c5cf79078f3cbbf5cab0122ed87e3bd
+(content-oa-bots-after.log). Complete OA package/root/config/mod/render/pure checks
+also pass again, and all eight filesystem tidy configurations pass. No golden
+regeneration or gameplay edit. Push the correction and require new exact-head
+checks; current-base feedback remains preliminary until #19 main is merged forward.
 
 ## #20 draft-feedback workflow decision
 
