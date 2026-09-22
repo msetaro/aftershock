@@ -25,9 +25,9 @@ assert paks and len(icds) == 1
 processes, logs = [], []
 
 
-def wait_for_log(path, token, process, seconds=30):
+def wait_for_log(path, token, process, seconds=30, occurrences=1):
     deadline = time.monotonic() + seconds
-    while token not in path.read_text(errors='replace'):
+    while path.read_text(errors='replace').count(token) < occurrences:
         assert process.poll() is None and time.monotonic() < deadline, f'missing {token}: {path}'
         time.sleep(.1)
 
@@ -50,14 +50,17 @@ with tempfile.TemporaryDirectory(prefix='aftershock-voice-') as temporary:
         logs.append(server_log.open('w'))
         server = subprocess.Popen([str(args.server.resolve()), *common, '+set', 'fs_homepath', str(home/'server'),
             '+set', 'net_port', str(port), '+set', 'dedicated', '1', '+set', 'sv_pure', '0',
-            '+set', 'sv_voip', '1', '+set', 'bot_enable', '0', '+devmap', content_maps(args.content)[0]],
+            '+set', 'sv_maxclients', '2', '+set', 'sv_voip', '1', '+set', 'sv_zombietime', '1', '+set', 'bot_enable', '0', '+devmap', content_maps(args.content)[0]],
             cwd=ROOT, env=env, stdout=logs[-1], stderr=subprocess.STDOUT, start_new_session=True)
         processes.append(server)
         wait_for_log(server_log, 'Static game loaded.', server)
         clients = []
-        for role in ['receiver', 'sender']:
+        for role in ['receiver', 'sender', 'sender2']:
+            if role == 'sender2':
+                wait_for_log(server_log, 'ClientDisconnect: 1', server)
+                time.sleep(2)  # The validated minimum zombie lifetime is one second.
             commands = [f'connect 127.0.0.1:{port}']
-            commands += ['wait 100', 'voip_test 100', 'wait 200'] if role == 'sender' else ['wait 600']
+            commands += ['wait 100', 'voip_test 100', 'wait 200'] if role != 'receiver' else ['wait 1000']
             commands += ['s_voiceInfo', 's_audioInfo', 'quit']
             (base / f'{role}.cfg').write_text('\n'.join(commands) + '\n')
             logs.append((args.output / f'{role}.log').open('w'))
@@ -69,7 +72,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-voice-') as temporary:
                 cwd=ROOT, env=env, stdout=logs[-1], stderr=subprocess.STDOUT, start_new_session=True)
             processes.append(client)
             clients.append(client)
-            wait_for_log(server_log, f'ClientBegin: {len(clients)-1}', client)
+            wait_for_log(server_log, 'ClientBegin: 0' if role == 'receiver' else 'ClientBegin: 1',
+                         client, occurrences=2 if role == 'sender2' else 1)
+            if role != 'receiver':
+                assert client.wait(timeout=90) == 0
         for client in reversed(clients):
             assert client.wait(timeout=90) == 0
     finally:
@@ -85,13 +91,14 @@ with tempfile.TemporaryDirectory(prefix='aftershock-voice-') as temporary:
             log.close()
 receiver = (args.output / 'receiver.log').read_text(errors='replace')
 sender = (args.output / 'sender.log').read_text(errors='replace')
+sender2 = (args.output / 'sender2.log').read_text(errors='replace')
 pattern = r'Audio voice: encoded=(\d+) decoded=(\d+) rejected=(\d+) concealed=(\d+) overruns=(\d+) queued=(\d+)'
-sent = re.findall(pattern, sender)
+sent = re.findall(pattern, sender) + re.findall(pattern, sender2)
 heard = re.findall(pattern, receiver)
-assert len(sent) == len(heard) == 1, (sent, heard)
-assert int(sent[0][0]) == 100 and int(sent[0][1]) == 0, sent
-assert 95 <= int(heard[0][1]) <= 100 and int(heard[0][5]) == 0, heard
+assert len(sent) == 2 and len(heard) == 1, (sent, heard)
+assert all(int(row[0]) == 100 and int(row[1]) == 0 for row in sent), sent
+assert 190 <= int(heard[0][1]) <= 200 and int(heard[0][5]) == 0, heard
 peak = re.search(r'Audio events:.* peak=([\d.]+)', receiver)
 assert peak and float(peak[1]) > 1000, 'received speech must reach the real mixer'
-assert 'capture device opened' not in receiver + sender, 'synthetic test must not open a microphone'
+assert 'capture device opened' not in receiver + sender + sender2, 'synthetic test must not open a microphone'
 print('PASS: Opus voice crosses real client/server UDP, reaches the voice bus and drains without microphone capture')
