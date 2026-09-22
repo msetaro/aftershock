@@ -18,6 +18,16 @@ Maintainer ruling (2026-09-19): keep all future changes and PRs in
 repository. This replaces the earlier requirement to submit applicable #31 fixes
 upstream; historical upstream PR references below are completed past work.
 
+## Maintainer Steam deferral — 2026-09-22
+
+Steam SDK setup, provider implementation, authenticated ticket transport and
+live presence/invite acceptance move to follow-up #180 at the maintainer's
+request. #23 now completes the bounded existing-provider interface and null
+backend with deterministic-provider contract tests. Do not claim Steam support
+from those tests. This dependency no longer blocks modernization; continue #24's
+existing SDK dependency checkpoint, then #29 and #30. No SDK/account answer is
+needed for the current scope. #23 and tracking issue #25 record the same ruling.
+
 ## Next action
 
 Resume the active predecessor gates before any later issue can merge:
@@ -58,15 +68,15 @@ identity/ticket, presence, lobby/invite, achievements, cloud and workshop calls;
 keep the absent provider anonymous and unavailable. No second service framework.
 Start with null/provider interface contracts, then the Steam adapter and engine
 integration. The bounded wrappers and GCC/Clang contract tests now pass; no
-Steam adapter or ticket transport is implemented yet. Preserve #21 -> #22 -> #23 merge order
+Steam adapter or ticket transport is implemented yet; that work moves to #180.
+Preserve #21 -> #22 -> #23 merge order
 and integrate accepted main before final checks. SDK/provider tests must not be
 reported as an actual Steam rich-presence/invite acceptance run.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam gate needs a proper Steamworks SDK path, authorized AppID and
-logged-in test clients with a designated invite recipient. Continue the independent
-#21/#22 gates; do not end at a checkpoint or CI wait.
+Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
+then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
 ## #23 bounded service implementation
 
