@@ -139,6 +139,11 @@ func TestResultsBoundsAndCursor(t *testing.T) {
 		}
 		before = result.Next
 	}
+	query,_:=structpb.NewStruct(map[string]any{"version":1,"player_id":"123","match":"match-000"})
+	response,err:=s.Read(ctx,query);if err!=nil{t.Fatal(err)}
+	data,_:=response.MarshalJSON();var exact resultsResponse
+	if err=strictJSON(data,&exact);err!=nil{t.Fatal(err)}
+	if len(exact.Results)!=1 || exact.Results[0].Match!="match-000" || exact.Next!=""{t.Fatal("exact match lost behind history page",exact)}
 	if len(seen) != 105 {
 		t.Fatal("missing history", len(seen))
 	}

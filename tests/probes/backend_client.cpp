@@ -142,6 +142,7 @@ int main() {
 	strcpy( info, "\\name\\Player" );
 	assert(CL_BackendConnectInfo(clc.serverAddress,info,sizeof(info)) && !strstr(info,"as_ticket"));
 	CL_BackendAction( "results" );
+	assert(!strcmp(requestURL,"https://backend.test/v1/results?match=match-1"));
 	Reply( 200, "{\"version\":1,\"results\":[{\"match\":\"other\",\"stats\":{\"score\":44,\"kills\":8,\"deaths\":1}},{\"match\":\"match-1\",\"stats\":{\"score\":3,\"kills\":4,\"deaths\":1}}]}" );
 	assert( !strcmp( CL_BackendValue( "backend_score" ), "3" ) && !strcmp( CL_BackendValue( "backend_kills" ), "4" ) );
 	CL_BackendAction( "results" );

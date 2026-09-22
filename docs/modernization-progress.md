@@ -82,6 +82,13 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 exact match result selection, test first
+
+The result contract now requests an owned match by ID even when it is beyond the
+first 20-item history page. The native client must query its selected match rather
+than display another history row under the current match label. The test fails on
+the unsupported exact-match query before implementation (backend-exact-results-before.log).
+
 ## #29 backend deployment manifests
 
 The generator now emits the namespaced service account/RBAC, two-replica deployment,
