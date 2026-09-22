@@ -82,6 +82,20 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 durable ambiguous allocation recovery
+
+Before issuing an allocation request, the backend durably marks the attempt as
+allocating. A lost/error response leaves it in recovery-only mode, including after
+replica restart; absence of a visible labelled server is not permission to POST again.
+Only a definite UnAllocated response reopens normal retry. The extended real DB/TLS
+contract passes both the no-capacity retry and delayed-visibility/restart cases
+(backend-ambiguous-after/contracts.log). A permanently unknown outcome remains queued
+for operator reconciliation; do not reset it by elapsed time and risk a duplicate pod.
+
+Accepted #21/#22 main aa96932a is merged forward at 6ae3fbfa. All production merges
+are automatic and the full combined client/server build passes (backend-main-build.log).
+Only the progress-file conflict needed reconciliation, retaining the current evidence.
+
 ## #29 ambiguous allocation visibility, test first
 
 The allocation contract now hides the committed server temporarily after a lost

@@ -441,7 +441,10 @@ func TestBackendQueueRecovery(t *testing.T) {
 				request.Spec.Metadata.Labels["aftershock.dev/match"] != captured.Match.ID {
 				t.Error("invalid allocation contract")
 			}
-			if unavailable.Load() { json.NewEncoder(w).Encode(map[string]any{"status":map[string]string{"state":"UnAllocated"}});return }
+			if unavailable.Load() {
+				json.NewEncoder(w).Encode(map[string]any{"status": map[string]string{"state": "UnAllocated"}})
+				return
+			}
 			allocations.Add(1)
 			matchID.Store(captured.Match.ID)
 			// The allocation committed, but its response was lost. Only recovery may follow.
@@ -478,22 +481,30 @@ func TestBackendQueueRecovery(t *testing.T) {
 	call("POST", "/v1/queue", two, `{"map":"two_lane","mode":0}`, 403)
 	call("POST", "/v1/queue", one, `{"map":"unknown","mode":0}`, 400)
 	call("POST", "/v1/queue", one, `{"map":"two_lane"}`, 400)
-if pending:=call("POST", "/v1/queue", one, `{"map":"two_lane","mode":0}`, 202);pending["state"]!="queued"{t.Fatal(pending)}
+	if pending := call("POST", "/v1/queue", one, `{"map":"two_lane","mode":0}`, 202); pending["state"] != "queued" {
+		t.Fatal(pending)
+	}
 	unavailable.Store(false)
 	call("POST", "/v1/queue", one, `{"map":"two_lane","mode":0}`, 503)
 	call("DELETE", "/v1/party", one, `{}`, 409)
 	call("DELETE", "/v1/party", two, `{}`, 409)
-// A lost response does not prove that an unobserved allocation failed.
+	// A lost response does not prove that an unobserved allocation failed.
 	// Delayed visibility must not create another pod, including after pool restart.
 	call("GET", "/v1/queue", one, "", 202)
-	if allocations.Load()!=1 {t.Fatal("ambiguous allocation retried")}
+	if allocations.Load() != 1 {
+		t.Fatal("ambiguous allocation retried")
+	}
 	db.Close()
-	db,err=openBackendDB(context.Background(),os.Getenv("BACKEND_TEST_DATABASE"))
-	if err!=nil{t.Fatal(err)}
+	db, err = openBackendDB(context.Background(), os.Getenv("BACKEND_TEST_DATABASE"))
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer db.Close()
-	service.db=db
+	service.db = db
 	call("GET", "/v1/queue", two, "", 202)
-	if allocations.Load()!=1 {t.Fatal("ambiguous allocation retried after restart")}
+	if allocations.Load() != 1 {
+		t.Fatal("ambiguous allocation retried after restart")
+	}
 	delayed.Store(false)
 	pending := call("GET", "/v1/queue", one, "", 202)
 	if pending["state"] != "starting" {

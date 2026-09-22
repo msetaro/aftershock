@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS backend_matches (
  id text PRIMARY KEY, leader text NOT NULL REFERENCES backend_profiles(player_id),
  spec jsonb NOT NULL, join_key text NOT NULL CHECK (length(join_key)=64),
  ingest_token text NOT NULL CHECK (length(ingest_token)=64),
- state text NOT NULL DEFAULT 'queued' CHECK (state IN ('queued','allocated','complete')),
+ state text NOT NULL DEFAULT 'queued' CHECK (state IN ('queued','allocating','allocated','complete')),
  address text NOT NULL DEFAULT '', server_name text NOT NULL DEFAULT '',
  created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

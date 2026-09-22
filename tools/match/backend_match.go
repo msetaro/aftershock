@@ -218,7 +218,7 @@ func (b *backendService) allocate(ctx context.Context, id string) (backendAssign
 	if state == "allocated" {
 		return result, nil
 	}
-	if state != "queued" {
+	if state != "queued" && state != "allocating" {
 		return result, errors.New("match is no longer joinable")
 	}
 	var servers struct {
@@ -246,6 +246,31 @@ func (b *backendService) allocate(ctx context.Context, id string) (backendAssign
 		status = server.Status
 		status.GameServerName = server.Metadata.Name
 	} else {
+		if state == "allocating" {
+			return result, nil
+		}
+		// Persist the attempt before HTTP. A timeout/error does not establish that
+		// allocation failed; later callers may only recover its labelled server.
+		if _, err = tx.ExecContext(ctx, "UPDATE backend_matches SET state='allocating' WHERE id=$1", id); err != nil {
+			return result, err
+		}
+		if err = tx.Commit(); err != nil {
+			return result, err
+		}
+		tx, err = b.db.BeginTx(ctx, nil)
+		if err != nil {
+			return result, err
+		}
+		defer tx.Rollback()
+		if err = tx.QueryRowContext(ctx, "SELECT state,address FROM backend_matches WHERE id=$1 FOR UPDATE", id).Scan(&state, &result.Address); err != nil {
+			return result, err
+		}
+		if state == "allocated" {
+			return result, nil
+		}
+		if state != "allocating" {
+			return result, errors.New("allocation attempt changed")
+		}
 		annotation, _ := json.Marshal(struct {
 			Match   contracts.MatchSpec `json:"match"`
 			JoinKey string              `json:"join_key"`
@@ -260,7 +285,11 @@ func (b *backendService) allocate(ctx context.Context, id string) (backendAssign
 		}
 		status = response.Status
 		if status.State == "UnAllocated" {
-			return result, nil
+			_, err = tx.ExecContext(ctx, "UPDATE backend_matches SET state='queued' WHERE id=$1", id)
+			if err == nil {
+				err = tx.Commit()
+			}
+			return result, err
 		}
 	}
 	if status.State != "Allocated" || !identifier.MatchString(status.GameServerName) || net.ParseIP(status.Address) == nil {
