@@ -1344,6 +1344,9 @@ static void InspectAI() {
 		if ( selected != owner )
 			continue;
 		ImGui::Text( "State age %u ms | transitions %u", actor.behavior.elapsed, actor.behavior.transitions );
+		ImGui::Text( "Target %d | sight %s | heard %s (%.3f) | cover %s", actor.observation.target,
+			actor.observation.visible ? "yes" : "no", actor.observation.heard ? "yes" : "no",
+			double( actor.observation.gain ), actor.covered ? "yes" : "no" );
 		ImGui::Text( "Path %u / %u | %s | traversal phase %u", actor.cursor.point, actor.path.count,
 			actor.path.complete ? "complete" : "partial", actor.cursor.phase );
 		ImGui::Text( "Goal %.1f %.1f %.1f", double( actor.goal[0] ), double( actor.goal[1] ), double( actor.goal[2] ) );

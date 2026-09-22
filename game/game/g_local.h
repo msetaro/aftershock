@@ -34,6 +34,7 @@ bool G_DevAnimation( int owner, int rig, devAnimationState_t *state );
 
 void G_InitNavigation();
 bool G_NavigationEnabled();
+void G_NavigationNoise( int owner );
 void G_ShutdownNavigation();
 bool G_NavigationFrame( int time );
 
@@ -989,6 +990,7 @@ int trap_GeneticParentsAndChildSelection( int numranks, float *ranks, int *paren
 void trap_SnapVector( float *v );
 
 void G_InitWeapons( void );
+bool G_WeaponNeedsReload( int owner );
 void G_WeaponAttachmentCommand( int owner );
 void G_ClearWeaponActor( int owner );
 void G_RemoveWeaponProjectiles( int owner );

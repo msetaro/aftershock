@@ -52,6 +52,26 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 native combat and cover
+
+After the committed failing combat contract in 1b248ac6, the controller feeds real
+trace facts into sight/target memory and shared audio distance/occlusion sensing.
+Only actual weapon-shot events mark audible sources. New attack commands release
+the existing respawn latch before firing; an empty data-weapon magazine requests
+its existing reload command. Behavior-driven cover selects reachable nav-boundary
+points, crouches through unchanged Pmove, and reports covered only after reaching
+the selected point with a current blocked threat trace. Perception, cover/replan
+state and recent shot clocks have named checkpoint fields; no per-frame allocation.
+
+OpenArena combat acceptance passes (navigation-combat-5.log): rifle damage to the
+player, low-health rule after a player hit, more than 32 units of real movement
+into protected cover, and exact same/fresh-process continuation. The controlled
+spawns are baked into the owned scratch BSP so fresh reconstruction sees identical
+content; a temporary developer entity override correctly failed that identity
+check. Frozen pre-AI migration still passes. Inspector capture reviewed. GCC state
+suite and format/type/boundary gates pass. Full post-combat analysis, explicit
+hearing runtime and q3dm17 traversal/combat acceptance remain pending.
+
 ## #21 navigation checkpoint owner
 
 After a67d9c69's failing full-game contract, typed records own navmesh/behavior
@@ -67,7 +87,7 @@ exact actor/weapon/route data (navigation-checkpoint-fresh.log). The full existi
 state suite passes GCC and Clang UBSan (navigation-state-{gcc,clang}.log), and the
 legacy runtime suite still passes interrupted/replaced reconnect, fresh-process
 continuation and the unchanged frozen-v1 fixture (navigation-legacy-checkpoint.log).
-Tidy passes 1446 production configurations; full lifetimes are still running.
+Tidy passes 1446 production configurations and lifetimes pass all 1380 commands.
 The full MinGW client/server/devtools build passes. Loading the unchanged frozen
 v1 fixture from an active AI session also passes and clears both selected AI
 assets (navigation-checkpoint-migration.log). Combat/cover and q3dm17 AI traversal

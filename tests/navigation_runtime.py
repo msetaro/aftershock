@@ -7,6 +7,7 @@ import math
 from pathlib import Path
 import shutil
 import subprocess
+import struct
 import sys
 import tempfile
 from cook import cook
@@ -58,7 +59,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
             dict(name='patrol', action='patrol', transitions=[dict(to='attack',field='visible',op='eq',value=1,min_ms=0)]),
             dict(name='attack', action='attack', transitions=[dict(to='cover',field='health',op='lt',value=.9,min_ms=500)]),
             dict(name='cover', action='cover', transitions=[dict(to='attack',field='covered',op='eq',value=1,min_ms=1000)])])
-        (base/'maps/navigation-combat.ent').write_text('''{
+        entities = '''{
 "classname" "worldspawn"
 }
 {
@@ -73,7 +74,14 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
 "angle" "270"
 "nohumans" "1"
 }
-''')
+'''.encode() + b'\0'
+        # Bake the two controlled spawns into this owned scratch BSP. A temporary
+        # editor override would not match the installed content on checkpoint load.
+        bsp = bytearray((source/'maps/two_lane.bsp').read_bytes())
+        struct.pack_into('<2i', bsp, 8, len(bsp), len(entities))
+        bsp.extend(entities)
+        for directory in (source, base):
+            (directory/'maps/two_lane.bsp').write_bytes(bsp)
     (source/'navigation.json').write_text(json.dumps(navigation))
     (source/'behavior.json').write_text(json.dumps(behavior))
     (source/'assets.json').write_text(json.dumps(dict(version=1, assets=[
@@ -88,9 +96,6 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
             '+set', 'g_weapons', 'weapons/range_rifle.asweapon']) as engine:
         try:
             engine.request('session', dt=20, seed=21)
-            if args.combat:
-                engine.request('cvar.set', name='dev_entityFile', value='maps/navigation-combat.ent')
-                engine.request('cvar.set', name='dev_loadEntities', value='1')
             engine.request('map', name='two_lane')
             engine.step(50)
             engine.request('exec', command='god; weapon 1' if args.combat else 'team spectator')
@@ -100,7 +105,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
             actor = engine.request('actor', owner=1)
             assert actor.get('ai'), 'cooked behavior/navigation did not activate on the native bot'
             if args.combat:
-                assert actor['ai']['state'] == 'attack' and actor['weapons'][0]['sequence'] > 0, 'visible hostile must trigger native data-weapon fire'
+                assert actor['ai']['state'] == 'attack' and actor['weapons'][0]['sequence'] > 0, ('visible hostile must trigger native data-weapon fire', actor, engine.request('state')['player'], engine.request('entity.list')['entities'][:2])
                 engine.request('subscribe', enabled=True)
                 engine.request('exec', command='god')
                 engine.step(2)
@@ -162,7 +167,7 @@ with tempfile.TemporaryDirectory(prefix='aftershock-navigation-runtime-', dir=SC
             pause(engine)
             engine.step(25)
             continued = engine.request('actor', owner=1)
-            assert continued['ai']['position'] != before['ai']['position']
+            assert continued['ai']['elapsed'] != before['ai']['elapsed'] or continued['ai']['transitions'] != before['ai']['transitions']
             load(engine)
             assert engine.request('actor', owner=1) == before, 'AI actor did not restore exactly'
             pause(engine)

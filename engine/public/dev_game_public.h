@@ -6,6 +6,7 @@
 #include "../entities/entities_public.h"
 #include "../navigation/navigation_public.h"
 #include "../navigation/behavior_public.h"
+#include "../navigation/perception_public.h"
 
 struct devEntity_t {
 	char classname[64];
@@ -29,6 +30,8 @@ struct devAIState_t {
 	navFollowState_t cursor;
 	aiState_t behavior;
 	aiAction_t action;
+	aiObservation_t observation;
+	bool covered;
 	float position[3], goal[3];
 	char name[32];
 };

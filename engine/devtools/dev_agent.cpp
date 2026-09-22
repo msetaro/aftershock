@@ -1134,6 +1134,16 @@ static void Agent_Actor( agentReply_t &reply, int owner ) {
 		reply.String( ai.name );
 		reply.Text( ",\"action\":" );
 		reply.Number( ai.action );
+		reply.Text( ",\"target\":" );
+		reply.Number( ai.observation.target );
+		reply.Text( ",\"visible\":" );
+		reply.Text( ai.observation.visible ? "true" : "false" );
+		reply.Text( ",\"heard\":" );
+		reply.Text( ai.observation.heard ? "true" : "false" );
+		reply.Text( ",\"gain\":" );
+		reply.Number( ai.observation.gain );
+		reply.Text( ",\"covered\":" );
+		reply.Text( ai.covered ? "true" : "false" );
 		reply.Text( ",\"elapsed\":" );
 		reply.Number( ai.behavior.elapsed );
 		reply.Text( ",\"transitions\":" );
