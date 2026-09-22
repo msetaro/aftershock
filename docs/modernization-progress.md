@@ -52,6 +52,23 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 stateless steering and real-map query evidence
+
+After 7461cf58's failing contract, Nav_Avoid uses a preallocated Detour avoidance
+query reset for each authoritative actor snapshot. Nearby navmesh wall segments
+and up to 64 actor circles feed the existing crowd sampling parameters. Both
+compiler UBSan tests pass oncoming-actor avoidance, identical fresh-world and
+intervening-query results, and zero allocations after initialization
+(navigation-avoid-{gcc,clang}.log). Tidy, lifetime and strict MinGW/aarch64
+compilation pass for the changed owner.
+
+Private q3dm17 queries cover all 11 installed spawn positions: 24 complete routes,
+86 explicitly partial routes, 531 nearby cover candidates and 11 valid steering
+queries, with zero query allocations (navigation-q3-query.log). The disconnected
+platform routes still need authored off-mesh traversal; do not describe these
+numbers as full-map traversal or gameplay acceptance. No game asset/derived map
+output is committed or uploaded.
+
 ## #21 checkpoint-compatible steering decision and test
 
 Gameplay will use Detour local obstacle avoidance from current authoritative

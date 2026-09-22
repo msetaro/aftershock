@@ -4,6 +4,8 @@
 #include "../../third_party/sha256/sha-256.h"
 #include <DetourAlloc.h>
 #include <DetourCrowd.h>
+#include <DetourCommon.h>
+#include <DetourObstacleAvoidance.h>
 #include <DetourNavMesh.h>
 #include <DetourNavMeshQuery.h>
 #include <bit>
@@ -25,6 +27,7 @@ struct navWorld_t {
 	dtNavMesh *mesh;
 	dtNavMeshQuery *query;
 	dtCrowd *crowd;
+	dtObstacleAvoidanceQuery *avoidance;
 	uint8_t *tile;
 	float radius, height;
 	uint32_t maxAgents;
@@ -171,10 +174,11 @@ navWorld_t *Nav_Open( const void *bytes, size_t size, uint32_t collisionChecksum
 	world->mesh = dtAllocNavMesh();
 	world->query = dtAllocNavMeshQuery();
 	world->crowd = dtAllocCrowd();
-	if ( !world->mesh || !world->query || !world->crowd ||
+	world->avoidance = dtAllocObstacleAvoidanceQuery();
+	if ( !world->mesh || !world->query || !world->crowd || !world->avoidance ||
 		 dtStatusFailed( world->mesh->init( world->tile, int( file.tileSize ), 0 ) ) ||
 		 dtStatusFailed( world->query->init( world->mesh, 8192 ) ) ||
-		 !world->crowd->init( int( maxAgents ), file.radius, world->mesh ) ) {
+		 !world->crowd->init( int( maxAgents ), file.radius, world->mesh ) || !world->avoidance->init( 64, 128 ) ) {
 		Nav_Close( world );
 		return nullptr;
 	}
@@ -186,6 +190,7 @@ navWorld_t *Nav_Open( const void *bytes, size_t size, uint32_t collisionChecksum
 void Nav_Close( navWorld_t *world ) {
 	if ( !world )
 		return;
+	dtFreeObstacleAvoidanceQuery( world->avoidance );
 	dtFreeCrowd( world->crowd );
 	dtFreeNavMeshQuery( world->query );
 	dtFreeNavMesh( world->mesh );
@@ -324,6 +329,65 @@ bool Nav_CoverPoints( navWorld_t *world, const float position[3], float range, n
 			distances[slot] = squared;
 		}
 	}
+	return true;
+}
+bool Nav_Avoid( navWorld_t *world, const float position[3], const float velocity[3], const float desired[3],
+	float speed, const navObstacle_t *obstacles, uint32_t count, float out[3] ) {
+	if ( !world || !position || !velocity || !desired || !out || ( !obstacles && count ) || count > 64 ||
+		 !Finite( position, 3 ) || !Finite( velocity, 3 ) || !Finite( desired, 3 ) || !std::isfinite( speed ) || speed < 0 || speed > 2000 )
+		return false;
+	std::memset( out, 0, sizeof( float ) * 3 );
+	if ( speed == 0 )
+		return true;
+	dtQueryFilter filter;
+	filter.setIncludeFlags( 1 );
+	dtPolyRef ref;
+	float point[3];
+	if ( !Nearest( world, position, filter, &ref, point ) )
+		return false;
+	auto *query = world->avoidance;
+	query->reset();
+	const float range = world->radius * 12;
+	for ( uint32_t i = 0; i < count; ++i ) {
+		const auto &obstacle = obstacles[i];
+		if ( !Finite( obstacle.position, 3 ) || !Finite( obstacle.velocity, 3 ) || !std::isfinite( obstacle.radius ) || obstacle.radius <= 0 || obstacle.radius > 128 )
+			return false;
+		float center[3], motion[3];
+		ToDetour( obstacle.position, center );
+		ToDetour( obstacle.velocity, motion );
+		motion[1] = 0;
+		if ( std::fabs( center[1] - point[1] ) > world->height || dtVdist2DSqr( center, point ) > range * range )
+			continue;
+		query->addCircle( center, obstacle.radius, motion, motion );
+	}
+	dtPolyRef neighbors[128];
+	int nearby = 0;
+	const auto status = world->query->findLocalNeighbourhood( ref, point, range, &filter, neighbors, nullptr, &nearby, 128 );
+	if ( dtStatusFailed( status ) || dtStatusDetail( status, DT_BUFFER_TOO_SMALL ) )
+		return false;
+	for ( int i = 0; i < nearby; ++i ) {
+		float segments[DT_VERTS_PER_POLYGON * 6];
+		int walls = 0;
+		const auto wallStatus = world->query->getPolyWallSegments( neighbors[i], &filter, segments, nullptr, &walls, DT_VERTS_PER_POLYGON );
+		if ( dtStatusFailed( wallStatus ) || dtStatusDetail( wallStatus, DT_BUFFER_TOO_SMALL ) )
+			return false;
+		for ( int wall = 0; wall < walls; ++wall ) {
+			const float *a = segments + wall * 6, *b = a + 3;
+			float fraction;
+			if ( dtDistancePtSegSqr2D( point, a, b, fraction ) > range * range )
+				continue;
+			if ( query->getObstacleSegmentCount() == 128 )
+				return false;
+			query->addSegment( a, b );
+		}
+	}
+	float motion[3], wish[3], result[3];
+	ToDetour( velocity, motion );
+	ToDetour( desired, wish );
+	motion[1] = wish[1] = 0;
+	if ( !query->sampleVelocityAdaptive( point, world->radius, speed, motion, wish, result, world->crowd->getObstacleAvoidanceParams( 0 ) ) || !Finite( result, 3 ) )
+		return false;
+	FromDetour( result, out );
 	return true;
 }
 static bool AgentValid( const navWorld_t *world, int index ) {
