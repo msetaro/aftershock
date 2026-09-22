@@ -38,8 +38,9 @@ Resume the active predecessor gates before any later issue can merge:
 
 This is issue/21-ai-navigation in the sibling navigation-tree, branched from main
 5caa2c1c for bounded test-first preparation while predecessors finish. Owned collision cooking, native route/link/crowd ownership and data-authored
-hierarchical behavior now pass GCC and Clang/libc++ UBSan. Continue with failing-
-first perception/cover/target tests; gameplay/tooling/checkpoint integration remains. Reuse
+hierarchical behavior now pass GCC and Clang/libc++ UBSan. Perception/target/cover selection also passes both compiler probes. Next add
+navmesh-derived cover candidates and exercise real-map offline cooking while
+predecessor gates finish; gameplay/tooling/checkpoint integration remains. Reuse
 CM_PhysicsTriangles collision export and the existing cooker/envelope; do not
 change authoritative collision/movement math or accepted bot/demo goldens.
 Runtime AI integration waits for accepted #19/#20 main and requires separate
@@ -50,6 +51,26 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
+
+## #21 isolated perception and cover selection
+
+After 1d4b1d6f's missing-owner failure, bounded POD perception selects the nearest
+visible hostile with stable identity ties, then the loudest audible hostile,
+then a time-limited remembered position. Supplied trace facts combine with the
+sight cone; dead/friendly observations invalidate remembered targets. Hearing
+shares authored audio's linear/inverse gain and settled occlusion amplitude.
+Cover selection chooses the nearest reachable point protected from the threat.
+Game trace generation and navmesh cover candidates remain to be integrated.
+
+Both compiler UBSan navigation/behavior/perception suites pass, as do isolated
+perception tidy/lifetime checks. Existing audio spatial probes pass GCC and
+Clang/libc++, and the authored sound-event suite passes. Sharing the occlusion
+helper leaves GCC -O2 snd_event.o byte-identical. Spatial instruction scheduling
+changes after helper extraction, but 100,000 original/current spatial outputs
+are bit-identical, including both attenuation models and randomized positions/
+velocities. Evidence: navigation-perception-{gcc,clang}.log, navigation-audio-
+compare.log and navigation-audio-events.log. No accepted sound/demo artifact,
+authoritative simulation expression, allocation or OS access changed.
 
 ## #21 perception/cover contract, test first
 
