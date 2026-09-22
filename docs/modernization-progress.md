@@ -61,16 +61,27 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #23 service interface contract, test first
+
+Add one standalone probe that runs the same bounded user/ticket, presence,
+lobby/invite, achievement, cloud and workshop operations against an absent
+provider and a deterministic installed provider. Invalid caller arguments must
+not dispatch; malformed provider records must not escape. Provider replacement
+remains forbidden after use. The first run fails on missing serviceUser_t and
+related interface functions (services-before.log). Actual Steam acceptance is
+still separate and cannot be claimed from this probe.
+
 ## #23 preparation and external SDK boundary
 
 The official Steamworks SDK download page requires a Steamworks login; no installed
 SDK header was found in the project/cache locations. Valve's public Source SDK
 repository also publishes the Steam API headers and redistributable libraries.
-Use that official reference only in private cache for compilation, pinned at
+Keep that official reference only in private cache for API inspection, pinned at
 b8cfb12c0e083a2ef5b2f9f9b50f3902fa034474 with verified Git blob hashes and a local
 SHA256 manifest. No SDK files, credentials or binaries are vendored/published.
-The adapter will accept an explicit external Steamworks SDK root; default/null CI
-needs none. Manual callback dispatch keeps SDK events queued as bounded POD data
+The public Source SDK license is scoped to Source-engine modifications, so this
+reference is not used as the Aftershock build SDK. The adapter needs a proper
+external Steamworks SDK root; default/null CI needs none. Manual callback dispatch keeps SDK events queued as bounded POD data
 and never reenters Com_Error. Real Steam acceptance still needs an authorized AppID,
 running logged-in clients and a designated invite recipient; do not invent them.
 References: https://partner.steamgames.com/doc/sdk/api and the ISteamUser and
