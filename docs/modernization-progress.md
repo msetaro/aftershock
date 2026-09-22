@@ -51,6 +51,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 client draft records
+
+Client archives reuse the generated player/usercmd descriptions and explicitly
+name all persistent, session, team, damage and timer fields. Grapple references
+reload into relocated entity pools. The currently unused areabits pointer is
+required to be null; unexpected ownership fails the save instead of disappearing.
+GCC and Clang/libc++ UBSan pass (state-client-{gcc,clang}.log), including complete
+client byte comparison after pointer relocation. This remains draft loading;
+level/subsystem/bot records and full-game coordination are still required.
+
 ## #19 complete entity draft records
 
 Entity numeric/spatial fields, both entityState_t records (including the legacy

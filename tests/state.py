@@ -59,7 +59,7 @@ def declared_members(body):
         match=re.fullmatch(r'(?:(?:struct|const)\s+)?\w+\s+([\s\S]+)',declaration)
         assert match, f'unclassified native declaration: {declaration}'
         for declarator in match[1].split(','):
-            member=re.fullmatch(r'\s*\*?\s*(\w+)\s*',declarator)
+            member=re.fullmatch(r'\s*\*?\s*(\w+)(?:\[\w+\])?\s*',declarator)
             assert member, f'unclassified native member: {declaration}'
             fields.add(member[1])
     return fields
@@ -77,6 +77,18 @@ shared_fields=set(re.findall(r'offsetof\( entityShared_t, (\w+) \)',records)) | 
 assert shared_fields==declared_members(shared), 'shared entity state needs a save description'
 assert declared_members('int first, second; float added;')=={'first','second','added'}
 print(f'PASS: every entity member has a scalar, reference, string, callback or shared-state description')
+def native_body(name):
+    end=local.index('} '+name+';')
+    return local[:end].rsplit('typedef struct {',1)[1]
+client_fields=set(re.findall(r'offsetof\( gclient_t, ([\w.]+) \)',records))
+client_body=local.split('struct gclient_s {',1)[1].split('\n};',1)[0]
+assert {field.split('.')[0] for field in client_fields} | {'ps','hook','persistantPowerup','areabits'} == declared_members(client_body)
+for name, prefix, separate in (('clientPersistant_t','pers.',{'cmd','teamState'}),
+                               ('clientSession_t','sess.',set()),
+                               ('playerTeamState_t','pers.teamState.',set())):
+    described={field[len(prefix):] for field in client_fields if field.startswith(prefix) and '.' not in field[len(prefix):]}
+    assert described | separate == declared_members(native_body(name)), f'{name}: saved client field coverage'
+print('PASS: every client/session/team member has a save description or explicit ownership rule')
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'

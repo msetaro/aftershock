@@ -89,7 +89,51 @@ static void Scalars() {
 	puts( "PASS: full entity scalar/spatial state preserves trajectory, clocks, high bits and signed zero" );
 }
 
+static void Client() {
+	static game::gentity_t entities[4], replacement[4];
+	game::gStatePools_t pools{ entities, 4, nullptr, 0, nullptr, 0 };
+	game::gclient_t client{};
+	client.ps.clientNum = 1;
+	client.ps.commandTime = 12345;
+	client.ps.origin[1] = -73.25f;
+	client.ps.stats[game::STAT_HEALTH] = 67;
+	client.pers.cmd.serverTime = 12340;
+	client.pers.cmd.forwardmove = -127;
+	client.pers.connected = game::CON_CONNECTED;
+	client.pers.localClient = game::qtrue;
+	strcpy( client.pers.netname, "saved player" );
+	client.pers.teamState.captures = 2;
+	client.pers.teamState.flagsince = 19.5f;
+	client.sess.sessionTeam = game::TEAM_RED;
+	client.sess.spectatorClient = -1;
+	client.sess.teamLeader = game::qtrue;
+	client.damage_from[0] = 16.75f;
+	client.inactivityTime = 123456;
+	client.respawnTime = 19000;
+	client.timeResidual = 17;
+	client.hook = &entities[3];
+	unsigned char archive[32768];
+	stateWriter_t writer{ archive, sizeof( archive ) };
+	assert( game::G_WriteClientState(&writer,1,client,pools) );
+	const size_t size = State_Finish( &writer );
+	stateReader_t reader;
+	assert( size && State_Open(archive,size,&reader) );
+	pools.entities = replacement;
+	game::gclient_t restored{};
+	assert( game::G_ReadClientState(reader,1,pools,&restored) );
+	client.hook = &replacement[3];
+	assert( !memcmp(&client,&restored,sizeof(client)) );
+	assert( !game::G_ReadClientState(reader,2,pools,&restored) );
+	assert( !memcmp(&client,&restored,sizeof(client)) );
+	char unused = 0;
+	client.areabits = &unused;
+	writer = { archive, sizeof( archive ) };
+	assert( !game::G_WriteClientState(&writer,1,client,pools) && !State_Finish(&writer) );
+	puts( "PASS: client inventory, input, session, clocks and grapple survive draft restore" );
+}
+
 int main() {
+	Client();
 	Scalars();
 	Strings();
 	static game::gentity_t entities[8], replacements[8];

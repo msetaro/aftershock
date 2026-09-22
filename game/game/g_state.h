@@ -72,4 +72,7 @@ bool G_WriteEntityState( stateWriter_t *writer, uint32_t slot, const gentity_t &
 // gameplay invariants, provides string lifetime storage and rebuilds spatial links.
 bool G_ReadEntityState( const stateReader_t &reader, uint32_t slot, const gStatePools_t &pools, const gSaveCallback_t *const *callbacks,
 	gentity_t *entity, gEntityStrings_t *strings );
+extern const stateSchema_t gameClientSchema;
+bool G_WriteClientState( stateWriter_t *writer, uint32_t slot, const gclient_t &client, const gStatePools_t &pools );
+bool G_ReadClientState( const stateReader_t &reader, uint32_t slot, const gStatePools_t &pools, gclient_t *client );
 #endif

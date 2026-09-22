@@ -277,3 +277,132 @@ bool G_ReadEntityState( const stateReader_t &reader, uint32_t slot, const gState
 	*strings = text;
 	return true;
 }
+
+static constexpr stateField_t gameClientFields[] = {
+	{ "pers.connected", offsetof( gclient_t, pers.connected ), 1, stateType_t::UInt32 },
+	{ "pers.localClient", offsetof( gclient_t, pers.localClient ), 1, stateType_t::UInt32 },
+	{ "pers.initialSpawn", offsetof( gclient_t, pers.initialSpawn ), 1, stateType_t::UInt32 },
+	{ "pers.predictItemPickup", offsetof( gclient_t, pers.predictItemPickup ), 1, stateType_t::UInt32 },
+	{ "pers.pmoveFixed", offsetof( gclient_t, pers.pmoveFixed ), 1, stateType_t::UInt32 },
+	{ "pers.netname", offsetof( gclient_t, pers.netname ), MAX_NETNAME, stateType_t::String },
+	{ "pers.maxHealth", offsetof( gclient_t, pers.maxHealth ), 1, stateType_t::Int32 },
+	{ "pers.enterTime", offsetof( gclient_t, pers.enterTime ), 1, stateType_t::Int32 },
+	{ "pers.teamState.state", offsetof( gclient_t, pers.teamState.state ), 1, stateType_t::UInt32 },
+	{ "pers.teamState.location", offsetof( gclient_t, pers.teamState.location ), 1, stateType_t::Int32 },
+	{ "pers.teamState.captures", offsetof( gclient_t, pers.teamState.captures ), 1, stateType_t::Int32 },
+	{ "pers.teamState.basedefense", offsetof( gclient_t, pers.teamState.basedefense ), 1, stateType_t::Int32 },
+	{ "pers.teamState.carrierdefense", offsetof( gclient_t, pers.teamState.carrierdefense ), 1, stateType_t::Int32 },
+	{ "pers.teamState.flagrecovery", offsetof( gclient_t, pers.teamState.flagrecovery ), 1, stateType_t::Int32 },
+	{ "pers.teamState.fragcarrier", offsetof( gclient_t, pers.teamState.fragcarrier ), 1, stateType_t::Int32 },
+	{ "pers.teamState.assists", offsetof( gclient_t, pers.teamState.assists ), 1, stateType_t::Int32 },
+	{ "pers.teamState.lasthurtcarrier", offsetof( gclient_t, pers.teamState.lasthurtcarrier ), 1, stateType_t::Float32 },
+	{ "pers.teamState.lastreturnedflag", offsetof( gclient_t, pers.teamState.lastreturnedflag ), 1, stateType_t::Float32 },
+	{ "pers.teamState.flagsince", offsetof( gclient_t, pers.teamState.flagsince ), 1, stateType_t::Float32 },
+	{ "pers.teamState.lastfraggedcarrier", offsetof( gclient_t, pers.teamState.lastfraggedcarrier ), 1, stateType_t::Float32 },
+	{ "pers.voteCount", offsetof( gclient_t, pers.voteCount ), 1, stateType_t::Int32 },
+	{ "pers.teamVoteCount", offsetof( gclient_t, pers.teamVoteCount ), 1, stateType_t::Int32 },
+	{ "pers.teamInfo", offsetof( gclient_t, pers.teamInfo ), 1, stateType_t::UInt32 },
+	{ "sess.sessionTeam", offsetof( gclient_t, sess.sessionTeam ), 1, stateType_t::UInt32 },
+	{ "sess.spectatorTime", offsetof( gclient_t, sess.spectatorTime ), 1, stateType_t::Int32 },
+	{ "sess.spectatorState", offsetof( gclient_t, sess.spectatorState ), 1, stateType_t::UInt32 },
+	{ "sess.spectatorClient", offsetof( gclient_t, sess.spectatorClient ), 1, stateType_t::Int32 },
+	{ "sess.wins", offsetof( gclient_t, sess.wins ), 1, stateType_t::Int32 },
+	{ "sess.losses", offsetof( gclient_t, sess.losses ), 1, stateType_t::Int32 },
+	{ "sess.teamLeader", offsetof( gclient_t, sess.teamLeader ), 1, stateType_t::UInt32 },
+	{ "readyToExit", offsetof( gclient_t, readyToExit ), 1, stateType_t::UInt32 },
+	{ "noclip", offsetof( gclient_t, noclip ), 1, stateType_t::UInt32 },
+	{ "lastCmdTime", offsetof( gclient_t, lastCmdTime ), 1, stateType_t::Int32 },
+	{ "buttons", offsetof( gclient_t, buttons ), 1, stateType_t::Int32 },
+	{ "oldbuttons", offsetof( gclient_t, oldbuttons ), 1, stateType_t::Int32 },
+	{ "latched_buttons", offsetof( gclient_t, latched_buttons ), 1, stateType_t::Int32 },
+	{ "oldOrigin", offsetof( gclient_t, oldOrigin ), 3, stateType_t::Float32 },
+	{ "damage_armor", offsetof( gclient_t, damage_armor ), 1, stateType_t::Int32 },
+	{ "damage_blood", offsetof( gclient_t, damage_blood ), 1, stateType_t::Int32 },
+	{ "damage_knockback", offsetof( gclient_t, damage_knockback ), 1, stateType_t::Int32 },
+	{ "damage_from", offsetof( gclient_t, damage_from ), 3, stateType_t::Float32 },
+	{ "damage_fromWorld", offsetof( gclient_t, damage_fromWorld ), 1, stateType_t::UInt32 },
+	{ "accurateCount", offsetof( gclient_t, accurateCount ), 1, stateType_t::Int32 },
+	{ "accuracy_shots", offsetof( gclient_t, accuracy_shots ), 1, stateType_t::Int32 },
+	{ "accuracy_hits", offsetof( gclient_t, accuracy_hits ), 1, stateType_t::Int32 },
+	{ "lastkilled_client", offsetof( gclient_t, lastkilled_client ), 1, stateType_t::Int32 },
+	{ "lasthurt_client", offsetof( gclient_t, lasthurt_client ), 1, stateType_t::Int32 },
+	{ "lasthurt_mod", offsetof( gclient_t, lasthurt_mod ), 1, stateType_t::Int32 },
+	{ "respawnTime", offsetof( gclient_t, respawnTime ), 1, stateType_t::Int32 },
+	{ "inactivityTime", offsetof( gclient_t, inactivityTime ), 1, stateType_t::Int32 },
+	{ "inactivityWarning", offsetof( gclient_t, inactivityWarning ), 1, stateType_t::UInt32 },
+	{ "rewardTime", offsetof( gclient_t, rewardTime ), 1, stateType_t::Int32 },
+	{ "airOutTime", offsetof( gclient_t, airOutTime ), 1, stateType_t::Int32 },
+	{ "lastKillTime", offsetof( gclient_t, lastKillTime ), 1, stateType_t::Int32 },
+	{ "fireHeld", offsetof( gclient_t, fireHeld ), 1, stateType_t::UInt32 },
+	{ "switchTeamTime", offsetof( gclient_t, switchTeamTime ), 1, stateType_t::Int32 },
+	{ "timeResidual", offsetof( gclient_t, timeResidual ), 1, stateType_t::Int32 },
+#ifdef MISSIONPACK
+	{ "portalID", offsetof( gclient_t, portalID ), 1, stateType_t::Int32 },
+	{ "ammoTimes", offsetof( gclient_t, ammoTimes ), WP_NUM_WEAPONS, stateType_t::Int32 },
+	{ "invulnerabilityTime", offsetof( gclient_t, invulnerabilityTime ), 1, stateType_t::Int32 },
+#endif
+};
+const stateSchema_t gameClientSchema = { "game.client", 1, 1, sizeof( gclient_t ), gameClientFields, sizeof( gameClientFields ) / sizeof( gameClientFields[0] ) };
+struct gClientRefs_t {
+	int32_t hook;
+#ifdef MISSIONPACK
+	int32_t persistantPowerup;
+#endif
+};
+static constexpr stateField_t clientRefsFields[] = {
+	{ "hook", offsetof( gClientRefs_t, hook ), 1, stateType_t::Int32 },
+#ifdef MISSIONPACK
+	{ "persistantPowerup", offsetof( gClientRefs_t, persistantPowerup ), 1, stateType_t::Int32 },
+#endif
+};
+static constexpr stateSchema_t clientRefsSchema = { "game.clientRefs", 1, 1, sizeof( gClientRefs_t ), clientRefsFields, sizeof( clientRefsFields ) / sizeof( clientRefsFields[0] ) };
+bool G_WriteClientState( stateWriter_t *writer, uint32_t slot, const gclient_t &client, const gStatePools_t &pools ) {
+	if ( !writer )
+		return false;
+	// areabits is unused by the native game. Reject unexpected ownership instead of discarding it.
+	if ( !ValidPools( pools ) || slot >= MAX_CLIENTS || client.areabits ) {
+		writer->failed = true;
+		return false;
+	}
+	gClientRefs_t refs{ Slot( client.hook, pools.entities, pools.entityCount )
+#ifdef MISSIONPACK
+							,
+		Slot( client.persistantPowerup, pools.entities, pools.entityCount )
+#endif
+	};
+	if ( refs.hook == -2
+#ifdef MISSIONPACK
+		 || refs.persistantPowerup == -2
+#endif
+	) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, gameClientSchema, slot, &client ) &&
+		   State_Append( writer, playerStateSchema, slot, &client.ps ) &&
+		   State_Append( writer, usercmdStateSchema, slot, &client.pers.cmd ) &&
+		   State_Append( writer, clientRefsSchema, slot, &refs );
+}
+bool G_ReadClientState( const stateReader_t &reader, uint32_t slot, const gStatePools_t &pools, gclient_t *client ) {
+	if ( !client || !ValidPools( pools ) || slot >= MAX_CLIENTS )
+		return false;
+	gclient_t restored{};
+	gClientRefs_t refs;
+	uint32_t version;
+	if ( !State_Find( reader, gameClientSchema, slot, &restored, &version ) ||
+		 !State_Find( reader, playerStateSchema, slot, &restored.ps, &version ) ||
+		 !State_Find( reader, usercmdStateSchema, slot, &restored.pers.cmd, &version ) ||
+		 !State_Find( reader, clientRefsSchema, slot, &refs, &version ) ||
+		 refs.hook < -1 || refs.hook >= pools.entityCount
+#ifdef MISSIONPACK
+		 || refs.persistantPowerup < -1 || refs.persistantPowerup >= pools.entityCount
+#endif
+	)
+		return false;
+	restored.hook = refs.hook == -1 ? nullptr : &pools.entities[refs.hook];
+#ifdef MISSIONPACK
+	restored.persistantPowerup = refs.persistantPowerup == -1 ? nullptr : &pools.entities[refs.persistantPowerup];
+#endif
+	*client = restored;
+	return true;
+}
