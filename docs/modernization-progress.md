@@ -47,6 +47,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 pinned dependency preparation
+
+After the missing-kind failure was committed at 4c7fa084, import unmodified
+Recast/Detour/DetourCrowd source/header subsets at the verified v1.6.0 commit.
+third_party/recast/provenance.json records every copied hash and archive identity;
+the original zlib license/notices remain. No demos, sample assets or unneeded
+TileCache/DebugUtils modules are imported. No build/runtime integration exists
+yet, and the initial cooker test still fails as expected.
+
 ## #21 collision-navmesh source contract, test first
 
 Issue #21 has no additional comments. tests/navigation.py compiles the owned
