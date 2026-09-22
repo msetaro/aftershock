@@ -24,7 +24,7 @@ upstream; historical upstream PR references below are completed past work.
 35678588538 pass. #17 accepted in PR172, merge ebc03f37c1393f13cb1d33355eda53a9caf911f7.
 All 26 exact-head UI gates passed (build 35679134924, regression 35679134926);
 head/base/current main and known-good tag were rechecked before ready/merge.
-Monitor UI merged-tree build 35682880734/regression 35682880730.
+Both UI merged-tree workflows 35682880734 and 35682880730 now pass.
 
 #18 draft PR173 is at e0c6a57d in
 /home/matt/.cache/aftershock-modernization/entities-tree. It includes accepted UI
@@ -54,6 +54,17 @@ pointer dumps or partial checkpoint acceptance.
 Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
+
+## #19 complete user-command description
+
+The committed missing-schema test fb1246bc passes GCC and Clang/libc++ UBSan with
+both engine and native game declarations (state-usercmd-{gcc,clang}.log). The
+existing generator now reads the complete usercmd_t declaration, including its
+separate byte movement fields, into the same named-field description. Unsupported
+member declarations fail instead of being omitted. Existing replication.inc is
+byte-identical and the accepted wire digest still passes (state-usercmd-wire.log).
+Formatting passes. These descriptions are ready for the full game-state records;
+server save/load integration remains outstanding.
 
 ## #19 user-command description test before implementation
 

@@ -90,4 +90,14 @@ inline constexpr stateField_t playerSaveFields[] = {
 	{ "entityEventSequence", offsetof( playerState_t, entityEventSequence ), 1, stateType_t::Int32 },
 };
 inline constexpr stateSchema_t playerStateSchema = { "playerState_t", 1, 1, sizeof( playerState_t ), playerSaveFields, sizeof( playerSaveFields ) / sizeof( playerSaveFields[0] ) };
+inline constexpr stateField_t usercmdSaveFields[] = {
+	{ "serverTime", offsetof( usercmd_t, serverTime ), 1, stateType_t::Int32 },
+	{ "angles", offsetof( usercmd_t, angles ), 3, stateType_t::Int32 },
+	{ "buttons", offsetof( usercmd_t, buttons ), 1, stateType_t::Int32 },
+	{ "weapon", offsetof( usercmd_t, weapon ), 1, stateType_t::Bytes },
+	{ "forwardmove", offsetof( usercmd_t, forwardmove ), 1, stateType_t::Bytes },
+	{ "rightmove", offsetof( usercmd_t, rightmove ), 1, stateType_t::Bytes },
+	{ "upmove", offsetof( usercmd_t, upmove ), 1, stateType_t::Bytes },
+};
+inline constexpr stateSchema_t usercmdStateSchema = { "usercmd_t", 1, 1, sizeof( usercmd_t ), usercmdSaveFields, sizeof( usercmdSaveFields ) / sizeof( usercmdSaveFields[0] ) };
 #endif

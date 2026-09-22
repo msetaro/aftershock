@@ -34,8 +34,21 @@ def body(text, name):
 
 
 def members(text, name):
-    return [match.groups() for line in body(text, name).splitlines()
-            if (match := MEMBER.match(line))]
+    result = []
+    for line in body(text, name).splitlines():
+        declaration = line.split('//', 1)[0].strip()
+        if not declaration:
+            continue
+        match = re.fullmatch(r'(int32_t|uint8_t|int8_t|vec3_t|trajectory_t|trType_t)\s+([^;]+);', declaration)
+        if not match:
+            raise ValueError(name + ': unsupported member declaration: ' + declaration)
+        kind, declarations = match.groups()
+        for declarator in declarations.split(','):
+            member = re.fullmatch(r'\s*(\w+)(?:\[(\w+)\])?\s*', declarator)
+            if not member:
+                raise ValueError(name + ': unsupported member: ' + declarator)
+            result.append((kind, *member.groups()))
+    return result
 
 
 def leaves(kind, name, count, text):
@@ -114,7 +127,7 @@ def state_members(text, name, prefix=''):
         if kind == 'trajectory_t':
             yield from state_members(text, 'trajectory_t', path + '.')
         else:
-            yield path, ('Float32' if kind == 'vec3_t' else 'UInt32' if kind == 'trType_t' else 'Int32'), (3 if kind == 'vec3_t' else constant(count, text) if count else 1)
+            yield path, ('Float32' if kind == 'vec3_t' else 'UInt32' if kind == 'trType_t' else 'Bytes' if kind in ('int8_t', 'uint8_t') else 'Int32'), (3 if kind == 'vec3_t' else constant(count, text) if count else 1)
 
 
 def generate_state(text):
@@ -122,9 +135,10 @@ def generate_state(text):
               '// Include after the engine or native game shared state declarations.',
               '#ifndef STATE_REPLICATION_H', '#define STATE_REPLICATION_H',
               '#include "state_public.h"']
-    for kind in ('entity', 'player'):
-        name = kind + 'State_t'
-        describe(text, name)  # Enforce the same exhaustive inventory as the wire tables.
+    for kind in ('entity', 'player', 'usercmd'):
+        name = kind + 'State_t' if kind != 'usercmd' else 'usercmd_t'
+        if kind != 'usercmd':
+            describe(text, name)  # Enforce the same exhaustive inventory as the wire tables.
         table = kind + 'SaveFields'
         output.append('inline constexpr stateField_t ' + table + '[] = {')
         for path, field_type, count in state_members(text, name):
@@ -141,7 +155,7 @@ def main():
     args = parser.parse_args()
     source = HEADER.read_text()
     game = (ROOT / 'game/bg/q_shared.h').read_text()
-    for name in ('trajectory_t', 'entityState_t', 'playerState_t'):
+    for name in ('trajectory_t', 'entityState_t', 'playerState_t', 'usercmd_t'):
         if members(source, name) != members(game, name):
             raise SystemExit('engine/game declarations differ: ' + name)
     for path, generated in ((OUTPUT, generate(source)), (STATE_OUTPUT, generate_state(source))):
