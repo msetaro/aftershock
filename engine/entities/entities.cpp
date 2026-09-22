@@ -3,6 +3,7 @@
 #include <charconv>
 #include <cmath>
 #include <string.h>
+#include <stdlib.h>
 
 static bool Identifier( const char *value, size_t capacity, bool uppercase = false ) {
 	const char *end = (const char *)memchr( value, 0, capacity );
@@ -60,11 +61,15 @@ static bool ValidField( const entityDefinitionField_t &field, uint32_t mask ) {
 	}
 	const int count = rule->count == 3 ? 3 : 1;
 	for ( int i = 0; i < count; ++i ) {
-		float value;
-		const auto result = std::from_chars( cursor, end, value, std::chars_format::fixed );
-		if ( result.ec != std::errc() || !std::isfinite( value ) || value < rule->low || value > rule->high )
+		char *next;
+		const float value = strtof( cursor, &next );
+		if ( next == cursor || !std::isfinite( value ) || value < rule->low || value > rule->high )
 			return false;
-		cursor = result.ptr;
+		// Match the game's fixed decimal spelling; exponent/hex/locale forms are not spawn values.
+		for ( const char *p = cursor; p < next; ++p )
+			if ( !( *p >= '0' && *p <= '9' ) && *p != '.' && *p != '-' )
+				return false;
+		cursor = next;
 		if ( i != count - 1 ) {
 			if ( cursor == end || *cursor != ' ' )
 				return false;
@@ -123,8 +128,7 @@ bool Entity_ReadDefinitions( const void *data, size_t size, entityDefinitions_t 
 					return false;
 			}
 			if ( !strcmp( field.key, "rep_radius" ) ) {
-				float radius = 0;
-				std::from_chars( field.value, field.value + strlen( field.value ), radius, std::chars_format::fixed );
+				const float radius = strtof( field.value, nullptr );
 				if ( radius != definition.radius )
 					return false;
 			}
@@ -174,7 +178,7 @@ bool Entity_SetField( entityDefinitions_t *definitions, const char *name, const 
 	if ( !strcmp( key, "rep_priority" ) )
 		std::from_chars( value, value + strlen( value ), edited.priority );
 	if ( !strcmp( key, "rep_radius" ) )
-		std::from_chars( value, value + strlen( value ), edited.radius, std::chars_format::fixed );
+		edited.radius = strtof( value, nullptr );
 	definitions->fields[field - definitions->fields] = replacement;
 	return true;
 }

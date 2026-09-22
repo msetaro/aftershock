@@ -40,8 +40,11 @@ hosted gates green, recheck exact main/base, then ready/merge with a merge commi
 accepted audio main is merged forward. Both-content component/editor acceptance,
 full lifetime/tidy and unchanged fixed replay pass at 731bd28d. Self-review added
 a failing prefab flag test; cb84dadb preserves native callback identity and passes
-flags on both content sets. Initial build 35681818460/regression 35681818499 are
-compiler/integration feedback, not final acceptance before #17. UI kind 13 arrives
+flags on both content sets. Initial build 35681818460 fails hosted libc++ floating from_chars availability;
+regression 35681818499 is superseded and cancelled. Replace that conversion with
+strtof plus fixed-decimal syntax/range validation, preserving the spawn format.
+GCC and Clang/libc++ UBSan pass again (entities-libcxx-{gcc,clang}.log). Fresh
+compiler/integration feedback is required; no final acceptance before #17. UI kind 13 arrives
 when #17 is accepted; entities kind 14 remains alongside sound kind 12.
 Merge accepted #17 main before final #18 gates. No accepted golden regeneration.
 
@@ -49,6 +52,18 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue #18 through #24 (SDK dependency), #29 and #30 per #25. No maintainer
 input is currently needed. Do not end at a checkpoint or CI wait.
+
+## #18 hosted standard-library compatibility
+
+Initial cb84dadb build 35681818460 fails Linux libc++ and all four Apple legs:
+those libraries do not expose floating-point from_chars. The local libc++ 21
+probe alone did not cover that older-library interface. Use standard strtof with
+explicit fixed-decimal spelling, finite/range and delimiter validation; integer
+from_chars is supported and unchanged. Field values remain the same decimal
+strings expected by classic spawn parsing. GCC and Clang/libc++ probes pass again;
+no fixture or existing engine math changes. The old regression is cancelled to
+free runners and is never acceptance. MSVC ARM64 and release x64 already pass the
+new entity feature at cb84dadb; require fresh full gates for this correction.
 
 ## #18 alias compatibility review
 
