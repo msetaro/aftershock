@@ -72,3 +72,28 @@ run([*shlex.split(args.cxx), *flags, '-Wall', '-Wextra', '-Werror',
      'tests/probes/navigation.cpp', 'engine/navigation/navigation.cpp', *objects, sha,
      '-o', probe])
 run([probe, asset])
+
+# Hierarchical state transitions are authored data. A combat parent's lost-target
+# transition applies to both attack and cover children; leaf transitions win.
+behavior = dict(version=1, name='guard', initial='patrol', states=[
+    dict(name='patrol', action='patrol', transitions=[dict(to='attack', field='visible', op='eq', value=1, min_ms=0),
+                                                  dict(to='investigate', field='heard', op='eq', value=1, min_ms=0)]),
+    dict(name='combat', action='idle', transitions=[dict(to='investigate', field='visible', op='eq', value=0, min_ms=0)]),
+    dict(name='attack', parent='combat', action='attack', transitions=[dict(to='cover', field='health', op='lt', value=0.4, min_ms=500)]),
+    dict(name='cover', parent='combat', action='cover', transitions=[dict(to='attack', field='covered', op='eq', value=1, min_ms=1000)]),
+    dict(name='investigate', action='investigate', transitions=[dict(to='attack', field='visible', op='eq', value=1, min_ms=0),
+                                                            dict(to='patrol', field='time_ms', op='ge', value=5000, min_ms=0)])])
+(source/'guard.json').write_text(json.dumps(behavior))
+project.write_text(json.dumps(dict(version=1, assets=[
+    dict(name='navigation/two_lane', kind='navigation', source='navigation.json'),
+    dict(name='behaviors/guard', kind='behavior', source='guard.json')])))
+result = cook(project, cooked)
+assert result['built'] == ['behaviors/guard'] and result['skipped'] == ['navigation/two_lane']
+asset = cooked/'behaviors/guard.asai'
+original = hashlib.sha256(asset.read_bytes()).hexdigest()
+assert sorted(cook(project, cooked)['skipped']) == ['behaviors/guard', 'navigation/two_lane']
+behavior['states'][2]['transitions'][0]['value'] = 0.3
+(source/'guard.json').write_text(json.dumps(behavior))
+assert cook(project, cooked)['built'] == ['behaviors/guard']
+assert hashlib.sha256(asset.read_bytes()).hexdigest() != original
+print('PASS: authored hierarchical behavior and isolated incremental source edit')

@@ -47,6 +47,20 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 behavior source contract, test first
+
+Extend the navigation acceptance driver with a data-authored guard hierarchy:
+patrol/investigate leaves and attack/cover children of a combat parent. Ordered
+leaf transitions handle health/cover, while both combat children inherit the
+lost-target transition. The source also carries minimum dwell times and a timed
+return to patrol. It must cook incrementally without rebuilding the collision
+navmesh; an edited threshold must change only its own asset.
+
+Existing native navigation assertions pass first, then cooking fails at the
+missing behavior asset kind (navigation-behavior-before.log). Commit this source
+contract before the cooker; native transition/perception/cover assertions remain
+necessary before those runtime pieces. #19 is now in its final UBSan runtime step.
+
 ## #21 isolated native navigation owner
 
 After e8a12794's missing-owner failure, the opaque POD owner copies/validates the
