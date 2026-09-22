@@ -62,6 +62,26 @@ int main( int argc, char **argv ) {
 			std::fprintf( stderr, "corner %u: %g %g %g link %u\n", i, path.points[i].position[0], path.points[i].position[1], path.points[i].position[2], path.points[i].link );
 	}
 	assert(path.complete && sawLink);
+	// Boundary candidates come from the navmesh's collision-derived polygons.
+	// The owned low cover spans x [-32,32], y [-64,-32], z [0,48].
+	navCoverQuery_t covers{};
+	assert(Nav_CoverPoints(world,start,400,&covers));
+	assert(covers.complete && covers.count > 0);
+	bool behindCover = false;
+	for ( uint32_t i = 0; i < covers.count; ++i ) {
+		const auto &point = covers.points[i];
+		assert(Distance(point.position,start) <= 400);
+		assert(Nav_Path(world,start,point.position,false,&path));
+		if ( path.complete && std::fabs( point.position[0] ) < 32 && point.position[1] > -32 && point.position[1] < 0 && point.position[2] < 4 )
+			behindCover = true;
+	}
+	assert(behindCover);
+	navCoverQuery_t repeated{};
+	assert(Nav_CoverPoints(world,start,400,&repeated) && repeated.count == covers.count);
+	for ( uint32_t i = 0; i < covers.count; ++i ) {
+		assert(covers.points[i].identity == repeated.points[i].identity);
+		assert(Distance(covers.points[i].position,repeated.points[i].position) == 0);
+	}
 	// Two opposing agents in open floor must reach their goals without passing
 	// through each other. Positions are steering results, not Pmove authority.
 	const float left[3] = { -180, -180, 0 }, right[3] = { 180, -180, 0 };

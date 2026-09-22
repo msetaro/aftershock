@@ -52,6 +52,15 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 collision-derived cover candidate test
+
+Extend the existing native navigation probe to require bounded, repeatable cover
+points from nearby navmesh boundaries, including a reachable point behind the
+owned low-cover collision brush. Candidates must remain within the requested
+range and retain stable identities on repeated queries. Existing allocation
+counters also cover this query. Compilation fails on missing navCoverQuery_t/
+Nav_CoverPoints (navigation-cover-before.log); commit before implementation.
+
 ## #21 isolated perception and cover selection
 
 After 1d4b1d6f's missing-owner failure, bounded POD perception selects the nearest
