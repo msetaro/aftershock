@@ -267,6 +267,14 @@ world_spatial={'linkheap','linkheapsize','freelinks','arealinkedentities','entit
 world_routing={'travelflagfortype','areacontentstravelflags','areaupdate','portalupdate','reversedreachability','areatraveltimes','clusterareacache','portalcache','oldestcache','newestcache','portalmaxtraveltimes','reachabilityareaindex','reachabilityareas'}
 assert world_scalars | world_geometry | world_spatial | world_routing==declared_members(world_body)
 print('PASS: AAS world/cache members have scalar, geometry, spatial, derived-routing or synchronous scratch ownership')
+bsp_source=(ROOT/'engine/botlib/be_aas_bspq3.cpp').read_text()
+for tag,name,expected in (('bsp_s','bsp_t',{'loaded','entdatasize','dentdata','numentities','entities'}),
+                          ('bsp_entity_s','bsp_entity_t',{'epairs'}),
+                          ('bsp_epair_s','bsp_epair_t',{'key','value','next'})):
+    body=bsp_source.split('typedef struct '+tag+' {',1)[1].split('} '+name+';',1)[0]
+    assert declared_members(body)==expected
+print('PASS: BSP text and parsed entity-pair ownership is immutable and verified by content identity')
+
 
 
 
@@ -390,11 +398,13 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wl,--gc-sections','-o',probe])
 run([probe])
 
-for component in ('input','move','weights','characters','chat_queue','chat_content','libvars','interface','aas_entities','aas_links','aas_world','aas_settings','aas_routing'):
+for component in ('input','move','weights','characters','chat_queue','chat_content','libvars','interface','aas_entities','aas_links','aas_world','aas_settings','aas_routing','bsp_content','parser'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',
-         f'tests/probes/state_bot_{component}.cpp','engine/qcommon/state.cpp',sha,
+         f'tests/probes/state_bot_{component}.cpp',
+         *(['engine/botlib/l_script.cpp'] if component=='parser' else []),
+         'engine/qcommon/state.cpp',sha,
          '-Wl,--gc-sections','-o',probe])
     run([probe])
 

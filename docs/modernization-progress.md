@@ -38,11 +38,17 @@ tests/checkpoint_runtime.py. Entity, client and level draft records now round-tr
 with typed callbacks, checked references and nullable strings. Composed, authored
 animation/weapon, rewind, utility/spawn-generation, combat, team and podium owners
 also have validated local checkpoint records. Definition/editor state restores
-against matching map registry topology. Remaining work: other game globals and
-botlib reconstruction and remaining parser/content ownership (input/movement, goal/item, weight, weapon, character cache, chat content/timers, libvars, global clocks/map identity, AAS entity/spatial links and chat queue
-and game map-navigation, actor, activation, waypoint, scheduler,
-queue and team draft records are complete), gameplay validation, live
-restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
+against matching map registry topology. Botlib draft records now cover input,
+movement, goal/item/weight/weapon pools, character caches, chat queues/content,
+libvars, global clocks and map identities. AAS records cover entities, spatial
+lists, world/physics state and routing caches; BSP content and the quiescent parser
+boundary are verified. Game-side bot actor/navigation/waypoint/scheduler/queue/team
+records are also complete. Remaining work: reconstruct botlib handles/caches in
+saved slots; finish other game globals and semantic validation; coordinate live
+server/client restore and both RNG streams; add the platform save-provider seam
+and frozen full-game N-to-N+1 OpenArena fixture. No partial checkpoint acceptance.
+After #19, take the newly reproduced chat-shutdown boundary bug in a separate
+#31 PR before continuing #20. See the issue31 entry below.
 
 Completed local #19 support: named/versioned fields with bounded strings and
 schema/slot archives; shared entity/player/usercmd descriptions; profiles restoring
@@ -57,6 +63,20 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 bot content and synchronous parser boundary
+
+BSP checkpoints verify both the source entity text and parsed epair order/content
+against hashes; no map content is embedded. The parser retains its search folder
+and requires no active source handles, outstanding copied tokens or global macro
+definitions at the command boundary. Current native game/UI code never installs
+persistent global macros; adding that use will require a state migration rather
+than silently omitting it. GCC/Clang libc++ UBSan pass content relocation/change
+checks and exact folder restoration with boundary rejection
+(state-bot-content-{gcc,clang}.log). No script-loader behavior changed.
+Routing build and focused tidy pass; its source ownership gate now covers every
+AAS world/cache field. Combined state/lifetime/tidy gates will be rerun after this
+stable owner checkpoint before reconstruction work.
 
 ## #19 AAS routing cache ownership
 

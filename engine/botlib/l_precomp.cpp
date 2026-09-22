@@ -3050,3 +3050,26 @@ void PC_CheckOpenSourceHandles( void ) {
 		} //end if
 	} //end for
 } //end of the function PC_CheckOpenSourceHandles
+
+static bool PC_CheckpointReady() {
+	// Native game/UI code has no global macro definitions. Checkpoints are only
+	// allowed between synchronous parsing calls, with every source/token released.
+	if ( globaldefines || numtokens )
+		return false;
+	for ( auto *source : sourceFiles )
+		if ( source )
+			return false;
+	return true;
+}
+bool PC_WriteState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	if ( !PC_CheckpointReady() ) {
+		writer->failed = true;
+		return false;
+	}
+	return PS_WriteState( writer );
+}
+bool PC_ReadState( const stateReader_t &reader, bool apply ) {
+	return PC_CheckpointReady() && PS_ReadState( reader, apply );
+}
