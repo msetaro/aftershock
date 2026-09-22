@@ -62,6 +62,21 @@ After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
 
+## #16 reusable stream file checkpoint
+
+a2e53b29 records the missing temporary-storage API failure
+(audio-stream-file-before.log). The platform helper now exclusively creates a
+private temporary file and removes it on close (immediately unlinked on Unix;
+Windows uses CREATE_NEW plus DELETE_ON_CLOSE). The filesystem opens it below
+the writable home stream-cache directory with a caller-owned stdio buffer.
+The small functional probe passes GCC/Clang UBSan: preserve an existing file,
+200 rewinds with identical bytes and automatic removal. This is reusable I/O
+infrastructure, not yet streaming playback acceptance. Ordinary CRT tmpfile was
+rejected because Microsoft's documented implementation can require root-directory
+permissions; no local permissions/package changes are needed.
+Next spool decoded PCM once during stream preparation, retain bounded read buffers
+for playback/loops, and route music/ambient frames through the same bus/duck mix.
+
 ## #16 authored room and occlusion acceptance
 
 29f17b9d records the optional level-field failure before audio_zones existed
