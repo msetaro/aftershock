@@ -51,6 +51,7 @@ int DevTools_ViewClient( void );
 const refdef_t *DevTools_View( void );
 const sceneLight_t *DevTools_SceneLight( void );
 bool DevTools_SaveEntities( void );
+bool DevTools_SaveDefinitions();
 void DevTools_InitEntities( void );
 
 struct devLine_t {

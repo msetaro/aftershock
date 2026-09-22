@@ -1161,6 +1161,14 @@ static bool Agent_Entity( const char *op, const char *request, const char *end, 
 			reply.Vector( entity.maxs );
 			reply.Text( ",\"health\":" );
 			reply.Number( entity.health );
+			reply.Text( ",\"model\":" );
+			reply.Number( entity.model );
+			reply.Text( ",\"frame\":" );
+			reply.Number( entity.frame );
+			reply.Text( ",\"sound\":" );
+			reply.Number( entity.sound );
+			reply.Text( ",\"contents\":" );
+			reply.Number( entity.contents );
 			reply.Text( ",\"source\":" );
 			reply.Number( entity.source );
 			reply.Text( ",\"linked\":" );

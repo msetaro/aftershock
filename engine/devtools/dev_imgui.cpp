@@ -1097,7 +1097,7 @@ static struct {
 } worldDebug;
 
 bool DevTools_SelectPanel( const char *name ) {
-	static constexpr const char *panels[] = { "Console", "Cvars", "Textures", "Materials", "Profile", "Memory", "Animation", "Entities", "World", "Graph", "Range", "Effects", "Physics" };
+	static constexpr const char *panels[] = { "Console", "Cvars", "Textures", "Materials", "Profile", "Memory", "Animation", "Entities", "World", "Graph", "Range", "Effects", "Physics", "Definitions" };
 	for ( const char *panel : panels ) {
 		if ( !strcmp( name, panel ) ) {
 			Q_strncpyz( requestedPanel, panel, sizeof( requestedPanel ) );
@@ -1317,6 +1317,79 @@ bool DevTools_ReloadEntities( void ) {
 	Cvar_Set( "dev_loadEntities", "1" );
 	Cbuf_AddText( "map_restart 0\n" );
 	return true;
+}
+
+static struct {
+	char name[64], key[32], value[128], original[128], status[128];
+	int action;
+} definitionEditor;
+
+static void InspectDefinitions() {
+	if ( !BeginPanel( "Definitions" ) )
+		return;
+	const auto *game = DevTools_Game();
+	const auto *data = game && game->Definitions ? game->Definitions() : nullptr;
+	if ( !data || !data->header.count ) {
+		ImGui::TextWrapped( "Load a cooked entity definition file with g_entityDefinitions on a local devmap." );
+		ImGui::EndTabItem();
+		return;
+	}
+	const auto *definition = Entity_FindDefinition( *data, Cvar_VariableString( "dev_definitionName" ) );
+	if ( !definition )
+		definition = &data->definitions[0];
+	if ( ImGui::BeginCombo( "Definition", definition->name ) ) {
+		for ( uint32_t i = 0; i < data->header.count; ++i ) {
+			if ( ImGui::Selectable( data->definitions[i].name, definition == &data->definitions[i] ) ) {
+				definition = &data->definitions[i];
+				Cvar_Set( "dev_definitionName", definition->name );
+			}
+		}
+		ImGui::EndCombo();
+	}
+	ImGui::Text( "Native behavior: %s", definition->native );
+	const auto *field = Entity_Field( *data, *definition, Cvar_VariableString( "dev_definitionKey" ) );
+	if ( !field && definition->fieldCount )
+		field = &data->fields[definition->firstField];
+	if ( field && ImGui::BeginCombo( "Component field", field->key ) ) {
+		for ( uint32_t i = 0; i < definition->fieldCount; ++i ) {
+			const auto *candidate = &data->fields[definition->firstField + i];
+			char label[64];
+			Com_sprintf( label, sizeof( label ), "%s.%s", candidate->component, candidate->key );
+			if ( ImGui::Selectable( label, field == candidate ) ) {
+				field = candidate;
+				Cvar_Set( "dev_definitionKey", field->key );
+			}
+		}
+		ImGui::EndCombo();
+	}
+	if ( field ) {
+		if ( strcmp( definitionEditor.name, definition->name ) || strcmp( definitionEditor.key, field->key ) || strcmp( definitionEditor.original, field->value ) ) {
+			Q_strncpyz( definitionEditor.name, definition->name, sizeof( definitionEditor.name ) );
+			Q_strncpyz( definitionEditor.key, field->key, sizeof( definitionEditor.key ) );
+			Q_strncpyz( definitionEditor.value, field->value, sizeof( definitionEditor.value ) );
+			Q_strncpyz( definitionEditor.original, field->value, sizeof( definitionEditor.original ) );
+		}
+		ImGui::InputText( "Default value", definitionEditor.value, sizeof( definitionEditor.value ) );
+		ImGui::BeginDisabled( !Cvar_VariableIntegerValue( "sv_cheats" ) );
+		if ( ImGui::Button( "Apply default" ) )
+			definitionEditor.action = 1;
+		ImGui::SameLine();
+		if ( ImGui::Button( "Save definitions" ) )
+			definitionEditor.action = 2;
+		ImGui::EndDisabled();
+	}
+	ImGui::TextWrapped( "%s", definitionEditor.status );
+	ImGui::TextWrapped( "Defaults affect new spawns. Save writes a numbered cooked revision; select it with g_entityDefinitions and reload the map. JSON remains the source for prefab inheritance and component structure." );
+	ImGui::EndTabItem();
+}
+
+static void EditDefinitions() {
+	const auto *game = DevTools_Game();
+	if ( !definitionEditor.action )
+		return;
+	const bool success = definitionEditor.action == 2 ? DevTools_SaveDefinitions() : game && game->WriteDefinition && game->WriteDefinition( definitionEditor.name, definitionEditor.key, definitionEditor.value );
+	Q_strncpyz( definitionEditor.status, success ? "Definition action completed." : "Action rejected: check value, local cheats and storage.", sizeof( definitionEditor.status ) );
+	definitionEditor.action = 0;
 }
 
 static void InspectEntities( void ) {
@@ -1820,6 +1893,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 			InspectMemory();
 			InspectAnimation( renderer, elapsed );
 			InspectEntities();
+			InspectDefinitions();
 			InspectWorld();
 			InspectGraph( elapsed );
 			InspectWeaponRange();
@@ -1845,6 +1919,7 @@ void DevTools_Draw( const refexport_t *renderer, int width, int height, int mill
 	EditEffects( renderer );
 	DrawAnimation( renderer, milliseconds );
 	EditEntities();
+	EditDefinitions();
 	if ( worldDebug.refresh ) {
 		DevTools_RebuildWorld( worldDebug.collision, worldDebug.navigation, worldDebug.radius );
 		worldDebug.refresh = false;

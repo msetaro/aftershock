@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "name": "pickup_definitions",
+  "definitions": [
+    {
+      "id": "health_base",
+      "native": "item_health_large",
+      "components": {
+        "pickup": {"amount": 50},
+        "replication": {"priority": 2, "radius": 0}
+      }
+    },
+    {
+      "id": "medical_crate",
+      "extends": "health_base",
+      "components": {
+        "pickup": {"amount": 75},
+        "transform": {"origin": [16, 32, 48]},
+        "hooks": {"targetname": "medical_crate"}
+      }
+    },
+    {
+      "id": "medical_crate_small",
+      "extends": "medical_crate",
+      "components": {"pickup": {"amount": 15}}
+    }
+  ]
+}

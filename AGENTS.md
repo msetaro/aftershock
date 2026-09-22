@@ -73,6 +73,8 @@ every wire and file-format struct; issue updated with what changed and what was 
 
 - `engine/qcommon` shared core: cvars, commands, filesystem, packet protocols, collision (cm_*)
 - `engine/server`, `engine/client` server and client
+- `engine/entities` cooked prefab/component definitions and reflection metadata
+
 - `engine/ui` bounded cooked menu/HUD layout and navigation
 - `engine/animation` cooked skeletal sampling, graphs, root motion, IK and hit boxes
 - `engine/botlib` bot AI library
@@ -139,6 +141,8 @@ playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructi
   `python3 tests/audio_runtime.py --binary CLIENT`,
   `python3 tests/audio_weapons_runtime.py --binary CLIENT`, and
   `python3 tests/voice_runtime.py --client CLIENT --server SERVER` (devtools client).
+- Entity definitions: `python3 tests/entities.py` and
+  `python3 tests/entities_runtime.py --binary CLIENT` (devtools client, both content sets).
 - Cosmetic physics: `python3 tests/physics.py` and
   `python3 tests/physics_runtime.py --binary CLIENT` (both content sets supported).
 - Presentation controls: `python3 tests/fidelity_runtime.py --binary CLIENT` and

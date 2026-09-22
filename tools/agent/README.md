@@ -124,3 +124,16 @@ exposes the complete sketch-to-level pipeline described in
 same JSON report and nonzero failures. `--playtest FILE` follows the compiled-world
 checks with a script in the same 20-ms session. Inputs, output ownership and kit
 license checks are shared with `tools/level build`.
+
+## Entity definitions
+
+`describe entities` exposes the JSON prefab/component schema. Cook an `entities`
+asset to `.asent`, set `g_entityDefinitions` to its virtual path, then load a map.
+Map `classname` and `entity.spawn` resolve prefab names; explicit map fields win
+against defaults. `entity.list` includes model/frame/sound/contents for inspection.
+Use the Definitions panel for any loaded prefab's reflected component values.
+`exec` commands `dev_definition select NAME KEY`, `dev_definition set NAME KEY VALUE`
+and `dev_definition save` use the same backend. Editing requires a local devmap;
+new spawns use changed defaults. `dev_definitionFile` names the saved numbered
+revision. Select it with `g_entityDefinitions` and reload the map to reuse it.
+JSON owns inheritance and component structure; cooked edits never overwrite it.

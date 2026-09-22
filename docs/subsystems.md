@@ -13,6 +13,10 @@ the filesystem. Wire/file representations and simulation expressions stay stable
 server filters and bot development logs. These raw adapters preserve stdio return
 values and filename encoding; game qpaths continue through the handle API.
 
+`engine/entities` owns bounded cooked prefab definitions, component fields and
+replication metadata. It performs no IO or allocation; game owns spawn/callback
+policy and the developer inspector consumes the same field metadata.
+
 `engine/animation` owns immutable cooked graph views, fixed-step state/event
 evaluation, compressed pose sampling, blend layers, root motion, IK and authored
 hit-box evaluation. Its public contract contains POD records; filesystem loading
