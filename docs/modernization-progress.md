@@ -67,6 +67,21 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
 
+## #19 live restore spatial correction, test first
+
+The first full runtime reaches load completion and restores all 86 OpenArena
+entities, but the equality gate fails on the two players' absolute collision
+bounds. Normal player code links at snapped positions and then restores precise
+currentOrigin; deriving links again from currentOrigin changes those saved bounds.
+Spatial list order also cannot be inferred from entity indices. This is a gap in
+new #19 restore, not a change to normal collision behavior. Preserve actual server
+sector lists/cluster membership and keep native saved bounds untouched.
+
+The new state_world probe fails compilation before owner implementation. It
+requires the original area-query order, snapped bounds distinct from precise
+origins, clusters, and cycle rejection without mutation (state-world-before.log).
+The runtime driver now retains entity diffs on failure. No goldens were changed.
+
 ## #19 first live restore coordinator
 
 The local load coordinator now builds and passes native ABI, focused tidy and

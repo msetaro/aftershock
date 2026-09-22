@@ -50,6 +50,13 @@ def entities(engine):
         offset=page['next']
     return rows
 
+def assert_entities(engine,expected,label):
+    actual=entities(engine)
+    if actual!=expected:
+        (args.output/(label+'.json')).write_text(json.dumps(dict(expected=expected,actual=actual),indent=2)+'\n')
+        differences=[(a,b) for a,b in zip(expected,actual) if a!=b]
+        raise AssertionError(f'{label}: entity counts {len(expected)}/{len(actual)}, first differences {differences[:3]}')
+
 with tempfile.TemporaryDirectory(prefix='aftershock-checkpoint-') as temporary:
     home=Path(temporary)
     base=home/('baseoa' if args.content=='openarena' else 'baseq3')
@@ -77,10 +84,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-checkpoint-') as temporary:
             continued=entities(engine)
             assert continued!=before, 'bot and simulation must advance after the save'
             load(engine,'saves/acceptance.000.asstate')
-            assert entities(engine)==before, 'load must restore the paused world and bot slots exactly'
+            assert_entities(engine,before,'same-process-restore')
             toggle_pause(engine)
             engine.step(25)
-            assert entities(engine)==continued, 'restored game must continue identically'
+            assert_entities(engine,continued,'same-process-continuation')
             print('PASS: full paused world restore, live bot continuation and preserved previous revision')
         finally:
             shutil.copyfile(engine.log_path,args.output/'checkpoint.log')
@@ -88,10 +95,10 @@ with tempfile.TemporaryDirectory(prefix='aftershock-checkpoint-') as temporary:
         try:
             engine.request('session',dt=20,seed=123)
             load(engine,'saves/acceptance.000.asstate')
-            assert entities(engine)==before, 'fresh process must rebuild map, references and paused state'
+            assert_entities(engine,before,'fresh-process-restore')
             toggle_pause(engine)
             engine.step(25)
-            assert entities(engine)==continued, 'fresh-process continuation must preserve saved simulation and RNG state'
+            assert_entities(engine,continued,'fresh-process-continuation')
             print('PASS: fresh-process world and deterministic continuation')
         finally:
             shutil.copyfile(engine.log_path,args.output/'checkpoint-restart.log')
