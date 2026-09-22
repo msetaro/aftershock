@@ -1044,7 +1044,7 @@ merged publication are pending. #158 stays open until that publication succeeds.
 
 ## #31: bot chat shutdown skips the final handle
 
-Open, discovered during #19 checkpoint reconstruction. BotAllocChatState and
+Fixed on issue/31-bot-chat-shutdown; hosted acceptance pending. Discovered during #19 checkpoint reconstruction. BotAllocChatState and
 BotFreeChatState use 1..MAX_CLIENTS inclusive, but BotShutdownChatAI scans
 0..MAX_CLIENTS-1. A fully allocated pool retains handle 64 after shutdown, so
 next setup cannot allocate the complete pool and the retained actor can refer
@@ -1056,3 +1056,9 @@ with test memory/libvar services, and requires every slot empty, zero outstandin
 allocations, safe repeated shutdown and three complete pool reuses. Before the
 fix both compilers fail with `shutdown retained chat handle 64`. No active
 known-bugs or UBSan suppression entry exists for this shutdown correctness bug.
+
+The first shutdown loop now visits 1..MAX_CLIENTS, matching the allocation/free
+contract; the distinct zero-based chat-cache loop is unchanged. Both compiler
+ASan/UBSan probes pass after the fix. No simulation or frame golden is affected,
+so no accepted golden is regenerated. No suppression or expected-failure entry
+needs removal. Full hosted builds/regression remain the merge gate.

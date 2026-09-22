@@ -2902,7 +2902,7 @@ void BotShutdownChatAI( void ) {
 	int i;
 
 	//free all remaining chat states
-	for ( i = 0; i < MAX_CLIENTS; i++ ) {
+	for ( i = 1; i <= MAX_CLIENTS; i++ ) {
 		if ( botchatstates[i] ) {
 			BotFreeChatState( i );
 		} //end if

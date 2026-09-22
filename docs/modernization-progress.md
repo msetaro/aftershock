@@ -28,10 +28,17 @@ regression 35683155256). Merged-tree build 35687912038 and regression
 Fix the chat shutdown last-handle defect in the separate #31 branch
 issue/31-bot-chat-shutdown, worktree
 /home/matt/.cache/aftershock-modernization/bot-chat-shutdown-tree.
-The new production-source probe fails before the fix under GCC and Clang/libc++
+Test-first commit 4fd1ae34 reproduces the defect under GCC and Clang/libc++
 ASan/UBSan: shutdown retains chat handle 64. The allocation/free API uses handles
 1..MAX_CLIENTS; the shutdown loop incorrectly visits 0..MAX_CLIENTS-1. This must
 land before #19's full checkpoint reload uses normal botlib shutdown.
+The one-line loop correction now passes both ASan/UBSan compilers, including
+three full allocation/shutdown cycles and repeated empty shutdown. CI unit jobs
+and the local suite catalog include the regression; affected-path selection,
+format/type/boundary checks and workflow syntax all pass locally. Self-review:
+only the handle bounds change in production, no OS calls, lifetime/allocation or
+FP changes; no golden or suppression changes. Push the branch and require all
+26 active hosted gates with current main before self-merging.
 
 #19 remains isolated in /home/matt/.cache/aftershock-modernization/state-tree,
 issue/19-state-serialization, local head af8fb76c including main 2010b077.

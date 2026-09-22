@@ -170,6 +170,8 @@ jobs:
       - name: GPL team-leader name bounds
         if: matrix.cc == 'clang'
         run: python3 tests/teamleader.py
+      - name: Bot chat shutdown handle cleanup
+        run: python3 tests/bot_chat_shutdown.py --cxx '${{ matrix.cxx }}'
       - name: Native bot command byte conversion
         run: python3 tests/bot_command.py --cc '${{ matrix.cc }}'
       - name: Native info-string overlap
