@@ -52,6 +52,24 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 navmesh cover candidates and real-map offline cook
+
+After 209a8623's failing query contract, nearby ground polygons expose inward
+boundary points with stable polygon/edge identities. Results are distance-sorted
+and bounded to 256 polygons/points; capacity exhaustion is explicit. The caller
+still tests current threat occlusion and route reachability. Both compiler UBSan
+runs find reachable cover behind the owned collision brush and retain identical
+query IDs/positions with no allocations (navigation-cover-{gcc,clang}.log).
+Isolated navigation tidy passes; all three navigation/behavior/perception owners
+also compile with strict warnings on local MinGW x86_64 and aarch64 compilers.
+
+A separate private cook reads installed q3dm17 BSP content and produces 1,282
+polygons, 2,087 vertices, no authored links yet, and a 189,236-byte .asnav file
+SHA256 d61e7f20fa8663669b3236c42d9ce55e3e3f2c58ce648f8670cc9e8dbcff97aa
+(navigation-q3-offline.log). These derived bytes and the temporary BSP stay in
+the private cache and are not committed/uploaded. This proves real-map cooking,
+not native bot gameplay or map traversal acceptance.
+
 ## #21 collision-derived cover candidate test
 
 Extend the existing native navigation probe to require bounded, repeatable cover

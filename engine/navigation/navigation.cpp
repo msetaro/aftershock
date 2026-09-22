@@ -258,6 +258,74 @@ bool Nav_Path( navWorld_t *world, const float start[3], const float end[3], bool
 	}
 	return out->count > 0;
 }
+bool Nav_CoverPoints( navWorld_t *world, const float position[3], float range, navCoverQuery_t *out ) {
+	if ( !world || !position || !out || !Finite( position, 3 ) || !std::isfinite( range ) || range <= 0 || range > 4096 )
+		return false;
+	*out = {};
+	float center[3];
+	ToDetour( position, center );
+	const float extents[3] = { range, range, range };
+	dtQueryFilter filter;
+	filter.setIncludeFlags( 1 );
+	dtPolyRef refs[NAV_MAX_POINTS];
+	int count = 0;
+	const auto status = world->query->queryPolygons( center, extents, &filter, refs, &count, NAV_MAX_POINTS );
+	if ( dtStatusFailed( status ) )
+		return false;
+	out->complete = !dtStatusDetail( status, DT_BUFFER_TOO_SMALL );
+	float distances[NAV_MAX_POINTS];
+	for ( int i = 0; i < count; ++i ) {
+		const dtMeshTile *tile;
+		const dtPoly *poly;
+		if ( dtStatusFailed( world->mesh->getTileAndPolyByRef( refs[i], &tile, &poly ) ) )
+			return false;
+		float centroid[3] = {};
+		for ( int vertex = 0; vertex < poly->vertCount; ++vertex )
+			for ( int axis = 0; axis < 3; ++axis )
+				centroid[axis] += tile->verts[poly->verts[vertex] * 3 + axis] / poly->vertCount;
+		for ( int edge = 0; edge < poly->vertCount; ++edge ) {
+			if ( poly->neis[edge] )
+				continue;
+			const float *a = tile->verts + poly->verts[edge] * 3, *b = tile->verts + poly->verts[( edge + 1 ) % poly->vertCount] * 3;
+			float point[3];
+			for ( int axis = 0; axis < 3; ++axis )
+				point[axis] = ( a[axis] + b[axis] ) * 0.5f;
+			const float dx = centroid[0] - point[0], dz = centroid[2] - point[2];
+			const float length = std::sqrt( dx * dx + dz * dz );
+			if ( length > 0 ) {
+				const float step = std::fmin( world->radius * 0.5f, length ) / length;
+				point[0] += dx * step;
+				point[2] += dz * step;
+			}
+			if ( dtStatusFailed( world->query->getPolyHeight( refs[i], point, &point[1] ) ) )
+				continue;
+			float squared = 0;
+			for ( int axis = 0; axis < 3; ++axis ) {
+				const float delta = point[axis] - center[axis];
+				squared += delta * delta;
+			}
+			if ( squared > range * range )
+				continue;
+			const uint32_t identity = world->mesh->decodePolyIdPoly( refs[i] ) * DT_VERTS_PER_POLYGON + uint32_t( edge );
+			uint32_t slot = 0;
+			while ( slot < out->count && ( distances[slot] < squared || ( distances[slot] == squared && out->points[slot].identity < identity ) ) )
+				++slot;
+			if ( out->count == NAV_MAX_POINTS )
+				out->complete = false;
+			if ( slot == NAV_MAX_POINTS )
+				continue;
+			const uint32_t end = out->count < NAV_MAX_POINTS ? out->count++ : NAV_MAX_POINTS - 1;
+			for ( uint32_t j = end; j > slot; --j ) {
+				out->points[j] = out->points[j - 1];
+				distances[j] = distances[j - 1];
+			}
+			FromDetour( point, out->points[slot].position );
+			out->points[slot].identity = identity;
+			distances[slot] = squared;
+		}
+	}
+	return true;
+}
 static bool AgentValid( const navWorld_t *world, int index ) {
 	return world && index >= 0 && uint32_t( index ) < world->maxAgents && world->crowd->getAgent( index )->active;
 }
