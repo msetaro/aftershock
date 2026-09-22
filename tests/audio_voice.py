@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Check the pinned Opus codec and bounded voice mixer without devices or a server."""
 import argparse
-import json
 from pathlib import Path
 import shlex
 from run import ROOT, SCRATCH, run

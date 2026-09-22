@@ -95,6 +95,7 @@ set(CLIENT_SOURCES
   engine/sound/snd_spatial.cpp
   engine/sound/snd_event.cpp
   engine/sound/snd_authored.cpp
+  engine/sound/snd_voice.cpp
   engine/sound/snd_wavelet.cpp
   engine/sound/snd_main.cpp
   engine/sound/snd_codec.cpp

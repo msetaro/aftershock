@@ -2,7 +2,7 @@
 
 Aftershock is Matt's fork of the Quake3e engine (upstream: ec-/Quake3e). The engine is now C++20
 (strict port merged 2026-09-14, PR #32). Vendored libraries under `third_party/libjpeg`, `third_party/libogg`,
-`third_party/libvorbis`, `third_party/libcurl`, `third_party/libsdl` and the `engine/platform/asm` sources stay C/assembly.
+`third_party/libvorbis`, `third_party/libcurl`, `third_party/libsdl`, `third_party/opus` and the `engine/platform/asm` sources stay C/assembly.
 
 ## Current phase: modernization
 

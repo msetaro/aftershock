@@ -30,6 +30,11 @@ void S_Init( void );
 void S_Shutdown( void );
 void S_LoadWorldAudio(); // After the client collision map is loaded.
 
+// 48 kHz mono PCM, 20 ms transmit frames; Opus payloads retain the ioq3 wire convention.
+int S_VoiceEncode( const int16_t *pcm, byte *data, int capacity );
+bool S_VoiceReceive( int sender, byte generation, uint32_t sequence, int frames, const byte *data, int size );
+void S_VoiceReset();
+
 // if origin is NULL, the sound will be dynamically sourced from the entity
 void S_StartSound( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx );
 void S_StartLocalSound( sfxHandle_t sfx, int channelNum );

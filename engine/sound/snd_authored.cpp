@@ -1,6 +1,7 @@
 #include "snd_local.h"
 #include "snd_codec.h"
 #include "snd_event.h"
+#include "snd_voice.h"
 #include "../qcommon/cm_public.h"
 #include <algorithm>
 #include <cmath>
@@ -209,6 +210,13 @@ static void StreamInfo() {
 		streamPrepared, active, bytes, buffers, streamLoops, streamReads, streamFailures );
 }
 
+static void VoiceInfo() {
+	sVoiceStats_t stats;
+	S_VoiceStats( &stats );
+	Com_Printf( "Audio voice: encoded=%u decoded=%u rejected=%u concealed=%u overruns=%u queued=%u\n",
+		stats.encoded, stats.decoded, stats.rejected, stats.concealed, stats.overruns, stats.queued );
+}
+
 static void Info() {
 	Com_Printf( "Audio events: events=%u samples=%u bytes=%u active=%u started=%u mixed=%" PRIu64 " peak=%.3f zones=%u zone=%d wet=%.3f traced=%u blocked=%u wetPeak=%.3f\n",
 		eventCount, sampleCount, sampleBytes, mixer.active, started, mixed, double( peak ), zoneCount, zoneIndex, double( reverb.wet ), traced, blocked, double( wetPeak ) );
@@ -235,6 +243,9 @@ static void PlayAt() {
 }
 
 void S_AuthoredInit() {
+	if ( !S_VoiceInit() )
+		Com_Printf( "Opus voice initialization failed\n" );
+	Cmd_AddCommand( "s_voiceInfo", VoiceInfo );
 	hrtf = Cvar_Get( "s_hrtf", "0", CVAR_ARCHIVE );
 	Cvar_CheckRange( hrtf, "0", "1", CV_INTEGER );
 	Cvar_SetDescription( hrtf, "Use approximate spherical-head headphone spatialization for authored sound events." );
@@ -254,6 +265,7 @@ void S_AuthoredInit() {
 }
 
 void S_AuthoredClear() {
+	S_VoiceReset();
 	ClearStreams();
 	mixer = {};
 	memset( sources, 0, sizeof( sources ) );
@@ -269,6 +281,8 @@ void S_AuthoredClear() {
 
 void S_AuthoredShutdown() {
 	S_AuthoredClear();
+	S_VoiceShutdown();
+	Cmd_RemoveCommand( "s_voiceInfo" );
 	for ( uint32_t i = 0; i < sampleCount; ++i )
 		Z_Free( (void *)samples[i].pcm.samples );
 	memset( samples, 0, sizeof( samples ) );
@@ -508,13 +522,20 @@ void S_AuthoredRespatialize( int entity, const vec3_t head, vec3_t axis[3] ) {
 }
 
 void S_AuthoredPaint( portable_samplepair_t *paint, int frames, float volume ) {
-	if ( ( !mixer.active && !reverb.remaining && !StreamsActive() ) || frames <= 0 || frames > PAINTBUFFER_SIZE )
+	if ( ( !mixer.active && !reverb.remaining && !StreamsActive() && !S_VoiceActive() ) || frames <= 0 || frames > PAINTBUFFER_SIZE )
 		return;
 	volume = std::isfinite( volume ) ? std::clamp( volume, 0.0f, 127.0f ) : 0.0f;
 	static float output[PAINTBUFFER_SIZE][2], sends[PAINTBUFFER_SIZE];
 	static sBusFrame_t input[PAINTBUFFER_SIZE];
+	static float voice[PAINTBUFFER_SIZE][2];
+	memset( voice, 0, size_t( frames ) * sizeof( voice[0] ) );
+	S_VoiceMix( voice, uint32_t( frames ), dma.speed );
 	memset( input, 0, size_t( frames ) * sizeof( input[0] ) );
 	MixStreams( input, frames );
+	for ( int frame = 0; frame < frames; ++frame ) {
+		input[frame].samples[S_BUS_VOICE][0] = voice[frame][0];
+		input[frame].samples[S_BUS_VOICE][1] = voice[frame][1];
+	}
 	memset( sends, 0, size_t( frames ) * sizeof( sends[0] ) );
 	memset( output, 0, size_t( frames ) * sizeof( output[0] ) );
 	for ( uint32_t bus = 0; bus < S_BUS_COUNT; ++bus )

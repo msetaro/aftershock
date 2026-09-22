@@ -62,6 +62,20 @@ After #16 follow #25: #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
 #29 and #30. #161 is already accepted; its post/TAA/streaming limits remain as
 recorded below, and optional upscaling remains deferred.
 
+## #16 bounded Opus component checkpoint
+
+1e77cb27 records the missing Opus build/component contract. The verified 1.6.1
+release is imported unchanged under third_party/opus with a per-file SHA manifest
+and upstream notices; a static C build uses no optional neural features and never
+fetches dependencies. The scalar codec uses stack scratch plus one prepared zone
+allocation for one encoder/64 decoders. Each speaker has a fixed 120 ms PCM ring.
+GCC and Clang/libc++ probes pass 200 real encode/decode frames with malloc/calloc/realloc
+interposition rejecting any playback allocation, duplicate/duration rejection,
+one-frame concealment and bounded overflow. This is component evidence; network
+transport, explicit microphone capture and real loopback remain to be implemented.
+Streaming acceptance now passes both content sets including 60-frame teleport
+settling (audio-streaming-settle-oa/ and audio-streaming-settle-q3/).
+
 ## #16 stream playback checkpoint
 
 5cb833ed records the missing stream-command runtime failure; 6e5238f3 records the
