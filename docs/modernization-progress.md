@@ -40,14 +40,29 @@ added/removed/reordered-field migration and UInt64 identity preservation pass GC
 and Clang/libc++ UBSan. Focused tidy, MinGW/aarch64 compile and format/types/
 boundaries pass for the initial module. Settings/bindings and editor workspace
 profiles now pass real clients on both content sets, including a frozen version-1
-profile migration. Continue shared replication metadata test-first work while #18
-gates run; merge accepted #18 main before game checkpoint integration.
+profile migration. Shared replication-derived state descriptions also pass GCC/Clang, with
+unchanged network bytes. Continue full-checkpoint test preparation while #18 gates
+run; merge accepted #18 main before game checkpoint integration.
 Private state-preflight.md records the full-state source inventory. No native
 pointer dumps or partial checkpoint acceptance.
 
 Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
+
+## #19 shared replication descriptions
+
+The committed missing-description test 8d1299b9 now passes with both engine and
+native-game declarations under GCC and Clang/libc++ UBSan. tools/replication.py
+emits public named, typed state fields from its existing exhaustive member
+inventory, including local members and arrays; stale-output checks cover both
+outputs. Every byte of entityState_t/playerState_t round-trips. The existing
+replication.inc remains byte-identical and both compilers retain accepted wire
+digest 26a5fc0d8e5afbfcc1634ddbfcf67155c6a2c6156066b86d20088690dff7d496.
+Evidence: state-shared-{gcc,clang,wire-gcc,wire-clang,format,affected}.log.
+
+This describes only the two shared network-state structs, not all game state.
+Entity-definition metadata and complete checkpoint integration remain required.
 
 ## #19 shared replication metadata test before implementation
 

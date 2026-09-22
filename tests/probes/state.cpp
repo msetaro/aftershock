@@ -1,4 +1,8 @@
+#ifdef STATE_NATIVE_GAME
+#include "../../game/bg/q_shared.h"
+#else
 #include "../../engine/qcommon/q_shared.h"
+#endif
 #include "../../engine/public/state_public.h"
 #include "../../engine/public/state_replication.h"
 #include <assert.h>
