@@ -56,8 +56,9 @@ maintainer input is needed at this checkpoint; do not end for a CI wait.
 Review of q_shared.h found trType_t has explicit uint32_t storage. The new save
 metadata initially labeled its bytes Int32, although bit round trips passed. The
 probe now requires UInt32 for both trajectory type fields and fails on that label
-(state-enum-before.log). Correct the new generator's type mapping before game
-integration; the pre-existing network format remains untouched.
+(state-enum-before.log). The generator correction now passes GCC and Clang/libc++ UBSan with both engine
+and game declarations (state-enum-{gcc,clang}.log). The pre-existing network format
+remains untouched.
 
 ## #19 additional local verification
 

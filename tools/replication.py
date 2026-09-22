@@ -114,7 +114,7 @@ def state_members(text, name, prefix=''):
         if kind == 'trajectory_t':
             yield from state_members(text, 'trajectory_t', path + '.')
         else:
-            yield path, ('Float32' if kind == 'vec3_t' else 'Int32'), (3 if kind == 'vec3_t' else constant(count, text) if count else 1)
+            yield path, ('Float32' if kind == 'vec3_t' else 'UInt32' if kind == 'trType_t' else 'Int32'), (3 if kind == 'vec3_t' else constant(count, text) if count else 1)
 
 
 def generate_state(text):
