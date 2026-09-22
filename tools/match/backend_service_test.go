@@ -397,6 +397,10 @@ func TestBackendQueueRecovery(t *testing.T) {
 	}()
 	defer func() { udp.Close(); <-udpDone }()
 	var allocations atomic.Int32
+	var unavailable atomic.Bool
+	unavailable.Store(true)
+	var delayed atomic.Bool
+	delayed.Store(true)
 	var captured struct {
 		Match   contracts.MatchSpec `json:"match"`
 		JoinKey string              `json:"join_key"`
@@ -417,7 +421,7 @@ func TestBackendQueueRecovery(t *testing.T) {
 		defer lock.Unlock()
 		if r.Method == "GET" && r.URL.Path == "/apis/agones.dev/v1/namespaces/backend-test/gameservers" {
 			items := []any{}
-			if allocations.Load() > 0 {
+			if allocations.Load() > 0 && !delayed.Load() {
 				if r.URL.Query().Get("labelSelector") != "aftershock.dev/match="+captured.Match.ID {
 					t.Error("allocation recovery omitted exact match label")
 				}
@@ -428,7 +432,6 @@ func TestBackendQueueRecovery(t *testing.T) {
 			return
 		}
 		if r.Method == "POST" && r.URL.Path == "/apis/allocation.agones.dev/v1/namespaces/backend-test/gameserverallocations" {
-			allocations.Add(1)
 			var request struct {
 				Spec struct {
 					Metadata struct{ Annotations, Labels map[string]string }
@@ -438,6 +441,8 @@ func TestBackendQueueRecovery(t *testing.T) {
 				request.Spec.Metadata.Labels["aftershock.dev/match"] != captured.Match.ID {
 				t.Error("invalid allocation contract")
 			}
+			if unavailable.Load() { json.NewEncoder(w).Encode(map[string]any{"status":map[string]string{"state":"UnAllocated"}});return }
+			allocations.Add(1)
 			matchID.Store(captured.Match.ID)
 			// The allocation committed, but its response was lost. Only recovery may follow.
 			http.Error(w, "lost allocation response", 503)
@@ -473,9 +478,23 @@ func TestBackendQueueRecovery(t *testing.T) {
 	call("POST", "/v1/queue", two, `{"map":"two_lane","mode":0}`, 403)
 	call("POST", "/v1/queue", one, `{"map":"unknown","mode":0}`, 400)
 	call("POST", "/v1/queue", one, `{"map":"two_lane"}`, 400)
+if pending:=call("POST", "/v1/queue", one, `{"map":"two_lane","mode":0}`, 202);pending["state"]!="queued"{t.Fatal(pending)}
+	unavailable.Store(false)
 	call("POST", "/v1/queue", one, `{"map":"two_lane","mode":0}`, 503)
 	call("DELETE", "/v1/party", one, `{}`, 409)
 	call("DELETE", "/v1/party", two, `{}`, 409)
+// A lost response does not prove that an unobserved allocation failed.
+	// Delayed visibility must not create another pod, including after pool restart.
+	call("GET", "/v1/queue", one, "", 202)
+	if allocations.Load()!=1 {t.Fatal("ambiguous allocation retried")}
+	db.Close()
+	db,err=openBackendDB(context.Background(),os.Getenv("BACKEND_TEST_DATABASE"))
+	if err!=nil{t.Fatal(err)}
+	defer db.Close()
+	service.db=db
+	call("GET", "/v1/queue", two, "", 202)
+	if allocations.Load()!=1 {t.Fatal("ambiguous allocation retried after restart")}
+	delayed.Store(false)
 	pending := call("GET", "/v1/queue", one, "", 202)
 	if pending["state"] != "starting" {
 		t.Fatal("allocation bypassed authentication readiness")

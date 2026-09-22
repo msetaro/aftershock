@@ -82,6 +82,17 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 ambiguous allocation visibility, test first
+
+The allocation contract now hides the committed server temporarily after a lost
+response, then restarts the backend pool. It requires no second allocation while
+visibility is uncertain. The prior code retries POST and fails this new assertion
+(backend-ambiguous-before/contracts.log). A definite UnAllocated response may retry;
+an ambiguous response requires durable pending-attempt state and label recovery.
+Fail closed while the outcome is unknown rather than guessing a timeout and creating
+another match. An operator may reconcile a permanently unresolved attempt with Agones;
+there is no automatic time-based reset without an allocation outcome guarantee.
+
 ## #29 terminal assignment cleanup
 
 The results read contract includes completion metadata for the caller's current
