@@ -1,4 +1,6 @@
+#include "../../engine/qcommon/q_shared.h"
 #include "../../engine/public/state_public.h"
+#include "../../engine/public/state_replication.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -33,7 +35,25 @@ static constexpr stateField_t currentFields[] = {
 static constexpr stateSchema_t previousSchema = { "example", 1, 1, sizeof( previous_t ), previousFields, 5 };
 static constexpr stateSchema_t currentSchema = { "example", 2, 1, sizeof( current_t ), currentFields, 5 };
 
+template <typename T>
+static void CheckReplicationState( const stateSchema_t &schema ) {
+	T source = {}, restored = {};
+	// Exercise every scalar/array, including fields omitted by the wire codec.
+	for ( size_t offset = 0; offset < sizeof( source ); offset += sizeof( uint32_t ) ) {
+		const uint32_t bits = 0x3e800000U + uint32_t( offset );
+		memcpy( (unsigned char *)&source + offset, &bits, sizeof( bits ) );
+	}
+	unsigned char bytes[32768];
+	const size_t size = State_Write( schema, &source, bytes, sizeof( bytes ) );
+	assert( size );
+	uint32_t version;
+	assert( State_Read( schema, bytes, size, &restored, &version ) && version == 1 );
+	assert( !memcmp( &source, &restored, sizeof( source ) ) );
+}
+
 int main() {
+	CheckReplicationState<entityState_t>( entityStateSchema );
+	CheckReplicationState<playerState_t>( playerStateSchema );
 	const previous_t previous = { 73, 9, UINT64_C( 0xfedcba9876543210 ), { 16.25f, -32.5f, 48.0f }, "checkpoint" };
 	unsigned char bytes[4096];
 	const size_t size = State_Write( previousSchema, &previous, bytes, sizeof( bytes ) );

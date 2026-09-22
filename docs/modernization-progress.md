@@ -49,6 +49,16 @@ Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
 
+## #19 shared replication metadata test before implementation
+
+The state probe now requires full entityState_t/playerState_t round trips,
+including local-only members and separately encoded arrays. It fails on the
+missing public state_replication.h (state-shared-before.log). Generate its typed
+named-field description from the same q_shared annotations already used by the
+wire table; retain the existing wire output and digest unchanged. This avoids a
+second manually maintained player/entity inventory. Full game state still needs
+non-networked game and subsystem records beyond these two structs.
+
 ## #19 workspace implementation and migration verification
 
 The committed workspace failure a12b78a8 now passes on both content sets
