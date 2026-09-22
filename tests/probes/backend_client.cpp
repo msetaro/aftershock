@@ -80,8 +80,8 @@ int NET_StringToAdr( const char *text, netadr_t *address, netadrtype_t ) {
 		return 0;
 	*address = {};
 	address->type = NA_IP;
-	address->ip[0] = 127;
-	address->ip[3] = 1;
+	address->ipv._4[0] = 127;
+	address->ipv._4[3] = 1;
 	address->port = 1234;
 	return 1;
 }
@@ -117,6 +117,9 @@ int main() {
 	assert(strlen(requestToken)==64);
 	Reply( 200, "{\"version\":1,\"player_id\":\"456\",\"display_name\":\"Wrong owner\",\"loadout\":null}" );
 	assert(strcmp(CL_BackendValue("backend_name"),"Wrong owner"));
+	CL_BackendAction( "profile" );
+	Reply( 200, "{\"version\":1,\"player_id\":\"123\",\"display_name\":\"Alice\",\"loadout\":null}" );
+	assert( !strcmp( CL_BackendValue( "backend_name" ), "Alice" ) );
 	CL_BackendAction( "queue" );
 	assert(strstr(requestURL,"/v1/queue") && strstr(requestData,"two_lane"));
 	Reply( 202, "{\"version\":1,\"state\":\"starting\",\"match_id\":\"match-1\"}" );
@@ -138,11 +141,23 @@ int main() {
 	CL_BackendConnected();
 	strcpy( info, "\\name\\Player" );
 	assert(CL_BackendConnectInfo(clc.serverAddress,info,sizeof(info)) && !strstr(info,"as_ticket"));
+	CL_BackendAction( "results" );
+	Reply( 200, "{\"version\":1,\"results\":[{\"match\":\"other\",\"stats\":{\"score\":44,\"kills\":8,\"deaths\":1}},{\"match\":\"match-1\",\"stats\":{\"score\":3,\"kills\":4,\"deaths\":1}}]}" );
+	assert( !strcmp( CL_BackendValue( "backend_score" ), "3" ) && !strcmp( CL_BackendValue( "backend_kills" ), "4" ) );
+	CL_BackendAction( "results" );
+	Reply( 200, "{\"version\":1.5,\"results\":[]}" );
+	assert( !strcmp( CL_BackendValue( "backend_status" ), "Invalid service response" ) );
 	CL_BackendAction( "logout" );
 	Reply( 503, "{}" );
 	const int before = requests;
 	CL_BackendAction( "profile" );
 	assert(requests==before);
+	assert( !*CL_BackendValue( "backend_name" ) && !*CL_BackendValue( "backend_score" ) );
+	CL_BackendAction( "login" );
+	ticketRequested = false;
+	cls.realtime += 10001;
+	CL_BackendFrame();
+	assert( !strcmp( CL_BackendValue( "backend_status" ), "Sign-in timed out" ) );
 	CL_BackendShutdown();
 	puts( "PASS: native backend login ownership, ephemeral address-bound ticket retries and logout" );
 }

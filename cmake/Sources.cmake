@@ -89,6 +89,7 @@ set(COMMON_SOURCES
 )
 
 set(CLIENT_SOURCES
+  engine/client/cl_backend.cpp
   engine/platform/sys_http.cpp
   engine/ui/ui.cpp
   engine/physics/physics.cpp

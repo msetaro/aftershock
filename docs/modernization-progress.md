@@ -82,6 +82,25 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 native client action wiring preview
+
+The authored menu now calls bounded client login/queue/profile/results/logout actions.
+Platform tickets are exchanged over HTTPS; sessions stay process-local. Queue replies
+bind a one-use ticket to the assigned numeric address, inject it only into the initial
+connect packet and retransmits, and clear it on accepted connection/disconnect.
+Neither credential enters a cvar, UI value or console command. Logout clears local
+profile/credentials even when its server request fails. Platform login has a timeout.
+The development-only test login reads a fixed private ticket file; it never supplies
+an account ID or bypasses backend verification. Live Steam remains #180.
+
+GCC/Clang UBSan seam probes pass for login, profile owner mismatch, queue/retry binding,
+results values, malformed version, timeout and logout (backend-client-preview*.log).
+These preview commands include only PR179's proposed public services header from the
+private services worktree; production services sources in this branch still await its
+merge. This is not an integrated/native-build acceptance claim. Merge green #23 main
+forward and rerun the ordinary commands/full native build without that preview flag.
+Then run actual HTTPS/native-client/kind acceptance and complete deployment/CI/docs.
+
 ## #29 native backend client contract, test first
 
 The new native client probe specifies login through the platform ticket seam,
