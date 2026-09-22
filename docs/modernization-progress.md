@@ -20,67 +20,340 @@ upstream; historical upstream PR references below are completed past work.
 
 ## Next action
 
-#161 PR169 merged into main as 0928be35e47616d17bf8a36475f86952c11f0bbb.
-Final head b9ec426c passed all 16 compiler legs (35631254291) and all ten active
-regression jobs (35631254305). Main/base 07304b32 and the exact PR head were
-rechecked immediately before the merge. Tested and merged trees both equal
-f21454591ae494c1f7d023b6fd5d063c005a4b29. Known-good remains object 8bc8c94c
-pointing to 81a0f9dc, verified against origin after the merge.
+Two isolated worktrees are active. #16 implementation is complete on
+issue/16-audio-engine at 4c8dc002 in
+/home/matt/.cache/aftershock-modernization/audio-tree. PR171 targets main and
+remains draft until its final runtime gate succeeds. All 16 compiler legs in
+35673913679 and nine active regression jobs in 35673913655 passed; runtime is
+still running. Do not merge early. Recheck exact head/base/current main and all
+26 active gates immediately before ready/merge; use a merge commit. Main was
+0561e0f0446e96f6dca51f86bae56337d6cd23f5 at the last check. The previous accepted
+runtime took 57 minutes; waiting for it is not a maintainer blocker.
 
-Merged-tree build/publication 35638549208 and all ten active regression jobs in
-35638548512 passed, including runtime 106461943478. #161 is accepted and checked
-in #25. The merged tree is identical to the tested head.
+While those gates run, prepare #17 locally on issue/17-ui-framework in
+/home/matt/.cache/aftershock-modernization/ui-tree, branched from that current
+main. No #17 PR is open yet. Merge accepted #16 main forward before final #17
+gates. Do not redo accepted #15/#16 components or accepted goldens.
 
-Continue #15 on issue/15-jolt-physics in
-/home/matt/.cache/aftershock-modernization/physics-tree, branched from main 0928be35.
-Preserve existing movement, traces, triggers, movers, hit registration and
-all authoritative weapon trajectories. Jolt is for cosmetic props/grenade bodies
-and skeleton-driven death presentation. The pinned dependency and scoped offline
-CMake helper are imported. Permanent GCC and Clang/libc++ UBSan checks now pass
-recorded replay, changed-input comparison, zero step allocations, caller allocator
-ownership, complete teardown/reinitialization, FP control and fixed temporary
-buffer exhaustion. Each change followed its recorded failing test.
-
-The owned POD boundary passes caller-owned storage, 256 prepared slots, four
-spawn/recycle cycles, inactive filtering, ray/convex queries and reusable swing/
-twist joints on both compilers. The client owns map allocation/teardown and
-cgame prop presentation. All four Q3/OpenArena runtime maps now pass cosmetic
-motion/bounce, fixed counters and zero-block teardown. A real runtime failure
-found reversed CM-to-Jolt triangle winding; the failing orientation test and
-fixed export are recorded below. No native trace arithmetic changed.
-
-#15 draft PR170 is open into main at c29ed440. Skeleton-driven cosmetic deaths,
-restart cleanup, both content runtime sets, Physics panel, unchanged Q3/OpenArena
-fixed demos and native animation hit-box parity pass. Both compiler component
-probes pass. Full local lifetime analysis (1,268 commands) and tidy policy (1,326
-configurations), format/types/boundaries, affected/suite contracts and workflow
-syntax pass. No accepted fixtures were regenerated.
-
-Initial hosted build 35649848657 exposed MSVC umbrella-header and MinGW diagnostic
-format failures; the fixes below are ready for hosted confirmation. Next monitor
-the latest PR170 runs, complete the recorded self-review, and merge only with
-all required checks green against current main. Recheck main immediately before
-merge; it was still 0928be35 when the PR was opened. No maintainer input is needed.
-Private evidence logs are under /home/matt/.cache/aftershock-modernization:
-physics-ragdoll-after.log, physics-ragdoll-clang.log, physics-death-q3.log,
-physics-death-oa.log, physics-demo.log, physics-demo-oa.log, physics-lifetimes.log
-and physics-tidy.log. Issue checkpoint comment 5766814918 records earlier results.
+#17 decision: bounded in-house immediate UI using existing renderer/input
+contracts. Cook Unicode localized text with existing Pillow FreeType/RAQM into
+atlases; menus/HUD/navigation are plain authored records. No additional live
+DOM/CSS runtime or per-frame text allocation. Developer ImGui stays separate.
+Read docs/design/ui.md for the selected scope and tests. The first real cooker
+test fails on absent ui asset kind (ui-cook-before.log); implement the cooker and
+native POD layout/navigation next, then real controller/rebinding/HUD acceptance
+at 1080p, 1440p and 4K. No maintainer input is currently needed.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Reference hardware: RTX 3080 Ti / 595.91.07; run hardware benchmarks serially.
-Fidelity build/evidence remains under the same cache root. No local packages
-were installed. Never copy game paks, overwrite accepted fixtures, change
-known-good tags, or publish outside msetaro/aftershock.
+Never install local system packages or copy/upload Quake paks. Never regenerate
+accepted goldens, touch the completed network driver, move known-good tags, or
+publish outside msetaro/aftershock. After #17 continue #18 through #24 (SDK
+dependency), #29 and #30 as tracked in #25.
 
-#161 retained limitations: post/TAA and texture streaming are opt-in. The earlier
-street-scene post-copy budget miss remains despite the smaller combined scene
-passing. Optional upscaling is deferred. Compressed-source residency has an
-explicit capacity limit; there are no frame-time filesystem reads. All prior
-accepted frame fixtures and shader arrays are unchanged.
+#16 extra self-review: a suspected capture-restart state problem did not
+reproduce. Four SDL dummy capture sessions correctly closed/reopened across
+sound/video restart with unchanged engine code. Private reproducer and log:
+audio-capture-restart-check.py and audio-capture-restart-before.log. No speculative
+engine fix was made. Source manifest, known-good tag and accepted fixtures remain
+unchanged; audio-self-review.md records the allocation/lifetime/boundary review.
 
-After #15 follow #25: #16, #17, #18, #19, #20, #21, #22, #23, #24 (SDK dependency),
-#29 and #30. No maintainer input is currently needed.
+## #16 weapon acceptance and final gates
+
+ff0eab9a records the missing mixed-layer evidence before implementation. Role
+counters now track actual nonzero PCM contributions. GCC and Clang/libc++ UBSan
+component checks pass. Real two-client firing passes Quake 3 and OpenArena:
+near roles 9592/9584/0 frames, peak 10783.330, room wet peak 1104.528;
+far roles 0/0/9568, peak about 264, outdoor wet peak 0. Each phase receives exactly
+one remote shot notify and all voices retire. Prepared storage stays at three
+samples/57,600 bytes. Evidence: audio-weapons-{oa,q3}/ and matching logs.
+The systeminfo capability passes real voice reconnect acceptance and both
+content sets' unchanged bot goldens. Local MinGW rebuild, format/types/boundaries,
+suite/affected contracts and actionlint pass. Added weapon acceptance to runtime
+CI and corrected the new audio artifact paths to a YAML literal list.
+Final hosted compiler/regression checks remain required; PR171 is still draft.
+Head 9708869b fixed the meter warning and passed hosted bot goldens; MSVC then
+reached a C4457 shadowed axis parameter in the new reverb-volume loop. Renamed
+that loop index to component; behavior is unchanged. The pinned Opus source
+manifest verifies byte-for-byte (upstream generated-file whitespace is retained).
+No accepted golden or known-good tag changed. Full checks must use the new head.
+
+## #16 hosted feedback and weapon acceptance in progress
+
+Head 201bb883 hosted checks exposed two new-path failures: MSVC C4267 in the
+small voice meter (bounded string length now explicitly converted to int), and
+bot-log metadata drift from advertising sv_voip in gameplay serverinfo. Voice
+capability now travels in engine systeminfo, like other transport settings; the
+client reads the same configstring. Accepted goldens remain untouched. Both content sets now pass unchanged bot goldens
+(audio-bot-capability-{oa,q3}.log); fresh hosted compiler gates remain. Runs: build 35672903379, regression
+35672903380; private audio-ci-{msvc,runtime}-201bb883.log retain diagnostics.
+The first two-client weapon test attempted explicit agent stepping; that mode
+skips network polling, so the listener never joined. This is not weapon playback
+evidence. Use ordinary clocked clients for UDP acceptance and retain offline agent
+stepping for local simulation. No engine stepping change belongs in #16.
+
+The ordinary two-client weapon run now fires through real remote animation
+notifies: one near shot, three prepared layers, peak 10783.330, room wet peak
+1104.528. It intentionally fails because per-role mix counters are absent
+(audio-weapons-before3/). The component probe likewise fails compiling its
+near/far layerFrames assertions (audio-layers-before.log). Add those counters
+at actual layer mixing, then rerun near/far and room/outdoor acceptance.
+
+## #16 voice transport/capture checkpoint
+
+eaeff8af records the missing voice-wire API; 8ca2828b records real two-client
+failure with zero encoded packets. The new client/server path keeps the reserved
+Opus packet IDs and field layout, negotiates sv_voip/cl_voip, bounds server queues
+and rates, and mixes decoded speech into the voice bus. The real OpenArena loopback
+passes: 100 packets encoded/decoded, zero rejection/concealment/overrun, receiver
+peak 8246.129, and no microphone opened (audio-voice-runtime-oa/).
+Capture is explicit push-to-talk, with bounded SDL callback, native ALSA and Windows
+wave-input storage; close on release/disconnect/shutdown. bf39439e records missing
+native capture functions. GCC/Clang ALSA null-device and SDL dummy-device checks
+pass, including buffer overflow/reuse and close/reopen. MinGW client/server build
+passes (audio-mingw-build.log); native Windows device execution is not claimed.
+The codec/wire probes also pass Clang/libc++ UBSan. Reconnect coverage now limits
+the test server to two clients and waits out its one-second minimum zombie period
+(the allocator deliberately prefers never-used slots). This reproduced the new
+voice-path defect: second speaker in slot 1 decoded 0/rejected 100 because its
+sequence restarted in the old generation (audio-voice-reconnect-before4/).
+The relay now assigns a server-owned generation on each new speaker stream;
+reconnect acceptance passes on OpenArena and Quake 3: 200 decoded packets, zero
+rejection/concealment/overrun, empty final queues, and no microphone opened
+(audio-voice-reconnect-oa/ and audio-voice-reconnect-q3/). Hosted MSVC also exposed a CRT include-order
+warning in the new temporary-file helper: win_local.h's close macro renamed a
+deprecated CRT declaration to _close. win_shared.cpp now includes io.h before
+those macros, preserving strict warnings; all four hosted MSVC legs must rerun.
+Final MinGW rebuild plus format/types/boundaries (502/418/419) pass. Actual layered
+weapon acceptance and complete hosted gates remain. PR171 remains draft; no final merge approval.
+
+## #16 bounded Opus component checkpoint
+
+1e77cb27 records the missing Opus build/component contract. The verified 1.6.1
+release is imported unchanged under third_party/opus with a per-file SHA manifest
+and upstream notices; a static C build uses no optional neural features and never
+fetches dependencies. The scalar codec uses stack scratch plus one prepared zone
+allocation for one encoder/64 decoders. Each speaker has a fixed 120 ms PCM ring.
+GCC and Clang/libc++ probes pass 200 real encode/decode frames with malloc/calloc/realloc
+interposition rejecting any playback allocation, duplicate/duration rejection,
+one-frame concealment and bounded overflow. This is component evidence; network
+transport, explicit microphone capture and real loopback remain to be implemented.
+Streaming acceptance now passes both content sets including 60-frame teleport
+settling (audio-streaming-settle-oa/ and audio-streaming-settle-q3/).
+
+## #16 stream playback checkpoint
+
+5cb833ed records the missing stream-command runtime failure; 6e5238f3 records the
+missing incoming-bus mixer API. The bounded adapter now prepares PCM once into a
+private temporary file and reads through retained 16 KiB PCM/4 KiB stdio buffers.
+Four slots support stereo music/ambient, loop and one-shot playback; restart reuses
+prepared content. The real OpenArena client read an owned compressed pk3 source,
+completed 122 combined loops with two preparations, 40,960 buffer bytes and zero
+I/O failures (audio-streaming-oa/). GCC/Clang UBSan bus probes pass, including
+stereo routing and muted-voice ducking. Format/types/boundaries pass (496/414/415).
+No engine allocation/reopen occurs in MixStreams; synchronous disk reads remain a
+known latency ceiling. No claim of general real-time storage latency is made.
+Both content sets pass restart reuse and one-shot retirement. A concurrent Quake 3
+run exposed an insufficient 10-frame teleport wait in the new test (outdoor zone
+was reached only after the sound began); the scenario now settles for 60 frames,
+and Quake 3 passes with zero outdoor wet output (audio-streaming-settle-q3/).
+Remote head 646dec73 passed all 16 compiler legs and nine active regression jobs.
+Runtime 35668445085 timed out in the existing delayed-hitscan scenario before the
+audio test ran; logs/artifacts are being inspected, and this is not merge acceptance.
+
+## #16 reusable stream file checkpoint
+
+a2e53b29 records the missing temporary-storage API failure
+(audio-stream-file-before.log). The platform helper now exclusively creates a
+private temporary file and removes it on close (immediately unlinked on Unix;
+Windows uses CREATE_NEW plus DELETE_ON_CLOSE). The filesystem opens it below
+the writable home stream-cache directory with a caller-owned stdio buffer.
+The small functional probe passes GCC/Clang UBSan: preserve an existing file,
+200 rewinds with identical bytes and automatic removal. This is reusable I/O
+infrastructure, not yet streaming playback acceptance. Ordinary CRT tmpfile was
+rejected because Microsoft's documented implementation can require root-directory
+permissions; no local permissions/package changes are needed.
+Next spool decoded PCM once during stream preparation, retain bounded read buffers
+for playback/loops, and route music/ambient frames through the same bus/duck mix.
+
+## #16 authored room and occlusion acceptance
+
+29f17b9d records the optional level-field failure before audio_zones existed
+(audio-level-before.log). The v1/v2 level contracts now accept up to 32 AABB audio
+volumes and emit audio_zone_N worldspawn keys. First matching volume wins; outside
+volumes is dry. The existing two_lane MAP remains byte-identical when no zone is
+authored (tests/level.py). The native reader rejects invalid bounds/parameters.
+Both content sets now pass the extended real-client test with an owned compiled
+room: wet peak 414.676 PCM units indoors, 0 outdoors; wall traces are blocked
+(10/10 OpenArena, 7/7 Quake 3). A fixed 28,800-byte prepared buffer is reused
+throughout, and every voice retires. Logs: audio-acoustics-oa/ and
+ audio-acoustics-q3/, plus their matching .log summaries. The room level is a new
+private derivative of owned source; accepted maps/goldens were not regenerated.
+`s_event path.asevt x y z` exercises world-position playback; s_audioInfo includes
+zone, wet peak and trace counters. This validates native static-world occlusion
+and data-authored reverb, not yet actual weapon near/far or streaming/VoIP.
+Next address streamed music/ambient with bounded reusable I/O, then VoIP and final
+weapon acceptance. PR171 remains draft; final gates must include current main.
+
+## #16 acoustic DSP checkpoint
+
+Draft PR171 is open against main at 646dec73 for early compiler/regression feedback;
+it is explicitly incomplete. 6ef49949 records the missing reverb API failure
+(audio-reverb-before.log). GCC/Clang component probes now show a decaying room
+response, dry outdoor output, frequency-dependent occlusion and recovery.
+The reverb uses four fixed damped combs with rate-bounded delay storage and a
+smoothed wet gain; no convolution/personal acoustic calibration is claimed.
+Native acoustic wiring reads bounded audio_zone_N worldspawn metadata after CM
+load and spends at most eight round-robin static-world traces per spatial update.
+Dynamic occluders are not yet represented. The first build caught COM_Parse's
+const cursor contract; corrected before continuing. Authored level emission and
+real room/occlusion runtime acceptance remain next, followed by streams/VoIP.
+
+## #16 both-content playback verification
+
+3b84dd1d passes the real-client playback test for both Quake 3 and OpenArena
+(audio-runtime-q3.log / audio-runtime-oa.log). Direct PCM checks also cover bus
+gain and voice-driven duck/release. Added the runtime command and log artifact to
+CI; spatial tests now run on both unit compilers. Workflow self-review caught a
+duplicate run key in the earlier spatial-test insertion, which would have replaced
+the ALSA command. It is removed; the existing ALSA command remains and the new
+spatial command is in the unit step. No affected head was merged. Native source
+format/types/boundaries pass at 495/414/415 before the next acoustic changes.
+
+## #16 client playback checkpoint
+
+2366b157 records the real-client failure before registration/playback existed
+(audio-runtime-before.log and audio-runtime-before/client.log). OpenArena now
+passes tests/audio_runtime.py through the SDL dummy output backend: one cooked
+PCM buffer stays at 28,800 bytes across three plays (including HRTF), every voice
+retires, and peak mixed output is 5,656.854 PCM units. The private client log is
+in audio-runtime-oa/. GCC development client/server builds pass. Authored events
+use the existing sound handle/animation-notify path and platform output. Up to
+128 event records, 512 prepared PCM samples and 64 MiB are retained until sound
+shutdown; individual PCM resources are capped at 16 MiB. Registration failure
+rolls back newly prepared storage. Mixing, position updates and voice admission
+make no allocation/file calls. No legacy sample path or accepted fixture changes.
+This is an intermediate check: real weapon near/far, occlusion/reverb, streams,
+VoIP, allocation instrumentation and final multi-platform gates remain.
+
+## #16 mixed PCM checkpoint
+
+76876e91 records the missing mixer API failure (audio-playback-before.log).
+The bounded mixer now passes actual PCM checks: near mechanical+tail summation,
+far-only selection with inverse attenuation, sample exhaustion, HRTF tail
+retirement, group limits and priority rejection/stealing. GCC and Clang/libc++
+UBSan both pass. The mixer holds at most 96 event voices, each with four prepared
+PCM views and fixed HRTF state. No allocation/file/device calls occur in its
+sample loop. Bus gains and a voice-driven music/ambient duck envelope are present;
+additional direct bus/duck checks and engine registration/runtime wiring remain.
+
+## #16 latest verification
+
+Through bcdabe5d, both new component probes pass with GCC and Clang/libc++ under
+UBSan. The development client/server rebuild passes (audio-build-events.log),
+as do the existing full cooker and authored-schema regressions (audio-cook.log,
+audio-formats.log). Agent-format checking first failed because Go was absent
+from PATH; rerun with the documented private Go toolchain passed. Format (494),
+types (413), boundaries (414), affected/suite contracts and diff whitespace pass.
+No runtime feature claim is made: authored registration, mixing, buses/ducking,
+occlusion, map reverb, bounded streams and functional VoIP still need implementation
+and full gates. No accepted golden/demo changed. Issue #16 checkpoint comment
+5768068520 records scope and evidence.
+
+Next trace registration lifetime and layer sample ownership before wiring playback.
+Existing legacy sample chunks can be evicted and loaded during playback; do not
+claim that reusing a handle guarantees no frame allocation. Reuse existing codec
+and platform paths, but keep prepared authored PCM bounded and retained for active
+voices. Preserve ordinary sample behavior and the existing animation-notify dedup.
+Private current development outputs are in audio-client-build/release-linux-x86_64.
+All private evidence paths here are relative to the modernization cache.
+
+## #16 authored event cooking
+
+The real cooker now passes tests/audio_events.py after the missing-kind failure
+recorded in 4a22cbdc. New sound-event schema and agent example describe a bounded
+four-layer .asevt record: 400-byte payload plus existing 48-byte hash envelope,
+resource index kind 12. Fields cover bus/group/priority/voice limit, distance
+model, Doppler/occlusion flags, reverb send, and mechanical/tail/distant PCM
+paths with gains and distance ranges. Incremental no-op and edited-layer cooks
+pass. Renderer resource-index validation admits the new kind; no renderer
+behavior changes. Existing weapon sound path strings can reference this record
+without changing weapon layout. Native event decoding and layer selection now pass the real cooked round trip
+following the missing-API failure in 6704d956 (audio-event-native-before.log).
+The decoder checks the existing hash envelope, fields and sample qpaths into
+a fixed POD record with layout assertions. Native playback is not wired yet; no #16 completion or runtime acceptance is claimed.
+
+## #16 authored event contract
+
+The full development client/server build passes with the spatial component
+(private audio-configure.log and audio-build.log). tests/audio_events.py now
+exercises the real cooker for an authored mechanical/tail/distant event, existing
+hash envelope, bus/group/priority/voice limit, spatial settings and incremental
+edits. The first run fails because sound-event is not an implemented asset kind
+(private audio-events-before.log). Next implement cooking/schema and native
+registration/playback. #15 merged-tree lifetime analysis has passed; runtime is
+the only active regression job still running.
+
+## #16 binaural component checkpoint
+
+5981cabe records the missing-API failure for the binaural test
+(private audio-hrtf-before.log). The implementation uses Brown/Duda equations
+2–5, verified against the primary paper, with a causal fractional delay and
+one-pole/zero shadow filter. Per-voice storage is a fixed 512-sample ring and
+trivial state; coefficients are configured outside the sample loop. Supported
+rates are 8–192 kHz and head radius is tunable within 5–15 cm. No pinna/elevation
+or subjective listening validation is claimed. GCC and Clang/libc++ UBSan probes
+pass: impulse arrival, shadow energy, mirrored channels and DC stability.
+Format (491), types (411) and boundaries (412) pass. The component is in CMake,
+CI and affected-test selection; actual mixer integration remains next.
+Merged-tree #15 build/publication 35658235970 passed; regression still has
+lifetime/runtime jobs running, with the other eight active jobs passing.
+
+## #16 initial spatial contract
+
+Decision recorded on #16 in comment 5767944870; #15 merge report is comment
+5767944695. tests/audio_spatial.py now specifies equal-power stereo placement,
+linear/inverse distance attenuation, radial Doppler and invalid-input rejection.
+The first run fails at compilation because the new snd_spatial API does not yet
+exist (private audio-spatial-before.log). This is an API-first failure, not a
+claim that legacy playback failed. The implementation now passes with GCC and Clang/libc++ under UBSan. It uses
+no allocation or engine state and is listed in the client CMake sources. Engine
+integration and the remaining #16 scope are still pending.
+
+## #15 merge checkpoint
+
+PR170 merged into main as 0561e0f0446e96f6dca51f86bae56337d6cd23f5, with parents
+0928be35 and tested head b4de8b69c1cf46aa132565ebeb1dd780fa7812c9. All sixteen compiler
+legs passed in 35650410977 and all ten active regression jobs in 35650410983,
+including runtime 106501160022. Final audit checked zero required failures/skips,
+current main/base and exact head immediately before merge, and no accepted fixture
+changes. Tested and merged trees both equal c233fb96ac2679d4a66e316d2bce6c14bb4b8309.
+Known-good remains object 8bc8c94c75e7c9ae59ee3fe1277e084942dda5f4 pointing to
+81a0f9dc05c340f30182c34134bde67290c21774, verified against origin after merge.
+
+Self-review: #15 scope; no authoritative arithmetic or wire/file layout changes;
+no new direct OS calls; POD owned core; caller-owned arena; no step, activation,
+query or recycle allocations. Dedicated-server symbols contain no Jolt linkage.
+Both content runtime sets, Physics panel, fixed demos and native animation hit-box
+parity pass. Full local lifetime analysis (1,268 commands), tidy policy (1,326
+configurations), format/types/boundaries and affected/suite/workflow checks pass.
+
+Private physics evidence: physics-ragdoll-after.log, physics-ragdoll-clang.log,
+physics-death-q3.log, physics-death-oa.log, physics-demo.log, physics-demo-oa.log,
+physics-lifetimes.log and physics-tidy.log under the modernization cache. Earlier
+hosted run 35649848654 also passed all ten active jobs. Its selected artifact is
+in physics-hosted-evidence/: death/restart retain arena=29498800, allocations=573,
+live=424, then retire the ragdoll and finish with live=0. Captures were reviewed.
+Issue checkpoint comments: 5766814918 and 5766901466; final merge report follows.
+
+## #161 accepted merged tree
+
+PR169 merged as 0928be35e47616d17bf8a36475f86952c11f0bbb. Final head b9ec426c passed
+all 16 compiler legs (35631254291) and all ten active regression jobs (35631254305).
+Main/base 07304b32 and the exact head were rechecked before merge. Tested and merged
+trees both equal f21454591ae494c1f7d023b6fd5d063c005a4b29. Merged-tree publication
+35638549208 and all ten active regression jobs in 35638548512 passed, including
+runtime 106461943478. #161 is accepted and checked in #25.
 
 ## #15 hosted MSVC header failure
 
