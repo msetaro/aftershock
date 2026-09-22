@@ -53,6 +53,13 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #22 profile command contract, test first
+
+Extend the existing native command probe: select the retained peak, expose parent
+and self-time fields plus bounded history summaries, reject out-of-range age and
+invalid booleans before a requested reset, and clear history explicitly. The old
+handler ignores those arguments; the new check must fail before implementation.
+
 ## #22 profiling contract, test first
 
 The issue and existing instrumentation are reviewed. The engine already has
