@@ -47,6 +47,31 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 isolated native navigation owner
+
+After e8a12794's missing-owner failure, the opaque POD owner copies/validates the
+pinned single-tile envelope and initializes Detour query/crowd capacity through
+zone allocator hooks. Public coordinates remain engine Z-up. Ground paths and
+explicit authored off-mesh IDs use bounded caller results; crowds provide
+steering only, with authoritative usercmd/Pmove integration still outstanding.
+No engine build or gameplay owner uses this preparation yet.
+
+The native test exposed Detour omitting a link marker when the route starts at
+the link's exact endpoint. Funnel ground segments separately around each
+corridor off-mesh polygon so the authored action survives a zero-length approach.
+The same test now passes, without weakening its assertion. GCC and Clang/libc++
+UBSan runs pass routes across the owned map, explicit link IDs, two opposing
+agents reaching their destinations without interpenetration, slot reuse and
+complete cleanup. Allocation counters remain unchanged after world creation.
+Evidence: navigation-native-{gcc,clang}.log. No accepted golden changes.
+
+Limits: one tile up to 16 MiB, 32,768 polygons, 256 authored links, 256 returned
+waypoints and 64 preallocated agents. Tile counts, section sizes, geometry/detail
+references, BV escapes and off-mesh identities are validated before Detour pointer
+fixups. Partial routes/capacity exhaustion are explicit in the result. Compiler,
+format/type/boundary checks cover this slice; full integration/tidy/lifetime and
+real gameplay acceptance remain after accepted #19/#20 main is merged forward.
+
 ## #21 native navigation contract, test first
 
 The existing navigation driver now compiles a native functional probe after its

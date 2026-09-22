@@ -23,12 +23,6 @@ void Z_Free( void *data ) {
 		std::free( data );
 	}
 }
-static float Distance( const float *a, const float *b ) {
-	float sum = 0;
-	for ( int i = 0; i < 3; ++i )
-		sum += ( a[i] - b[i] ) * ( a[i] - b[i] );
-	return std::sqrt( sum );
-}
 int main( int argc, char **argv ) {
 	assert(argc == 2);
 	FILE *file = std::fopen( argv[1], "rb" );
@@ -63,6 +57,10 @@ int main( int argc, char **argv ) {
 	bool sawLink = false;
 	for ( uint32_t i = 0; i < path.count; ++i )
 		sawLink |= path.points[i].link == 1;
+	if ( !sawLink ) {
+		for ( uint32_t i = 0; i < path.count; ++i )
+			std::fprintf( stderr, "corner %u: %g %g %g link %u\n", i, path.points[i].position[0], path.points[i].position[1], path.points[i].position[2], path.points[i].link );
+	}
 	assert(path.complete && sawLink);
 	// Two opposing agents in open floor must reach their goals without passing
 	// through each other. Positions are steering results, not Pmove authority.
