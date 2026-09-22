@@ -85,7 +85,10 @@ composed backend now passes this full OpenArena sequence
 blocked at the authored box, once-only 7 damage, target pickup activation and
 real weapon destruction. The fixture respects the existing five-second team
 switch cooldown. Splash radius lives in the new POD side state; the legacy
-integer field is unchanged. Quake 3 composed acceptance is next. Generic definition
+integer field is unchanged. Quake 3 composed acceptance also passes (entities-composed-q3.log); implementation
+commit 685e379c. The next test requires generic default editing, reflected
+replication fields and hashed serialization/reload; it fails compiling absent
+Entity_SetField/Entity_WriteDefinitions (entities-editor-before.log). Generic definition
 preview/edit still remains.
 No partial acceptance of remaining #18 scope is claimed. Schema, format/types/boundaries and affected contract pass.
 

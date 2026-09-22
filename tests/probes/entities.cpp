@@ -25,6 +25,18 @@ int main( int argc, char **argv ) {
 	assert( origin && !strcmp( origin->component, "transform" ) && !strcmp( origin->value, "16 32 48" ) );
 	assert( crate->priority == 2 && small->priority == 2 && small->radius == 0 );
 	assert( !Entity_FindDefinition( definitions, "missing" ) && !Entity_Field( definitions, *base, "origin" ) );
+	assert( !Entity_SetField( &definitions, "medical_crate", "count", "-1" ) );
+	assert( Entity_SetField( &definitions, "medical_crate", "count", "92" ) );
+	assert( Entity_SetField( &definitions, "medical_crate", "rep_priority", "3" ) );
+	assert( Entity_SetField( &definitions, "medical_crate", "rep_radius", "128.5" ) );
+	assert( crate->priority == 3 && crate->radius == 128.5f );
+	assert( !strcmp( Entity_Field( definitions, *base, "count" )->value, "50" ) );
+	static unsigned char saved[sizeof( bytes )];
+	const size_t savedSize = Entity_WriteDefinitions( definitions, saved, sizeof( saved ) );
+	assert( savedSize == size && Entity_ReadDefinitions( saved, savedSize, &definitions ) );
+	crate = Entity_FindDefinition( definitions, "medical_crate" );
+	assert( crate && !strcmp( Entity_Field( definitions, *crate, "count" )->value, "92" ) );
+	assert( crate->priority == 3 && crate->radius == 128.5f );
 	file = fopen( argv[2], "rb" );
 	assert( file );
 	const size_t composedSize = fread( bytes, 1, sizeof( bytes ), file );

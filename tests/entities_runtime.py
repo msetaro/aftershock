@@ -85,7 +85,20 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-runtime-') as tempo
             engine.request('entity.set',entity=entity,key='count',value='20')
             assert engine.request('entity.get',entity=entity,key='count')['value']=='20'
             collect(128,128,20)
-            print('PASS: map prefab/instance override, runtime inherited pickup and generic field editing affect real health')
+            execute('dev_definition set medical_boost_small count 30')
+            engine.request('panel',name='Definitions')
+            engine.step(3)
+            new=engine.request('entity.spawn',classname='medical_boost_small',x=128,y=-128,z=48)['entity']
+            assert engine.request('entity.get',entity=new,key='count')['value']=='30', 'generic definition edits affect new instances'
+            execute('dev_definition save')
+            saved=engine.request('cvar.get',name='dev_definitionFile')['value']
+            assert saved and (base/saved).is_file(), 'save must publish a new versioned cooked definition file'
+            engine.request('cvar.set',name='g_entityDefinitions',value=saved)
+            engine.request('map',name='two_lane')
+            engine.step(50)
+            new=engine.request('entity.spawn',classname='medical_boost_small',x=128,y=-128,z=48)['entity']
+            assert engine.request('entity.get',entity=new,key='count')['value']=='30', 'definition edits survive reload'
+            print('PASS: map/runtime pickup, instance/default editing and saved definition reload')
         finally:
             shutil.copyfile(engine.log_path,args.output/'engine.log')
     # Reuse the owned animated character; no source fixture is regenerated.
