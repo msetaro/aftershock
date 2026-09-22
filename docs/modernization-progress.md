@@ -60,6 +60,12 @@ callbacks. The added real flag-prefab test fails enemy pickup as expected
 (entities-flags-before.log). Preserve native identity in the existing field and
 keep prefab identity separately for generic inspection. This is a correction to
 unmerged #18 code, not a change to the accepted classic callbacks.
+The first flag assertion mistakenly expected unlinking; classic pickups stay
+linked with zero collision contents. Corrected the assertion and rebuilt the old
+3b7071f0 in a detached private worktree: it fails the corrected pickup check
+(entities-alias-before.log). The new alias dispatch passes pickup and capture
+(entities-alias-after.log). Keep native classname for callbacks and a separate
+private definitionName for authored inspection, cleared when a slot is reused.
 
 #19 test-only preparation is 10c1bee0 in the separate state-tree worktree, branched
 from main. Its named-field added/removed/reordered migration test fails on the

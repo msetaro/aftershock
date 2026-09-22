@@ -238,15 +238,15 @@ with tempfile.TemporaryDirectory(prefix='aftershock-entities-runtime-') as tempo
             engine.step(50)
             def flag(name):
                 return next(row for row in engine.request('entity.list')['entities'] if row['classname']==name)
-            assert flag('red_banner')['linked'] and flag('blue_banner')['linked']
+            assert flag('red_banner')['contents'] and flag('blue_banner')['contents']
             engine.request('exec',command='team red')
             engine.step(260)
             engine.request('exec',command='setviewpos 128 0 32 0')
             engine.step(10)
-            assert not flag('blue_banner')['linked'], 'native flag pickup must recognize a prefab alias'
+            assert not flag('blue_banner')['contents'], 'native flag pickup must recognize a prefab alias'
             engine.request('exec',command='setviewpos -128 0 32 0')
             engine.step(10)
-            assert flag('blue_banner')['linked'], 'capture must restore the aliased flag through native classname lookup'
+            assert flag('blue_banner')['contents'], 'capture must restore the aliased flag through native classname lookup'
             print('PASS: prefab flag aliases retain native pickup and capture behavior')
         finally:
             shutil.copyfile(engine.log_path,args.output/'flags.log')
