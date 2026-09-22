@@ -7,7 +7,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import best_match
 
 ROOT = Path(__file__).resolve().parents[2]
-KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'decal', 'post', 'entities', 'ui', 'sound-event', 'navigation', 'match-spec')
+KINDS = ('level', 'weapon', 'animation', 'material', 'effect', 'decal', 'post', 'entities', 'ui', 'sound-event', 'navigation', 'behavior', 'match-spec')
 
 
 def obj(properties, required=None, extra=False):
@@ -220,6 +220,15 @@ def ui_schema():
                     pages=array(obj(dict(id=identity,items=array(item,1,128))),3,16)))
 
 
+def behavior_schema():
+    identity = dict(type='string', pattern='^[a-z][a-z0-9_]{0,30}$')
+    rule = obj(dict(to=identity, field=enum('visible','heard','health','covered','time_ms','distance'),
+                    op=enum('eq','ne','lt','le','gt','ge'), value=num(0,3600000), min_ms=num(0,600000,True)))
+    state = obj(dict(name=identity, parent=identity, action=enum('idle','patrol','investigate','cover','attack'),
+                     transitions=array(rule,0,16)), ['name','action','transitions'])
+    return obj(dict(version=dict(const=1), name=identity, initial=identity, states=array(state,1,32)))
+
+
 def navigation_schema():
     agent = obj(dict(radius=num(.125,128), height=num(8,256), climb=num(0,255), slope=num(.1,84.9)))
     link = obj(dict(id=num(1,4294967295,True), start=vector(-131072,131072,False),
@@ -230,7 +239,7 @@ def navigation_schema():
 
 
 def schema(kind):
-    schemas = dict(navigation=navigation_schema,level=level_schema,weapon=weapon_schema,animation=animation_schema,material=material_schema,
+    schemas = dict(behavior=behavior_schema,navigation=navigation_schema,level=level_schema,weapon=weapon_schema,animation=animation_schema,material=material_schema,
                    effect=effect_schema,decal=decal_schema,post=post_schema,entities=entities_schema,ui=ui_schema,**{'match-spec':match_schema,'sound-event':sound_event_schema})
     schema = schemas[kind]()
     schema['$schema'] = 'https://json-schema.org/draft/2020-12/schema'
@@ -244,6 +253,8 @@ def describe(kind):
                        rooms=[dict(id='room',origin=[0,0,0],size=[512,512,192])],connections=[],
                        spawns=[dict(team='ffa',origin=[-128,0,24],angle=0)],cover=[dict(id='cover',origin=[0,0,0],kit='low')],
                        props=[],pickups=[],lighting=dict(ambient=32,lights=[]))
+    elif kind == 'behavior':
+        example = dict(version=1,name='guard',initial='patrol',states=[dict(name='patrol',action='patrol',transitions=[])])
     elif kind == 'navigation':
         example = dict(version=1,collision='maps/two_lane.bsp',agent=dict(radius=15,height=56,climb=18,slope=46),
                        cell_size=4,cell_height=2,links=[])

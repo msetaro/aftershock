@@ -23,14 +23,17 @@ upstream; historical upstream PR references below are completed past work.
 Resume the active predecessor gates before any later issue can merge:
 - #31 PR174 is fully accepted on main 5caa2c1c. Merged build 35715942160 and
   regression 35715942143 attempt 2 pass all 26 jobs; #31 is closed again.
-- #19 draft PR175 head 312048f0: all 16 builds and nine active regression jobs
-  passed; regression 35720181577 runtime has advanced through level/UI acceptance. Require all
-  26 checks, fresh main/base and self-review before ready/merge, then merged gates.
-  Its complete owner evidence is in the sibling state-tree progress file.
-- #20 draft PR176 head af524559: local full unit variants, lifetime/tidy, both-content
-  package/pure/render and unchanged replay gates pass. Hosted build 35725046713 passed all 16 builds; regression 35725046710
-  passed nine active jobs with runtime still running. These are early feedback only. Merge accepted #19 main forward
-  and rerun final gates on the combined tree before #20 readiness/merge.
+- #19 PR175 merged at b92b6ef5 after head 312048f0 passed all 26 required jobs
+  (build 35720181499/regression 35720181577). Main/base/self-review/known-good tag
+  were rechecked; merge tree equals tested ac9a6cd40b4903d50553072165aff295f9a1e807.
+  Merged build 35728186900/regression 35728186799 are running/queued; require both
+  before #25's integration checkbox and the next issue's merge.
+- #20 draft PR176 now includes that main at b2c2ae5e. Combined client/server build,
+  policy/test routing, package/pure/render, profiles and same/fresh/interrupted/
+  frozen-v1 checkpoint acceptance pass (content-state-*.log). Fresh hosted build
+  35728396483/regression 35728396529 are queued; all 26 jobs plus accepted #19
+  integration are required before self-review/readiness/merge. Do not reuse
+  preliminary af524559 gates as final combined-tree acceptance.
 
 This is issue/21-ai-navigation in the sibling navigation-tree, branched from main
 5caa2c1c for bounded test-first preparation while predecessors finish. The first
@@ -46,6 +49,16 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
+
+## #21 behavior cooker
+
+After 078aebcd's missing-kind failure, the behavior cooker emits the existing
+version/hash envelope around bounded named states and ordered transition tables.
+Parent identities, cycles/depth, leaf targets and field-specific comparison
+ranges are validated. The agent schema/describe API includes the format, and
+the development index reserves kind 16. Native transition execution is not yet
+implemented. The complete navigation driver passes its existing query/crowd
+checks and the new incremental behavior edit (navigation-behavior-after.log).
 
 ## #21 behavior source contract, test first
 
