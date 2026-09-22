@@ -21,40 +21,47 @@ upstream; historical upstream PR references below are completed past work.
 ## Next action
 
 Resume the active predecessor gates before any later issue can merge:
-- #31 PR174 is fully accepted on main 5caa2c1c. Merged build 35715942160 and
-  regression 35715942143 attempt 2 pass all 26 jobs; #31 is closed again.
-- #19 PR175 merged at b92b6ef5 after head 312048f0 passed all 26 required jobs
-  (build 35720181499/regression 35720181577). Main/base/self-review/known-good tag
-  were rechecked; merge tree equals tested ac9a6cd40b4903d50553072165aff295f9a1e807.
-  Merged build 35728186900 passes all 16 compiler jobs; regression
-  35728186799 is running; require both
-  before #25's integration checkbox and the next issue's merge.
-- #20 draft PR176 now includes that main at b2c2ae5e. Combined client/server build,
-  policy/test routing, package/pure/render, profiles and same/fresh/interrupted/
-  frozen-v1 checkpoint acceptance pass (content-state-*.log). Fresh hosted build
-  35728396483 passes all 16 compiler jobs; regression 35728396529 has nine
-  active jobs passed and runtime in level authoring. All 26 jobs plus accepted #19
-  integration are required before self-review/readiness/merge. Do not reuse
-  preliminary af524559 gates as final combined-tree acceptance.
+- #31 PR174 is fully accepted on main 5caa2c1c; #31 is closed again.
+- #19 PR175 merged at b92b6ef5 after all 26 exact-head jobs passed. Merged build
+  35728186900 passes; regression 35728186799 is in its final profile/checkpoint
+  step. Require merged acceptance before #25's checkbox and #20 merge.
+- #20 draft PR176 includes that main. Earlier b2c2ae5e eventually passed all
+  26 jobs, but self-review found signed overflow in the new relative package seek
+  branch. Test-first 8702f1d3 and fix 4d06f25b move checked relative offsets into
+  the package owner. Both compiler UBSan suites, 16 affected tidy configurations,
+  policy checks, client/server build and full OpenArena package runtime pass.
+  Require fresh build 35735085459/regression 35735085484 at
+  4d06f25bd6fdee84d1f8aace07a588473d988eaf plus accepted #19, fresh main/base
+  and self-review before readiness/merge. No prior-head gate substitutes.
 
-This is issue/21-ai-navigation in navigation-tree. Current main b92b6ef5 is
-merged forward, preserving the full #19 owner evidence and #21 preparation.
-Owned collision cooking, Detour routes/crowd/cover/stateless avoidance, typed
-off-mesh actions, hierarchical behavior and perception pass both compiler UBSan
-probes. Private q3dm17 cooking/query/pad observations are recorded below; most
-cross-platform routes still require authored traversal and are not gameplay
-acceptance. No accepted fixture or simulation math was changed.
+This is issue/21-ai-navigation in navigation-tree, based on main b92b6ef5.
+Owned collision cooking, routes/crowd/cover/stateless avoidance, typed off-mesh
+following, hierarchical behavior and perception pass both compiler UBSan probes.
+The initial native patrol/weapon/AI-inspector runtime contract is committed at
+7d40e273 and fails at the absent AI integration, as intended.
 
-The prepared cooker/native suite passes against the checkpoint-enabled base.
-Continue bounded configuration/controller preparation while predecessor gates
-finish. Once #20 merges after its required gates, merge that main forward before
-runtime AI/gameplay/ImGui/checkpoint integration. Require separate failing-first
-coverage and all final gates; no #21 PR or acceptance is claimed yet.
+Continue that game integration here while #20's fresh gates run. This updates the
+earlier self-imposed wait-before-integration plan: #21 uses the existing filesystem
+API, so isolated implementation can proceed without publishing or merging it.
+Merge accepted #20 main forward before final #21 gates/PR acceptance, and preserve
+the strict merge order. Runtime combat/cover, q3dm17 traversal, tools and checkpoint
+continuation remain required. No accepted fixture or simulation math changed.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
+
+## #21 private map-pad observations
+
+Observed all 13 existing q3dm17 pads through current-main native movement. Twelve
+produce a measured landing; pad *14 has no settled landing within 500 sampled
+frames and is excluded from this temporary link recipe. Cooking those twelve
+local observations increases complete spawn-pair routes from 27 to 58 (52 remain
+partial), with 531 cover candidates, 11 valid steering queries and no query
+allocations. Evidence: navigation-pads-observe/ and navigation-q3-pads-{cook,query}.log.
+BSP, trajectories and derived navmesh stay private; no map bytes are committed or
+uploaded. These are preparation measurements, not native AI gameplay acceptance.
 
 ## #21 native runtime contract, test first
 
