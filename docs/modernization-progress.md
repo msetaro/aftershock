@@ -44,7 +44,7 @@ goldens, sanitizer units and full policy gates pass. Cooker/schema checks pass
 also passes. Final review added and verified collision-header cache dependencies;
 The combined package/AI build and OpenArena package/pure/render plus AI combat
 and checkpoint continuation pass (navigation-content-{package,combat}.log).
-CI/docs registration is committed. Open the #21 draft against main for hosted
+CI/docs registration is committed. Draft PR177 is open against main for hosted
 checks; #21 merge waits for both its exact-head 26 checks and integrated #20's
 26 checks. Recheck current main/base/head immediately before merge.
 
@@ -65,7 +65,7 @@ adjacent verification/catalog entries by retaining both packages and navigation.
 Keep both README sections and the earlier content checkpoint as history beneath
 the current next action. No accepted fixtures change. Rebuild the combined
 client/server and package/AI checkpoint integration pass, as do catalog/policy
-checks. Open the #21 draft against current main for its required hosted gates.
+checks. Draft PR177 is open against current main for its required hosted gates.
 
 ## #21 cooker header dependency contract, test first
 
