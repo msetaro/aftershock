@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 from PIL import Image
 from cook import cook, source_assets
 from run import ROOT, SCRATCH
@@ -42,12 +43,18 @@ def resources(directory):
 
 
 base = args.output/'base.aspack'
-first = package('build', '--root', cooked, '--output', base)
+first = package('build', '--root', cooked, '--output', base, '--store', 'sounds/*')
 assert first['assets'] == resources(cooked)
 assert first['base'] is None and len(first['identity']) == 64
 repeat = args.output/'repeat.aspack'
-package('build', '--root', cooked, '--output', repeat)
+package('build', '--root', cooked, '--output', repeat, '--store', 'sounds/*')
 assert base.read_bytes() == repeat.read_bytes(), 'unchanged content must package reproducibly'
+sys.path.insert(0, str(ROOT))
+from tools.package import metadata
+_, rows = metadata(base)
+assert all(row['codec'] == 0 for name, row in rows.items() if name.startswith('sounds/'))
+assert any(row['codec'] == 1 for row in rows.values()), 'optional compression must cover both native codecs'
+
 
 # One source edit changes one native texture plus the cook index/revision.
 Image.new('RGBA', (16, 16), (255, 48, 16, 255)).save(source/'patch.png')
@@ -60,16 +67,20 @@ assert set(second['assets']) == {'textures/bc7.ktx2', 'cook.index', 'cook.revisi
 assert not second['removed']
 assert patch.stat().st_size < base.stat().st_size//2, 'one-texture patch must omit unchanged payloads'
 
-restored = args.output/'restored'
-package('extract', base, patch, '--output', restored)
-assert resources(restored) == resources(cooked), 'mounted base plus patch must equal the recooked content'
+with tempfile.TemporaryDirectory(dir=args.output) as temporary:
+    restored = Path(temporary)/'content'
+    package('extract', base, patch, '--output', restored)
+    assert resources(restored) == resources(cooked), 'mounted base plus patch must equal the recooked content'
 # Removal is part of a manifest diff, not an old asset silently leaking through.
 (cooked/'obsolete.cfg').unlink()
 removed = args.output/'removed.aspack'
 third = package('build', '--root', cooked, '--output', removed, '--base', base, '--base', patch)
 assert third['removed'] == ['obsolete.cfg']
 assert not third['assets']
-final = args.output/'final'
-package('extract', base, patch, removed, '--output', final)
-assert resources(final) == resources(cooked)
+with tempfile.TemporaryDirectory(dir=args.output) as temporary:
+    final = Path(temporary)/'content'
+    package('extract', base, patch, removed, '--output', final)
+    assert resources(final) == resources(cooked)
+package('verify', base, patch, removed)
+print(f'Package bytes: base={base.stat().st_size}, texture delta={patch.stat().st_size}, removal={removed.stat().st_size}')
 print('PASS: one reproducible cooked pack, small one-texture delta, exact layered view and explicit removal')

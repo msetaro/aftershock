@@ -38,14 +38,30 @@ implementation: owned sources cook, but package creation fails at the absent
 tools/package.py (content-first-before.log). The test requires reproducible full
 packaging, per-asset hashes, a small one-texture delta, exact base/patch extraction
 and an explicit removed-file entry. No accepted source, golden or fixture changes.
-Record the initial failing check, then implement the offline package writer;
-read/mount integration and final runtime acceptance must follow on top of accepted
-#19 main. Do not merge #20 before #19.
+The initial failing check is committed at 40322427. The offline writer now passes
+(content-first-after.log): base 15,063 bytes, texture delta 2,089, removal 460.
+Its v1 format, content identity, compression and patch rules are documented in
+docs/design/packages.md. Add native/platform stream and mount acceptance tests
+before runtime implementation, on top of accepted #19 main. Do not merge #20 before #19.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input
 is currently needed. Do not end at a checkpoint or CI wait.
+
+## #20 offline package and manifest-diff implementation
+
+The writer uses Python's existing SHA256/zlib facilities, a fixed 128-byte header
+and index entries with 64-bit extents, per-asset uncompressed hashes and canonical
+JSON manifest. New/changed payloads and explicit removals form patches; required
+base and resulting identities bind each diff to the current mounted view.
+Stored and compressed assets coexist; source recipe manifests stay offline.
+Atomic publication preserves previous output on failure, and extraction refuses
+an existing destination. No new dependency or accepted asset/golden changes.
+
+The owned-content test passes reproducible packaging, exact texture patch and
+removal views. This is not native mount acceptance. The implementation/spec remain
+local until #19 is accepted and main is merged forward.
 
 ## #20 first packaging acceptance test
 
