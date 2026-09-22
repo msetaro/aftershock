@@ -43,5 +43,14 @@ run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti'
      'tests/probes/join_ticket.cpp', 'engine/qcommon/join.cpp', sha, '-o', probe])
 payload = '1.18446744073709551615.match-1.2000.2120.'+'ab'*16
 signature = hmac.new(bytes([0x42])*32, ('aftershock/join/v1\n'+payload).encode(), hashlib.sha256).hexdigest()
-run([probe, payload+'.'+signature])
+invalid = []
+for field, value in [(0,'2'), (1,'0'), (1,'01'), (1,'18446744073709551616'),
+                     (2,'match-2'), (3,'02000'), (3,'0'), (4,'2121'), (4,'2000'),
+                     (5,'AB'*16), (5,'zz'*16)]:
+    fields = payload.split('.')
+    fields[field] = value
+    bad = '.'.join(fields)
+    digest = hmac.new(bytes([0x42])*32, ('aftershock/join/v1\n'+bad).encode(), hashlib.sha256).hexdigest()
+    invalid.append(bad+'.'+digest)
+run([probe, payload+'.'+signature, *invalid])
 print('PASS: versioned schemas, Go/native join-ticket parity and one-use nonce retention')

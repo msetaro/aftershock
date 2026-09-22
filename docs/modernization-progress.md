@@ -42,8 +42,10 @@ The initial schema/API checks fail before implementation (c5217257). The v1
 schema, bounded decoders and domain-separated HMAC join-ticket contract now pass
 with an independent Python signature oracle. Existing match-controller Go race
 tests also pass after moving its unchanged bounded JSON decoder into the shared
-contract package. Next: native ticket validation/replay tests before server
-integration, then persistent backend services and real client/kind acceptance.
+contract package. The native verifier and nonce store now pass both compiler UBSan probes, using
+the same Python signature oracle and correctly signed invalid-claim controls.
+Next: server identity/connect integration tests, persistent backend services and
+real client/kind acceptance.
 
 Resume the active predecessor gates before any later issue can merge:
 - #31 PR174 is fully accepted on main 5caa2c1c; #31 is closed again.
@@ -92,6 +94,23 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
+
+## #29 native ticket verification
+
+The new portable qcommon owner verifies the exact shared compact contract using
+the existing vendored SHA-256 implementation and bounded stack buffers. It checks
+canonical decimal/hex encodings, full-width identities, key width, match and time
+bounds, then compares every MAC byte before returning copied POD claims. Rejected
+outputs are cleared. A fixed 256-entry per-match nonce store rejects duplicates,
+fails closed when all entries are live and reuses only expired entries. It adds
+no allocation or platform call and is registered in the existing source list.
+GCC and Clang/libc++ UBSan probes pass against the independent Python signature,
+including correctly signed invalid versions, IDs/overflow, times/lifetimes,
+matches and nonce encodings (backend-native-{gcc,clang}.log). Targeted tidy is
+clean; format/type/boundary checks pass. The signer/native verifier/nonce store
+are not yet connected to actual client/server authentication. That integration
+must check expected players and handle handshake retransmission without allowing
+a new connection to reuse a consumed ticket.
 
 ## #29 native join-ticket contract, test first
 

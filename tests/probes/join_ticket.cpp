@@ -6,7 +6,7 @@
 
 static_assert( std::is_trivially_destructible_v<joinClaims_t> && std::is_trivially_destructible_v<joinReplay_t> );
 int main( int argc, char **argv ) {
-	assert( argc == 2 );
+	assert( argc >= 2 );
 	const char *key = "4242424242424242424242424242424242424242424242424242424242424242";
 	const char *token = argv[1];
 	joinClaims_t claims;
@@ -35,6 +35,9 @@ int main( int argc, char **argv ) {
 	memset( bad, 'x', sizeof( bad ) - 1 );
 	bad[sizeof( bad ) - 1] = 0;
 	assert( !Join_Verify( key, bad, "match-1", 2050, &rejected ) );
+
+	for ( int i = 2; i < argc; ++i )
+		assert( !Join_Verify( key, argv[i], "match-1", 2050, &rejected ) && !rejected.player );
 
 	joinReplay_t replay = {};
 	assert( Join_Consume( &replay, claims, 2050 ) );
