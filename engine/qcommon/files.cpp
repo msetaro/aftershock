@@ -37,6 +37,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qcommon_public.h"
 #include "filesystem_public.h"
 #include "package_public.h"
+#include <cerrno>
 #include "../../third_party/minizip/unzip.h"
 
 /*
@@ -1891,6 +1892,37 @@ int FS_Home_FOpenFileRead( const char *filename, fileHandle_t *file ) {
 
 	*file = FS_INVALID_HANDLE;
 	return -1;
+}
+
+
+int FS_ReadSave( const char *path, void *data, int capacity ) {
+	if ( !path || !*path || FS_CheckDirTraversal( path ) || capacity < 0 )
+		return -1;
+	fileHandle_t file;
+	const int length = FS_Home_FOpenFileRead( path, &file );
+	if ( file == FS_INVALID_HANDLE )
+		return -1;
+	const bool complete = length > 0 && ( !data || ( length <= capacity && FS_Read( data, length, file ) == length ) );
+	FS_FCloseFile( file );
+	return complete ? length : -1;
+}
+saveWriteResult_t FS_CreateSave( const char *path, const void *data, int size ) {
+	if ( !fs_searchpaths || !path || !*path || FS_CheckDirTraversal( path ) || !data || size <= 0 )
+		return saveWriteResult_t::Failed;
+	char osPath[MAX_OSPATH];
+	Q_strncpyz( osPath, FS_BuildOSPath( fs_homepath->string, fs_gamedir, path ), sizeof( osPath ) );
+	if ( FS_CreatePath( osPath ) )
+		return saveWriteResult_t::Failed;
+	// C11 exclusive creation preserves existing revisions, including racing saves.
+	FILE *file = Sys_FOpen( osPath, "wbx" );
+	if ( !file )
+		return errno == EEXIST ? saveWriteResult_t::Exists : saveWriteResult_t::Failed;
+	const bool written = fwrite( data, 1, size_t( size ), file ) == size_t( size );
+	const bool closed = fclose( file ) == 0;
+	if ( written && closed )
+		return saveWriteResult_t::Written;
+	FS_Remove( osPath );
+	return saveWriteResult_t::Failed;
 }
 
 

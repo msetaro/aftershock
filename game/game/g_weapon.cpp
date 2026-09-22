@@ -1129,3 +1129,15 @@ void G_StartKamikaze( gentity_t *ent ) {
 	te->s.eventParm = GTS_KAMIKAZE;
 }
 #endif
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_weapon[] = {
+#ifdef MISSIONPACK
+	{ .name = "KamikazeDamage", .think = KamikazeDamage },
+#endif
+	{ .name = "Weapon_HookFree", .think = Weapon_HookFree },
+	{ .name = "Weapon_HookThink", .think = Weapon_HookThink },
+	{ nullptr }
+};
+#endif

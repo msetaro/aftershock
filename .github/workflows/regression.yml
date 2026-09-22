@@ -103,6 +103,7 @@ jobs:
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/animation.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/physics.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/entities.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/state.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
 
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/ui_framework.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/weapons.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
@@ -374,6 +375,19 @@ jobs:
         run: python3 tests/devtools.py --output ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-devtools-tests --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Composed entity definitions and saved inspector edits
         run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/entities_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Versioned profiles and full-game checkpoint migration
+        run: |
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/profile_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/checkpoint_runtime.py --binary ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-dev-entities/build/release-linux-x86_64/quake3e.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Checkpoint evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: checkpoint-state
+          path: |
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-profile-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-checkpoint-runtime/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-checkpoint-runtime/*.json
       - name: Entity definition evidence
         if: always()
         uses: actions/upload-artifact@v7

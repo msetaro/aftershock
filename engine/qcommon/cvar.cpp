@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "q_shared.h"
 #include "qcommon_public.h"
+#include "../public/state_public.h"
+#include <cmath>
 
 static cvar_t *cvar_vars = NULL;
 static cvar_t *cvar_cheats;
@@ -66,7 +68,7 @@ static int64_t generateHashValue( const char *fname ) {
 Cvar_ValidateName
 ============
 */
-static qboolean Cvar_ValidateName( const char *name ) {
+qboolean Cvar_ValidateName( const char *name ) {
 	const char *s;
 	int c;
 
@@ -1199,7 +1201,7 @@ static void Cvar_Rand( int *ival, float *fval ) {
 	int icap;
 	float fcap;
 
-	*ival = rand();
+	*ival = Q_Rand();
 	*fval = (float)( *ival );
 
 	if ( Cmd_Argc() > 3 ) { // base
@@ -2050,8 +2052,178 @@ void Cvar_Init( void ) {
 	Cmd_AddCommand( "cvar_trim", Cvar_Trim_f );
 }
 
-#ifdef AFTERSHOCK_DEVTOOLS
 const cvar_t *Cvar_First( void ) {
 	return cvar_vars;
 }
-#endif
+int Cvar_Capacity( void ) {
+	return MAX_CVARS;
+}
+
+// Owner-selected names only: the coordinator supplies trusted bindings rather
+// than applying arbitrary archive names to platform/filesystem configuration.
+struct cvarStateSave_t {
+	char name[64], string[BIG_INFO_STRING], reset[BIG_INFO_STRING], latched[BIG_INFO_STRING], minimum[64], maximum[64];
+	uint32_t present, optional;
+	int32_t flags, modified, modifications, integer, validator, group;
+	float value;
+};
+static_assert( sizeof( cvarStateSave_t ) == 3 * BIG_INFO_STRING + 228 );
+static constexpr stateField_t cvarStateFields[] = {
+	{ "name", offsetof( cvarStateSave_t, name ), 64, stateType_t::String },
+	{ "string", offsetof( cvarStateSave_t, string ), BIG_INFO_STRING, stateType_t::String },
+	{ "reset", offsetof( cvarStateSave_t, reset ), BIG_INFO_STRING, stateType_t::String },
+	{ "latched", offsetof( cvarStateSave_t, latched ), BIG_INFO_STRING, stateType_t::String },
+	{ "minimum", offsetof( cvarStateSave_t, minimum ), 64, stateType_t::String },
+	{ "maximum", offsetof( cvarStateSave_t, maximum ), 64, stateType_t::String },
+	{ "present", offsetof( cvarStateSave_t, present ), 1, stateType_t::UInt32 },
+	{ "optional", offsetof( cvarStateSave_t, optional ), 1, stateType_t::UInt32 },
+	{ "flags", offsetof( cvarStateSave_t, flags ), 1, stateType_t::Int32 },
+	{ "modified", offsetof( cvarStateSave_t, modified ), 1, stateType_t::Int32 },
+	{ "modifications", offsetof( cvarStateSave_t, modifications ), 1, stateType_t::Int32 },
+	{ "integer", offsetof( cvarStateSave_t, integer ), 1, stateType_t::Int32 },
+	{ "validator", offsetof( cvarStateSave_t, validator ), 1, stateType_t::Int32 },
+	{ "group", offsetof( cvarStateSave_t, group ), 1, stateType_t::Int32 },
+	{ "value", offsetof( cvarStateSave_t, value ), 1, stateType_t::Float32 }
+};
+static bool ValidCvarState( const cvarStateSave_t &saved ) {
+	return saved.name[0] && Cvar_ValidateName( saved.name ) && saved.present <= 1 && saved.optional <= 7 &&
+		   !( saved.flags & ~0x3ffff ) && !( saved.flags & CVAR_PRIVATE ) && saved.modified >= 0 && saved.modified <= 1 &&
+		   saved.validator >= CV_NONE && saved.validator < CV_MAX && saved.group >= CVG_NONE && saved.group < CVG_MAX && std::isfinite( saved.value );
+}
+bool Cvar_WriteState( stateWriter_t *writer, const char *group, uint32_t slot, const char *name ) {
+	if ( !writer )
+		return false;
+	cvarStateSave_t saved{};
+	if ( !name || !name[0] || strlen( name ) >= sizeof( saved.name ) ) {
+		writer->failed = true;
+		return false;
+	}
+	strcpy( saved.name, name );
+	const auto *var = Cvar_FindVar( name );
+	if ( var ) {
+		const char *values[] = { var->string, var->resetString, var->latchedString, var->mins, var->maxs };
+		char *outputs[] = { saved.string, saved.reset, saved.latched, saved.minimum, saved.maximum };
+		for ( int i = 0; i < 5; ++i ) {
+			if ( ( i < 2 && !values[i] ) || ( values[i] && strlen( values[i] ) >= ( i < 3 ? BIG_INFO_STRING : 64 ) ) ) {
+				writer->failed = true;
+				return false;
+			}
+			if ( values[i] )
+				strcpy( outputs[i], values[i] );
+			if ( i >= 2 && values[i] )
+				saved.optional |= 1u << ( i - 2 );
+		}
+		saved.present = 1;
+		saved.flags = var->flags;
+		saved.modified = var->modified;
+		saved.modifications = var->modificationCount;
+		saved.integer = var->integer;
+		saved.validator = var->validator;
+		saved.group = var->group;
+		saved.value = var->value;
+	}
+	if ( !ValidCvarState( saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	const stateSchema_t schema = { group, 1, 1, sizeof( saved ), cvarStateFields, ARRAY_LEN( cvarStateFields ) };
+	return State_Append( writer, schema, slot, &saved );
+}
+// Collect only owner-selected missing names during a read-only validation pass.
+// Do not spend slots that a later phase might free: every prepare step must fit.
+static struct {
+	bool active;
+	int count, available;
+	char names[MAX_CVARS][64];
+} cvarStateCapacity;
+bool Cvar_CheckStateCapacity( const stateReader_t &reader, bool ( *validate )( const stateReader_t & ) ) {
+	if ( !validate || cvarStateCapacity.active )
+		return false;
+	cvarStateCapacity.count = cvarStateCapacity.available = 0;
+	for ( const auto &entry : cvar_indexes )
+		cvarStateCapacity.available += entry.name == nullptr;
+	cvarStateCapacity.active = true;
+	const bool valid = validate( reader );
+	cvarStateCapacity.active = false;
+	return valid;
+}
+static bool Cvar_ReserveStateName( const char *name ) {
+	for ( int i = 0; i < cvarStateCapacity.count; ++i )
+		if ( !Q_stricmp( name, cvarStateCapacity.names[i] ) )
+			return true;
+	if ( cvarStateCapacity.count == cvarStateCapacity.available )
+		return false;
+	Q_strncpyz( cvarStateCapacity.names[cvarStateCapacity.count++], name, sizeof( cvarStateCapacity.names[0] ) );
+	return true;
+}
+bool Cvar_ReadState( const stateReader_t &reader, const char *group, uint32_t slot, const char *name, bool apply, bool prepare, bool removable ) {
+	if ( apply && cvarStateCapacity.active )
+		return false;
+	cvarStateSave_t saved;
+	const stateSchema_t schema = { group, 1, 1, sizeof( saved ), cvarStateFields, ARRAY_LEN( cvarStateFields ) };
+	uint32_t version;
+	if ( !name || !State_Find( reader, schema, slot, &saved, &version ) || !ValidCvarState( saved ) || strcmp( name, saved.name ) )
+		return false;
+	auto *var = Cvar_FindVar( name );
+	if ( var && ( ( var->flags & CVAR_PRIVATE ) || ( !saved.present && !removable && !( var->flags & ( CVAR_USER_CREATED | CVAR_VM_CREATED ) ) ) ) )
+		return false;
+	if ( saved.present && !var ) {
+		bool available = false;
+		for ( const auto &entry : cvar_indexes )
+			available |= entry.name == nullptr;
+		if ( !available || ( cvarStateCapacity.active && !Cvar_ReserveStateName( name ) ) )
+			return false;
+	}
+	if ( !apply )
+		return true;
+	if ( !saved.present ) {
+		if ( var )
+			Cvar_Unset( var );
+		return true;
+	}
+	if ( !var )
+		var = Cvar_Get( name, saved.string, saved.flags );
+	if ( !var )
+		return false;
+	char **outputs[] = { &var->string, &var->resetString, &var->latchedString, &var->mins, &var->maxs };
+	const char *values[] = { saved.string, saved.reset, saved.latched, saved.minimum, saved.maximum };
+	for ( int i = 0; i < 5; ++i ) {
+		if ( *outputs[i] )
+			Z_Free( *outputs[i] );
+		*outputs[i] = ( i < 2 || ( saved.optional & ( 1u << ( i - 2 ) ) ) ) && !( prepare && i == 2 ) ? CopyString( values[i] ) : nullptr;
+	}
+	var->flags = saved.flags;
+	var->modified = (qboolean)saved.modified;
+	var->modificationCount = saved.modifications;
+	var->integer = saved.integer;
+	var->validator = (cvarValidator_t)saved.validator;
+	var->group = (cvarGroup_t)saved.group;
+	var->value = saved.value;
+	return true;
+}
+
+struct serverCvarState_t {
+	int32_t flags, changed;
+};
+static_assert( sizeof( serverCvarState_t ) == 8 );
+static constexpr int SERVER_CVAR_FLAGS = CVAR_SERVERINFO | CVAR_SYSTEMINFO;
+static constexpr stateField_t serverCvarFields[] = {
+	{ "flags", offsetof( serverCvarState_t, flags ), 1, stateType_t::Int32 },
+	{ "changed", offsetof( serverCvarState_t, changed ), 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t serverCvarSchema = { "engine.serverCvarNotifications", 1, 1, sizeof( serverCvarState_t ), serverCvarFields, 2 };
+bool Cvar_WriteServerState( stateWriter_t *writer ) {
+	const serverCvarState_t saved{ cvar_modifiedFlags & SERVER_CVAR_FLAGS, cvar_group[CVG_SERVER] };
+	return State_Append( writer, serverCvarSchema, 0, &saved );
+}
+bool Cvar_ReadServerState( const stateReader_t &reader, bool apply ) {
+	serverCvarState_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, serverCvarSchema, 0, &saved, &version ) || ( saved.flags & ~SERVER_CVAR_FLAGS ) || saved.changed < 0 || saved.changed > 1 )
+		return false;
+	if ( apply ) {
+		cvar_modifiedFlags = ( cvar_modifiedFlags & ~SERVER_CVAR_FLAGS ) | saved.flags;
+		cvar_group[CVG_SERVER] = saved.changed;
+	}
+	return true;
+}

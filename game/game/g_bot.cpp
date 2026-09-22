@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // g_bot.c
 
 #include "g_local.h"
+#include "../../third_party/sha256/sha-256.h"
 
 
 static int g_numBots;
@@ -970,6 +971,8 @@ void G_InitBots( qboolean restart ) {
 	G_LoadArenas();
 
 	trap_Cvar_Register( &bot_minplayers, "bot_minplayers", "0", CVAR_SERVERINFO );
+	if ( GameImport_LoadingCheckpoint() )
+		return;
 
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
 		trap_GetServerinfo( serverinfo, sizeof( serverinfo ) );
@@ -1010,4 +1013,105 @@ void G_InitBots( qboolean restart ) {
 			G_SpawnBots( Info_ValueForKey( arenainfo, "bots" ), basedelay );
 		}
 	}
+}
+
+#ifdef __cplusplus
+struct botQueueSave_t {
+	int32_t minimumTime, clients[BOT_SPAWN_QUEUE_DEPTH], times[BOT_SPAWN_QUEUE_DEPTH];
+};
+static_assert( sizeof( botQueueSave_t ) == 132 );
+static constexpr stateField_t botQueueFields[] = {
+	{ "minimumTime", offsetof( botQueueSave_t, minimumTime ), 1, stateType_t::Int32 },
+	{ "clients", offsetof( botQueueSave_t, clients ), BOT_SPAWN_QUEUE_DEPTH, stateType_t::Int32 },
+	{ "times", offsetof( botQueueSave_t, times ), BOT_SPAWN_QUEUE_DEPTH, stateType_t::Int32 }
+};
+static constexpr stateSchema_t botQueueSchema = { "game.botQueue", 1, 1, sizeof( botQueueSave_t ), botQueueFields, 3 };
+static bool ValidBotQueue( const botQueueSave_t &saved ) {
+	for ( int client : saved.clients )
+		if ( client < 0 || client >= MAX_CLIENTS )
+			return false;
+	return true;
+}
+bool G_WriteBotQueueState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	botQueueSave_t saved;
+	saved.minimumTime = checkminimumplayers_time;
+	for ( int i = 0; i < BOT_SPAWN_QUEUE_DEPTH; ++i ) {
+		saved.clients[i] = botSpawnQueue[i].clientNum;
+		saved.times[i] = botSpawnQueue[i].spawnTime;
+	}
+	if ( !ValidBotQueue( saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, botQueueSchema, 0, &saved );
+}
+bool G_ReadBotQueueState( const stateReader_t &reader, bool apply ) {
+	botQueueSave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, botQueueSchema, 0, &saved, &version ) || !ValidBotQueue( saved ) )
+		return false;
+	if ( apply ) {
+		checkminimumplayers_time = saved.minimumTime;
+		for ( int i = 0; i < BOT_SPAWN_QUEUE_DEPTH; ++i )
+			botSpawnQueue[i] = { saved.clients[i], saved.times[i] };
+	}
+	return true;
+}
+#endif
+
+struct botInfoIdentity_t {
+	int32_t bots, arenas;
+	uint8_t hash[32];
+};
+static_assert( sizeof( botInfoIdentity_t ) == 40 );
+static constexpr stateField_t botInfoFields[] = {
+	{ "bots", offsetof( botInfoIdentity_t, bots ), 1, stateType_t::Int32 },
+	{ "arenas", offsetof( botInfoIdentity_t, arenas ), 1, stateType_t::Int32 },
+	{ "hash", offsetof( botInfoIdentity_t, hash ), 32, stateType_t::Bytes }
+};
+static constexpr stateSchema_t botInfoSchema = { "game.botInfo", 1, 1, sizeof( botInfoIdentity_t ), botInfoFields, 3 };
+static bool BotInfoIdentity( botInfoIdentity_t *saved ) {
+	*saved = {};
+	if ( g_numBots < 0 || g_numBots > MAX_BOTS || g_numArenas < 0 || g_numArenas > MAX_ARENAS )
+		return false;
+	saved->bots = g_numBots;
+	saved->arenas = g_numArenas;
+	Sha_256 hash;
+	sha_256_init( &hash, saved->hash );
+	for ( int group = 0; group < 2; ++group )
+		for ( int i = 0; i < ( group ? g_numArenas : g_numBots ); ++i ) {
+			const char *info = group ? g_arenaInfos[i] : g_botInfos[i];
+			if ( !info || strlen( info ) >= MAX_INFO_STRING )
+				return false;
+			sha_256_write( &hash, info, strlen( info ) + 1 );
+		}
+	sha_256_close( &hash );
+	return true;
+}
+bool G_WriteBotInfoState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	botInfoIdentity_t saved;
+	if ( !BotInfoIdentity( &saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, botInfoSchema, 0, &saved );
+}
+bool G_ReadBotInfoState( const stateReader_t &reader ) {
+	botInfoIdentity_t saved, loaded;
+	uint32_t version;
+	return BotInfoIdentity( &loaded ) && State_Find( reader, botInfoSchema, 0, &saved, &version ) && !memcmp( &saved, &loaded, sizeof( saved ) );
+}
+
+static const gCachedCvar_t savedBotQueueCvars[] = {
+	{ "bot_minplayers", &bot_minplayers },
+};
+bool G_WriteBotQueueCvarState( stateWriter_t *writer ) {
+	return G_WriteCachedCvars( writer, "game.cvars.BotQueue", savedBotQueueCvars, sizeof( savedBotQueueCvars ) / sizeof( savedBotQueueCvars[0] ) );
+}
+bool G_ReadBotQueueCvarState( const stateReader_t &reader, int apply ) {
+	return G_ReadCachedCvars( reader, "game.cvars.BotQueue", savedBotQueueCvars, sizeof( savedBotQueueCvars ) / sizeof( savedBotQueueCvars[0] ), apply );
 }

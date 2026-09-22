@@ -358,6 +358,12 @@ void GameImport_Cvar_Register( void *cvar, const char *var_name, const char *val
 	Cvar_Register( (vmCvar_t *)cvar, (const char *)var_name, (const char *)value, flags, 0 );
 	return;
 }
+int GameImport_WriteCvarState( void *writer, const char *group, uint32_t slot, const char *name ) {
+	return Cvar_WriteState( (stateWriter_t *)writer, group, slot, name );
+}
+int GameImport_ReadCvarState( const void *reader, const char *group, uint32_t slot, const char *name, int apply, int removable ) {
+	return reader && apply >= 0 && apply <= 2 && Cvar_ReadState( *(const stateReader_t *)reader, group, slot, name, apply != 0, apply == 2, removable != 0 );
+}
 void GameImport_Cvar_Update( void *cvar ) {
 	Cvar_Update( (vmCvar_t *)cvar, 0 );
 	return;
@@ -1159,4 +1165,12 @@ qboolean SV_GameCommand( void ) {
 
 int GameImport_GetPlayerIdentity( int clientNum, uint64_t *id ) {
 	return SV_PlayerIdentity( clientNum, id );
+}
+
+int GameImport_ValidateBotHandles( int character, int move, int goal, int weapon, int chat ) {
+	return BotLib_HasActorState( character, move, goal, weapon, chat );
+}
+
+int GameImport_LoadingCheckpoint( void ) {
+	return SV_CheckpointLoading();
 }

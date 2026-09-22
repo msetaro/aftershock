@@ -40,6 +40,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_aas_def.h"
+#include "../../third_party/sha256/sha-256.h"
 
 extern botlib_import_t botimport;
 
@@ -463,3 +464,58 @@ int AAS_LoadBSPFile( void ) {
 	bspworld.loaded = qtrue;
 	return BLERR_NOERROR;
 } //end of the function AAS_LoadBSPFile
+
+struct bspContentSave_t {
+	int32_t loaded, bytes, entities;
+	uint8_t hash[32];
+};
+static constexpr stateField_t bspContentFields[] = {
+	{ "loaded", offsetof( bspContentSave_t, loaded ), 1, stateType_t::Int32 },
+	{ "bytes", offsetof( bspContentSave_t, bytes ), 1, stateType_t::Int32 },
+	{ "entities", offsetof( bspContentSave_t, entities ), 1, stateType_t::Int32 },
+	{ "hash", offsetof( bspContentSave_t, hash ), 32, stateType_t::Bytes }
+};
+static constexpr stateSchema_t bspContentSchema = { "botlib.bspContent", 1, 1, sizeof( bspContentSave_t ), bspContentFields, 4 };
+static bool BSPContentIdentity( bspContentSave_t *saved ) {
+	*saved = {};
+	saved->loaded = bspworld.loaded;
+	saved->bytes = bspworld.entdatasize;
+	saved->entities = bspworld.numentities;
+	if ( saved->loaded < 0 || saved->loaded > 1 || saved->bytes < 0 || saved->entities < 0 || saved->entities > MAX_BSPENTITIES ||
+		 bool( saved->bytes ) != bool( bspworld.dentdata ) || ( saved->bytes && ( bspworld.dentdata[saved->bytes - 1] || strlen( bspworld.dentdata ) + 1 != size_t( saved->bytes ) ) ) )
+		return false;
+	Sha_256 hash;
+	sha_256_init( &hash, saved->hash );
+	if ( saved->bytes )
+		sha_256_write( &hash, bspworld.dentdata, size_t( saved->bytes ) );
+	// Epair lists are parsed once from dentdata and only exposed through getters.
+	// Verify their order too, without persisting any map content in the archive.
+	for ( int i = 0; i < saved->entities; ++i ) {
+		uint32_t count = 0;
+		for ( auto *pair = bspworld.entities[i].epairs; pair; pair = pair->next ) {
+			if ( ++count > 65536 || !pair->key || !pair->value )
+				return false;
+			sha_256_write( &hash, pair->key, strlen( pair->key ) + 1 );
+			sha_256_write( &hash, pair->value, strlen( pair->value ) + 1 );
+		}
+		sha_256_write( &hash, &count, sizeof( count ) );
+	}
+	sha_256_close( &hash );
+	return true;
+}
+bool AAS_WriteBSPContentState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	bspContentSave_t saved;
+	if ( !BSPContentIdentity( &saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, bspContentSchema, 0, &saved );
+}
+bool AAS_ReadBSPContentState( const stateReader_t &reader ) {
+	bspContentSave_t saved, loaded;
+	uint32_t version;
+	return BSPContentIdentity( &loaded ) && State_Find( reader, bspContentSchema, 0, &saved, &version ) &&
+		   saved.loaded == loaded.loaded && saved.bytes == loaded.bytes && saved.entities == loaded.entities && !memcmp( saved.hash, loaded.hash, sizeof( saved.hash ) );
+}

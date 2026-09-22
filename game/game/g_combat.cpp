@@ -1182,3 +1182,38 @@ qboolean G_RadiusDamage( vec3_t origin, gentity_t *attacker, float damage, float
 
 	return hitClient;
 }
+
+#ifdef __cplusplus
+// Stable save identities; static callbacks stay in their owning translation unit.
+extern const gSaveCallback_t saveCallbacks_g_combat[] = {
+#ifdef MISSIONPACK
+	{ .name = "Kamikaze_DeathActivate", .think = Kamikaze_DeathActivate },
+#endif
+	{ .name = "body_die", .die = body_die },
+	{ .name = "player_die", .die = player_die },
+	{ nullptr }
+};
+#endif
+
+#ifdef __cplusplus
+static constexpr stateField_t combatFields[] = { { "deathAnimationIndex", 0, 1, stateType_t::Int32 } };
+static constexpr stateSchema_t combatSchema = { "game.combat", 1, 1, sizeof( int32_t ), combatFields, 1 };
+bool G_WriteCombatState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	if ( deathAnimationIndex < 0 || deathAnimationIndex > 2 ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, combatSchema, 0, &deathAnimationIndex );
+}
+bool G_ReadCombatState( const stateReader_t &reader, bool apply ) {
+	int32_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, combatSchema, 0, &saved, &version ) || saved < 0 || saved > 2 )
+		return false;
+	if ( apply )
+		deathAnimationIndex = saved;
+	return true;
+}
+#endif

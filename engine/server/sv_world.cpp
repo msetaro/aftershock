@@ -684,3 +684,128 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 
 	return contents;
 }
+
+// Checkpoint spatial ownership is not derived from currentOrigin: player code
+// links a snapped origin, then restores the precise origin without relinking.
+#include "../public/state_public.h"
+struct worldSave_t {
+	int32_t sectors, entities;
+	int32_t heads[AREA_NODES], axes[AREA_NODES], children[AREA_NODES][2];
+	float distances[AREA_NODES];
+	int32_t sector[MAX_GENTITIES], next[MAX_GENTITIES], count[MAX_GENTITIES];
+	int32_t last[MAX_GENTITIES], area[MAX_GENTITIES], area2[MAX_GENTITIES];
+	int32_t clusters[MAX_GENTITIES][MAX_ENT_CLUSTERS];
+};
+static_assert( sizeof( worldSave_t ) == 8 + AREA_NODES * 20 + MAX_GENTITIES * ( 6 + MAX_ENT_CLUSTERS ) * 4 );
+static constexpr stateField_t worldSaveFields[] = {
+	{ "sectors", offsetof( worldSave_t, sectors ), 1, stateType_t::Int32 },
+	{ "entities", offsetof( worldSave_t, entities ), 1, stateType_t::Int32 },
+	{ "heads", offsetof( worldSave_t, heads ), AREA_NODES, stateType_t::Int32 },
+	{ "axes", offsetof( worldSave_t, axes ), AREA_NODES, stateType_t::Int32 },
+	{ "children", offsetof( worldSave_t, children ), AREA_NODES * 2, stateType_t::Int32 },
+	{ "distances", offsetof( worldSave_t, distances ), AREA_NODES, stateType_t::Float32 },
+	{ "sector", offsetof( worldSave_t, sector ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "next", offsetof( worldSave_t, next ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "count", offsetof( worldSave_t, count ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "last", offsetof( worldSave_t, last ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "area", offsetof( worldSave_t, area ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "area2", offsetof( worldSave_t, area2 ), MAX_GENTITIES, stateType_t::Int32 },
+	{ "clusters", offsetof( worldSave_t, clusters ), MAX_GENTITIES *MAX_ENT_CLUSTERS, stateType_t::Int32 }
+};
+static constexpr stateSchema_t worldSaveSchema{ "engine.spatial", 1, 1, sizeof( worldSave_t ), worldSaveFields, ARRAY_LEN( worldSaveFields ) };
+template <typename T>
+static int WorldStateIndex( const T *value, const T *base, int count ) {
+	if ( !value )
+		return -1;
+	const uintptr_t address = uintptr_t( value ), begin = uintptr_t( base );
+	if ( address < begin || address - begin >= sizeof( T ) * size_t( count ) || ( address - begin ) % sizeof( T ) )
+		return -2;
+	return int( ( address - begin ) / sizeof( T ) );
+}
+static bool ValidWorldState( const worldSave_t &saved ) {
+	if ( saved.sectors != sv_numworldSectors || saved.sectors < 1 || saved.sectors > AREA_NODES ||
+		 saved.entities < 1 || saved.entities > MAX_GENTITIES )
+		return false;
+	bool seen[MAX_GENTITIES]{};
+	for ( int i = 0; i < AREA_NODES; ++i ) {
+		const auto &sector = sv_worldSectors[i];
+		if ( saved.axes[i] != sector.axis || memcmp( &saved.distances[i], &sector.dist, sizeof( sector.dist ) ) ||
+			 saved.children[i][0] != WorldStateIndex( sector.children[0], sv_worldSectors, saved.sectors ) ||
+			 saved.children[i][1] != WorldStateIndex( sector.children[1], sv_worldSectors, saved.sectors ) ||
+			 ( i >= saved.sectors && saved.heads[i] != -1 ) )
+			return false;
+		for ( int entity = saved.heads[i]; entity != -1; entity = saved.next[entity] ) {
+			if ( entity < 0 || entity >= saved.entities || seen[entity] || saved.sector[entity] != i )
+				return false;
+			seen[entity] = true;
+		}
+	}
+	const int clusters = CM_NumClusters(), areas = CM_NumAreas();
+	for ( int i = 0; i < MAX_GENTITIES; ++i ) {
+		if ( saved.sector[i] < -1 || saved.sector[i] >= saved.sectors || ( saved.sector[i] >= 0 ) != seen[i] ||
+			 saved.next[i] < -1 || saved.next[i] >= MAX_GENTITIES || saved.count[i] < 0 || saved.count[i] > MAX_ENT_CLUSTERS ||
+			 saved.last[i] < 0 || ( saved.last[i] && saved.last[i] >= clusters ) ||
+			 saved.area[i] < -1 || saved.area[i] >= areas || saved.area2[i] < -1 || saved.area2[i] >= areas )
+			return false;
+		for ( int j = 0; j < saved.count[i]; ++j )
+			if ( saved.clusters[i][j] < 0 || saved.clusters[i][j] >= clusters )
+				return false;
+	}
+	return true;
+}
+bool SV_WriteWorldState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	worldSave_t saved{};
+	saved.sectors = sv_numworldSectors;
+	saved.entities = sv.num_entities;
+	for ( int i = 0; i < AREA_NODES; ++i ) {
+		const auto &sector = sv_worldSectors[i];
+		saved.heads[i] = WorldStateIndex( sector.entities, sv.svEntities, MAX_GENTITIES );
+		saved.axes[i] = sector.axis;
+		saved.distances[i] = sector.dist;
+		for ( int j = 0; j < 2; ++j )
+			saved.children[i][j] = WorldStateIndex( sector.children[j], sv_worldSectors, AREA_NODES );
+	}
+	for ( int i = 0; i < MAX_GENTITIES; ++i ) {
+		const auto &entity = sv.svEntities[i];
+		saved.sector[i] = WorldStateIndex( entity.worldSector, sv_worldSectors, AREA_NODES );
+		saved.next[i] = WorldStateIndex( entity.nextEntityInWorldSector, sv.svEntities, MAX_GENTITIES );
+		saved.count[i] = entity.numClusters;
+		saved.last[i] = entity.lastCluster;
+		saved.area[i] = entity.areanum;
+		saved.area2[i] = entity.areanum2;
+		memcpy( saved.clusters[i], entity.clusternums, sizeof( entity.clusternums ) );
+	}
+	if ( !ValidWorldState( saved ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, worldSaveSchema, 0, &saved );
+}
+bool SV_ReadWorldState( const stateReader_t &reader, bool apply ) {
+	worldSave_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, worldSaveSchema, 0, &saved, &version ) || !ValidWorldState( saved ) )
+		return false;
+	if ( !apply )
+		return true;
+	if ( saved.entities != sv.num_entities )
+		return false;
+	for ( int i = 0; i < sv.num_entities; ++i )
+		if ( ( SV_GentityNum( i )->r.linked != qfalse ) != ( saved.sector[i] >= 0 ) )
+			return false;
+	for ( int i = 0; i < AREA_NODES; ++i )
+		sv_worldSectors[i].entities = saved.heads[i] < 0 ? nullptr : &sv.svEntities[saved.heads[i]];
+	for ( int i = 0; i < MAX_GENTITIES; ++i ) {
+		auto &entity = sv.svEntities[i];
+		entity.worldSector = saved.sector[i] < 0 ? nullptr : &sv_worldSectors[saved.sector[i]];
+		entity.nextEntityInWorldSector = saved.next[i] < 0 ? nullptr : &sv.svEntities[saved.next[i]];
+		entity.numClusters = saved.count[i];
+		entity.lastCluster = saved.last[i];
+		entity.areanum = saved.area[i];
+		entity.areanum2 = saved.area2[i];
+		memcpy( entity.clusternums, saved.clusters[i], sizeof( entity.clusternums ) );
+	}
+	return true;
+}

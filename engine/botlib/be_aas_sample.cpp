@@ -1293,3 +1293,159 @@ aas_plane_t *AAS_PlaneFromNum( int planenum ) {
 
 	return &aasworld.planes[planenum];
 } //end of the function AAS_PlaneFromNum
+
+// Checkpoints allow 65,536 areas; excess rejects. The link allocator has the same cap.
+static constexpr int MAX_SAVED_AAS_AREAS = 65536;
+static constexpr int MAX_SAVED_AAS_LINKS = 65536;
+struct aasLinksHeader_t {
+	int32_t count, areas, entities, free, freeCount;
+};
+static constexpr stateField_t aasLinksHeaderFields[] = {
+	{ "count", offsetof( aasLinksHeader_t, count ), 1, stateType_t::Int32 },
+	{ "areas", offsetof( aasLinksHeader_t, areas ), 1, stateType_t::Int32 },
+	{ "entities", offsetof( aasLinksHeader_t, entities ), 1, stateType_t::Int32 },
+	{ "free", offsetof( aasLinksHeader_t, free ), 1, stateType_t::Int32 },
+	{ "freeCount", offsetof( aasLinksHeader_t, freeCount ), 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t aasLinksHeaderSchema = { "botlib.aasLinkPool", 1, 1, sizeof( aasLinksHeader_t ), aasLinksHeaderFields, 5 };
+struct aasLinksSave_t {
+	int32_t entnum[MAX_SAVED_AAS_LINKS], areanum[MAX_SAVED_AAS_LINKS];
+	int32_t next_ent[MAX_SAVED_AAS_LINKS], prev_ent[MAX_SAVED_AAS_LINKS];
+	int32_t next_area[MAX_SAVED_AAS_LINKS], prev_area[MAX_SAVED_AAS_LINKS];
+	int32_t areaHeads[MAX_SAVED_AAS_AREAS], entityHeads[MAX_GENTITIES];
+};
+static aasLinksSave_t savedAASLinks;
+static uint8_t savedAASLinkUse[MAX_SAVED_AAS_LINKS];
+static bool AASLinkDimensions( const aasLinksHeader_t &header ) {
+	return aasworld.loaded && aasworld.initialized && aasworld.linkheap && aasworld.entities && aasworld.arealinkedentities &&
+		   header.count >= 2 && header.count <= MAX_SAVED_AAS_LINKS && header.count == aasworld.linkheapsize &&
+		   header.areas >= 1 && header.areas <= MAX_SAVED_AAS_AREAS && header.areas == aasworld.numareas &&
+		   header.entities >= 1 && header.entities <= MAX_GENTITIES && header.entities == aasworld.maxentities &&
+		   header.freeCount >= 0 && header.freeCount <= header.count;
+}
+static int AASLinkSlot( const aas_link_t *link ) {
+	if ( !link )
+		return -1;
+	const uintptr_t address = reinterpret_cast<uintptr_t>( link ), base = reinterpret_cast<uintptr_t>( aasworld.linkheap );
+	if ( address < base || ( address - base ) % sizeof( *link ) || ( address - base ) / sizeof( *link ) >= uint32_t( aasworld.linkheapsize ) )
+		return -2;
+	return int( ( address - base ) / sizeof( *link ) );
+}
+static bool AASLinkRecords( stateWriter_t *writer, const stateReader_t *reader, const aasLinksHeader_t &header ) {
+	const uint32_t count = uint32_t( header.count );
+	const stateField_t fields[] = {
+		{ "entnum", offsetof( aasLinksSave_t, entnum ), count, stateType_t::Int32 },
+		{ "areanum", offsetof( aasLinksSave_t, areanum ), count, stateType_t::Int32 },
+		{ "next_ent", offsetof( aasLinksSave_t, next_ent ), count, stateType_t::Int32 },
+		{ "prev_ent", offsetof( aasLinksSave_t, prev_ent ), count, stateType_t::Int32 },
+		{ "next_area", offsetof( aasLinksSave_t, next_area ), count, stateType_t::Int32 },
+		{ "prev_area", offsetof( aasLinksSave_t, prev_area ), count, stateType_t::Int32 },
+		{ "areaHeads", offsetof( aasLinksSave_t, areaHeads ), uint32_t( header.areas ), stateType_t::Int32 },
+		{ "entityHeads", offsetof( aasLinksSave_t, entityHeads ), uint32_t( header.entities ), stateType_t::Int32 }
+	};
+	const stateSchema_t schema = { "botlib.aasLinks", 1, 1, sizeof( savedAASLinks ), fields, 8 };
+	uint32_t version;
+	return writer ? State_Append( writer, schema, 0, &savedAASLinks ) : State_Find( *reader, schema, 0, &savedAASLinks, &version );
+}
+static bool ValidAASLinks( const aasLinksHeader_t &header ) {
+	memset( savedAASLinkUse, 0, sizeof( savedAASLinkUse ) );
+	for ( int entity = 0; entity < header.entities; ++entity ) {
+		int previous = -1;
+		for ( int slot = savedAASLinks.entityHeads[entity]; slot != -1; slot = savedAASLinks.next_area[slot] ) {
+			if ( slot < 0 || slot >= header.count || savedAASLinkUse[slot] || savedAASLinks.entnum[slot] != entity ||
+				 savedAASLinks.areanum[slot] <= 0 || savedAASLinks.areanum[slot] >= header.areas || savedAASLinks.prev_area[slot] != previous )
+				return false;
+			savedAASLinkUse[slot] = 1;
+			previous = slot;
+		}
+	}
+	for ( int area = 0; area < header.areas; ++area ) {
+		int previous = -1;
+		for ( int slot = savedAASLinks.areaHeads[area]; slot != -1; slot = savedAASLinks.next_ent[slot] ) {
+			if ( slot < 0 || slot >= header.count || savedAASLinkUse[slot] != 1 || savedAASLinks.areanum[slot] != area || savedAASLinks.prev_ent[slot] != previous )
+				return false;
+			savedAASLinkUse[slot] = 3;
+			previous = slot;
+		}
+	}
+	int previous = -1, freeCount = 0;
+	for ( int slot = header.free; slot != -1; slot = savedAASLinks.next_ent[slot] ) {
+		if ( slot < 0 || slot >= header.count || savedAASLinkUse[slot] || savedAASLinks.prev_ent[slot] != previous )
+			return false;
+		savedAASLinkUse[slot] = 4;
+		previous = slot;
+		++freeCount;
+	}
+	if ( freeCount != header.freeCount )
+		return false;
+	for ( int slot = 0; slot < header.count; ++slot )
+		if ( savedAASLinkUse[slot] != 3 && savedAASLinkUse[slot] != 4 )
+			return false;
+	return true;
+}
+bool AAS_WriteLinkState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	aasLinksHeader_t header{ aasworld.linkheapsize, aasworld.numareas, aasworld.maxentities, -1, numaaslinks };
+	if ( !AASLinkDimensions( header ) ) {
+		writer->failed = true;
+		return false;
+	}
+	header.free = AASLinkSlot( aasworld.freelinks );
+	savedAASLinks = {};
+	memset( savedAASLinkUse, 0, sizeof( savedAASLinkUse ) );
+	for ( int i = 0; i < header.count; ++i ) {
+		savedAASLinks.next_ent[i] = AASLinkSlot( aasworld.linkheap[i].next_ent );
+		savedAASLinks.prev_ent[i] = AASLinkSlot( aasworld.linkheap[i].prev_ent );
+		savedAASLinks.next_area[i] = savedAASLinks.prev_area[i] = -1;
+	}
+	for ( int area = 0; area < header.areas; ++area )
+		savedAASLinks.areaHeads[area] = AASLinkSlot( aasworld.arealinkedentities[area] );
+	for ( int entity = 0; entity < header.entities; ++entity ) {
+		savedAASLinks.entityHeads[entity] = AASLinkSlot( aasworld.entities[entity].areas );
+		for ( int slot = savedAASLinks.entityHeads[entity]; slot != -1; slot = savedAASLinks.next_area[slot] ) {
+			if ( slot < 0 || slot >= header.count || savedAASLinkUse[slot] ) {
+				writer->failed = true;
+				return false;
+			}
+			savedAASLinkUse[slot] = 1;
+			const auto &link = aasworld.linkheap[slot];
+			savedAASLinks.entnum[slot] = link.entnum;
+			savedAASLinks.areanum[slot] = link.areanum;
+			savedAASLinks.next_area[slot] = AASLinkSlot( link.next_area );
+			savedAASLinks.prev_area[slot] = AASLinkSlot( link.prev_area );
+		}
+	}
+	if ( !ValidAASLinks( header ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return State_Append( writer, aasLinksHeaderSchema, 0, &header ) && AASLinkRecords( writer, nullptr, header );
+}
+bool AAS_ReadLinkState( const stateReader_t &reader, bool apply ) {
+	aasLinksHeader_t header;
+	uint32_t version;
+	if ( !State_Find( reader, aasLinksHeaderSchema, 0, &header, &version ) || !AASLinkDimensions( header ) || !AASLinkRecords( nullptr, &reader, header ) || !ValidAASLinks( header ) )
+		return false;
+	if ( apply ) {
+		for ( int slot = 0; slot < header.count; ++slot ) {
+			auto &link = aasworld.linkheap[slot];
+			link = {};
+			link.next_ent = savedAASLinks.next_ent[slot] < 0 ? nullptr : &aasworld.linkheap[savedAASLinks.next_ent[slot]];
+			link.prev_ent = savedAASLinks.prev_ent[slot] < 0 ? nullptr : &aasworld.linkheap[savedAASLinks.prev_ent[slot]];
+			if ( savedAASLinkUse[slot] != 3 )
+				continue; // Free payload is overwritten by linking.
+			link.entnum = savedAASLinks.entnum[slot];
+			link.areanum = savedAASLinks.areanum[slot];
+			link.next_area = savedAASLinks.next_area[slot] < 0 ? nullptr : &aasworld.linkheap[savedAASLinks.next_area[slot]];
+			link.prev_area = savedAASLinks.prev_area[slot] < 0 ? nullptr : &aasworld.linkheap[savedAASLinks.prev_area[slot]];
+		}
+		for ( int area = 0; area < header.areas; ++area )
+			aasworld.arealinkedentities[area] = savedAASLinks.areaHeads[area] < 0 ? nullptr : &aasworld.linkheap[savedAASLinks.areaHeads[area]];
+		for ( int entity = 0; entity < header.entities; ++entity )
+			aasworld.entities[entity].areas = savedAASLinks.entityHeads[entity] < 0 ? nullptr : &aasworld.linkheap[savedAASLinks.entityHeads[entity]];
+		aasworld.freelinks = header.free < 0 ? nullptr : &aasworld.linkheap[header.free];
+		numaaslinks = header.freeCount;
+	}
+	return true;
+}

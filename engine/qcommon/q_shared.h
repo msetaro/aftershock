@@ -659,11 +659,24 @@ int Q_log2( int val );
 
 float Q_acos( float c );
 
+// Engine-thread libc stream. A negative signature marks draws before an engine seed.
+// Every owned consumer uses these wrappers; loading replays at most the bound below.
+typedef struct {
+	uint64_t draws;
+	uint32_t seed;
+	int32_t signature[8];
+} qRandomState_t;
+#define Q_RANDOM_MAX_DRAWS UINT64_C( 100000000 )
+int Q_Rand( void );
+void Q_Srand( uint32_t seed );
+qRandomState_t Q_GetRandomState( void );
+qboolean Q_RestoreRandomState( const qRandomState_t *state );
+
 int Q_rand( int *seed );
 float Q_random( int *seed );
 float Q_crandom( int *seed );
 
-#define random()	((rand () & 0x7fff) / ((float)0x7fff))
+#define random()	((Q_Rand () & 0x7fff) / ((float)0x7fff))
 #define crandom()	(2.0 * (random() - 0.5))
 
 void vectoangles( const vec3_t value1, vec3_t angles );

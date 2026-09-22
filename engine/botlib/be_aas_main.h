@@ -53,3 +53,8 @@ int AAS_Loaded( void );
 float AAS_Time( void );
 //
 void AAS_ProjectPointOntoVector( vec3_t point, vec3_t vStart, vec3_t vEnd, vec3_t vProj );
+
+#include "../public/state_public.h"
+// Restore routing-cache state with world state before resuming navigation queries.
+bool AAS_WriteWorldState( stateWriter_t *writer );
+bool AAS_ReadWorldState( const stateReader_t &reader, bool apply );

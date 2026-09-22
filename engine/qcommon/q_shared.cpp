@@ -20,8 +20,44 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 //
-// q_shared.c -- stateless support routines that are included in each code dll
+// q_shared.cpp -- shared support routines
 #include "q_shared.h"
+
+static qRandomState_t randomState = { 0, 1, { -1 } };
+static_assert( sizeof( qRandomState_t ) == 48 && offsetof( qRandomState_t, seed ) == 8 && offsetof( qRandomState_t, signature ) == 12 );
+
+void Q_Srand( uint32_t seed ) {
+	randomState = {};
+	randomState.seed = seed;
+	srand( seed );
+	for ( int32_t &value : randomState.signature )
+		value = rand();
+	// Sampling identifies the libc generator without consuming its public stream.
+	srand( seed );
+}
+int Q_Rand( void ) {
+	++randomState.draws;
+	return rand();
+}
+qRandomState_t Q_GetRandomState( void ) {
+	return randomState;
+}
+qboolean Q_RestoreRandomState( const qRandomState_t *state ) {
+	if ( !state || state->signature[0] < 0 || state->draws > Q_RANDOM_MAX_DRAWS )
+		return qfalse;
+	const qRandomState_t previous = Q_GetRandomState(), saved = *state;
+	if ( previous.signature[0] < 0 || previous.draws > Q_RANDOM_MAX_DRAWS )
+		return qfalse;
+	Q_Srand( saved.seed );
+	const bool compatible = !memcmp( saved.signature, randomState.signature, sizeof( saved.signature ) );
+	const qRandomState_t &chosen = compatible ? saved : previous;
+	Q_Srand( chosen.seed );
+	// ponytail: replay libc draws on explicit load; use a platform state provider if load latency warrants it.
+	for ( uint64_t i = 0; i < chosen.draws; ++i )
+		rand();
+	randomState = chosen;
+	return compatible ? qtrue : qfalse;
+}
 
 float Com_Clamp( float min, float max, float value ) {
 	if ( value < min ) {

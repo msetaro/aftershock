@@ -1344,3 +1344,18 @@ void FreeScript( script_t *script ) {
 void PS_SetBaseFolder( const char *path ) {
 	Q_strncpyz( basefolder, path, sizeof( basefolder ) );
 } //end of the function PS_SetBaseFolder
+
+static constexpr stateField_t scriptFolderField = { "basefolder", 0, MAX_QPATH, stateType_t::String };
+static constexpr stateSchema_t scriptFolderSchema = { "botlib.scriptFolder", 1, 1, MAX_QPATH, &scriptFolderField, 1 };
+bool PS_WriteState( stateWriter_t *writer ) {
+	return State_Append( writer, scriptFolderSchema, 0, basefolder );
+}
+bool PS_ReadState( const stateReader_t &reader, bool apply ) {
+	char saved[MAX_QPATH];
+	uint32_t version;
+	if ( !State_Find( reader, scriptFolderSchema, 0, saved, &version ) )
+		return false;
+	if ( apply )
+		memcpy( basefolder, saved, sizeof( basefolder ) );
+	return true;
+}

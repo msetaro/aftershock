@@ -1,0 +1,266 @@
+#define NATIVE_NAMESPACE game
+#define NATIVE_SOURCE "game/g_state.cpp"
+#include "../../game/module.cpp"
+
+static void Strings() {
+	game::gentity_t entity{};
+	entity.classname = "target_print";
+	entity.definitionName = "checkpoint_sign";
+	entity.model = (char *)""; // Empty and null have different meaning to game callbacks.
+	entity.message = (char *)"Saved message\nwith punctuation: \"hello\"";
+	entity.targetname = (char *)"checkpoint_target";
+	entity.targetShaderName = (char *)"textures/old";
+	entity.targetShaderNewName = (char *)"textures/new";
+	static game::gEntityStrings_t saved, decoded;
+	assert( game::G_CaptureEntityStrings( entity, &saved ) );
+	unsigned char bytes[8192];
+	const size_t size = State_Write( game::entityStringsSchema, &saved, bytes, sizeof( bytes ) );
+	assert( size );
+	uint32_t version;
+	assert( State_Read( game::entityStringsSchema, bytes, size, &decoded, &version ) && version == 1 );
+	char storage[8192]{};
+	game::gentity_t restored{};
+	restored.health = 63;
+	const size_t needed = game::G_EntityStringBytes( decoded );
+	assert( needed && needed < sizeof( storage ) );
+	assert( !game::G_RestoreEntityStrings( decoded, storage, needed - 1, &restored ) );
+	assert( restored.health == 63 && !restored.classname && !storage[0] );
+	assert( game::G_RestoreEntityStrings( decoded, storage, needed, &restored ) );
+	assert( restored.health == 63 && !strcmp( restored.classname, entity.classname ) );
+	assert( restored.classname != entity.classname && !strcmp( restored.definitionName, entity.definitionName ) );
+	assert( restored.model && !restored.model[0] && !restored.model2 );
+	assert( !strcmp( restored.message, entity.message ) && !strcmp( restored.targetname, entity.targetname ) );
+	assert( !strcmp( restored.targetShaderName, entity.targetShaderName ) && !strcmp( restored.targetShaderNewName, entity.targetShaderNewName ) );
+	const auto before = restored;
+	decoded.present |= 1u << 31;
+	assert( game::G_EntityStringBytes( decoded ) == SIZE_MAX );
+	assert( !game::G_RestoreEntityStrings( decoded, storage, sizeof( storage ), &restored ) );
+	assert( !memcmp( &before, &restored, sizeof( restored ) ) );
+	decoded = saved;
+	memset( decoded.message, 'x', sizeof( decoded.message ) );
+	assert( !game::G_RestoreEntityStrings( decoded, storage, sizeof( storage ), &restored ) );
+	assert( !memcmp( &before, &restored, sizeof( restored ) ) );
+	static char tooLarge[4097];
+	memset( tooLarge, 'x', sizeof( tooLarge ) - 1 );
+	entity.message = tooLarge;
+	assert( !game::G_CaptureEntityStrings( entity, &saved ) );
+	assert( !strcmp( saved.message, "Saved message\nwith punctuation: \"hello\"" ) );
+	entity = {};
+	assert( game::G_CaptureEntityStrings( entity, &saved ) );
+	assert( game::G_EntityStringBytes( saved ) == 0 );
+	assert( game::G_RestoreEntityStrings( saved, nullptr, 0, &restored ) );
+	assert( !restored.classname && !restored.model && !restored.message && !restored.definitionName );
+	puts( "PASS: entity strings retain null/empty identity and fit caller-owned lifetime storage" );
+}
+
+static void Scalars() {
+	game::gentity_t entity{};
+	entity.inuse = game::qtrue;
+	entity.rewindSpawn = UINT32_C( 0xfedcba98 );
+	entity.health = -19;
+	entity.pos1[0] = 3.25f;
+	entity.pos2[2] = -7.5f;
+	entity.moverState = game::MOVER_2TO1;
+	entity.nextthink = 987654;
+	entity.wait = -0.0f;
+	entity.s.number = 71;
+	entity.s.pos.trTime = 321;
+	entity.r.s.time = 1987;
+	entity.r.linked = game::qtrue;
+	entity.r.currentOrigin[1] = 456.75f;
+	entity.r.ownerNum = 2;
+	entity.r.contents = 0x12345678;
+	unsigned char archive[32768];
+	stateWriter_t writer{ archive, sizeof( archive ) };
+	assert( State_Append( &writer, game::gameEntitySchema, 71, &entity ) );
+	assert( State_Append( &writer, game::entitySharedSchema, 71, &entity.r ) );
+	assert( State_Append( &writer, game::entityStateSchema, 71, &entity.s ) );
+	assert( State_Append( &writer, game::entityStateSchema, 71 + MAX_GENTITIES, &entity.r.s ) );
+	const size_t size = State_Finish( &writer );
+	stateReader_t reader;
+	assert( size && State_Open(archive,size,&reader) );
+	game::gentity_t restored{};
+	uint32_t version;
+	assert( State_Find( reader, game::gameEntitySchema, 71, &restored, &version ) );
+	assert( State_Find( reader, game::entitySharedSchema, 71, &restored.r, &version ) );
+	assert( State_Find( reader, game::entityStateSchema, 71, &restored.s, &version ) );
+	assert( State_Find( reader, game::entityStateSchema, 71 + MAX_GENTITIES, &restored.r.s, &version ) );
+	assert( !memcmp(&entity,&restored,sizeof(entity)) );
+	puts( "PASS: full entity scalar/spatial state preserves trajectory, clocks, high bits and signed zero" );
+}
+
+static void Client() {
+	static game::gentity_t entities[4], replacement[4];
+	game::gStatePools_t pools{ entities, 4, nullptr, 0, nullptr, 0 };
+	game::gclient_t client{};
+	client.ps.clientNum = 1;
+	client.ps.commandTime = 12345;
+	client.ps.origin[1] = -73.25f;
+	client.ps.stats[game::STAT_HEALTH] = 67;
+	client.pers.cmd.serverTime = 12340;
+	client.pers.cmd.forwardmove = -127;
+	client.pers.connected = game::CON_CONNECTED;
+	client.pers.localClient = game::qtrue;
+	strcpy( client.pers.netname, "saved player" );
+	client.pers.teamState.captures = 2;
+	client.pers.teamState.flagsince = 19.5f;
+	client.sess.sessionTeam = game::TEAM_RED;
+	client.sess.spectatorClient = -1;
+	client.sess.teamLeader = game::qtrue;
+	client.damage_from[0] = 16.75f;
+	client.inactivityTime = 123456;
+	client.respawnTime = 19000;
+	client.timeResidual = 17;
+	client.hook = &entities[3];
+	unsigned char archive[32768];
+	stateWriter_t writer{ archive, sizeof( archive ) };
+	assert( game::G_WriteClientState(&writer,1,client,pools) );
+	const size_t size = State_Finish( &writer );
+	stateReader_t reader;
+	assert( size && State_Open(archive,size,&reader) );
+	pools.entities = replacement;
+	game::gclient_t restored{};
+	assert( game::G_ReadClientState(reader,1,pools,&restored) );
+	client.hook = &replacement[3];
+	assert( !memcmp(&client,&restored,sizeof(client)) );
+	assert( !game::G_ReadClientState(reader,2,pools,&restored) );
+	assert( !memcmp(&client,&restored,sizeof(client)) );
+	char unused = 0;
+	client.areabits = &unused;
+	writer = { archive, sizeof( archive ) };
+	assert( !game::G_WriteClientState(&writer,1,client,pools) && !State_Finish(&writer) );
+	puts( "PASS: client inventory, input, session, clocks and grapple survive draft restore" );
+}
+
+static void Level() {
+	static game::gentity_t entities[16], replacement[16];
+	static game::gclient_t clients[2], newClients[2];
+	game::gStatePools_t pools{ entities, 16, clients, 2, nullptr, 0 };
+	game::level_locals_t level{};
+	level.gentities = entities;
+	level.clients = clients;
+	level.gentitySize = 0; // Native map initialization leaves this legacy member unused.
+	level.num_entities = 16;
+	level.maxclients = 2;
+	level.logFile = 41;
+	level.framenum = 123;
+	level.time = 6170;
+	level.previousTime = 6150;
+	level.startTime = 1000;
+	level.teamScores[game::TEAM_RED] = 4;
+	level.voteTime = 5900;
+	strcpy( level.voteString, "map_restart" );
+	strcpy( level.teamVoteString[1], "leader 1" );
+	level.teamVoteYes[1] = 1;
+	level.intermission_origin[2] = 34.5f;
+	level.locationHead = &entities[3];
+	level.bodyQueIndex = 3;
+	for ( int i = 0; i < BODY_QUEUE_SIZE; ++i )
+		level.bodyQue[i] = &entities[i + 4];
+	level.changemap = (char *)"nextmap";
+	unsigned char archive[32768];
+	stateWriter_t writer{ archive, sizeof( archive ) };
+	assert( game::G_WriteLevelState(&writer,level,pools) );
+	const size_t size = State_Finish( &writer );
+	stateReader_t reader;
+	assert( size && State_Open(archive,size,&reader) );
+	pools.entities = replacement;
+	pools.clients = newClients;
+	game::level_locals_t restored{};
+	restored.logFile = 72;
+	game::gLevelStrings_t strings;
+	assert( game::G_ReadLevelState(reader,pools,&restored,&strings) );
+	char storage[64];
+	assert( game::G_RestoreLevelStrings(strings,storage,sizeof(storage),&restored) );
+	assert( !strcmp(restored.changemap,level.changemap) && restored.changemap!=level.changemap );
+	level.changemap = restored.changemap;
+	level.logFile = 72; // Fresh-process file handles are retained from map setup.
+	level.gentities = replacement;
+	level.clients = newClients;
+	level.locationHead = &replacement[3];
+	for ( int i = 0; i < BODY_QUEUE_SIZE; ++i )
+		level.bodyQue[i] = &replacement[i + 4];
+	assert( !memcmp(&level,&restored,sizeof(level)) );
+	level.spawning = game::qtrue;
+	writer = { archive, sizeof( archive ) };
+	assert( !game::G_WriteLevelState(&writer,level,pools) && !State_Finish(&writer) );
+	puts( "PASS: level clocks, votes, corpse queue and intermission restore with fresh process handles" );
+}
+
+int main() {
+	Level();
+	Client();
+	Scalars();
+	Strings();
+	static game::gentity_t entities[8], replacements[8];
+	static game::gclient_t clients[2], newClients[2];
+	game::gitem_t items[2]{}, newItems[2]{};
+	items[0].classname = (char *)"item_health";
+	items[1].classname = (char *)"weapon_rocketlauncher";
+	newItems[0] = items[1];
+	newItems[1] = items[0];
+	const game::gStatePools_t original{ entities, 8, clients, 2, items, 2 };
+	const game::gStatePools_t replacement{ replacements, 8, newClients, 2, newItems, 2 };
+	game::gentity_t entity{};
+	entity.client = &clients[1];
+	entity.parent = &entities[3];
+	entity.nextTrain = &entities[4];
+	entity.prevTrain = &entities[5];
+	entity.target_ent = &entities[6];
+	entity.chain = &entities[7];
+	entity.enemy = &entities[0];
+	entity.activator = &entities[1];
+	entity.teamchain = &entities[2];
+	entity.teammaster = &entities[3];
+	entity.item = &items[1];
+	game::gEntityRefs_t saved{};
+	assert( game::G_CaptureEntityRefs( entity, original, &saved ) );
+	unsigned char bytes[4096];
+	const size_t size = State_Write( game::entityRefsSchema, &saved, bytes, sizeof( bytes ) );
+	assert( size );
+	game::gEntityRefs_t decoded{};
+	uint32_t version;
+	assert( State_Read( game::entityRefsSchema, bytes, size, &decoded, &version ) && version == 1 );
+	game::gentity_t restored{};
+	restored.health = 19;
+	assert( game::G_RestoreEntityRefs( decoded, replacement, &restored ) );
+	assert( restored.health == 19 && restored.client == &newClients[1] );
+	assert( restored.parent == &replacements[3] && restored.nextTrain == &replacements[4] && restored.prevTrain == &replacements[5] );
+	assert( restored.target_ent == &replacements[6] && restored.chain == &replacements[7] && restored.enemy == &replacements[0] );
+	assert( restored.activator == &replacements[1] && restored.teamchain == &replacements[2] && restored.teammaster == &replacements[3] );
+	assert( restored.item == &newItems[0] ); // Item identity survives a reordered table.
+	unsigned char archive[32768];
+	stateWriter_t writer{ archive, sizeof( archive ) };
+	const game::gSaveCallback_t *callbacks[] = { nullptr };
+	assert( game::G_WriteEntityState(&writer,0,entity,original,callbacks) );
+	const size_t archiveSize = State_Finish( &writer );
+	stateReader_t reader;
+	assert( archiveSize && State_Open(archive,archiveSize,&reader) );
+	game::gentity_t draft{};
+	static game::gEntityStrings_t strings;
+	assert( game::G_ReadEntityState(reader,0,replacement,callbacks,&draft,&strings) );
+	assert( draft.parent==restored.parent && draft.client==restored.client && draft.item==restored.item );
+	assert( !game::G_ReadEntityState(reader,1,replacement,callbacks,&draft,&strings) );
+	assert( draft.parent==restored.parent && draft.client==restored.client && draft.item==restored.item );
+	const auto before = restored;
+	decoded.parent = 8;
+	assert( !game::G_RestoreEntityRefs( decoded, replacement, &restored ) );
+	assert( !memcmp( &before, &restored, sizeof( restored ) ) );
+	decoded = saved;
+	decoded.client = -2;
+	assert( !game::G_RestoreEntityRefs( decoded, replacement, &restored ) );
+	assert( !memcmp( &before, &restored, sizeof( restored ) ) );
+	decoded = saved;
+	strcpy( decoded.item, "missing" );
+	assert( !game::G_RestoreEntityRefs( decoded, replacement, &restored ) );
+	assert( !memcmp( &before, &restored, sizeof( restored ) ) );
+	entity.enemy = &restored; // A valid pointer, but outside the entity pool.
+	const auto previous = saved;
+	assert( !game::G_CaptureEntityRefs( entity, original, &saved ) );
+	assert( !memcmp( &previous, &saved, sizeof( saved ) ) );
+	entity = {};
+	assert( game::G_CaptureEntityRefs( entity, original, &saved ) );
+	assert( game::G_RestoreEntityRefs( saved, replacement, &restored ) );
+	assert( !restored.client && !restored.item && !restored.parent && !restored.enemy && !restored.teammaster );
+	puts( "PASS: entity/client slots and named items restore into different pools without saving addresses" );
+}

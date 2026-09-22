@@ -150,6 +150,9 @@ playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructi
   require the documented reference GPU. `python3 tests/streaming.py` checks residency.
 - Content packages: `python3 tests/packages.py` and
   `python3 tests/packages_runtime.py --binary CLIENT --server SERVER` (devtools client, both content sets).
+- Versioned state: `python3 tests/state.py`, `python3 tests/profile_runtime.py --binary CLIENT`
+  and `python3 tests/checkpoint_runtime.py --binary CLIENT` (devtools client; hosted
+  OpenArena includes the frozen full-game v1-to-v2 migration).
 - Recipe syntax: `python3 tests/agent_recipes.py --check`; runtime CI executes the
   same shell blocks using owned fixtures and private Git histories.
 
