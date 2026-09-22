@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 // Main-thread only. The provider owns SDK objects and queues callbacks for polling.
-// #23 installs Steamworks; an absent provider is anonymous and cannot authenticate.
+// #180 installs Steamworks; an absent provider is anonymous and cannot authenticate.
 constexpr uint32_t SERVICE_MAX_TICKET = 2048;
 enum serviceIdentity_t { SERVICE_ANONYMOUS,
 	SERVICE_STEAM };

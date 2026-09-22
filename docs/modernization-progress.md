@@ -78,6 +78,19 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #23 deferral documentation and combined checks
+
+Follow-up #180 now owns SDK setup, Steam provider implementation, authenticated
+SDK ticket transport and live presence/invite acceptance. Public interface and
+test-reference comments point to that issue. The current interface/null-backend
+scope remains subject to all final gates. The locally combined AI/profiling tree
+passes service GCC/Clang probes, existing identity/discovery checks, affected/suite
+catalog checks, formatting and workflow lint. The original draft's 16 compiler
+builds and nine regression jobs pass; its remaining runtime is cancelled as
+superseded by the required final #22 main integration, not accepted or waived.
+Main #21 is 7c24808f; #22 final head b23ef158 has all 16 compiler legs green and
+regression is running. Preserve merge order and rerun #23 on accepted #22 main.
+
 ## #23 bounded service implementation
 
 The existing provider table now exposes optional user/ticket, presence,

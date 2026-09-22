@@ -128,12 +128,13 @@ must match the current request generation; leaving invalidates pending results,
 and an invite is reported without joining. Cloud filenames are flat, with a
 64 MiB per-call limit; workshop enumeration is bounded to 256 entries. Callbacks
 are optional and absent operations return unavailable. These tests do not prove
-Steam SDK integration or live Steam presence/invites. That acceptance requires a
+Steam SDK integration or live Steam presence/invites. That work is deferred to
+#180 by the maintainer; its acceptance requires a
 proper external Steamworks SDK, an authorized AppID and logged-in test clients.
 
 `engine/server/identity_public.h` binds ticket submission to a connection token
 obtained from the server-owned connection context, never a peer-supplied token.
-#23 supplies the Steam SDK and ticket transport; #12 does not claim live Steam
+#180 supplies the deferred Steam SDK and ticket transport; #12 does not claim live Steam
 verification or add a ticket command before that backend exists. The current
 server permits anonymous players. The fake-provider test exercises the actual
 server lifecycle, including timeout, revocation, duplicate account rejection and
