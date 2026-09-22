@@ -54,6 +54,16 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #22 renderer and shutdown accounting contract, test first
+
+Reuse the existing RHI draw counter and frontend triangle/surface counters; retain
+them before the normal frame reset, alongside submitted entity count. Existing
+GPU geometry/staging budgets expose their real allocations. Hunk tags reflect its
+actual low/high permanent/temporary lifetime regions instead of inventing per-object
+ownership. Extend existing developer probes for these snapshots and an explicit
+shutdown retained-allocation report; process-lifetime cvars/arenas must not be
+misreported as proven leaks. Test first, then implementation.
+
 ## #22 packet and field contract, test first
 
 Extend the same CPU/network probe with bounded packet history, timestamps/direction,
