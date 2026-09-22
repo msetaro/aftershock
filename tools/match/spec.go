@@ -1,13 +1,12 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"regexp"
 	"strconv"
+
+	"github.com/msetaro/aftershock/tools/match/contracts"
 )
 
 type spec struct {
@@ -25,19 +24,9 @@ var identifier = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,64}$`)
 var secret = regexp.MustCompile(`^[a-zA-Z0-9_.-]{8,128}$`)
 
 func strictJSON(data []byte, out any) error {
-	if len(data) > 65536 {
-		return errors.New("JSON exceeds 64 KiB")
-	}
-	d := json.NewDecoder(bytes.NewReader(data))
-	d.DisallowUnknownFields()
-	if err := d.Decode(out); err != nil {
-		return err
-	}
-	if d.Decode(new(any)) != io.EOF {
-		return errors.New("trailing JSON data")
-	}
-	return nil
+	return contracts.Decode(data, out)
 }
+
 func decodeSpec(data []byte) (spec, error) {
 	var s spec
 	if err := strictJSON(data, &s); err != nil {

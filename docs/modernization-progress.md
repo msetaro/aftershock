@@ -38,9 +38,12 @@ the maintainer-deferred Steam SDK/live acceptance and does not block this work.
 The #29 issue and existing Go match controller/spec, identity lifecycle and
 client HTTP ownership are reviewed. Start with versioned JoinTicket, MatchSpec
 and Loadout contracts; reuse the existing Go module and standard crypto/HTTP.
-The first schema test fails because v1.schema.json is absent, and the Go contract
-probe fails on missing JoinTicket/sign/verify/decode APIs. No #29 implementation
-exists yet. Commit these contracts before implementing them.
+The initial schema/API checks fail before implementation (c5217257). The v1
+schema, bounded decoders and domain-separated HMAC join-ticket contract now pass
+with an independent Python signature oracle. Existing match-controller Go race
+tests also pass after moving its unchanged bounded JSON decoder into the shared
+contract package. Next: native ticket validation/replay tests before server
+integration, then persistent backend services and real client/kind acceptance.
 
 Resume the active predecessor gates before any later issue can merge:
 - #31 PR174 is fully accepted on main 5caa2c1c; #31 is closed again.
@@ -89,6 +92,26 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
+
+## #29 v1 contract implementation
+
+The three versioned contracts now validate schema shape and semantic limits.
+The Go ticket signer/verifier uses standard HMAC-SHA256 with a join-specific
+prefix, canonical integer/hex encodings, match binding and an exclusive expiry.
+An independently computed Python HMAC literal checks the actual bytes. A further
+test first catches missing mode/rule fields being silently decoded as zero;
+pointer presence checks distinguish required zero-valued fields from absence or
+null. Player IDs reject zero, leading zeros and uint64 overflow; loadouts require
+both bounded weapon paths and membership in the server-owned catalog. Expected
+players must be unique and fit the match slots. Semantic cross-field constraints
+are checked by Go in addition to JSON Schema shape checks.
+
+The existing match controller delegates its unchanged bounded/unknown-field/
+trailing-data JSON checks to the shared contracts package. Full Go race tests
+pass, as does tests/backend.py with the private Python and Go environments
+(backend-contract-after.log, backend-match-go.log). The missing-required-field
+negative result is backend-required-before.log. No engine, service deployment,
+account exchange or accepted replay fixture is changed by this slice.
 
 ## #29 initial contracts, test first
 

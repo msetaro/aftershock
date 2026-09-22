@@ -13,6 +13,9 @@ func TestJoinTicket(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if token != "1.18446744073709551615.match-1.2000.2120.abababababababababababababababab.aeb7bddd7a12dc3c3b4ecd52679ecd620a81ffdbc4f1547146baabcf898013e3" {
+		t.Fatal("ticket differs from independent Python HMAC oracle")
+	}
 	got, err := VerifyJoin(key, token, "match-1", 2050)
 	if err != nil || got != claims {
 		t.Fatalf("round trip: %+v %v", got, err)
@@ -61,7 +64,7 @@ func TestMatchAndLoadout(t *testing.T) {
 	if err != nil || match.ID != "match-1" || len(match.ExpectedPlayers) != 2 {
 		t.Fatal(match, err)
 	}
-	for _, bad := range []string{strings.Replace(string(data), `"version":1`, `"version":2`, 1), strings.Replace(string(data), `"slots":8`, `"slots":1`, 1), strings.Replace(string(data), `["1","2"]`, `["1","1"]`, 1), strings.Replace(string(data), `"two_lane"`, `"two_lane;quit"`, 1), strings.Replace(string(data), `"mode":0`, `"mode":0,"command":"quit"`, 1), string(data) + `{}`} {
+	for _, bad := range []string{strings.Replace(string(data), `"mode":0,`, ``, 1), strings.Replace(string(data), `"mode":0`, `"mode":null`, 1), strings.Replace(string(data), `"frag_limit":10,`, ``, 1), strings.Replace(string(data), `"version":1`, `"version":2`, 1), strings.Replace(string(data), `"slots":8`, `"slots":1`, 1), strings.Replace(string(data), `["1","2"]`, `["1","1"]`, 1), strings.Replace(string(data), `"two_lane"`, `"two_lane;quit"`, 1), strings.Replace(string(data), `"mode":0`, `"mode":0,"command":"quit"`, 1), string(data) + `{}`} {
 		if _, err := DecodeMatchSpec([]byte(bad)); err == nil {
 			t.Fatal("invalid match accepted", bad)
 		}
