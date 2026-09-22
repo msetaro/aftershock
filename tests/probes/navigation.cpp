@@ -24,7 +24,7 @@ void Z_Free( void *data ) {
 	}
 }
 int main( int argc, char **argv ) {
-	assert(argc == 2);
+	assert(argc == 2 || (argc == 3 && !std::strcmp(argv[2],"launch")));
 	FILE *file = std::fopen( argv[1], "rb" );
 	assert(file);
 	assert(std::fseek(file, 0, SEEK_END) == 0);
@@ -57,7 +57,10 @@ int main( int argc, char **argv ) {
 	assert(Nav_Path(world, start, linkEnd, true, &path));
 	bool sawLink = false;
 	for ( uint32_t i = 0; i < path.count; ++i )
-		sawLink |= path.points[i].link == 1;
+		if ( path.points[i].link == 1 ) {
+			sawLink = true;
+			assert(path.points[i].kind == (argc == 3 ? NAV_LINK_LAUNCH : NAV_LINK_JUMP));
+		}
 	if ( !sawLink ) {
 		for ( uint32_t i = 0; i < path.count; ++i )
 			std::fprintf( stderr, "corner %u: %g %g %g link %u\n", i, path.points[i].position[0], path.points[i].position[1], path.points[i].position[2], path.points[i].link );

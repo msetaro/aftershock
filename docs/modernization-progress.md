@@ -52,6 +52,22 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 currently needed. Do not end at a checkpoint or CI wait.
 
+## #21 off-mesh action identity, test first
+
+A private current-main client observation confirms q3dm17's *5 jump pad lands
+on the upper platform after 85 sampled frames at dt=20 ms. Source pad bounds
+center at (-32,-672,338); the observed first landing origin is approximately
+(-125.100327,-772.106201,600.125), with floor at 576. Game movement was untouched.
+Trajectory/log evidence stays in navigation-pad-observe/; no map bytes are
+committed or uploaded. The first telemetry row predates queued teleport execution;
+use the first positive launch-velocity row, not that stale row, as launch evidence.
+
+Native routes currently expose link IDs but not their action kind. The extended
+probe requires jump versus existing-pad launch identity, and the driver adds a
+launch-kind incremental cook. Compilation fails on absent link kind metadata
+(navigation-link-kind-before.log). Commit first, then expose the existing cooked
+area kind and add an explicit launch kind; ordinary jump/drop/door remain distinct.
+
 ## #21 stateless steering and real-map query evidence
 
 After 7461cf58's failing contract, Nav_Avoid uses a preallocated Detour avoidance

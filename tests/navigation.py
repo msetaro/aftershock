@@ -72,6 +72,12 @@ run([*shlex.split(args.cxx), *flags, '-Wall', '-Wextra', '-Werror',
      'tests/probes/navigation.cpp', 'engine/navigation/navigation.cpp', *objects, sha,
      '-o', probe])
 run([probe, asset])
+# A launch link uses an existing map jump pad; it must remain distinguishable
+# from an ordinary jump/door/drop action in the native route.
+definition['links'][0]['kind'] = 'launch'
+(source/'navigation.json').write_text(json.dumps(definition))
+assert cook(project, cooked)['built'] == ['navigation/two_lane']
+run([probe, asset, 'launch'])
 
 # Hierarchical state transitions are authored data. A combat parent's lost-target
 # transition applies to both attack and cover children; leaf transitions win.
