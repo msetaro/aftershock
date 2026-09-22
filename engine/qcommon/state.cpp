@@ -148,3 +148,120 @@ bool State_Read( const stateSchema_t &schema, const void *data, size_t size, voi
 	*sourceVersion = header.version;
 	return true;
 }
+
+struct stateEntry_t {
+	uint32_t slot, size;
+};
+static_assert( sizeof( stateEntry_t ) == 8 && offsetof( stateEntry_t, size ) == 4 );
+static constexpr size_t ARCHIVE_START = sizeof( stateEnvelope_t ) + sizeof( uint32_t );
+static constexpr uint32_t ARCHIVE_RECORDS = 8192;
+
+static bool ArchiveEntry( const uint8_t *data, size_t size, size_t offset, stateEntry_t *entry, stateHeader_t *header ) {
+	if ( offset > size || size - offset < sizeof( *entry ) )
+		return false;
+	memcpy( entry, data + offset, sizeof( *entry ) );
+	offset += sizeof( *entry );
+	if ( entry->size < sizeof( stateEnvelope_t ) + sizeof( *header ) || entry->size > size - offset )
+		return false;
+	stateEnvelope_t envelope;
+	memcpy( &envelope, data + offset, sizeof( envelope ) );
+	memcpy( header, data + offset + sizeof( envelope ), sizeof( *header ) );
+	return !memcmp( envelope.magic, "ASSTATE", 8 ) && envelope.version == 1 && envelope.size == entry->size - sizeof( envelope ) &&
+		   Name( header->name, sizeof( header->name ) ) && header->version && header->fieldCount && header->fieldCount <= 256;
+}
+bool State_Append( stateWriter_t *writer, const stateSchema_t &schema, uint32_t slot, const void *object ) {
+	if ( !writer || writer->failed )
+		return false;
+	writer->failed = true; // Any rejected append prevents a partial checkpoint being published.
+	if ( !writer->data || writer->capacity < ARCHIVE_START || writer->records >= ARCHIVE_RECORDS || !Schema( schema ) )
+		return false;
+	if ( !writer->size )
+		writer->size = ARCHIVE_START;
+	if ( writer->size > writer->capacity || writer->capacity - writer->size < sizeof( stateEntry_t ) )
+		return false;
+	auto *data = (uint8_t *)writer->data;
+	size_t offset = ARCHIVE_START;
+	for ( uint32_t i = 0; i < writer->records; ++i ) {
+		stateEntry_t previous;
+		stateHeader_t header;
+		if ( !ArchiveEntry( data, writer->size, offset, &previous, &header ) || ( previous.slot == slot && !strcmp( header.name, schema.name ) ) )
+			return false;
+		offset += sizeof( previous ) + previous.size;
+	}
+	if ( offset != writer->size )
+		return false;
+	const size_t size = State_Write( schema, object, data + offset + sizeof( stateEntry_t ), writer->capacity - offset - sizeof( stateEntry_t ) );
+	if ( !size || size > UINT32_MAX || offset + sizeof( stateEntry_t ) + size - sizeof( stateEnvelope_t ) > UINT32_MAX )
+		return false;
+	const stateEntry_t entry = { slot, uint32_t( size ) };
+	memcpy( data + offset, &entry, sizeof( entry ) );
+	writer->size += sizeof( entry ) + size;
+	++writer->records;
+	writer->failed = false;
+	return true;
+}
+size_t State_Finish( stateWriter_t *writer ) {
+	if ( !writer || writer->failed || !writer->data || !writer->records || writer->size < ARCHIVE_START || writer->size > writer->capacity )
+		return 0;
+	auto *data = (uint8_t *)writer->data;
+	stateEnvelope_t envelope = { "ASARCH", 1, uint32_t( writer->size - sizeof( stateEnvelope_t ) ), {} };
+	memcpy( data + sizeof( envelope ), &writer->records, sizeof( writer->records ) );
+	calc_sha_256( envelope.hash, data + sizeof( envelope ), envelope.size );
+	memcpy( data, &envelope, sizeof( envelope ) );
+	return writer->size;
+}
+bool State_Open( const void *data, size_t size, stateReader_t *reader ) {
+	if ( !data || !reader || size < ARCHIVE_START )
+		return false;
+	stateEnvelope_t envelope;
+	memcpy( &envelope, data, sizeof( envelope ) );
+	if ( memcmp( envelope.magic, "ASARCH\0", 8 ) || envelope.version != 1 || envelope.size != size - sizeof( envelope ) )
+		return false;
+	const auto *bytes = (const uint8_t *)data;
+	uint8_t hash[32];
+	calc_sha_256( hash, bytes + sizeof( envelope ), envelope.size );
+	if ( memcmp( hash, envelope.hash, sizeof( hash ) ) )
+		return false;
+	uint32_t records;
+	memcpy( &records, bytes + sizeof( envelope ), sizeof( records ) );
+	if ( !records || records > ARCHIVE_RECORDS )
+		return false;
+	size_t offset = ARCHIVE_START;
+	for ( uint32_t i = 0; i < records; ++i ) {
+		stateEntry_t entry;
+		stateHeader_t header;
+		if ( !ArchiveEntry( bytes, size, offset, &entry, &header ) )
+			return false;
+		size_t previousOffset = ARCHIVE_START;
+		for ( uint32_t j = 0; j < i; ++j ) {
+			stateEntry_t previous;
+			stateHeader_t previousHeader;
+			if ( !ArchiveEntry( bytes, size, previousOffset, &previous, &previousHeader ) ||
+				 ( previous.slot == entry.slot && !strcmp( previousHeader.name, header.name ) ) )
+				return false;
+			previousOffset += sizeof( previous ) + previous.size;
+		}
+		offset += sizeof( entry ) + entry.size;
+	}
+	if ( offset != size )
+		return false;
+	*reader = { data, size, records };
+	return true;
+}
+bool State_Find( const stateReader_t &reader, const stateSchema_t &schema, uint32_t slot, void *object, uint32_t *sourceVersion ) {
+	if ( !reader.data || reader.records > ARCHIVE_RECORDS || !Schema( schema ) )
+		return false;
+	// ponytail: linear lookup for bounded explicit saves; add a caller-owned index if load time warrants it.
+	const auto *bytes = (const uint8_t *)reader.data;
+	size_t offset = ARCHIVE_START;
+	for ( uint32_t i = 0; i < reader.records; ++i ) {
+		stateEntry_t entry;
+		stateHeader_t header;
+		if ( !ArchiveEntry( bytes, reader.size, offset, &entry, &header ) )
+			return false;
+		if ( entry.slot == slot && !strcmp( header.name, schema.name ) )
+			return State_Read( schema, bytes + offset + sizeof( entry ), entry.size, object, sourceVersion );
+		offset += sizeof( entry ) + entry.size;
+	}
+	return false;
+}

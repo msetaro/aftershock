@@ -26,4 +26,22 @@ size_t State_Write( const stateSchema_t &schema, const void *object, void *data,
 // Validate before mutation. Fields introduced after the source version retain
 // caller defaults; sourceVersion selects the caller's explicit migration.
 bool State_Read( const stateSchema_t &schema, const void *data, size_t size, void *object, uint32_t *sourceVersion );
+// Caller-owned checkpoint storage. Initialize a writer with { data, capacity }.
+struct stateWriter_t {
+	void *data;
+	size_t capacity, size = 0;
+	uint32_t records = 0;
+	bool failed = false;
+};
+struct stateReader_t {
+	const void *data = nullptr;
+	size_t size = 0;
+	uint32_t records = 0;
+};
+bool State_Append( stateWriter_t *writer, const stateSchema_t &schema, uint32_t slot, const void *object );
+size_t State_Finish( stateWriter_t *writer );
+// A reader is published only after the complete archive validates. Its buffer
+// must remain alive and unchanged until the last Find call.
+bool State_Open( const void *data, size_t size, stateReader_t *reader );
+bool State_Find( const stateReader_t &reader, const stateSchema_t &schema, uint32_t slot, void *object, uint32_t *sourceVersion );
 #endif

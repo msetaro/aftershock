@@ -102,5 +102,10 @@ int main() {
 		savedCurrent.armor = 25;
 	assert( savedCurrent.health == 73 && savedCurrent.armor == 25 && savedCurrent.identity == previous.identity );
 	assert( !State_Find( reader, currentSchema, 20, &savedCurrent, &version ) );
+	assert( !State_Append( &writer, previousSchema, 7, &previous ) && !State_Finish( &writer ) );
+	archive[archiveSize - 1] ^= 1;
+	assert( !State_Open( archive, archiveSize, &reader ) );
+	stateWriter_t shortWriter = { archive, 64 };
+	assert( !State_Append( &shortWriter, previousSchema, 0, &previous ) && !State_Finish( &shortWriter ) );
 	puts( "PASS: named POD fields preserve bits across reordering and explicit added/removed-field migration" );
 }

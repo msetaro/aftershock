@@ -51,6 +51,21 @@ Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
 
+## #19 checkpoint record grouping implementation
+
+The committed archive test b68b7dcd now passes GCC and Clang/libc++ UBSan for
+engine and game types (state-archive-{gcc,clang}.log). The bounded caller-owned
+container groups existing field records by schema name and slot, hashes the whole
+payload, checks duplicate identities and preserves per-record versions. Failed
+appends make finalization fail, so an incomplete archive cannot be published.
+An initial magic-string spelling mismatch was caught by the first round trip and
+corrected before acceptance. Focused tidy and format pass.
+
+Before this addition, full profile/shared-metadata tidy passed 1370 production
+configurations (state-profile-tidy.log). The lifetime run remains in progress;
+full final analysis must cover the completed #19 implementation. No game save/load
+implementation or merge acceptance is claimed yet.
+
 ## #19 checkpoint record grouping test before implementation
 
 The existing state probe now requires multiple independently versioned records
