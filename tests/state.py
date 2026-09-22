@@ -211,6 +211,23 @@ chat_header=(ROOT/'engine/botlib/be_ai_chat.h').read_text()
 message_body=chat_header.split('typedef struct bot_consolemessage_s {',1)[1].split('} bot_consolemessage_t;',1)[0]
 assert declared_members(message_body)=={'prev','next','message','time','type','handle'}
 print('PASS: chat actor/console fields have scalar, queue-link or separate chat-content ownership')
+for tag,name,expected in (
+ ('bot_chatmessage_s','bot_chatmessage_t',{'chatmessage','time','next'}),
+ ('bot_chattype_s','bot_chattype_t',{'name','numchatmessages','firstchatmessage','next'}),
+ ('bot_chat_s','bot_chat_t',{'types'}),
+ ('bot_replychat_s','bot_replychat_t',{'keys','priority','numchatmessages','firstchatmessage','next'}),
+ ('bot_replychatkey_s','bot_replychatkey_t',{'flags','string','match','next'}),
+ ('bot_randomstring_s','bot_randomstring_t',{'string','next'}),
+ ('bot_randomlist_s','bot_randomlist_t',{'string','numstrings','firstrandomstring','next'}),
+ ('bot_synonym_s','bot_synonym_t',{'string','weight','next'}),
+ ('bot_synonymlist_s','bot_synonymlist_t',{'context','totalweight','firstsynonym','next'}),
+ ('bot_matchstring_s','bot_matchstring_t',{'string','next'}),
+ ('bot_matchpiece_s','bot_matchpiece_t',{'type','firststring','variable','next'}),
+ ('bot_matchtemplate_s','bot_matchtemplate_t',{'context','type','subtype','first','next'})):
+    body=chat_source.split('typedef struct '+tag+' {',1)[1].split('} '+name+';',1)[0]
+    assert declared_members(body)==expected, f'{name}: chat timer/content identity changed'
+print('PASS: chat line timers and all immutable matching/expansion graph fields have ownership')
+
 
 
 
@@ -328,7 +345,7 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-Wl,--gc-sections','-o',probe])
 run([probe])
 
-for component in ('input','move','weights','characters','chat_queue'):
+for component in ('input','move','weights','characters','chat_queue','chat_content'):
     run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',

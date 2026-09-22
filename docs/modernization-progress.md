@@ -39,7 +39,7 @@ with typed callbacks, checked references and nullable strings. Composed, authore
 animation/weapon, rewind, utility/spawn-generation, combat, team and podium owners
 also have validated local checkpoint records. Definition/editor state restores
 against matching map registry topology. Remaining work: other game globals and
-botlib chat-content, AAS/libvar and immutable navigation-content owners (input/movement, goal/item, weight, weapon, character cache and chat queue
+botlib AAS/libvar and immutable navigation-content owners (input/movement, goal/item, weight, weapon, character cache, chat content/timers and chat queue
 and game map-navigation, actor, activation, waypoint, scheduler,
 queue and team draft records are complete), gameplay validation, live
 restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
@@ -57,6 +57,19 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 chat content and dialogue timers
+
+Shared chat caches, private actor chats and global reply lines now save reuse times
+against immutable content hashes. Hashes cover line/type order, reply keys,
+matching templates, synonym weights and random expansion lists; cached filenames
+and chat names and actor-to-cache ownership must also match. Capture has an
+explicit 8,192-line / 65,536-syntax-node ceiling per owner and rejects excess,
+cycles, aliases and non-finite timers. It never truncates. All records validate
+before timers change. GCC and Clang/libc++ UBSan pass relocated shared/private
+chat, identical next-line selection, changed-content and missing-last-record
+checks (state-chat-content-{gcc,clang}.log). Reconstructed content/cache slots are
+still prerequisites; coordinator and complete runtime acceptance remain open.
 
 ## #19 chat queue ownership
 

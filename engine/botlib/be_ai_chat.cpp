@@ -47,7 +47,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_interface.h"
 #include "be_ea.h"
 #include "be_ai_chat.h"
+#include "../../third_party/sha256/sha-256.h"
+#include <algorithm>
 #include <cmath>
+#include <functional>
 
 
 //escape character
@@ -3147,4 +3150,245 @@ bool Bot_ReadChatQueueState( const stateReader_t &reader, bool apply ) {
 		freeconsolemessages = header.free < 0 ? nullptr : &consolemessageheap[header.free];
 	}
 	return true;
+}
+
+// ponytail: at most 8,192 lines and 65,536 syntax nodes per loaded chat owner;
+// reject larger checkpoints explicitly, increase only for measured content needs.
+static constexpr uint32_t MAX_SAVED_CHAT_LINES = 8192;
+static bot_chatmessage_t *savedChatLines[MAX_SAVED_CHAT_LINES];
+static float savedChatTimes[MAX_SAVED_CHAT_LINES];
+struct chatContentIdentity_t {
+	char filename[MAX_QPATH], chatname[MAX_QPATH];
+	uint32_t count;
+	uint8_t hash[32];
+};
+static constexpr stateField_t chatContentFields[] = {
+	{ "filename", offsetof( chatContentIdentity_t, filename ), MAX_QPATH, stateType_t::String },
+	{ "chatname", offsetof( chatContentIdentity_t, chatname ), MAX_QPATH, stateType_t::String },
+	{ "count", offsetof( chatContentIdentity_t, count ), 1, stateType_t::UInt32 },
+	{ "hash", offsetof( chatContentIdentity_t, hash ), 32, stateType_t::Bytes }
+};
+static constexpr stateSchema_t chatContentSchema = { "botlib.chatContent", 1, 1, sizeof( chatContentIdentity_t ), chatContentFields, 4 };
+struct chatContentPool_t {
+	uint32_t cached[MAX_CLIENTS];
+	int32_t owner[MAX_CLIENTS + 1]; // absent=-3, private=-2, no chat=-1, otherwise cache slot
+};
+static constexpr stateField_t chatContentPoolFields[] = {
+	{ "cached", offsetof( chatContentPool_t, cached ), MAX_CLIENTS, stateType_t::UInt32 },
+	{ "owner", offsetof( chatContentPool_t, owner ), MAX_CLIENTS + 1, stateType_t::Int32 }
+};
+static constexpr stateSchema_t chatContentPoolSchema = { "botlib.chatContentPool", 1, 1, sizeof( chatContentPool_t ), chatContentPoolFields, 2 };
+static bool ChatContentPool( chatContentPool_t *pool ) {
+	*pool = {};
+	if ( botchatstates[0] )
+		return false;
+	for ( int i = 0; i < MAX_CLIENTS; ++i )
+		if ( ichatdata[i] ) {
+			if ( !ichatdata[i]->chat )
+				return false;
+			for ( int j = 0; j < i; ++j )
+				if ( ichatdata[j] && ichatdata[i]->chat == ichatdata[j]->chat )
+					return false;
+			pool->cached[i] = 1;
+		}
+	for ( int i = 0; i <= MAX_CLIENTS; ++i ) {
+		const auto *actor = botchatstates[i];
+		pool->owner[i] = !actor ? -3 : !actor->chat ? -1
+													: -2;
+		if ( !actor || !actor->chat )
+			continue;
+		for ( int j = 0; j < MAX_CLIENTS; ++j )
+			if ( ichatdata[j] && actor->chat == ichatdata[j]->chat )
+				pool->owner[i] = j;
+		if ( pool->owner[i] == -2 )
+			for ( int j = 1; j < i; ++j )
+				if ( botchatstates[j] && actor->chat == botchatstates[j]->chat )
+					return false;
+	}
+	return true;
+}
+static bool ChatHashString( Sha_256 *hash, const char *text ) {
+	const size_t length = text ? strlen( text ) : 0;
+	if ( length >= MAX_TOKEN )
+		return false;
+	const uint32_t size = text ? uint32_t( length ) : UINT32_MAX;
+	sha_256_write( hash, &size, sizeof( size ) );
+	if ( length )
+		sha_256_write( hash, text, length );
+	return true;
+}
+static bool ChatHashNode( Sha_256 *hash, uint32_t kind, uint32_t *nodes ) {
+	if ( ++*nodes > 65536 )
+		return false;
+	sha_256_write( hash, &kind, sizeof( kind ) );
+	return true;
+}
+static void ChatHashEnd( Sha_256 *hash ) {
+	const uint32_t end = 0;
+	sha_256_write( hash, &end, sizeof( end ) );
+}
+static bool ChatHashMatch( Sha_256 *hash, const bot_matchpiece_t *pieces, uint32_t *nodes ) {
+	for ( auto *piece = pieces; piece; piece = piece->next ) {
+		if ( !ChatHashNode( hash, 1, nodes ) )
+			return false;
+		const int32_t fields[] = { piece->type, piece->variable };
+		sha_256_write( hash, fields, sizeof( fields ) );
+		for ( auto *string = piece->firststring; string; string = string->next )
+			if ( !ChatHashNode( hash, 2, nodes ) || !ChatHashString( hash, string->string ) )
+				return false;
+		ChatHashEnd( hash );
+	}
+	ChatHashEnd( hash );
+	return true;
+}
+static bool ChatHashMessages( Sha_256 *hash, bot_chatmessage_t *messages, int expected, uint32_t *count, uint32_t *nodes ) {
+	int actual = 0;
+	for ( auto *message = messages; message; message = message->next ) {
+		if ( !ChatHashNode( hash, 3, nodes ) || !ChatHashString( hash, message->chatmessage ) || !message->chatmessage ||
+			 !std::isfinite( message->time ) || *count >= MAX_SAVED_CHAT_LINES )
+			return false;
+		savedChatLines[*count] = message;
+		savedChatTimes[( *count )++] = message->time;
+		++actual;
+	}
+	ChatHashEnd( hash );
+	return actual == expected;
+}
+static bool ChatContentIdentity( bot_chat_t *chat, bool global, chatContentIdentity_t *identity ) {
+	Sha_256 hash;
+	sha_256_init( &hash, identity->hash );
+	uint32_t nodes = 0;
+	identity->count = 0;
+	for ( auto *type = chat ? chat->types : nullptr; type; type = type->next ) {
+		if ( !memchr( type->name, 0, sizeof( type->name ) ) || !ChatHashNode( &hash, 4, &nodes ) || !ChatHashString( &hash, type->name ) ||
+			 !ChatHashMessages( &hash, type->firstchatmessage, type->numchatmessages, &identity->count, &nodes ) )
+			return false;
+	}
+	ChatHashEnd( &hash );
+	if ( global ) {
+		for ( auto *list = synonyms; list; list = list->next ) {
+			if ( !ChatHashNode( &hash, 5, &nodes ) || !std::isfinite( list->totalweight ) )
+				return false;
+			sha_256_write( &hash, &list->context, sizeof( list->context ) );
+			sha_256_write( &hash, &list->totalweight, sizeof( list->totalweight ) );
+			for ( auto *entry = list->firstsynonym; entry; entry = entry->next ) {
+				if ( !ChatHashNode( &hash, 6, &nodes ) || !ChatHashString( &hash, entry->string ) || !std::isfinite( entry->weight ) )
+					return false;
+				sha_256_write( &hash, &entry->weight, sizeof( entry->weight ) );
+			}
+			ChatHashEnd( &hash );
+		}
+		ChatHashEnd( &hash );
+		for ( auto *list = randomstrings; list; list = list->next ) {
+			if ( !ChatHashNode( &hash, 7, &nodes ) || !ChatHashString( &hash, list->string ) )
+				return false;
+			int actual = 0;
+			for ( auto *entry = list->firstrandomstring; entry; entry = entry->next ) {
+				if ( !ChatHashNode( &hash, 8, &nodes ) || !ChatHashString( &hash, entry->string ) )
+					return false;
+				++actual;
+			}
+			if ( actual != list->numstrings )
+				return false;
+			ChatHashEnd( &hash );
+		}
+		ChatHashEnd( &hash );
+		for ( auto *entry = matchtemplates; entry; entry = entry->next ) {
+			if ( !ChatHashNode( &hash, 9, &nodes ) )
+				return false;
+			sha_256_write( &hash, &entry->context, sizeof( entry->context ) );
+			const int32_t fields[] = { entry->type, entry->subtype };
+			sha_256_write( &hash, fields, sizeof( fields ) );
+			if ( !ChatHashMatch( &hash, entry->first, &nodes ) )
+				return false;
+		}
+		ChatHashEnd( &hash );
+		for ( auto *reply = replychats; reply; reply = reply->next ) {
+			if ( !ChatHashNode( &hash, 10, &nodes ) || !std::isfinite( reply->priority ) )
+				return false;
+			sha_256_write( &hash, &reply->priority, sizeof( reply->priority ) );
+			for ( auto *key = reply->keys; key; key = key->next ) {
+				if ( !ChatHashNode( &hash, 11, &nodes ) )
+					return false;
+				sha_256_write( &hash, &key->flags, sizeof( key->flags ) );
+				if ( !ChatHashString( &hash, key->string ) || !ChatHashMatch( &hash, key->match, &nodes ) )
+					return false;
+			}
+			ChatHashEnd( &hash );
+			if ( !ChatHashMessages( &hash, reply->firstchatmessage, reply->numchatmessages, &identity->count, &nodes ) )
+				return false;
+		}
+		ChatHashEnd( &hash );
+	}
+	// Reject aliases as well as bounded cycles; each mutable timer has one owner.
+	static bot_chatmessage_t *sorted[MAX_SAVED_CHAT_LINES];
+	std::copy_n( savedChatLines, identity->count, sorted );
+	std::sort( sorted, sorted + identity->count, std::less<bot_chatmessage_t *>{} );
+	if ( std::adjacent_find( sorted, sorted + identity->count ) != sorted + identity->count )
+		return false;
+	sha_256_close( &hash );
+	return true;
+}
+static bool ChatContentRecord( stateWriter_t *writer, const stateReader_t *reader, uint32_t slot, bot_chat_t *chat, const bot_ichatdata_t *cache, bool global, bool apply ) {
+	chatContentIdentity_t loaded{};
+	if ( cache ) {
+		if ( !memchr( cache->filename, 0, sizeof( cache->filename ) ) || !memchr( cache->chatname, 0, sizeof( cache->chatname ) ) )
+			return false;
+		strcpy( loaded.filename, cache->filename );
+		strcpy( loaded.chatname, cache->chatname );
+	}
+	if ( !ChatContentIdentity( chat, global, &loaded ) )
+		return false;
+	uint32_t version;
+	if ( writer ) {
+		if ( !State_Append( writer, chatContentSchema, slot, &loaded ) )
+			return false;
+	} else {
+		chatContentIdentity_t saved;
+		if ( !State_Find( *reader, chatContentSchema, slot, &saved, &version ) || saved.count != loaded.count ||
+			 strcmp( saved.filename, loaded.filename ) || strcmp( saved.chatname, loaded.chatname ) || memcmp( saved.hash, loaded.hash, sizeof( saved.hash ) ) )
+			return false;
+	}
+	if ( !loaded.count )
+		return true;
+	const stateField_t field = { "time", 0, loaded.count, stateType_t::Float32 };
+	const stateSchema_t schema = { "botlib.chatTimes", 1, 1, sizeof( savedChatTimes ), &field, 1 };
+	if ( writer )
+		return State_Append( writer, schema, slot, savedChatTimes );
+	if ( !State_Find( *reader, schema, slot, savedChatTimes, &version ) )
+		return false;
+	for ( uint32_t i = 0; i < loaded.count; ++i )
+		if ( !std::isfinite( savedChatTimes[i] ) )
+			return false;
+	if ( apply )
+		for ( uint32_t i = 0; i < loaded.count; ++i )
+			savedChatLines[i]->time = savedChatTimes[i];
+	return true;
+}
+static bool ChatContentRecords( stateWriter_t *writer, const stateReader_t *reader, const chatContentPool_t &pool, bool apply ) {
+	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i )
+		if ( pool.cached[i] && !ChatContentRecord( writer, reader, i, ichatdata[i]->chat, ichatdata[i], false, apply ) )
+			return false;
+	for ( uint32_t i = 1; i <= MAX_CLIENTS; ++i )
+		if ( pool.owner[i] == -2 && !ChatContentRecord( writer, reader, MAX_CLIENTS + i, botchatstates[i]->chat, nullptr, false, apply ) )
+			return false;
+	return ChatContentRecord( writer, reader, 2 * MAX_CLIENTS + 1, nullptr, nullptr, true, apply );
+}
+bool Bot_WriteChatContentState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	chatContentPool_t pool;
+	if ( !ChatContentPool( &pool ) || !State_Append( writer, chatContentPoolSchema, 0, &pool ) || !ChatContentRecords( writer, nullptr, pool, false ) ) {
+		writer->failed = true;
+		return false;
+	}
+	return true;
+}
+bool Bot_ReadChatContentState( const stateReader_t &reader, bool apply ) {
+	chatContentPool_t saved, loaded;
+	uint32_t version;
+	if ( !ChatContentPool( &loaded ) || !State_Find( reader, chatContentPoolSchema, 0, &saved, &version ) || memcmp( &saved, &loaded, sizeof( saved ) ) ||
+		 !ChatContentRecords( nullptr, &reader, saved, false ) )
+		return false;
+	return !apply || ChatContentRecords( nullptr, &reader, saved, true );
 }

@@ -121,3 +121,6 @@ void BotSetChatName( int chatstate, const char *name, int client );
 #include "../public/state_public.h"
 bool Bot_WriteChatQueueState( stateWriter_t *writer );
 bool Bot_ReadChatQueueState( const stateReader_t &reader, bool apply );
+
+bool Bot_WriteChatContentState( stateWriter_t *writer );
+bool Bot_ReadChatContentState( const stateReader_t &reader, bool apply );
