@@ -66,10 +66,15 @@ contract, workflow lint and agent transport checks pass. The extended developer
 runtime also passes local Quake 3 (profiling-runtime-q3.log). Lifetime analysis,
 developer renderer modules pass (profiling-runtime-modules.log), as does the
 unchanged OpenArena fixed replay 17a172f7ef8899a4b9ed21d754e7af71fb44234ad281a12eeefe27f60d06eb96.
-Lifetime analysis and the Quake 3 fixed replay remain in progress. Final
+The unchanged Quake 3 fixed replay also passes
+43c52e51fbf3d2585f899737339c5e71ea14d69794be37ca1f3a5e5e80a1dbd4.
+Lifetime analysis remains in progress. Final
 UI review gives the plot its full labeled row and accounts for frame padding,
 so click-to-retain indexes the plotted area instead of including the label width.
-Recheck that small UI change before final gates.
+The final plot owner passes both static/module tidy configurations and a fresh
+OpenArena runtime check; its capture is reviewed. Prepare a draft PR against main
+for hosted feedback while #21 finishes; merge accepted #21 forward and rerun all
+final checks before any #22 merge.
 
 ## #22 renderer and shutdown accounting contract, test first
 
