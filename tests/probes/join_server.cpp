@@ -1,5 +1,4 @@
 #include "../../engine/server/sv_join.cpp"
-#include "../../engine/server/sv_identity.cpp"
 #include <assert.h>
 #include <cstring>
 #include <cstdio>

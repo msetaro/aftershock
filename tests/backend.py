@@ -57,7 +57,7 @@ server_probe = args.output/'join-server'
 run([*shlex.split(args.cxx), '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
      '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined', '-fno-sanitize-recover=all',
      '-ffunction-sections', '-fdata-sections', 'tests/probes/join_server.cpp',
-     'engine/qcommon/join.cpp', 'engine/platform/sys_services.cpp', sha, '-Wl,--gc-sections', '-o', server_probe])
+     'engine/qcommon/join.cpp', 'engine/server/sv_identity.cpp', 'engine/platform/sys_services.cpp', sha, '-Wl,--gc-sections', '-o', server_probe])
 second_payload = payload[:-32]+'ac'*16
 second_signature = hmac.new(bytes([0x42])*32, ('aftershock/join/v1\n'+second_payload).encode(), hashlib.sha256).hexdigest()
 run([server_probe, payload+'.'+signature, second_payload+'.'+second_signature])

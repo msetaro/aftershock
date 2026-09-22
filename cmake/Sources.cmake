@@ -14,6 +14,7 @@ set(COMMON_SOURCES
   engine/server/sv_filter.cpp
   engine/server/sv_game.cpp
   engine/server/sv_identity.cpp
+  engine/server/sv_join.cpp
   engine/server/sv_init.cpp
   engine/server/sv_main.cpp
   engine/server/sv_net_chan.cpp

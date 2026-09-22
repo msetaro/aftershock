@@ -95,6 +95,27 @@ Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. The #23 live Steam work is deferred to #180. Continue #21/#22/#23 final gates,
 then #24's dependency checkpoint and #29/#30; no maintainer input is needed.
 
+## #29 server identity owner
+
+The new server join owner validates and atomically installs bounded match/key/
+expected-player configuration. Reinstalling the same match/key preserves used
+nonces; invalid configuration preserves the previous valid state. Verified joins
+use SERVICE_BACKEND and retain the nonce for idempotent connection-response retries.
+The identity owner distinguishes SDK and backend sessions for callback polling,
+end-session cleanup and public identity reporting. It rejects a duplicate active
+account and keeps the existing SDK timeout/revocation behavior. All actual callers
+of SV_PlayerIdentity/GetPlayerIdentity are reviewed. Checkpoint serialization uses
+its existing named checkpointClient_t fields and rejects authenticated identities;
+no checkpoint file layout changes are introduced by the in-memory client fields.
+
+Both compiler backend/server UBSan probes and existing identity/discovery probes
+pass (backend-server-{gcc,clang}.log, backend-identity-{gcc,clang}.log). A full
+developer client/server build and production-flags tidy for join.cpp, sv_join.cpp
+and sv_identity.cpp pass. Format (580), types (441) and boundaries (443) pass.
+This owner is not wired to the live UDP connect path or match controller yet;
+actual configuration loading, handshake/retry behavior, client HTTPS/UI and kind
+acceptance remain next. No accepted fixture changes.
+
 ## #29 server identity contract, test first
 
 A new probe includes the actual server identity and new join owner. It requires

@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon_public.h"
 #include "../qcommon/voice_public.h"
+#include "../qcommon/join_public.h"
 #include "../public/g_public.h"
 #include "../public/bg_public.h"
 #include "../platform/services_public.h"
@@ -174,6 +175,8 @@ typedef struct client_s {
 	uint64_t identitySession, identityId;
 	uint32_t identityStart;
 	identityState_t identityState;
+	serviceIdentity_t identityProvider;
+	uint8_t joinNonce[16];
 	clientState_t state;
 	char userinfo[MAX_INFO_STRING]; // name, etc
 
@@ -542,3 +545,10 @@ void SV_ApplyReplicationPolicy( client_t *client, const clientSnapshot_t *oldfra
 void SV_OpenIdentity( client_t *client );
 void SV_CloseIdentity( client_t *client );
 void SV_PollIdentities();
+// Trusted match configuration; network clients supply only the signed token.
+bool SV_SetJoinConfig( const char *match, const char *key, const uint64_t *players, uint32_t count );
+bool SV_JoinRequired();
+bool SV_ValidateJoin( const char *token, joinClaims_t *out );
+bool SV_ApplyJoin( int clientNum, const joinClaims_t &claims );
+// Caller additionally verifies the same peer address and qport.
+bool SV_JoinRetry( int clientNum, const joinClaims_t &claims, int challenge );
