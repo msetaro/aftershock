@@ -25,17 +25,17 @@ of merged-tree build/regression workflows pass. #18 is accepted in PR173, merge
 2010b07737dcf98a87b37f3b6092d7ecee167c18 on 2026-09-22 UTC. All 26 exact-head
 checks pass (build 35683155301, regression 35683155256); the clean head, current
 main/base and immutable known-good tag were checked immediately before ready/merge.
-The merge tree equals the tested tree. Monitor merged-tree build 35687912038 and
-regression 35687912012; neither is acceptance evidence until it passes.
+The merge tree equals the tested tree. Merged-tree build 35687912038 passes.
+Regression 35687912012 has only runtime remaining; monitor it until completion.
 
 #19 is local in /home/matt/.cache/aftershock-modernization/state-tree,
 issue/19-state-serialization. Accepted #18 main is merged forward at this checkpoint.
 Additive affected-test and progress conflicts are resolved in 57c0589d. Combined
 GCC/Clang state probes, entity probes, client/server build, profile migration and
 all three entity runtime scenarios pass (private state-entities-*.log). Implement
-full single-player checkpoint integration from the
-committed failing tests/checkpoint_runtime.py. Entity, client and level draft records now round-trip with typed callbacks, checked
-references and nullable strings. Remaining work includes subsystem/bot records,
+full single-player checkpoint integration from committed failing
+tests/checkpoint_runtime.py. Entity, client and level draft records now round-trip
+with typed callbacks, checked references and nullable strings. Remaining work includes subsystem/bot records,
 gameplay validation, live restore/transport coordination and both RNG integrations. No partial checkpoint acceptance.
 
 Completed local #19 support: named/versioned fields with bounded strings and
@@ -51,6 +51,16 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 composed side state
+
+Composed entity state now saves animation start/frame timing, trigger cooldowns,
+sound state, damage radius and explicit flag words. Column records retain the
+fixed 1,024-slot state without writing bool representation or padding. The reader
+validates the whole record before optional application. GCC/Clang UBSan checks
+compare every slot and execute the original animation callback after restore,
+including wrapped clock bits (state-composed-{gcc,clang}.log). Invalid animation
+timing prevents a save from being finalized. Gameplay callback bodies are unchanged.
 
 ## #19 level draft records
 

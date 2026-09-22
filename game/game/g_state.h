@@ -85,4 +85,6 @@ size_t G_LevelStringBytes( const gLevelStrings_t &strings );
 bool G_RestoreLevelStrings( const gLevelStrings_t &strings, char *storage, size_t capacity, level_locals_t *level );
 bool G_WriteLevelState( stateWriter_t *writer, const level_locals_t &level, const gStatePools_t &pools );
 bool G_ReadLevelState( const stateReader_t &reader, const gStatePools_t &pools, level_locals_t *level, gLevelStrings_t *strings );
+bool G_WriteComposedState( stateWriter_t *writer );
+bool G_ReadComposedState( const stateReader_t &reader, bool apply );
 #endif
