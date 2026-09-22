@@ -15,11 +15,16 @@ args.output.mkdir(parents=True,exist_ok=True)
 run([sys.executable, 'tools/replication.py', '--check'])
 sha=args.output/'sha.o'
 probe=args.output/'probe'
+shared=args.output/'shared.o'
 run([*shlex.split(args.cc),'-std=c99','-O2','-c','third_party/sha256/sha-256.c','-o',sha])
+run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+     '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections','-fsanitize=undefined',
+     '-fno-sanitize-recover=all','-c','engine/qcommon/q_shared.cpp','-o',shared])
 for definitions in ([], ['-DSTATE_NATIVE_GAME']):
     run([*shlex.split(args.cxx),*definitions,'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-Wconversion','-Wshadow','-fsanitize=undefined','-fno-sanitize-recover=all',
-         'tests/probes/state.cpp','engine/qcommon/state.cpp',sha,'-o',probe])
+         '-ffunction-sections','-fdata-sections',
+         'tests/probes/state.cpp','engine/qcommon/state.cpp',shared,sha,'-Wl,--gc-sections','-o',probe])
     run([probe])
 run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      '-fno-fast-math','-ffp-contract=off','-fno-strict-aliasing','-fwrapv','-fno-builtin',

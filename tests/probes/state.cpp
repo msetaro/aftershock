@@ -55,7 +55,38 @@ static void CheckReplicationState( const stateSchema_t &schema ) {
 	assert( !memcmp( &source, &restored, sizeof( source ) ) );
 }
 
+#ifndef STATE_NATIVE_GAME
+static void CheckEngineRandomState() {
+	int32_t expected[256];
+	srand( 0x98765432U );
+	for ( int32_t &value : expected )
+		value = rand();
+	Q_Srand( 0x98765432U );
+	for ( int32_t value : expected )
+		assert( Q_Rand() == value );
+	const qRandomState_t saved = Q_GetRandomState();
+	assert( saved.draws == 256 && saved.seed == 0x98765432U );
+	for ( int32_t &value : expected )
+		value = Q_Rand();
+	Q_Srand( 42 );
+	assert( Q_RestoreRandomState( &saved ) );
+	for ( int32_t value : expected )
+		assert( Q_Rand() == value );
+	qRandomState_t incompatible = saved;
+	incompatible.signature[0] ^= 1;
+	const qRandomState_t current = Q_GetRandomState();
+	const int next = Q_Rand();
+	assert( Q_RestoreRandomState( &current ) );
+	assert( !Q_RestoreRandomState( &incompatible ) );
+	assert( Q_Rand() == next ); // Failed restore must preserve the running stream.
+}
+
+#endif
+
 int main() {
+#ifndef STATE_NATIVE_GAME
+	CheckEngineRandomState();
+#endif
 	for ( const auto &field : entitySaveFields )
 		if ( !strcmp( field.name, "pos.trType" ) || !strcmp( field.name, "apos.trType" ) )
 			assert( field.type == stateType_t::UInt32 );

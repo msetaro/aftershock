@@ -53,6 +53,17 @@ Continue the #25 sequence through #24's SDK dependency, #29 and #30. Nothing
 leaves this repository, accepted goldens and rollback tags stay unchanged. No
 maintainer input is needed at this checkpoint; do not end for a CI wait.
 
+## #19 libc RNG checkpoint test before implementation
+
+The common state probe now requires engine RNG wrappers to match libc's original
+256-value sequence and resume after restoring seed/draw position. A saved-generator
+signature mismatch must reject while preserving the running stream. The test
+fails on the missing API (state-libc-before.log). Compile existing q_shared with
+its production warning policy; keep strict conversion/shadow checks on new state
+code. Do not alter random arithmetic or switch generators. Capture will track
+owned engine calls, with a bounded replay count and a generator signature to
+reject incompatible libc streams. Full real-client continuation remains mandatory.
+
 ## #19 bounded text implementation and local rebuild
 
 The committed missing-String test 62c880e7 now passes GCC and Clang/libc++ UBSan
