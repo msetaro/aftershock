@@ -7,6 +7,9 @@ static const thread_callback_t callbacks[] = { thread_proc_mmap, thread_proc_dir
 
 dma_t dma;
 static cvar_t device, rate;
+cvar_t *Cvar_Get( const char *, const char *, int ) {
+	return &device;
+}
 cvar_t *s_device = &device;
 cvar_t *s_khz = &rate;
 static unsigned int mmap_writes, direct_writes;
@@ -43,6 +46,13 @@ int main( void ) {
 	assert( SNDDMA_GetDMAPos() >= 0 );
 	SNDDMA_Shutdown();
 	assert( direct_writes > 0 );
+	assert( setup_ALSA( SND_MODE_DIRECT ) );
+	assert( SNDDMA_StartVoiceCapture() );
+	int16_t voice[960];
+	assert( SNDDMA_ReadVoiceCapture( voice, 960 ) == 960 );
+	SNDDMA_StopVoiceCapture();
+	assert( SNDDMA_ReadVoiceCapture( voice, 960 ) == 0 );
+	SNDDMA_Shutdown();
 	puts( "PASS: ALSA null sink received MMAP and DIRECT samples; both threads joined" );
 	return 0;
 }
