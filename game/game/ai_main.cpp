@@ -2119,4 +2119,58 @@ bool G_ReadBotActorState( const stateReader_t &reader, uint32_t slot, bot_state_
 		*bot = saved;
 	return true;
 }
+
+struct botPoolSave_t {
+	uint32_t allocated[MAX_CLIENTS], active[MAX_CLIENTS];
+};
+static_assert( sizeof( botPoolSave_t ) == MAX_CLIENTS * 8 );
+static constexpr stateField_t botPoolFields[] = {
+	{ "allocated", offsetof( botPoolSave_t, allocated ), MAX_CLIENTS, stateType_t::UInt32 },
+	{ "active", offsetof( botPoolSave_t, active ), MAX_CLIENTS, stateType_t::UInt32 }
+};
+static constexpr stateSchema_t botPoolSchema = { "game.botPool", 1, 1, sizeof( botPoolSave_t ), botPoolFields, 2 };
+bool G_WriteBotPoolState( stateWriter_t *writer ) {
+	if ( !writer )
+		return false;
+	botPoolSave_t pool{};
+	static const bot_state_t empty{};
+	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i ) {
+		pool.allocated[i] = botstates[i] != nullptr;
+		pool.active[i] = botstates[i] && botstates[i]->inuse;
+		// A failed partial setup is not a quiescent, reusable inactive slot.
+		if ( pool.allocated[i] && !pool.active[i] && memcmp( botstates[i], &empty, sizeof( empty ) ) ) {
+			writer->failed = true;
+			return false;
+		}
+		if ( pool.active[i] && !G_WriteBotActorState( writer, i, *botstates[i] ) )
+			return false;
+	}
+	return State_Append( writer, botPoolSchema, 0, &pool );
+}
+bool G_ReadBotPoolState( const stateReader_t &reader, bool apply ) {
+	botPoolSave_t pool;
+	uint32_t version, count = 0;
+	if ( !State_Find( reader, botPoolSchema, 0, &pool, &version ) )
+		return false;
+	bot_state_t draft{};
+	for ( uint32_t i = 0; i < MAX_CLIENTS; ++i ) {
+		if ( pool.allocated[i] > 1 || pool.active[i] > pool.allocated[i] ||
+			 ( apply && botstates[i] ) || ( pool.active[i] && !G_ReadBotActorState( reader, i, &draft, false ) ) )
+			return false;
+		count += pool.allocated[i];
+	}
+	if ( !apply || !count )
+		return true;
+	// Reuse the level arena; preserve the legacy arena's reserved bytes separately.
+	static_assert( sizeof( bot_state_t ) * MAX_CLIENTS <= UINT32_MAX );
+	auto *actors = (bot_state_t *)GameImport_AllocLevelMemory( count * uint32_t( sizeof( bot_state_t ) ) );
+	memset( actors, 0, count * sizeof( bot_state_t ) );
+	for ( uint32_t i = 0, index = 0; i < MAX_CLIENTS; ++i )
+		if ( pool.allocated[i] ) {
+			botstates[i] = &actors[index++];
+			if ( pool.active[i] && !G_ReadBotActorState( reader, i, botstates[i], true ) )
+				return false;
+		}
+	return true;
+}
 #endif

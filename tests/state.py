@@ -357,6 +357,14 @@ run([*shlex.split(args.cxx),'-std=c++20','-O2','-fno-exceptions','-fno-rtti',
      'engine/qcommon/state.cpp',sha,'-Wl,--gc-sections','-o',probe])
 run([probe])
 
+for component in ('ITEMS','FILTERS','MEMORY'):
+    run([*shlex.split(args.cxx),f'-DSTATE_{component}','-std=c++20','-O2','-fno-exceptions','-fno-rtti',
+         '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
+         '-fsanitize=undefined','-fno-sanitize-recover=all',
+         'tests/probes/state_native_owners.cpp','engine/qcommon/state.cpp',sha,
+         '-Wl,--gc-sections','-o',probe])
+    run([probe])
+
 for component in ('COMBAT','TEAM','PODIUM'):
     run([*shlex.split(args.cxx),f'-DSTATE_{component}','-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
@@ -373,7 +381,7 @@ for definitions in ([],['-DAFTERSHOCK_DEVTOOLS']):
          '-Wl,--gc-sections','-o',probe])
     run([probe])
 
-for component in ('QUEUE','CLOCK','TEAM'):
+for component in ('QUEUE','CLOCK','TEAM','CONTENT'):
     run([*shlex.split(args.cxx),f'-DSTATE_{component}','-std=c++20','-O2','-fno-exceptions','-fno-rtti',
          '-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections',
          '-fsanitize=undefined','-fno-sanitize-recover=all',

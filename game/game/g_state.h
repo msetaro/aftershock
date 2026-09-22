@@ -123,4 +123,14 @@ bool G_WriteBotActorState( stateWriter_t *writer, uint32_t slot, const bot_state
 bool G_ReadBotActorState( const stateReader_t &reader, uint32_t slot, bot_state_s *bot, bool apply );
 bool G_WriteBotNavigationState( stateWriter_t *writer );
 bool G_ReadBotNavigationState( const stateReader_t &reader, bool apply );
+bool G_WriteBotPoolState( stateWriter_t *writer );
+bool G_ReadBotPoolState( const stateReader_t &reader, bool apply );
+bool G_WriteMemoryState( stateWriter_t *writer );
+bool G_ReadMemoryState( const stateReader_t &reader, bool apply );
+bool G_WriteRegisteredItemState( stateWriter_t *writer );
+bool G_ReadRegisteredItemState( const stateReader_t &reader, bool apply );
+bool G_WriteIPFilterState( stateWriter_t *writer );
+bool G_ReadIPFilterState( const stateReader_t &reader, bool apply );
+bool G_WriteBotInfoState( stateWriter_t *writer );
+bool G_ReadBotInfoState( const stateReader_t &reader );
 #endif

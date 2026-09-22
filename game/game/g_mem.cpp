@@ -60,3 +60,21 @@ void G_InitMemory( void ) {
 void Svcmd_GameMem_f( void ) {
 	G_Printf( "Game memory status: %i out of %i bytes allocated\n", allocPoint, POOLSIZE );
 }
+
+static constexpr stateField_t gameMemoryField = { "used", 0, 1, stateType_t::Int32 };
+static constexpr stateSchema_t gameMemorySchema = { "game.memory", 1, 1, sizeof( int32_t ), &gameMemoryField, 1 };
+bool G_WriteMemoryState( stateWriter_t *writer ) {
+	return State_Append( writer, gameMemorySchema, 0, &allocPoint );
+}
+bool G_ReadMemoryState( const stateReader_t &reader, bool apply ) {
+	int32_t saved;
+	uint32_t version;
+	if ( !State_Find( reader, gameMemorySchema, 0, &saved, &version ) || saved < allocPoint || saved > POOLSIZE || saved % 32 )
+		return false;
+	// Map initialization owns the existing prefix (bot/arena infos). Restored
+	// entities/actors use level memory; reserve their original legacy allocation
+	// budget so subsequent G_Alloc calls retain the same remaining capacity.
+	if ( apply )
+		allocPoint = saved;
+	return true;
+}

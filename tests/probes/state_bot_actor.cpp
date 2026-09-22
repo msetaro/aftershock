@@ -49,6 +49,13 @@ int AINode_Battle_NBG( bot_state_t * ) {
 	return 10;
 }
 } // namespace game
+static game::bot_state_t restoredActors[2];
+static int levelAllocations;
+void *GameImport_AllocLevelMemory( uint32_t bytes ) {
+	assert(bytes==sizeof(restoredActors));
+	++levelAllocations;
+	return restoredActors;
+}
 static int UnknownNode( game::bot_state_t * ) {
 	return -1;
 }
@@ -131,5 +138,31 @@ int main() {
 	const auto expected = original;
 	assert(!G_ReadBotActorState(reader,3,&original,true));
 	assert(!memcmp(&expected,&original,sizeof(expected)));
+	bot_state_t inactive{};
+	botstates[3] = &original;
+	botstates[7] = &inactive;
+	writer = { bytes, sizeof( bytes ) };
+	assert(G_WriteBotPoolState(&writer));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	assert(G_ReadBotPoolState(reader,false) && !G_ReadBotPoolState(reader,true) && !levelAllocations);
+	botstates[3] = botstates[7] = nullptr;
+	assert(G_ReadBotPoolState(reader,true) && levelAllocations==1);
+	assert(botstates[3]==&restoredActors[0] && botstates[7]==&restoredActors[1] && !botstates[1]);
+	assert(botstates[3]->activatestack==&restoredActors[0].activategoalheap[2]);
+	assert(botstates[3]->activategoalheap[2].next==&restoredActors[0].activategoalheap[5]);
+	assert(!botstates[7]->inuse);
+	botPoolSave_t pool;
+	uint32_t version;
+	assert(State_Find(reader,botPoolSchema,0,&pool,&version));
+	writer = { bytes, sizeof( bytes ) };
+	assert(State_Append(&writer,botPoolSchema,0,&pool));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	botstates[3] = botstates[7] = nullptr;
+	assert(!G_ReadBotPoolState(reader,true) && levelAllocations==1 && !botstates[3]);
+	botstates[7] = &inactive;
+	inactive.character = 3;
+	writer = { bytes, sizeof( bytes ) };
+	assert(!G_WriteBotPoolState(&writer) && !State_Finish(&writer));
+	puts( "PASS: native bot pool reconstruction preserves allocated inactive slots and rebases activation links" );
 	puts( "PASS: full bot actor drafts preserve every scalar, typed AI node and relocated activation/waypoint reference" );
 }

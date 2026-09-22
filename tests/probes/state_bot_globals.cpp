@@ -1,5 +1,5 @@
 #define NATIVE_NAMESPACE game
-#if defined( STATE_QUEUE )
+#if defined( STATE_QUEUE ) || defined( STATE_CONTENT )
 #define NATIVE_SOURCE "game/g_bot.cpp"
 #elif defined( STATE_CLOCK )
 #define NATIVE_SOURCE "game/ai_main.cpp"
@@ -17,7 +17,27 @@ int main() {
 	static unsigned char bytes[32768];
 	stateWriter_t writer{ bytes, sizeof( bytes ) };
 	stateReader_t reader;
-#ifdef STATE_QUEUE
+#ifdef STATE_CONTENT
+	char bot[] = "\\name\\owned bot", arena[] = "\\map\\owned map";
+	g_numBots = g_numArenas = 1;
+	g_botInfos[0] = bot;
+	g_arenaInfos[0] = arena;
+	assert(G_WriteBotInfoState(&writer));
+	assert(State_Open(bytes,State_Finish(&writer),&reader));
+	char relocated[sizeof( bot )];
+	memcpy( relocated, bot, sizeof( bot ) );
+	g_botInfos[0] = relocated;
+	assert(G_ReadBotInfoState(reader));
+	relocated[7] = 'X';
+	assert(!G_ReadBotInfoState(reader));
+	memcpy( relocated, bot, sizeof( bot ) );
+	g_numArenas = 0;
+	assert(!G_ReadBotInfoState(reader));
+	g_numArenas = MAX_ARENAS + 1;
+	writer = { bytes, sizeof( bytes ) };
+	assert(!G_WriteBotInfoState(&writer) && !State_Finish(&writer));
+	puts( "PASS: immutable bot and arena descriptors verify order and contents after relocation" );
+#elif defined( STATE_QUEUE )
 	checkminimumplayers_time = INT32_MIN + 700;
 	for ( int i = 0; i < BOT_SPAWN_QUEUE_DEPTH; ++i )
 		botSpawnQueue[i] = { i, 1200 + i * 50 };

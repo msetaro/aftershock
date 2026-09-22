@@ -43,8 +43,10 @@ movement, goal/item/weight/weapon pools, character caches, chat queues/content,
 libvars, global clocks and map identities. AAS records cover entities, spatial
 lists, world/physics state and routing caches; BSP content and the quiescent parser
 boundary are verified. Game-side bot actor/navigation/waypoint/scheduler/queue/team
-records are also complete. Character, movement, weight, goal and weapon preparation now rebuild saved
-slots locally. Chat handles/content also reconstruct locally. Remaining work: finish other game globals and semantic validation; coordinate live
+records are also complete. Character, movement, weight, goal, weapon and chat
+preparation rebuild saved slots locally. Native bot reconstruction, item/filter
+tables, arena accounting and bot/arena content identity are covered. Remaining
+work: cached cvars/change counters and semantic validation; coordinate live
 server/client restore and both RNG streams; add the platform save-provider seam
 and frozen full-game N-to-N+1 OpenArena fixture. No partial checkpoint acceptance.
 After #19, take the newly reproduced chat-shutdown boundary bug in a separate
@@ -63,6 +65,27 @@ Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/pyt
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
 Continue through #24's SDK dependency, #29 and #30 per #25. No maintainer input is
 needed now; continue through gates instead of ending at a checkpoint or CI wait.
+
+## #19 native bot slots and remaining native owners
+
+Native bot preparation validates all actors first, then uses the existing level
+arena to reconstruct exact active and allocated-inactive slots. Inactive partial
+setup rejects capture. Activation links target the final allocation. Legacy
+G_Alloc accounting restores its saved used count while retaining the normally
+loaded map-info prefix; entity strings and actors will use level memory. This
+preserves the next legacy allocation offset and remaining budget without saving
+raw pointer-bearing memory. Full coordination must start from a fresh map.
+
+Item registration retains the complete boolean table; IP filters retain all
+1,024 entries independently of the short presentation cvar. Loaded bot/arena info
+strings and order are verified by digest. GCC/Clang libc++ UBSan pass active and
+inactive bot reconstruction, missing-actor rejection before allocation, same-next
+arena allocation, complete item/filter tables and relocated/changed content
+(state-native-owners-{gcc,clang}.log; state-bot-info-{gcc,clang}.log). The initial
+owner client/server build and focused tidy pass. Bot-info build/tidy and all
+policy checks also pass (state-native-info-{build,tidy,policy}.log). Cached
+cvars/change counters and
+semantic/coordinator work remain next. No accepted fixture changed.
 
 ## #19 chat reconstruction and combined preparation gates
 

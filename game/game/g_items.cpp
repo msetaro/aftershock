@@ -1015,3 +1015,21 @@ extern const gSaveCallback_t saveCallbacks_g_items[] = {
 	{ nullptr }
 };
 #endif
+
+static constexpr stateField_t registeredItemsField = { "registered", 0, MAX_ITEMS, stateType_t::UInt32 };
+static constexpr stateSchema_t registeredItemsSchema = { "game.registeredItems", 1, 1, sizeof( itemRegistered ), &registeredItemsField, 1 };
+bool G_WriteRegisteredItemState( stateWriter_t *writer ) {
+	return State_Append( writer, registeredItemsSchema, 0, itemRegistered );
+}
+bool G_ReadRegisteredItemState( const stateReader_t &reader, bool apply ) {
+	uint32_t saved[MAX_ITEMS], version;
+	if ( !State_Find( reader, registeredItemsSchema, 0, saved, &version ) )
+		return false;
+	for ( uint32_t value : saved )
+		if ( value > 1 )
+			return false;
+	if ( apply )
+		for ( int i = 0; i < MAX_ITEMS; ++i )
+			itemRegistered[i] = (qboolean)saved[i];
+	return true;
+}
