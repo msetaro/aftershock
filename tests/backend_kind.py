@@ -219,10 +219,7 @@ try:
                 return response.read().decode()
         assert json.loads(get('/healthz'))['ready']
         def check_scaling():
-            # Real resource metrics must drive a scale-out. Use a low test target,
-            # preserving the generated production 65% target in its source manifest.
-            log_run('hpa-target.log', [*ctl, 'patch', 'hpa', 'backend', '--type=json', '-p',
-                '[{"op":"replace","path":"/spec/metrics/0/resource/target/averageUtilization","value":1}]'])
+            # Exercise the generated production 65% CPU target with actual HTTPS load.
             stopping = threading.Event()
             def load():
                 while not stopping.is_set():

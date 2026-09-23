@@ -54,6 +54,21 @@ all 26 integrated required jobs. #22 build 35767363858/regression 35767363841
 and prior #19/#20 acceptance remain valid. #31 is closed after PR174.
 Do not repeat completed issues or the historical network negative control.
 
+## #29 deployment-only runtime evidence
+
+`/tmp/aftershock-resume/deployment2/report.json` records `full: false` and a passed
+private-cluster deployment slice: pinned node/Agones/PostgreSQL, both backend
+replicas ready over HTTPS, warm match pod, valid CPU resource metrics and actual
+HPA scale-out to more than two ready replicas (desired four). Its CPU observation
+was 195% of requests. The cluster and generated credentials were cleaned up.
+This run used a test target of 1%; the default full driver now retains the generated
+65% target, which still must pass in native acceptance. Do not claim this partial
+run proves native sign-in, signed gameplay, attribution or results UI.
+
+The node-CRI pull fixes the Docker multi-platform import failure without changing
+the pinned PostgreSQL digest. #23 integrated runtime still runs; remaining client
+API integration and new public-status failing assertion wait for that gate.
+
 ## #29 independent deployment acceptance in progress
 
 Added an explicit deployment-only mode to the new kind driver while #23's long

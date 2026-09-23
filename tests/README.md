@@ -1269,7 +1269,7 @@ never enter cvars, UI values or console commands. The existing #28 ingest stub
 receives the actual backend-generated allocation token; production ingest is #30.
 
 The cluster test installs SHA-256-pinned metrics-server 0.8.1, requires real CPU
-metrics to drive HPA scale-out under a lowered test-only target, and checks HTTPS
+metrics to drive HPA scale-out at the generated 65% CPU target, and checks HTTPS
 health and backend counters. Only its private kind kubelet metrics transport
 accepts self-signed serving certificates; backend and fixture TLS remain verified.
 It needs Docker, OpenSSL, Python YAML and cooker dependencies, Xvfb/lavapipe and
