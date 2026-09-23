@@ -54,6 +54,16 @@ all 26 integrated required jobs. #22 build 35767363858/regression 35767363841
 and prior #19/#20 acceptance remain valid. #31 is closed after PR174.
 Do not repeat completed issues or the historical network negative control.
 
+## #29 independent deployment acceptance in progress
+
+Added an explicit deployment-only mode to the new kind driver while #23's long
+integrated runtime gate finishes. It records `full: false` and cannot substitute
+for native login-to-results acceptance. The first real run failed before deployment:
+kind's Docker image import requested missing multi-platform content from the local
+PostgreSQL index. Its owned cluster was deleted. Pull the same pinned PostgreSQL
+digest through the node's CRI runtime instead; do not loosen the pin. Evidence:
+`/tmp/aftershock-resume/deployment1/postgres-load.log`. Retry pending.
+
 ## #29 rebuilt local service evidence
 
 Fresh Docker image `aftershock-match:resume29-test` builds successfully from the

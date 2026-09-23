@@ -1275,6 +1275,8 @@ accepts self-signed serving certificates; backend and fixture TLS remain verifie
 It needs Docker, OpenSSL, Python YAML and cooker dependencies, Xvfb/lavapipe and
 public OpenArena data. It deletes only its owned cluster and removes generated
 secrets/kubeconfig. CI uploads an explicit list of public reports/logs/screenshots.
+`--deployment-only` checks the independent deployment/health/metrics/HPA slice
+and writes `full: false`; it never substitutes for the default native acceptance.
 The new end-to-end gate remains pending until recorded in the progress checkpoint.
 No fixture or accepted golden is regenerated.
 

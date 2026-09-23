@@ -37,10 +37,13 @@ METRICS_URL = 'https://github.com/kubernetes-sigs/metrics-server/releases/downlo
 METRICS_SHA = '4a672c4891902573a3ff753cece5de1bf1f55dd053403dfec39df9d1636b7ff1'
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--image', required=True)
-parser.add_argument('--client', type=Path, required=True)
+parser.add_argument('--deployment-only', action='store_true', help='check deployment/metrics/HPA only; never full native acceptance')
+parser.add_argument('--client', type=Path)
 parser.add_argument('--data', type=Path, required=True)
 parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-backend-kind')
 args = parser.parse_args()
+if not args.deployment_only and args.client is None:
+    parser.error('--client is required for full native acceptance')
 if args.output.exists():
     parser.error('choose a new output directory')
 args.output.mkdir(parents=True, mode=0o700)
@@ -105,9 +108,10 @@ try:
     log_run('create.log', [kind, 'create', 'cluster', '--name', cluster, '--image', NODE,
                           '--kubeconfig', kubeconfig, '--wait', '60s'], timeout=240)
     log_run('image.log', [kind, 'load', 'docker-image', args.image, '--name', cluster], timeout=180)
-    log_run('postgres-pull.log', ['docker', 'pull', POSTGRES], timeout=180)
-    log_run('postgres-load.log', [kind, 'load', 'docker-image', POSTGRES, '--name', cluster], timeout=180)
     node = cluster+'-control-plane'
+    # Pull the pinned manifest through the node runtime. Importing a Docker
+    # multi-platform index can reference platforms absent from its local store.
+    log_run('postgres-pull.log', ['docker', 'exec', node, 'crictl', 'pull', POSTGRES], timeout=240)
     network = document(['docker', 'inspect', node])[0]['NetworkSettings']['Networks']['kind']
     gateway = network['Gateway']
     log_run('namespace.log', [*ctl, 'create', 'namespace', namespace])
@@ -214,6 +218,36 @@ try:
             with urllib.request.urlopen(endpoint+path, context=trust, timeout=5) as response:
                 return response.read().decode()
         assert json.loads(get('/healthz'))['ready']
+        def check_scaling():
+            # Real resource metrics must drive a scale-out. Use a low test target,
+            # preserving the generated production 65% target in its source manifest.
+            log_run('hpa-target.log', [*ctl, 'patch', 'hpa', 'backend', '--type=json', '-p',
+                '[{"op":"replace","path":"/spec/metrics/0/resource/target/averageUtilization","value":1}]'])
+            stopping = threading.Event()
+            def load():
+                while not stopping.is_set():
+                    get('/healthz')
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+                futures = [pool.submit(load) for _ in range(4)]
+                try:
+                    def scaled():
+                        hpa = document([*ctl, 'get', 'hpa', 'backend', '-o', 'json'])
+                        deployment = document([*ctl, 'get', 'deployment', 'backend', '-o', 'json'])
+                        return hpa if hpa.get('status', {}).get('desiredReplicas', 0) > 2 and deployment.get('status', {}).get('readyReplicas', 0) > 2 else None
+                    hpa = wait_for(scaled, 180, 'resource metrics and HPA scale-out')
+                    (output/'hpa.json').write_text(json.dumps(hpa, indent=2))
+                finally:
+                    stopping.set()
+                for future in futures:
+                    future.result()
+            assert json.loads(get('/healthz'))['ready']
+            return hpa
+        hpa = check_scaling()
+        if args.deployment_only:
+            (output/'report.json').write_text(json.dumps(dict(full=False, deployment=True,
+                scaled_replicas=hpa['status']['desiredReplicas']), indent=2)+'\n')
+            print('PASS: deployment-only health, real resource metrics and HPA; native acceptance NOT run')
+            sys.exit(0)
         home = root/'client'
         base = home/'baseoa'
         base.mkdir(parents=True)
@@ -304,31 +338,9 @@ try:
         metrics = get('/metrics')
         assert 'aftershock_backend_requests_total{service="login"}' in metrics
         (output/'backend-metrics.txt').write_text(metrics)
-        # Real resource metrics must drive a scale-out. Use a low test target,
-        # preserving the generated production 65% target in its source manifest.
-        log_run('hpa-target.log', [*ctl, 'patch', 'hpa', 'backend', '--type=json', '-p',
-            '[{"op":"replace","path":"/spec/metrics/0/resource/target/averageUtilization","value":1}]'])
-        stopping = threading.Event()
-        def load():
-            while not stopping.is_set():
-                get('/healthz')
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-            futures = [pool.submit(load) for _ in range(4)]
-            try:
-                def scaled():
-                    hpa = document([*ctl, 'get', 'hpa', 'backend', '-o', 'json'])
-                    deployment = document([*ctl, 'get', 'deployment', 'backend', '-o', 'json'])
-                    return hpa if hpa.get('status', {}).get('desiredReplicas', 0) > 2 and deployment.get('status', {}).get('readyReplicas', 0) > 2 else None
-                hpa = wait_for(scaled, 180, 'resource metrics and HPA scale-out')
-                (output/'hpa.json').write_text(json.dumps(hpa, indent=2))
-            finally:
-                stopping.set()
-            for future in futures:
-                future.result()
-        assert json.loads(get('/healthz'))['ready']
         activate('logout')
         wait_for(lambda: info()[0] == 'Signed out', 20, 'native logout', True)
-        report = dict(match=match, account=player, gameserver=original, profile_values=values,
+        report = dict(full=True, match=match, account=player, gameserver=original, profile_values=values,
                       checkpoint=final['checkpoint'], scaled_replicas=hpa['status']['desiredReplicas'])
         (output/'report.json').write_text(json.dumps(report, indent=2)+'\n')
         text = engine.log_path.read_text(errors='replace')
