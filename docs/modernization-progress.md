@@ -30,38 +30,29 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
-Machine migration checkpoint, 2026-09-22: the maintainer is moving Ironforge;
-this thread, worktrees and private build caches will be lost. Resume from the
-remote `issue/29-backend-services` branch in draft [PR181](https://github.com/msetaro/aftershock/pull/181),
-not the retired modernization branch.
-Read [the migration handoff](modernization-handoff.md) first; it records the exact
-remaining work, reproducible checks and intentionally incomplete integration.
-The historical sections below remain evidence, not fresh instructions to repeat work.
+Resumed on Ironforge, 2026-09-23, from migration checkpoint `b199539c`.
+Read current main instructions, migration handoff and issues #25/#23/#24/#29/#30/#180.
+Completed PR179 final self-review and fresh base/head/tag verification without
+repeating passed checks. Its exact head `1f395716` contains main `aa96932a`;
+all 16 compiler and ten active required regression jobs passed. The five fuzz
+jobs remain explicitly nonblocking under separate-scope #35; PR-only publication
+skips are conditional. Merge commit `2c5bf00a5753f13ff0bd698898d245f9388b9fb3`
+has the identical tested tree. Integrated build 35931243625 and regression
+35931243579 are pending. #23 self-review evidence is on the issue.
 
-1. Recheck draft #23 PR179, head `1f3957166a740a60d00ecb2e4d663eb136133dd6`.
-   All 16 compiler jobs in build 35767480303 and all 10 active regression jobs
-   in 35767480297 now PASS. It is deliberately left unmerged during migration.
-   Perform AGENTS self-review and fresh main/base/head/tag checks, mark ready and
-   merge with a merge commit only if the current base remains covered. If main
-   advanced, merge main forward and rerun gates first. Verify integrated gates.
-2. Merge accepted main forward into `issue/29-backend-services`. Preserve its
-   `SERVICE_BACKEND = 2` when integrating #23's services header. Ordinary client
-   builds currently lack #23's ticket API; preview probes are not final acceptance.
-3. Record #24's existing SDK dependency; Steam provider/live work is deferred to
-   #180 by the maintainer. Do not ask for SDK paths, AppIDs or test accounts now.
-4. Continue #29: implement heartbeat retirement against its committed failing
-   test, finish actual HTTPS/native-client and kind acceptance, wire CI and docs,
-   and complete all scope/quality gates before merging. Then continue #30 per #25.
-   No #29 merge or full integration acceptance is claimed by this checkpoint.
+1. Verify those integrated jobs before accepting #23 and merging main forward
+   into this branch. Preserve `SERVICE_BACKEND = 2` and this checkpoint.
+2. Continue #29's committed failing heartbeat test, normal client/compiler builds,
+   actual native HTTPS-to-kind-match-to-profile acceptance, deployment metrics/
+   scaling, CI/catalog wiring and documentation. Keep PR181 draft until complete.
+3. Run current-main final gates and self-review, merge #29, verify integration,
+   then continue #30 per #25. Steam SDK/provider/live work remains deferred to
+   #180; #24 retains its SDK dependency. No SDK/account input is required now.
 
-Accepted main is `aa96932abb13f761d0a71dde89f95d33893a45c8` (#22), already merged
-into #29 at `6ae3fbfa`. #19 PR175 and #20 PR176 were fully accepted earlier.
-#21 PR177 is fully accepted at `7c24808f16f9a72d9ed21ba9af736cd54adba386`:
-merged build 35757322676/regression 35757322732 pass all 26 required jobs.
-#22 PR178 is fully accepted at `aa96932a`: tested head `b23ef158`, merge tree
-`309bac591a8225478a52321b0205a547f885a996`, merged build 35767363858/regression
-35767363841 pass all 26 required jobs. Issues #21/#22 and tracking #25 are updated.
-#31 is closed after accepted PR174. Do not repeat these completed issues.
+Accepted predecessors #21 PR177 (`7c24808f`) and #22 PR178 (`aa96932a`) passed
+all 26 integrated required jobs. #22 build 35767363858/regression 35767363841
+and prior #19/#20 acceptance remain valid. #31 is closed after PR174.
+Do not repeat completed issues or the historical network negative control.
 
 ## #29 migration checkpoint and heartbeat retirement, test first
 
