@@ -359,7 +359,10 @@ finally:
             ('backend.log', [*ctl, 'logs', '-l', 'app=backend', '--all-containers', '--tail=100']),
         ):
             with (output/name).open('w') as stream:
-                subprocess.run(arguments, stdout=stream, stderr=subprocess.STDOUT, timeout=20)
+                try:
+                    subprocess.run(arguments, stdout=stream, stderr=subprocess.STDOUT, timeout=20)
+                except subprocess.TimeoutExpired:
+                    stream.write('Diagnostic collection timed out; continuing owned cluster cleanup.\n')
         log_run('delete.log', [kind, 'delete', 'cluster', '--name', cluster, '--kubeconfig', kubeconfig], timeout=90)
     # Generated manifests include ephemeral credentials. Never upload them.
     for name in ('db-secret.json', 'backend-secret.json', 'ingest-token.json', 'match.json'):
