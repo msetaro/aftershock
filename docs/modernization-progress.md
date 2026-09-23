@@ -54,6 +54,17 @@ all 26 integrated required jobs. #22 build 35767363858/regression 35767363841
 and prior #19/#20 acceptance remain valid. #31 is closed after PR174.
 Do not repeat completed issues or the historical network negative control.
 
+## #29 generated HPA target verified
+
+Deployment-only acceptance also passes with the generated, unchanged 65% CPU
+utilization target (`/tmp/aftershock-resume/deployment3/report.json` and `hpa.json`).
+Both original replicas become HTTPS-ready, real resource metrics drive additional
+ready replicas under HTTPS load, health remains available, and owned cluster/secret
+cleanup succeeds. The report explicitly remains `full: false`. This closes the
+independent deployment/scaling slice, not the still-pending native sign-in/play/
+results assertions. Repeat the combined default command on the integrated branch
+for final acceptance after #23's runtime gate completes.
+
 ## #29 deployment-only runtime evidence
 
 `/tmp/aftershock-resume/deployment2/report.json` records `full: false` and a passed
