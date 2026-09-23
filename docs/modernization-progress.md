@@ -54,6 +54,17 @@ all 26 integrated required jobs. #22 build 35767363858/regression 35767363841
 and prior #19/#20 acceptance remain valid. #31 is closed after PR174.
 Do not repeat completed issues or the historical network negative control.
 
+## #29 transport verification on the resumed machine
+
+GCC and Clang/libc++ native HTTPS probes pass linked, dynamically loaded and
+curl-unavailable configurations, including verified private trust, response bounds,
+redirect rejection, cancellation/reuse and shared-loader lifetime. Logs:
+`/tmp/aftershock-resume/http-{gcc,clang}.log`. The kind driver also requires logout
+to expire the actual server session, beyond clearing public client state. That
+native assertion remains pending with the rest of the full-client flow.
+#23 integrated runtime has passed levels, profiles/navigation and UI; audio and
+remaining module/replay checks are still running. No required failure is waived.
+
 ## #29 native prerequisites prepared
 
 Normal GCC and Clang/libc++ development configurations succeed in the new private

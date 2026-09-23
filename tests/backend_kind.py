@@ -340,6 +340,8 @@ try:
         (output/'backend-metrics.txt').write_text(metrics)
         activate('logout')
         wait_for(lambda: info()[0] == 'Signed out', 20, 'native logout', True)
+        wait_for(lambda: sql('SELECT count(*) FROM backend_sessions WHERE expires_at > CURRENT_TIMESTAMP') == '0',
+                 10, 'server session revocation', True)
         report = dict(full=True, match=match, account=player, gameserver=original, profile_values=values,
                       checkpoint=final['checkpoint'], scaled_replicas=hpa['status']['desiredReplicas'])
         (output/'report.json').write_text(json.dumps(report, indent=2)+'\n')
