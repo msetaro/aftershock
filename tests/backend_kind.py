@@ -271,6 +271,21 @@ try:
         assert player in (output/'server.log').read_text(), 'server must log verified account attribution'
         wait_for(lambda: bool(engine.request('state')['player']), 20, 'active native player', True)
         execute('kill')
+        def match_metrics():
+            reply = subprocess.run([*ctl, 'get', '--raw',
+                f'/apis/metrics.k8s.io/v1beta1/namespaces/{namespace}/pods/{original}'],
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, timeout=10)
+            if reply.returncode:
+                return None
+            data = json.loads(reply.stdout)
+            containers = {row['name']: row['usage'] for row in data['containers']}
+            if not {'server', 'results', 'agones-gameserver-sidecar'} <= containers.keys():
+                return None
+            assert all(re.fullmatch(r'[0-9]+[a-zA-Z]*', usage['cpu']) and
+                       re.fullmatch(r'[1-9][0-9]*[a-zA-Z]*', usage['memory']) for usage in containers.values())
+            return data
+        pod_metrics = wait_for(match_metrics, 45, 'real per-match container resource metrics', True)
+        (output/'match-metrics.json').write_text(json.dumps(pod_metrics, indent=2))
         def final_record():
             data = command([*ctl, 'exec', 'deployment/ingest', '--', '/app/match', 'records'], stdout=subprocess.PIPE, text=True).stdout
             rows = [json.loads(line) for line in data.splitlines()]

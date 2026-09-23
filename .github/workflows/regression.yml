@@ -651,5 +651,6 @@ jobs:
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/report.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/events.jsonl
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/hpa.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/match-metrics.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/backend-metrics.txt
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/profile-results.png

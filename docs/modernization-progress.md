@@ -54,6 +54,17 @@ all 26 integrated required jobs. #22 build 35767363858/regression 35767363841
 and prior #19/#20 acceptance remain valid. #31 is closed after PR174.
 Do not repeat completed issues or the historical network negative control.
 
+## #29 rebuilt local service evidence
+
+Fresh Docker image `aftershock-match:resume29-test` builds successfully from the
+resumed branch; it will be rebuilt after the #23 merge forward. Go race/vet and
+real private PostgreSQL/HTTPS/allocator-recovery contracts pass on this machine
+(`/tmp/aftershock-resume/go-race.log`, `go-vet.log`, `backend-services`).
+Formatting (604 owned files), suite/affected catalog and isolation policy pass.
+Integrated #23 lifetime checks now pass; only runtime remains before merge forward.
+The kind contract also requires per-match container metrics from the actual
+resource-metrics API. Its native client and cluster assertions remain unrun.
+
 ## #29 resumed acceptance preparation
 
 Added committed native public-status assertions (`d9ac2274`) and the actual kind
