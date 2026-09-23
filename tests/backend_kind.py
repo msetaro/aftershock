@@ -83,11 +83,11 @@ def wait_for(check, seconds, label, pump=False):
         time.sleep(.1 if pump else 1)
     raise AssertionError(label+' timed out; see '+str(output))
 
-def apply(name, value):
+def apply(name, value, cluster_scope=False):
     path = output/name
     path.write_text(json.dumps(value))
     path.chmod(0o600)
-    log_run(name+'.log', [*ctl, 'apply', '-f', path])
+    log_run(name+'.log', [*(ctl[:3] if cluster_scope else ctl), 'apply', '-f', path])
 
 def resource(kind, name, **fields):
     return dict(apiVersion='v1', kind=kind, metadata=dict(name=name, namespace=namespace), **fields)
@@ -128,7 +128,7 @@ try:
             # Private kind kubelets have self-signed serving certificates. This
             # exception is isolated to metrics collection, never backend TLS.
             obj['spec']['template']['spec']['containers'][0]['args'].append('--kubelet-insecure-tls')
-    apply('metrics.json', dict(apiVersion='v1', kind='List', items=metrics_objects))
+    apply('metrics.json', dict(apiVersion='v1', kind='List', items=metrics_objects), cluster_scope=True)
     with tempfile.TemporaryDirectory(prefix='backend-kind-content-', dir=SCRATCH) as temporary:
         root = Path(temporary)
         content = root/'content'
