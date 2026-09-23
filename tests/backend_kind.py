@@ -353,6 +353,13 @@ finally:
     for stream in streams:
         stream.close()
     if created:
+        for name, arguments in (
+            ('pods.log', [*ctl, 'get', 'pods', '-o', 'wide']),
+            ('events.log', [*ctl, 'get', 'events', '--sort-by=.lastTimestamp']),
+            ('backend.log', [*ctl, 'logs', '-l', 'app=backend', '--all-containers', '--tail=100']),
+        ):
+            with (output/name).open('w') as stream:
+                subprocess.run(arguments, stdout=stream, stderr=subprocess.STDOUT, timeout=20)
         log_run('delete.log', [kind, 'delete', 'cluster', '--name', cluster, '--kubeconfig', kubeconfig], timeout=90)
     # Generated manifests include ephemeral credentials. Never upload them.
     for name in ('db-secret.json', 'backend-secret.json', 'ingest-token.json', 'match.json'):
