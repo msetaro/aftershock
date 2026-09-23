@@ -54,6 +54,16 @@ all 26 integrated required jobs. #22 build 35767363858/regression 35767363841
 and prior #19/#20 acceptance remain valid. #31 is closed after PR174.
 Do not repeat completed issues or the historical network negative control.
 
+## #29 native prerequisites prepared
+
+Normal GCC and Clang/libc++ development configurations succeed in the new private
+build directories, and their independent Jolt/Opus dependencies build. Authored
+backend UI cook/native checks pass with both compilers (`backend-ui-{gcc,clang}.log`
+in `/tmp/aftershock-resume`). Normal client compilation still awaits the accepted
+#23 merge forward; no preview API header is used. Review corrected the new kind
+metric assertion to use the existing `auth` service label and require positive
+native auth/profile/queue/results request counts. Full native acceptance is pending.
+
 ## #29 generated HPA target verified
 
 Deployment-only acceptance also passes with the generated, unchanged 65% CPU

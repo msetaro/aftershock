@@ -333,7 +333,10 @@ try:
         engine.step(2)
         shutil.copyfile(base/capture['path'], output/'profile-results.png')
         metrics = get('/metrics')
-        assert 'aftershock_backend_requests_total{service="login"}' in metrics
+        for service in ('auth', 'profile', 'queue', 'results'):
+            counter = re.search(r'aftershock_backend_requests_total\{service="'+service+r'"\} ([0-9]+)', metrics)
+            assert counter and int(counter[1]) > 0, 'missing native service traffic: '+service
+        assert ticket.hex() not in metrics and ingest_token not in metrics
         (output/'backend-metrics.txt').write_text(metrics)
         activate('logout')
         wait_for(lambda: info()[0] == 'Signed out', 20, 'native logout', True)
