@@ -1238,6 +1238,49 @@ is a connected-player resource baseline, not a saturation/capacity guarantee.
 OpenArena test paks are copied into that private node only; the image contains only
 owned content. Generated secrets/specs/kubeconfig are excluded from CI artifacts.
 
+## Backend services (#29)
+
+`tests/backend.py` validates versioned MatchSpec/Loadout/JoinTicket schemas and
+independent Python HMAC versus Go/native admission, including nonce retention.
+`tests/backend_http.py` checks verified TLS, bounded responses, cancellation and
+shared curl lifetime in linked/dynamic/unavailable modes. `tests/backend_client.py`
+checks native login, account ownership, exact-match results and ephemeral tickets
+bound to the assigned address. Each accepts the compiler options in `--help`;
+GCC and Clang/libc++ run in CI. `tests/backend_ui.py` cooks the owned menu and rejects
+injected action targets. `tests/backend_deployment.py` validates namespaced RBAC,
+secret references, resource limits and HPA/PDB configuration.
+
+`python3 tests/backend_services.py` owns a pinned private PostgreSQL container and
+runs the real database/HTTPS/Agones-recovery contracts; Docker is required, and
+missing infrastructure never counts as a pass. `python3 tests/backend_join_runtime.py
+--server SERVER --controller CONTROLLER` exercises signed admission and controller
+readiness, including rejected tickets/replay/alternate endpoints and no legacy
+master heartbeat. Build CONTROLLER with `go -C tools/match build -o PATH .`.
+The shared `sv_master` cvars remain for legacy client browsing; servers no longer
+publish heartbeat messages or resolve master addresses.
+
+`python3 tests/backend_kind.py --image IMAGE --client CLIENT --data OA_DATA` owns
+an isolated kind cluster. Rebuild IMAGE from `tools/match/Dockerfile` and CLIENT
+with `AFTERSHOCK_DEVTOOLS=ON` and curl enabled. It uses an owned TLS authentication
+fixture, actual PostgreSQL and two backend replicas, Agones allocation, native
+signed play with verified account statistics, and the authored results menu.
+Its development ticket file lives only in the private client home; credentials
+never enter cvars, UI values or console commands. The existing #28 ingest stub
+receives the actual backend-generated allocation token; production ingest is #30.
+
+The cluster test installs SHA-256-pinned metrics-server 0.8.1, requires real CPU
+metrics to drive HPA scale-out under a lowered test-only target, and checks HTTPS
+health and backend counters. Only its private kind kubelet metrics transport
+accepts self-signed serving certificates; backend and fixture TLS remain verified.
+It needs Docker, OpenSSL, Python YAML and cooker dependencies, Xvfb/lavapipe and
+public OpenArena data. It deletes only its owned cluster and removes generated
+secrets/kubeconfig. CI uploads an explicit list of public reports/logs/screenshots.
+The new end-to-end gate remains pending until recorded in the progress checkpoint.
+No fixture or accepted golden is regenerated.
+
+Steam SDK/provider/live acceptance remains deferred to #180. Deterministic fixture
+login does not establish Steam support. #24 retains its console SDK dependency.
+
 Native pure-server regression (#31): `python3 tests/native_pure.py` exercises the
 real filesystem pure list with statically linked modules and retained content-pak
 checksum accounting. `python3 tests/native_pure_runtime.py --client CLIENT --server

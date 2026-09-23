@@ -11,7 +11,7 @@ import time
 from run import ROOT, SCRATCH
 
 # These are asset-independent entry points with no required binary arguments.
-FAST = ('packages', 'bot_chat_shutdown', 'agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
+FAST = ('backend', 'backend_http', 'backend_client', 'backend_ui', 'backend_deployment', 'packages', 'bot_chat_shutdown', 'agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
         'state', 'navigation', 'animation', 'entities', 'physics', 'ui_framework', 'audio_spatial', 'audio_events', 'audio_streams', 'audio_voice', 'capture', 'weapons', 'effects', 'effects_reference', 'post', 'temporal', 'lod', 'streaming', 'native_math', 'native_shared', 'replication',
         'protocol', 'rewind', 'replication_policy', 'identity', 'rhi', 'render_graph',
         'shadow_views', 'probes', 'materials', 'cook', 'level', 'lighting',
@@ -23,6 +23,12 @@ COMMANDS['unit'] = [sys.executable, 'tests/run.py', 'unit', '--negative-control'
 COMMANDS['match_go'] = ['go', '-C', 'tools/match', 'test', '-race', './...']
 # Prefix matches compose: a cooker animation edit needs both cooker and animation checks.
 RULES = (
+    (('engine/qcommon/join', 'engine/server/sv_join', 'engine/server/sv_identity', 'tools/match/contracts/', 'tests/backend.py', 'tests/probes/join_'), ('backend',)),
+    (('engine/platform/sys_http', 'engine/platform/http_public', 'engine/platform/sys_curl', 'engine/platform/curl_public', 'tests/backend_http', 'tests/probes/backend_http'), ('backend_http',)),
+    (('engine/client/cl_backend', 'tests/backend_client', 'tests/probes/backend_client'), ('backend_client',)),
+    (('engine/ui/', 'engine/client/cl_data_ui', 'tools/cook/ui', 'tests/assets/backend/', 'tests/backend_ui', 'tests/probes/backend_ui'), ('backend_ui',)),
+    (('tools/match/backend', 'tests/backend_deployment', 'tests/backend_kind'), ('backend_deployment', 'match_go')),
+
     (('engine/qcommon/package', 'engine/platform/sys_content_file.cpp', 'tools/package.py', 'tests/packages'), ('packages',)),
     (('engine/navigation/', 'game/game/g_navigation.cpp', 'tools/cook/navigation', 'tools/cook/behavior', 'third_party/recast/', 'tests/navigation', 'tests/probes/navigation', 'tests/probes/behavior', 'tests/probes/perception'), ('navigation',)),
     (('engine/qcommon/state.cpp', 'engine/qcommon/cvar.cpp', 'engine/qcommon/profile.cpp', 'engine/platform/sys_save.cpp', 'engine/platform/save_public.h', 'engine/client/cl_checkpoint.cpp', 'engine/server/sv_checkpoint.cpp', 'engine/server/sv_world.cpp', 'engine/public/state_public.h', 'engine/public/state_replication_public.h', 'tools/replication.py', 'engine/qcommon/q_shared.h', 'game/bg/q_shared.h', 'game/game/', 'engine/botlib/', 'tests/state.py', 'tests/probes/state'), ('state',)),

@@ -54,6 +54,22 @@ all 26 integrated required jobs. #22 build 35767363858/regression 35767363841
 and prior #19/#20 acceptance remain valid. #31 is closed after PR174.
 Do not repeat completed issues or the historical network negative control.
 
+## #29 resumed acceptance preparation
+
+Added committed native public-status assertions (`d9ac2274`) and the actual kind
+acceptance driver (`8aad0e08`): owned verified TLS auth fixture, PostgreSQL and
+backend replicas, real Agones/native client/admission, account stats and authored
+results, plus real resource metrics/HPA scale-out. Neither new assertion nor kind
+acceptance is claimed passed. The client still awaits integrated #23; its new
+public-status assertion must fail before implementation. Rebuilding the match
+image from the resumed branch, with no preview services headers.
+
+Wired backend GCC/Clang probes, database/HTTPS contracts, signed admission and kind
+acceptance into existing required CI jobs; local suite uses the same catalog.
+Suite/affected/isolation catalog checks pass. Added command/prerequisite docs.
+Integrated #23 compiler/publication run 35931243625 passes; regression 35931243579
+still has runtime/lifetime/compiler-probe work running. Continue from that gate.
+
 ## #29 heartbeat retirement after migration
 
 The committed negative control from `d7e575ab` now passes against a fresh dedicated
