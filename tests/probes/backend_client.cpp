@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <cstdio>
 #include <cstring>
+#include <cstdarg>
 
 clientStatic_t cls;
 clientConnection_t clc;
@@ -12,6 +13,8 @@ static bool ticketRequested, replyReady;
 static httpResult_t nextReply;
 static char requestURL[1024], requestToken[129], requestData[8193], consoleCommand[1024];
 static int requests;
+static xcommand_t publicInfo;
+static char publicOutput[1024];
 
 cvar_t *Cvar_Get( const char *name, const char *value, int flags ) {
 	for ( int i = 0; i < variableCount; ++i )
@@ -28,11 +31,17 @@ cvar_t *Cvar_Get( const char *name, const char *value, int flags ) {
 }
 void Cvar_CheckRange( cvar_t *, const char *, const char *, cvarValidator_t ) {
 }
-void Cmd_AddCommand( const char *, xcommand_t ) {
+void Cmd_AddCommand( const char *name, xcommand_t command ) {
+	if ( !strcmp( name, "backend_info" ) )
+		publicInfo = command;
 }
 void Cmd_RemoveCommand( const char * ) {
 }
-void QDECL Com_Printf( const char *, ... ) {
+void QDECL Com_Printf( const char *format, ... ) {
+	va_list arguments;
+	va_start( arguments, format );
+	vsnprintf( publicOutput, sizeof( publicOutput ), format, arguments );
+	va_end( arguments );
 }
 void QDECL Com_DPrintf( const char *, ... ) {
 }
@@ -104,6 +113,7 @@ static void Reply( int status, const char *body ) {
 }
 int main() {
 	CL_BackendInit();
+	assert( publicInfo );
 	CL_BackendAction( "queue" );
 	assert(requests==0);
 	CL_BackendAction( "login" );
@@ -145,6 +155,9 @@ int main() {
 	assert(!strcmp(requestURL,"https://backend.test/v1/results?match=match-1"));
 	Reply( 200, "{\"version\":1,\"results\":[{\"match\":\"other\",\"stats\":{\"score\":44,\"kills\":8,\"deaths\":1}},{\"match\":\"match-1\",\"stats\":{\"score\":3,\"kills\":4,\"deaths\":1}}]}" );
 	assert( !strcmp( CL_BackendValue( "backend_score" ), "3" ) && !strcmp( CL_BackendValue( "backend_kills" ), "4" ) );
+	publicInfo();
+	assert( strstr( publicOutput, "Results loaded" ) && strstr( publicOutput, "score=3 kills=4 deaths=1" ) );
+	assert( !strstr( publicOutput, requestToken ) && !strstr( publicOutput, ticket ) );
 	CL_BackendAction( "results" );
 	Reply( 200, "{\"version\":1.5,\"results\":[]}" );
 	assert( !strcmp( CL_BackendValue( "backend_status" ), "Invalid service response" ) );
