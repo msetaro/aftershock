@@ -54,6 +54,20 @@ all 26 integrated required jobs. #22 build 35767363858/regression 35767363841
 and prior #19/#20 acceptance remain valid. #31 is closed after PR174.
 Do not repeat completed issues or the historical network negative control.
 
+## #29 heartbeat retirement after migration
+
+The committed negative control from `d7e575ab` now passes against a fresh dedicated
+build and controller from this branch. Removed periodic/startup/shutdown and
+connection-count heartbeat triggers, master DNS state and the heartbeat command.
+Kept shared `sv_master` cvars for legacy client browsing compatibility; the server
+no longer resolves or sends to them. Preserved DirectConnect's unrelated count use.
+The existing full UDP/controller check still passes missing/expired/wrong-match/
+unexpected-player/altered/replayed ticket rejection, retransmit/endpoint binding,
+fresh reconnect and readiness only after signed admission configuration.
+Evidence: `/tmp/aftershock-resume/heartbeat`, server-build.log and heartbeat policy
+logs. Format/types/boundaries pass. Client integration and kind acceptance remain
+unfinished; #23 integrated gates are still running. No accepted fixture changed.
+
 ## #29 migration checkpoint and heartbeat retirement, test first
 
 All backend implementation through `71a119d9` is preserved in this branch. Durable

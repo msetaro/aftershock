@@ -41,7 +41,6 @@ cvar_t *sv_clientTLD;
 
 cvar_t *sv_privateClients; // number of clients reserved for password
 cvar_t *sv_hostname;
-cvar_t *sv_master[MAX_MASTER_SERVERS]; // master server ip address
 cvar_t *sv_reconnectlimit; // minimum seconds between connect messages
 cvar_t *sv_padPackets; // add nop bytes to messages
 cvar_t *sv_killserver; // menu system can set to 1 to shut server down
@@ -227,119 +226,6 @@ MASTER SERVER FUNCTIONS
 
 ==============================================================================
 */
-
-/*
-================
-SV_MasterHeartbeat
-
-Send a message to the masters every few minutes to
-let it know we are alive, and log information.
-We will also have a heartbeat sent when a server
-changes from empty to non-empty, and full to non-full,
-but not on every player enter or exit.
-================
-*/
-#define HEARTBEAT_MSEC	(300*1000)
-#define MASTERDNS_MSEC	(24*60*60*1000)
-static void SV_MasterHeartbeat( const char *message ) {
-	static netadr_t adr[MAX_MASTER_SERVERS][2]; // [2] for v4 and v6 address for the same address string.
-	int i;
-	int res;
-	int netenabled;
-
-	netenabled = Cvar_VariableIntegerValue( "net_enabled" );
-
-	// "dedicated 1" is for lan play, "dedicated 2" is for inet public play
-	if ( !com_dedicated || com_dedicated->integer != 2 || !( netenabled & ( NET_ENABLEV4 | NET_ENABLEV6 ) ) )
-		return; // only dedicated servers send heartbeats
-
-	// if not time yet, don't send anything
-	if ( svs.nextHeartbeatTime - svs.time > 0 )
-		return;
-
-	svs.nextHeartbeatTime = svs.time + HEARTBEAT_MSEC;
-
-	// send to group masters
-	for ( i = 0; i < MAX_MASTER_SERVERS; i++ ) {
-		if ( !sv_master[i]->string[0] )
-			continue;
-
-		// see if we haven't already resolved the name or if it's been over 24 hours
-		// resolving usually causes hitches on win95, so only do it when needed
-		if ( sv_master[i]->modified || svs.time - svs.masterResolveTime[i] > 0 ) {
-			sv_master[i]->modified = qfalse;
-			svs.masterResolveTime[i] = svs.time + MASTERDNS_MSEC;
-
-			if ( netenabled & NET_ENABLEV4 ) {
-				Com_Printf( "Resolving %s (IPv4)\n", sv_master[i]->string );
-				res = NET_StringToAdr( sv_master[i]->string, &adr[i][0], NA_IP );
-
-				if ( res == 2 ) {
-					// if no port was specified, use the default master port
-					adr[i][0].port = BigShort( PORT_MASTER );
-				}
-
-				if ( res )
-					Com_Printf( "%s resolved to %s\n", sv_master[i]->string, NET_AdrToStringwPort( &adr[i][0] ) );
-				else
-					Com_Printf( "%s has no IPv4 address.\n", sv_master[i]->string );
-			}
-#ifdef USE_IPV6
-			if ( netenabled & NET_ENABLEV6 ) {
-				Com_Printf( "Resolving %s (IPv6)\n", sv_master[i]->string );
-				res = NET_StringToAdr( sv_master[i]->string, &adr[i][1], NA_IP6 );
-
-				if ( res == 2 ) {
-					// if no port was specified, use the default master port
-					adr[i][1].port = BigShort( PORT_MASTER );
-				}
-
-				if ( res )
-					Com_Printf( "%s resolved to %s\n", sv_master[i]->string, NET_AdrToStringwPort( &adr[i][1] ) );
-				else
-					Com_Printf( "%s has no IPv6 address.\n", sv_master[i]->string );
-			}
-#endif
-		}
-
-		if ( adr[i][0].type == NA_BAD && adr[i][1].type == NA_BAD ) {
-			continue;
-		}
-
-
-		Com_Printf( "Sending heartbeat to %s\n", sv_master[i]->string );
-
-		// this command should be changed if the server info / status format
-		// ever changes incompatibly
-
-		if ( adr[i][0].type != NA_BAD )
-			NET_OutOfBandPrint( NS_SERVER, &adr[i][0], "heartbeat %s\n", message );
-		if ( adr[i][1].type != NA_BAD )
-			NET_OutOfBandPrint( NS_SERVER, &adr[i][1], "heartbeat %s\n", message );
-	}
-}
-
-
-/*
-=================
-SV_MasterShutdown
-
-Informs all masters that this server is going down
-=================
-*/
-void SV_MasterShutdown( void ) {
-	// send a heartbeat right now
-	svs.nextHeartbeatTime = svs.time;
-	SV_MasterHeartbeat( HEARTBEAT_FOR_MASTER );
-
-	// send it again to minimize chance of drops
-	svs.nextHeartbeatTime = svs.time;
-	SV_MasterHeartbeat( HEARTBEAT_FOR_MASTER );
-
-	// when the master tries to poll the server, it won't respond, so
-	// it will be removed from the list
-}
-
 
 /*
 ==============================================================================
@@ -1411,9 +1297,6 @@ void SV_Frame( int msec ) {
 
 	// send messages back to the clients
 	SV_SendClientMessages();
-
-	// send a heartbeat to the master if needed
-	SV_MasterHeartbeat( HEARTBEAT_FOR_MASTER );
 }
 
 

@@ -271,10 +271,8 @@ typedef struct {
 	client_t *clients; // [sv_maxclients->integer];
 	int numSnapshotEntities; // PACKET_BACKUP*MAX_SNAPSHOT_ENTITIES
 	entityState_t *snapshotEntities; // [numSnapshotEntities]
-	int nextHeartbeatTime;
 
 	netadr_t authorizeAddress; // for rcon return messages
-	int masterResolveTime[MAX_MASTER_SERVERS]; // next svs.time that server should do dns lookup for master server
 
 	// common snapshot storage
 	int freeStorageEntities;
@@ -318,7 +316,6 @@ extern cvar_t *sv_clientTLD;
 
 extern cvar_t *sv_privateClients;
 extern cvar_t *sv_hostname;
-extern cvar_t *sv_master[MAX_MASTER_SERVERS];
 extern cvar_t *sv_reconnectlimit;
 extern cvar_t *sv_padPackets;
 extern cvar_t *sv_killserver;
@@ -373,7 +370,6 @@ bool SV_CheckpointFrame();
 void SV_AddOperatorCommands( void );
 void SV_RemoveOperatorCommands( void );
 
-void SV_MasterShutdown( void );
 int SV_RateMsec( const client_t *client );
 
 
@@ -418,7 +414,6 @@ void SV_PrintLocations_f( client_t *client );
 //
 // sv_ccmds.c
 //
-void SV_Heartbeat_f( void );
 client_t *SV_GetPlayerByHandle( void );
 
 //

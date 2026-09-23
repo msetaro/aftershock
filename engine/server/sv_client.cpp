@@ -847,18 +847,6 @@ gotnewcl:
 	// notice that it is from a different serverid and that the
 	// gamestate message was not just sent, forcing a retransmit
 	newcl->gamestateMessageNum = newcl->messageAcknowledge - 1; // force gamestate retransmit
-
-	// if this was the first client on the server, or the last client
-	// the server can hold, send a heartbeat to the master.
-	count = 0;
-	for ( i = 0, cl = svs.clients; i < sv.maxclients; i++, cl++ ) {
-		if ( svs.clients[i].state >= CS_CONNECTED ) {
-			count++;
-		}
-	}
-	if ( count == 1 || count == sv.maxclients ) {
-		SV_Heartbeat_f();
-	}
 }
 
 
@@ -890,7 +878,6 @@ or crashing -- SV_FinalMessage() will handle that
 void SV_DropClient( client_t *drop, const char *reason ) {
 	char name[sizeof( drop->name )];
 	qboolean isBot;
-	int i;
 
 	if ( drop->state == CS_ZOMBIE ) {
 		return; // already dropped
@@ -935,22 +922,6 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 		Q_strncpyz( drop->name, name, sizeof( name ) );
 		SV_PrintClientStateChange( drop, CS_ZOMBIE );
 		drop->state = CS_ZOMBIE; // become free in a few seconds
-	}
-
-	if ( !reason ) {
-		return;
-	}
-
-	// if this was the last client on the server, send a heartbeat
-	// to the master so it is known the server is empty
-	// send a heartbeat now so the master will get up to date info
-	for ( i = 0; i < sv.maxclients; i++ ) {
-		if ( svs.clients[i].state >= CS_CONNECTED ) {
-			break;
-		}
-	}
-	if ( i == sv.maxclients ) {
-		SV_Heartbeat_f();
 	}
 }
 

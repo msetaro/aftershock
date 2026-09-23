@@ -1344,18 +1344,6 @@ static void SV_ConTell_f( void ) {
 
 
 /*
-==================
-SV_Heartbeat_f
-
-Also called by SV_DropClient, SV_DirectConnect, and SV_SpawnServer
-==================
-*/
-void SV_Heartbeat_f( void ) {
-	svs.nextHeartbeatTime = svs.time;
-}
-
-
-/*
 ===========
 SV_Serverinfo_f
 
@@ -1495,7 +1483,6 @@ void SV_AddOperatorCommands( void ) {
 	}
 	initialized = qtrue;
 
-	Cmd_AddCommand( "heartbeat", SV_Heartbeat_f );
 	Cmd_AddCommand( "kick", SV_Kick_f );
 #ifndef STANDALONE
 #ifdef USE_BANS
