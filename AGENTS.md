@@ -132,6 +132,8 @@ Start with the [agent handbook](docs/agents/README.md): executable authoring,
 playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructions.
 [tests/README.md](tests/README.md) is the individual-command and prerequisite reference.
 
+- Platform service contracts: `python3 tests/services.py` (null and installed
+  test provider; live Steam acceptance is separate).
 - Fast feedback: `python3 tests/affected.py BASE_REF` (600-second default budget;
   timeout/incomplete is a nonzero result, never merge acceptance).
 - Full local regression: `python3 tests/suite.py --glslang PATH --openarena-data PATH`.

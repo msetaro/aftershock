@@ -41,34 +41,95 @@ Resume the active predecessor gates before any later issue can merge:
   equals the tested head. Integrated build 35744183979 and regression 35744184060
   pass all 26 required jobs. #20 is fully accepted; issue #20 and #25 are updated.
 
-#21 PR177 merged into main as 7c24808f16f9a72d9ed21ba9af736cd54adba386
-at 2026-09-22 16:55:35 UTC after final head 2cefd7e3 passed build 35748014590
-and regression 35748014600 (all 26 required jobs). Self-review and fresh current
-main/base/head/tag checks passed. Merge tree c14c33d3 equals the tested tree.
-Integrated main build/regression are starting; require both before accepting #21
-and merging #22.
+#21 PR177 is fully accepted at main 7c24808f. All 26 exact-head and integrated
+checks pass (merged build 35757322676/regression 35757322732); #21/#25 are updated.
 
-This is issue/22-profiling in profiling-tree. The accepted #21 main commit is
-merged forward after the combined local overlay/AI validation. All local gates
-pass, including full tidy/lifetimes, both compilers/sanitizers, both content sets'
-fixed replay/smoke, optional developer renderer modules and byte-identical
-shipping msg/common objects. Push this final main-inclusive head to PR178 and
-require all 26 fresh hosted jobs, integrated #21 acceptance and a fresh main/base/
-head/tag check before readiness/self-merge. The original pre-AI PR head's gates
-are useful feedback, not final acceptance.
+#22 PR178 merged as main aa96932abb13f761d0a71dde89f95d33893a45c8 at
+2026-09-22 18:28:14 UTC after all 26 final jobs passed on b23ef158. Self-review and
+fresh head/base/current-main/tag checks passed. The merge tree 309bac591a8225478a52321b0205a547f885a996
+matches the tested tree. Integrated build 35767363858/regression 35767363841 are
+running; require their acceptance before merging #23.
 
-Draft PR179 preserves #23's bounded null/provider interface preparation; all 16
-initial hosted builds pass. Its combined local AI/profiling/service and identity
-checks pass. Merge accepted #22 main forward and rerun its final gates before
-#23 merge. SDK-dependent Steam integration is deferred to #180 by the maintainer.
-Isolated #29 contract preparation has started in backend-tree; preserve merge
-order while continuing useful independent work.
+This is issue/23-platform-services in services-tree, draft PR179. Main aa96932a
+is merged forward; only checkpoint documentation needed conflict resolution.
+Push the final combined head, run all 26 required hosted jobs and require integrated
+#22 acceptance before readiness/self-merge. Fresh main/base/head/tag checks and the
+AGENTS self-review remain mandatory. The completed local bounded-provider contracts
+are the maintainer-revised #23 scope; Steam SDK/provider/transport/live acceptance
+belongs to #180 and does not block this sequence.
+
+Active #29 preparation is isolated in backend-tree, head 3e75541b. Go/native signed
+join contracts, server identity/configuration and real UDP admission pass their
+recorded tests. Controller allocation/readiness is the next failing-test-first
+step, followed by persistent services, native HTTPS/UI and kind acceptance.
+#24's existing console SDK dependency is recorded on comment 5780638857; desktop
+proxies are not console acceptance. Continue #29 then #30, without requesting
+Steam answers or treating pending CI as a reason to stop.
 
 Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
 Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
-Continue through #24's SDK dependency, #29 and #30 per #25. The Steam dependency is deferred to #180; no maintainer input is needed.
-Do not end at a checkpoint or CI wait.
 
+## #23 deferral documentation and combined checks
+
+Follow-up #180 now owns SDK setup, Steam provider implementation, authenticated
+SDK ticket transport and live presence/invite acceptance. Public interface and
+test-reference comments point to that issue. The current interface/null-backend
+scope remains subject to all final gates. The locally combined AI/profiling tree
+passes service GCC/Clang probes, existing identity/discovery checks, affected/suite
+catalog checks, formatting and workflow lint. The original draft's 16 compiler
+builds and nine regression jobs pass; its remaining runtime is cancelled as
+superseded by the required final #22 main integration, not accepted or waived.
+Main #21 is 7c24808f; #22 final head b23ef158 has all 16 compiler legs green and
+regression is running. Preserve merge order and rerun #23 on accepted #22 main.
+
+## #23 bounded service implementation
+
+The existing provider table now exposes optional user/ticket, presence,
+lobby/invite, achievements, cloud-file and workshop operations. The absent
+provider stays anonymous/unavailable. Inputs and copied POD outputs are checked;
+lobby request generations reject superseded/duplicate/late completions. Invites
+never join automatically. No allocation, OS call, simulation or wire-layout
+change is introduced. A fixed uint32_t event enum permits defined validation of
+unknown provider event values under UBSan; the first implementation's unspecified
+underlying enum triggered UBSan before its rejecting switch.
+
+GCC and Clang/libc++ service probes and existing authenticated-identity/UI
+discovery probes pass (services-{gcc,clang}.log and
+services-identity-{gcc,clang}.log). Format (577 files), fixed-width policy (439)
+and boundaries (440) pass. The new probe is included in both CI unit variants,
+the workflow-derived local suite, affected-path selection and verification docs.
+Affected-path selection, suite catalog, isolation policy and workflow lint also
+pass. Targeted clang-tidy reports only advisory enum-size findings (four existing
+enums and the explicit-width event enum). All new result records are checked as
+trivially copyable. No accepted fixture is modified. This is interface preparation, not completed
+Steam integration; SDK adapter, ticket transport and actual presence/invite
+acceptance remain outstanding.
+
+## #23 service interface contract, test first
+
+Add one standalone probe that runs the same bounded user/ticket, presence,
+lobby/invite, achievement, cloud and workshop operations against an absent
+provider and a deterministic installed provider. Invalid caller arguments must
+not dispatch; malformed provider records must not escape. Provider replacement
+remains forbidden after use. The first run fails on missing serviceUser_t and
+related interface functions (services-before.log). Actual Steam acceptance is
+still separate and cannot be claimed from this probe.
+
+## #23 preparation and external SDK boundary
+
+The official Steamworks SDK download page requires a Steamworks login; no installed
+SDK header was found in the project/cache locations. Valve's public Source SDK
+repository also publishes the Steam API headers and redistributable libraries.
+Keep that official reference only in private cache for API inspection, pinned at
+b8cfb12c0e083a2ef5b2f9f9b50f3902fa034474 with verified Git blob hashes and a local
+SHA256 manifest. No SDK files, credentials or binaries are vendored/published.
+The public Source SDK license is scoped to Source-engine modifications, so this
+reference is not used as the Aftershock build SDK. The adapter needs a proper
+external Steamworks SDK root; default/null CI needs none. Manual callback dispatch keeps SDK events queued as bounded POD data
+and never reenters Com_Error. Real Steam acceptance still needs an authorized AppID,
+running logged-in clients and a designated invite recipient; do not invent them.
+References: https://partner.steamgames.com/doc/sdk/api and the ISteamUser and
+ISteamMatchmaking API pages. No external repository writes were performed.
 ## #21 merge and #22 final-main integration
 
 PR177 is merged after all 26 exact-head required checks pass. Main 7c24808f has
