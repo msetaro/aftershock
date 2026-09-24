@@ -98,6 +98,253 @@
         "secondary"
       ],
       "additionalProperties": false
+    },
+    "MatchState": {
+      "type": "object",
+      "properties": {
+        "accounts": {
+          "type": "object",
+          "maxProperties": 64,
+          "patternProperties": {
+            "^[1-9][0-9]{0,19}$": {
+              "type": "object",
+              "properties": {
+                "kills": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 2147483647
+                },
+                "deaths": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 2147483647
+                },
+                "score": {
+                  "type": "integer",
+                  "minimum": -2147483648,
+                  "maximum": 2147483647
+                }
+              },
+              "required": [
+                "kills",
+                "deaths",
+                "score"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "owners": {
+          "type": "object",
+          "maxProperties": 64,
+          "patternProperties": {
+            "^(?:[0-9]|[1-5][0-9]|6[0-3])$": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,19}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "owner_scores": {
+          "type": "object",
+          "maxProperties": 64,
+          "patternProperties": {
+            "^(?:[0-9]|[1-5][0-9]|6[0-3])$": {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
+            }
+          },
+          "additionalProperties": false
+        },
+        "seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "players": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "maxProperties": 64,
+          "patternProperties": {
+            "^(?:[0-9]|[1-5][0-9]|6[0-3])$": {
+              "type": "object",
+              "properties": {
+                "kills": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 2147483647
+                },
+                "deaths": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 2147483647
+                }
+              },
+              "required": [
+                "kills",
+                "deaths"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "joins": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "kills": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "scores": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "maxProperties": 64,
+          "patternProperties": {
+            "^(?:[0-9]|[1-5][0-9]|6[0-3])$": {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
+            }
+          },
+          "additionalProperties": false
+        },
+        "completed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "seconds",
+        "players",
+        "joins",
+        "kills",
+        "scores",
+        "completed"
+      ],
+      "additionalProperties": false
+    },
+    "MatchEvent": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "match_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8589934592
+        },
+        "timestamp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "type": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
+        },
+        "payload": {
+          "type": "string",
+          "maxLength": 5460,
+          "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
+          "contentEncoding": "base64",
+          "description": "Exact bytes of one newline-free native log record. Envelope time/type must agree with the decoded record."
+        }
+      },
+      "required": [
+        "version",
+        "match_id",
+        "sequence",
+        "timestamp",
+        "type",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    "MatchCheckpoint": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "match_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8589934592
+        },
+        "state": {
+          "$ref": "#/$defs/MatchState"
+        }
+      },
+      "required": [
+        "version",
+        "match_id",
+        "sequence",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "MatchBatch": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "match_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8589934592
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8589934592
+        },
+        "events": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/MatchEvent"
+          }
+        },
+        "checkpoint": {
+          "$ref": "#/$defs/MatchCheckpoint"
+        },
+        "final": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "version",
+        "match_id",
+        "sequence",
+        "end",
+        "events",
+        "checkpoint",
+        "final"
+      ],
+      "additionalProperties": false
     }
   },
   "oneOf": [
@@ -109,6 +356,15 @@
     },
     {
       "$ref": "#/$defs/Loadout"
+    },
+    {
+      "$ref": "#/$defs/MatchEvent"
+    },
+    {
+      "$ref": "#/$defs/MatchCheckpoint"
+    },
+    {
+      "$ref": "#/$defs/MatchBatch"
     }
   ]
 }

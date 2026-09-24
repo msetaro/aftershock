@@ -50,6 +50,20 @@ retry/flush. Prove actual native outage recovery and a simultaneous 100-ending
 load test in an owned kind cluster, measuring authenticated backend latency.
 Keep native gameplay evidence distinct from simulated ending producers.
 
+Test-first commit is `0e962fd1`. The core now implements versioned bounded
+base64 event envelopes, byte-preserving pending recovery with unchanged ASCII
+records, per-request projected-token loading shared with backend, Agones identity
+verification, transactional PostgreSQL event/checkpoint/result storage with retry
+digests and exactly-once aggregates, a separate reader API, TLS gRPC/health/metrics,
+and namespaced stateless deployment/HPA. Schema tests, Go race/vet, real PostgreSQL
+rollback/retry/restart/reader tests, deployment contracts and the existing backend
+PostgreSQL/TLS/recovery suite pass. Evidence: `ingest-database-first.log` and
+`backend-shared-cluster.log` under `/tmp/aftershock-resume`.
+Native outage/burst acceptance and lifecycle flush remain unfinished; write/run
+those checks before changing lifecycle. Do not treat unit/database checks as the
+kind acceptance. #29 integrated build passes (including publication); integrated
+regression currently has eight required jobs passed and no required failure.
+
 No queue or optional demo/object-storage feature is needed for v1. No accepted
 fixture regeneration, unrelated engine fixes, or Steam SDK/provider/live work;
 #180 remains explicitly deferred, #24 retains its SDK dependency, #35 its existing

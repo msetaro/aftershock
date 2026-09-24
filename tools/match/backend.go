@@ -425,7 +425,7 @@ func serveBackend(ctx context.Context) error {
 			return errors.New("invalid HTTPS cluster endpoint")
 		}
 		kubeTokenFile = env("BACKEND_KUBE_TOKEN_FILE", "/var/run/secrets/kubernetes.io/serviceaccount/token")
-		if _, err := backendKubeCredential(kubeTokenFile); err != nil {
+		if _, err := kubeCredential(kubeTokenFile); err != nil {
 			return err
 		}
 		data, err := os.ReadFile(env("BACKEND_KUBE_CA_FILE", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"))
