@@ -3,6 +3,7 @@
 import http.client
 import http.server
 import json
+import os
 from pathlib import Path
 import ssl
 import subprocess
@@ -41,6 +42,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return
         if mode == 'retire' and number == 3:
             time.sleep(.06)
+        if mode in ('partial-status', 'partial-headers') and number == 2:
+            self.wfile.write(b'HTTP/1.1 2' if mode == 'partial-status' else
+                             b'HTTP/1.1 200 OK\r\nContent-Length: 19\r\nX-Partial:')
+            self.wfile.flush()
+            self.close_connection = True
+            return
+        if mode == 'bad-tls' and number == 2:
+            os.write(self.connection.fileno(), b'not-a-TLS-record\r\n')
+            self.close_connection = True
+            return
         if mode == 'timeout' and number == 2:
             time.sleep(.2)
         body = json.dumps(dict(player_id='42')).encode()
@@ -58,7 +69,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             else:
                 self.wfile.write(body)
                 self.wfile.flush()
-            if mode == 'twice-close' and number == 1:
+            if mode in ('twice-close', 'idle-close') and number == 1:
                 self.close_connection = True
         except (BrokenPipeError, ConnectionResetError, ssl.SSLError):
             pass
@@ -74,7 +85,7 @@ with tempfile.TemporaryDirectory(prefix='ingest-transport-', dir=SCRATCH) as tem
     trust = ssl.create_default_context(cafile=str(cert))
     server_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     server_context.load_cert_chain(cert, key)
-    for mode in ('retire', 'fresh-close', 'twice-close', 'status', 'partial', 'wrong-player', 'timeout', 'untrusted'):
+    for mode in ('retire', 'idle-close', 'fresh-close', 'twice-close', 'status', 'partial', 'partial-status', 'partial-headers', 'wrong-player', 'timeout', 'untrusted', 'bad-tls'):
         server = Server(('127.0.0.1', 0), Handler)
         server.socket = server_context.wrap_socket(server.socket, server_side=True)
         server.mode, server.requests, server.lock = mode, 0, threading.Lock()
@@ -82,12 +93,17 @@ with tempfile.TemporaryDirectory(prefix='ingest-transport-', dir=SCRATCH) as tem
         thread.start()
         probe = ProfileProbe('127.0.0.1', server.server_port,
                              ssl.create_default_context() if mode == 'untrusted' else trust,
-                             'fixture', '42', timeout=.05 if mode == 'timeout' else 2)
+                             'fixture', '42', timeout=2)
         try:
             if mode not in ('fresh-close', 'untrusted'):
                 probe.sample()
                 assert probe.last_reconnects == 0
-            if mode == 'retire':
+            if mode == 'timeout':
+                probe.timeout = .05
+            if mode == 'idle-close':
+                probe.sample()
+                assert probe.last_reconnects == 1 and server.requests == 2
+            elif mode == 'retire':
                 elapsed = probe.sample()
                 assert probe.last_reconnects == 1 and server.requests == 3
                 assert elapsed >= 110, 'timing discarded an attempt or reconnect'
@@ -101,7 +117,7 @@ with tempfile.TemporaryDirectory(prefix='ingest-transport-', dir=SCRATCH) as tem
                 else:
                     raise AssertionError('fault was accepted: '+mode)
                 assert probe.last_reconnects == (1 if mode == 'twice-close' else 0), mode
-                assert server.requests <= (2 if mode not in ('fresh-close', 'untrusted') else 1), mode
+                assert server.requests == (0 if mode == 'untrusted' else 1 if mode == 'fresh-close' else 2), mode
             print('PASS:', mode, flush=True)
         finally:
             probe.close()

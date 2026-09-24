@@ -1104,3 +1104,10 @@ Fix in a separate tested PR: only one bounded reconnect for its idempotent GET o
 an already-successful connection closed before a response. Include all attempt time
 and reconnect counts; retain failure reports and all other failure boundaries.
 Do not freeze HPA, relax the latency allowance, or mix this into the UDP fix.
+
+#187 test-first `5192f931` reproduces the close with a real TLS server. The fix
+allows one already-used read-only GET reconnect only before any received bytes;
+all elapsed time and reconnect counts remain visible. Twelve TLS cases pass,
+including status/body/header, certificate/protocol, timeout, new-connection and
+repeated-close failures. Hosted/current-base and integrated acceptance are still
+required. No engine or production backend behavior changes.

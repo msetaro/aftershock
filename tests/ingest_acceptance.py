@@ -224,8 +224,8 @@ class IngestAcceptance:
                     return json.load(response)
             except urllib.error.HTTPError as error:
                 # A restarted fixture's Service endpoints can lag rollout readiness.
-                # Only a pre-authentication provider-unavailable response is retryable;
-                # benchmark requests below must all succeed without retries.
+                # Only this pre-authentication provider-unavailable response is retried.
+                # Timed profile calls below use bounded stale-idle recovery.
                 if error.code != 503 or json.load(error).get('error') != 'authentication_unavailable':
                     raise
                 return None
@@ -313,9 +313,14 @@ class IngestAcceptance:
             try:
                 while not stop.is_set():
                     started = time.monotonic()
-                    elapsed = probe.sample()
-                    with lock:
-                        samples.append(dict(start=started, milliseconds=elapsed))
+                    succeeded = False
+                    try:
+                        probe.sample()
+                        succeeded = True
+                    finally:
+                        with lock:
+                            samples.append(dict(start=started, milliseconds=probe.last_milliseconds,
+                                                reconnects=probe.last_reconnects, succeeded=succeeded))
                     time.sleep(.01)
             except Exception as error:
                 with lock:
@@ -343,22 +348,28 @@ class IngestAcceptance:
                     held = retirement_held(self.snapshot('burst-end'))
                 finally:
                     stop.set()
-                for worker in workers:
-                    worker.result()
             def distribution(start, end):
                 values = sorted(row['milliseconds'] for row in samples if start <= row['start'] < end)
-                assert len(values) >= 100, 'insufficient authenticated profile samples'
+                if not values:
+                    return dict(samples=0, p50=None, p95=None, p99=None, maximum=None)
                 return dict(samples=len(values), p50=values[math.ceil(len(values)*.50)-1],
                             p95=values[math.ceil(len(values)*.95)-1], p99=values[math.ceil(len(values)*.99)-1], maximum=max(values))
             baseline, during = distribution(baseline_start, baseline_end), distribution(burst_start, burst_end)
-            limit = max(baseline['p95']*1.25, baseline['p95']+5.0)
+            limit = max(baseline['p95']*1.25, baseline['p95']+5.0) if baseline['p95'] is not None else None
             report = dict(producers=100, actual_agones_allocations=True, simulated_endings=True,
                 baseline_ms=baseline, burst_ms=during, p95_limit_ms=limit, errors=failures,
+                reconnects=sum(row['reconnects'] for row in samples),
+                baseline_reconnects=sum(row['reconnects'] for row in samples if baseline_start <= row['start'] < baseline_end),
+                burst_reconnects=sum(row['reconnects'] for row in samples if burst_start <= row['start'] < burst_end),
                 ending_spread_ms=max(status['ended'].values())-min(status['ended'].values()),
                 final_acknowledgements=len(status['acked']), completed_shippers_held=status['shippers_held'], burst_seconds=burst_end-burst_start,
                 retirement_held_during_measurement=held, transport='verified HTTPS through private NodePort')
             (c['output']/'ingest-burst.json').write_text(json.dumps(report, indent=2)+'\n')
             (c['output']/'ingest-latency-samples.json').write_text(json.dumps(samples)+'\n')
+            # Keep samples and errors before propagating a failed worker.
+            for worker in workers:
+                worker.result()
+            assert baseline['samples'] >= 100 and during['samples'] >= 100, 'insufficient authenticated profile samples'
             assert held, 'fixture containers retired during the ingest measurement'
             assert len(status['ended']) == 100 and report['ending_spread_ms'] <= 5000
             assert not failures and during['p95'] <= limit, 'player-facing profile latency regressed beyond declared noise allowance'
