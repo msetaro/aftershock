@@ -2,7 +2,6 @@
 import base64
 import concurrent.futures
 import copy
-import http.client
 import json
 import math
 import os
@@ -15,6 +14,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from ingest_probe import ProfileProbe
 
 
 def retirement_held(pods):
@@ -309,16 +309,11 @@ class IngestAcceptance:
         samples, failures = [], []
         endpoint = urllib.parse.urlsplit(benchmark_endpoint)
         def sample():
-            connection = http.client.HTTPSConnection(endpoint.hostname, endpoint.port, context=c['trust'], timeout=5)
+            probe = ProfileProbe(endpoint.hostname, endpoint.port, c['trust'], token, c['player'])
             try:
                 while not stop.is_set():
                     started = time.monotonic()
-                    connection.request('GET', '/v1/profile', headers={'Authorization': 'Bearer '+token})
-                    response = connection.getresponse()
-                    body = response.read(65537)
-                    elapsed = (time.monotonic()-started)*1000
-                    assert response.status == 200 and len(body) <= 65536
-                    assert json.loads(body)['player_id'] == c['player']
+                    elapsed = probe.sample()
                     with lock:
                         samples.append(dict(start=started, milliseconds=elapsed))
                     time.sleep(.01)
@@ -327,7 +322,7 @@ class IngestAcceptance:
                     failures.append(type(error).__name__)
                 raise
             finally:
-                connection.close()
+                probe.close()
         try:
             with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
                 workers = [pool.submit(sample) for _ in range(4)]
