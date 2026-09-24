@@ -30,6 +30,13 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
+Current implementation work is complete through the separate UDP fix in PR184.
+On resume, inspect the acceptance receipts on #30/#182 and the checked state of
+#25 first: they record final and integrated gates after these implementation
+checkpoints. Do not restart a PR or rerun gates whose completion is recorded there.
+Finish only unresolved gate/base/merge/integration steps below; once those receipts
+are complete, only the explicit #24/#35/#180 exclusions remain.
+
 #23 and #29 are fully integrated. #30 merged as PR183 at
 `0136a489ba4495e98c246a573be5a5a9160c6bda`, after final head `c3af24bf`
 passed all 16 compiler jobs (35955011447) and all 10 required regression jobs
@@ -69,8 +76,9 @@ platform networking call inside explicit development frames; no new OS access,
 allocation, non-trivial destructor or wire/file layout change. The real failing-first
 regression covers the defect and existing ordinary/seeded behavior passes.
 
-Next: open the separate #182 PR, require all 26 jobs against current main, check
-#30 integrated acceptance, then recheck the base immediately before a merge commit.
+PR184 contains this separate fix. Require all 26 jobs against current main,
+check #30 integrated acceptance, then recheck the base immediately before a merge
+commit if the PR has not already merged.
 After merging, verify integrated jobs/publication and record acceptance in #182
 and #31. Do not repeat completed local tests unless source changes or a new failure
 requires it. The only remaining roadmap exclusions are #24's console SDK access,
