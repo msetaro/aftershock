@@ -28,7 +28,25 @@ from those tests. This dependency no longer blocks modernization; continue #24's
 existing SDK dependency checkpoint, then #29 and #30. No SDK/account answer is
 needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
-## Next action
+## Active separate #31 bug fix — #182
+
+The #29/#30 continuation is owned by `issue/30-match-ingest` / PR183 in the main
+worktree. #29 is fully integrated at `45d8dc46`; #30 final head `c3af24bf` is awaiting
+required hosted checks. This isolated worktree prepares only #182 and must merge
+accepted #30 main forward before its final gates/PR merge.
+
+Test-first `tests/agent_network_runtime.py` drives an actual native dedicated
+server and client through explicit fixed 20-ms steps over localhost UDP. On
+unchanged accepted engine binaries it fails external getinfo, native join and
+snapshot/chat progress; incoming bytes and snapshots remain zero after 400 client
+steps. Fixed-dt and idle-clock assertions pass. Evidence is
+`/tmp/aftershock-resume/agent-udp-before/{report.json,server.log,client.log}` and the
+adjacent outer log. Next: commit the failing test, add nonblocking UDP dispatch
+only for explicit frames, then run both content sets and ordinary native/timing
+regressions. Preserve regular/no-delay frame paths, floating-point expressions,
+accepted fixtures and the completed network-driver negative control.
+
+## Next action (historical #29 checkpoint below)
 
 Final #29 review found startup-cached Kubernetes credentials, which expire after
 projected token rotation. Test-first commit `1d73819e` covers atomic replacement,
