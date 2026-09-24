@@ -1077,3 +1077,13 @@ contract; the distinct zero-based chat-cache loop is unchanged. Both compiler
 ASan/UBSan probes pass after the fix. No simulation or frame golden is affected,
 so no accepted golden is regenerated. No suppression or expected-failure entry
 needs removal. Full hosted builds/regression remain the merge gate.
+
+## Integrated ingest burst profile latency (#185)
+
+Main `0136a489` integrated regression 35958556482 fails the existing 100-ending
+profile p95 gate (1.923 ms baseline, 9.649 ms burst, 6.923 ms limit), despite all
+100 durable ACKs and no profile errors. Native outage/pre-stop scenarios pass.
+The preceding final PR gates passed; integrated #30 acceptance remains open.
+Investigate shared-resource and fixture lifecycle contention in a separate PR;
+retain the original failure, 100-ending workload and latency allowance. Cause
+is not yet established. Draft UDP fix PR184 stays separate and unmerged.

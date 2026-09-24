@@ -30,6 +30,24 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
+#30 integrated acceptance is blocked by #185. Main `0136a489` passed its final
+PR gates, but integrated regression 35958556482 failed the unchanged profile
+latency criterion: baseline p95 1.923 ms, burst 9.649 ms, limit 6.923 ms.
+All 100 ACKs arrived in 2.321 seconds; native outage recovery and pre-stop passed.
+Integrated build 35958556479 passed including publication. Preserve the failed
+artifact at `/tmp/aftershock-resume/ingest-integrated-failure-artifacts`.
+Investigate and fix #185 on `issue/185-ingest-latency`, with its own tested PR;
+do not retry until lucky or change the accepted latency allowance. Shared-node
+contention and shipper container exit during the nominal retirement hold are
+unproven hypotheses. Record diagnostic evidence before choosing a fix.
+
+Separate explicit-step UDP fix #182 is ready in draft PR184, head `be902db0`.
+Its branch is preserved; local failing-first and both-content passing evidence
+is recorded on #182 and in that branch's checkpoint. Hold its merge until #185
+establishes accepted main, then merge main forward and run current-base gates.
+Do not repeat its completed local tests without a relevant source change.
+
+
 #29 merged as PR181 at `45d8dc461a32f6e825421937bd7f37cb7d444f1c`.
 Final head `918860e7` included current main `2c5bf00a`; build 35942975170
 passed all 16 compiler jobs and regression 35942975177 all 10 required jobs.
