@@ -7,7 +7,8 @@
 // #180 installs Steamworks; an absent provider is anonymous and cannot authenticate.
 constexpr uint32_t SERVICE_MAX_TICKET = 2048;
 enum serviceIdentity_t { SERVICE_ANONYMOUS,
-	SERVICE_STEAM };
+	SERVICE_STEAM,
+	SERVICE_BACKEND = 2 };
 enum serviceAuthResult_t { SERVICE_AUTH_VERIFIED = 1,
 	SERVICE_AUTH_REJECTED };
 struct serviceAuthEvent_t {

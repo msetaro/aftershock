@@ -1344,18 +1344,6 @@ static void SV_ConTell_f( void ) {
 
 
 /*
-==================
-SV_Heartbeat_f
-
-Also called by SV_DropClient, SV_DirectConnect, and SV_SpawnServer
-==================
-*/
-void SV_Heartbeat_f( void ) {
-	svs.nextHeartbeatTime = svs.time;
-}
-
-
-/*
 ===========
 SV_Serverinfo_f
 
@@ -1495,7 +1483,6 @@ void SV_AddOperatorCommands( void ) {
 	}
 	initialized = qtrue;
 
-	Cmd_AddCommand( "heartbeat", SV_Heartbeat_f );
 	Cmd_AddCommand( "kick", SV_Kick_f );
 #ifndef STANDALONE
 #ifdef USE_BANS
@@ -1510,6 +1497,7 @@ void SV_AddOperatorCommands( void ) {
 	Cmd_AddCommand( "kicknum", SV_KickNum_f );
 	Cmd_AddCommand( "clientkick", SV_KickNum_f ); // Legacy command
 	Cmd_AddCommand( "status", SV_Status_f );
+	Cmd_AddCommand( "joinconfig", SV_JoinConfig_f );
 	Cmd_AddCommand( "savegame", SV_SaveGame_f );
 	Cmd_AddCommand( "loadgame", SV_LoadGame_f );
 	Cmd_AddCommand( "dumpuser", SV_DumpUser_f );

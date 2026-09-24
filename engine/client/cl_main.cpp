@@ -1196,6 +1196,7 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 
 	cl_disconnecting = qtrue;
 	CL_VoiceReset();
+	CL_BackendDisconnected();
 
 	// Stop demo recording
 	if ( clc.demorecording ) {
@@ -2311,6 +2312,11 @@ static void CL_CheckForResend( void ) {
 			Com_Printf( S_COLOR_YELLOW "WARNING: oversize userinfo, you might be not able to join remote server!\n" );
 		}
 
+		if ( !CL_BackendConnectInfo( clc.serverAddress, info, MAX_USERINFO_LENGTH ) ) {
+			Com_Printf( "Backend join ticket does not fit this connection.\n" );
+			CL_Disconnect( qtrue );
+			return;
+		}
 		len = Com_sprintf( data, sizeof( data ), "connect \"%s\"", info );
 		// NOTE TTimo don't forget to set the right data length!
 		NET_OutOfBandCompress( NS_CLIENT, &clc.serverAddress, (byte *)&data[0], len );
@@ -2730,6 +2736,7 @@ static qboolean CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 		Netchan_Setup( NS_CLIENT, &clc.netchan, from, Cvar_VariableIntegerValue( "net_qport" ), clc.challenge, clc.compat );
 
 		cls.state = CA_CONNECTED;
+		CL_BackendConnected();
 		clc.lastPacketSentTime = cls.realtime - RETRANSMIT_TIMEOUT; // send first packet immediately
 		return qtrue;
 	}
@@ -2965,6 +2972,8 @@ void CL_Frame( int msec, int realMsec ) {
 	if ( !com_cl_running->integer ) {
 		return;
 	}
+
+	CL_BackendFrame();
 
 	// save the msec before checking pause
 	cls.realFrametime = realMsec;
@@ -3991,6 +4000,8 @@ void CL_Init( void ) {
 
 	cl_reconnectArgs = Cvar_Get( "cl_reconnectArgs", "", CVAR_ARCHIVE_ND | CVAR_NOTABCOMPLETE );
 
+	CL_BackendInit();
+
 	// userinfo
 	Cvar_Get( "name", "UnnamedPlayer", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 	Cvar_Get( "rate", "25000", CVAR_USERINFO | CVAR_ARCHIVE );
@@ -4093,6 +4104,7 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 	noGameRestart = quit;
 	CL_Disconnect( qfalse );
 	CL_VoiceShutdown();
+	CL_BackendShutdown();
 
 	// clear and mute all sounds until next registration
 	S_DisableSounds();

@@ -132,6 +132,13 @@ Start with the [agent handbook](docs/agents/README.md): executable authoring,
 playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructions.
 [tests/README.md](tests/README.md) is the individual-command and prerequisite reference.
 
+- Backend contracts: `python3 tests/backend.py`, `tests/backend_http.py`,
+  `tests/backend_client.py`, `tests/backend_ui.py` and `tests/backend_deployment.py`.
+  Run `python3 tests/backend_services.py` with Docker for private PostgreSQL checks;
+  `tests/backend_join_runtime.py --server SERVER --controller CONTROLLER` validates
+  actual signed admission and heartbeat retirement. `tests/backend_kind.py --image
+  IMAGE --client CLIENT --data OA_DATA` covers native HTTPS-to-match-to-results and
+  HPA in an owned kind cluster (devtools client with curl; rebuilt image).
 - Platform service contracts: `python3 tests/services.py` (null and installed
   test provider; live Steam acceptance is separate).
 - Fast feedback: `python3 tests/affected.py BASE_REF` (600-second default budget;

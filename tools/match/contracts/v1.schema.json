@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/msetaro/aftershock/tools/match/contracts/v1.schema.json",
+  "$defs": {
+    "JoinTicket": {
+      "type": "string",
+      "maxLength": 256,
+      "description": "Canonical v1.player_id.match_id.issued_at.expires_at.nonce.hmac_sha256; HMAC domain aftershock/join/v1 followed by newline. Lifetime at most 120 seconds; server enforces expected-player membership and one-use nonce.",
+      "pattern": "^1\\.[1-9][0-9]{0,19}\\.[a-zA-Z0-9_-]{1,64}\\.[1-9][0-9]{0,11}\\.[1-9][0-9]{0,11}\\.[0-9a-f]{32}\\.[0-9a-f]{64}$"
+    },
+    "MatchSpec": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+        },
+        "map": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+          "maxLength": 48
+        },
+        "mode": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "slots": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "rules": {
+          "type": "object",
+          "properties": {
+            "frag_limit": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "time_limit": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1440
+            }
+          },
+          "required": [
+            "frag_limit",
+            "time_limit"
+          ],
+          "additionalProperties": false
+        },
+        "expected_players": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,19}$"
+          }
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "map",
+        "mode",
+        "slots",
+        "rules",
+        "expected_players"
+      ],
+      "additionalProperties": false
+    },
+    "Loadout": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "primary": {
+          "type": "string",
+          "maxLength": 127,
+          "pattern": "^weapons/[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*\\.asweapon$"
+        },
+        "secondary": {
+          "type": "string",
+          "maxLength": 127,
+          "pattern": "^weapons/[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*\\.asweapon$"
+        }
+      },
+      "required": [
+        "version",
+        "primary",
+        "secondary"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/JoinTicket"
+    },
+    {
+      "$ref": "#/$defs/MatchSpec"
+    },
+    {
+      "$ref": "#/$defs/Loadout"
+    }
+  ]
+}

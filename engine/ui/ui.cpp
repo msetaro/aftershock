@@ -27,6 +27,8 @@ static bool ValidTarget( const uiDocument_t &document, const uiItem_t &item ) {
 		return false;
 	if ( item.kind == UI_BUTTON ) {
 		switch ( item.action ) {
+		case UI_ACTION_BACKEND:
+			return !strcmp( item.target, "login" ) || !strcmp( item.target, "queue" ) || !strcmp( item.target, "profile" ) || !strcmp( item.target, "results" ) || !strcmp( item.target, "logout" );
 		case UI_ACTION_PAGE:
 			return UI_FindPage( document, item.target ) >= 0;
 		case UI_ACTION_MAP:
@@ -57,7 +59,7 @@ static bool ValidTarget( const uiDocument_t &document, const uiItem_t &item ) {
 		return false;
 	}
 	static const char *bindings[] = { "+attack", "+forward", "+back", "+moveleft", "+moveright", "+moveup", "+movedown", "+speed", "+voiprecord", "weapnext", "weapprev" };
-	static const char *values[] = { "health", "armor", "ammo", "ping", "fps" };
+	static const char *values[] = { "health", "armor", "ammo", "ping", "fps", "backend_status", "backend_name", "backend_match", "backend_score", "backend_kills", "backend_deaths" };
 	if ( item.kind == UI_BINDING ) {
 		for ( const char *name : bindings )
 			if ( !strcmp( name, item.target ) )

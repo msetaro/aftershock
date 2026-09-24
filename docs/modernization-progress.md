@@ -30,44 +30,843 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
-Resume the active predecessor gates before any later issue can merge:
-- #31 PR174 is fully accepted on main 5caa2c1c; #31 is closed again.
-- #19 PR175 is fully accepted at main b92b6ef5. Merged build 35728186900 and
-  regression 35728186799 pass all 26 required jobs. Merge tree ac9a6cd4 matches
-  tested head 312048f0. Issue #19 and #25 are updated for integrated acceptance.
-- #20 PR176 merged as main 131061351efc14483aeb7da3f623f79ea884d640 at
-  2026-09-22 14:59:32 UTC after all 26 exact-head jobs passed at 4d06f25b.
-  Self-review and fresh main/base/head/tag checks passed. Merge tree 11bc602c
-  equals the tested head. Integrated build 35744183979 and regression 35744184060
-  pass all 26 required jobs. #20 is fully accepted; issue #20 and #25 are updated.
+Final #29 review found startup-cached Kubernetes credentials, which expire after
+projected token rotation. Test-first commit `1d73819e` covers atomic replacement,
+empty/oversized/missing files and no stale-token fallback (initial compile failure:
+`/tmp/aftershock-resume/kube-rotation-before.log`). Bounded per-request reopening
+now passes Go race/vet, real PostgreSQL/TLS/allocation recovery and deployment
+contracts (`kube-rotation-after.log`, `backend-services-rotation.log`). Fresh hosted
+gates must include this fix; earlier exact-head CI is predecessor evidence.
+All ten local variants have completed coverage, assembled with original logs and
+interruption provenance in `/tmp/aftershock-resume/suite-combined-report.json`.
+No finished engine/runtime checks need repeating for this Go-only fix.
+Hosted `35942749157` passed PostgreSQL integration but stopped at the gofmt gate:
+the longer token-file field required realignment in `backend.go`. That formatting
+is corrected; exact local gofmt/race/vet checks pass. The replacement hosted head
+must pass every required job before merge; do not reuse the failed run as acceptance.
 
-#21 PR177 is fully accepted at main 7c24808f. All 26 exact-head and integrated
-checks pass (merged build 35757322676/regression 35757322732); #21/#25 are updated.
+Resumed on Ironforge from migration checkpoint `b199539c`. PR179 (#23) is now
+fully accepted at main `2c5bf00a5753f13ff0bd698898d245f9388b9fb3`: its reviewed
+head `1f395716` included current main `aa96932a`, all 26 final jobs passed,
+and the merge tree equals that tested tree. Integrated build 35931243625 and
+regression 35931243579 pass all 26 required jobs, including full native/runtime/
+module replay and actual build publication. Optional #35 fuzz remains excluded
+by its existing continue-on-error policy. Self-review evidence is on #23.
 
-#22 PR178 merged as main aa96932abb13f761d0a71dde89f95d33893a45c8 at
-2026-09-22 18:28:14 UTC after all 26 final jobs passed on b23ef158. Self-review and
-fresh head/base/current-main/tag checks passed. The merge tree 309bac591a8225478a52321b0205a547f885a996
-matches the tested tree. Integrated build 35767363858/regression 35767363841 are
-running; require their acceptance before merging #23.
+Accepted main is merged forward into this branch, retaining `SERVICE_BACKEND = 2`,
+all #29 work and predecessor evidence. Conflicts were documentation/affected rules;
+production services integration merged automatically. No preview headers are used.
 
-This is issue/23-platform-services in services-tree, draft PR179. Main aa96932a
-is merged forward; only checkpoint documentation needed conflict resolution.
-Push the final combined head, run all 26 required hosted jobs and require integrated
-#22 acceptance before readiness/self-merge. Fresh main/base/head/tag checks and the
-AGENTS self-review remain mandatory. The completed local bounded-provider contracts
-are the maintainer-revised #23 scope; Steam SDK/provider/transport/live acceptance
-belongs to #180 and does not block this sequence.
+1. Full native kind acceptance now PASSES with the ordinary real-time client and
+   actual XTest menu navigation. Verified HTTPS sign-in/profile/queue -> Agones
+   allocation -> signed native admission -> account-attributed match completion ->
+   authored results screenshot -> logout and database session revocation all pass.
+   Actual metrics drive HPA from two replicas to four at the generated 65% target.
+   Report: `/tmp/aftershock-resume/backend-kind-full5/report.json` (`full: true`).
+2. Complete fresh hosted gates on the token-rotation fix revision. All ten local
+   variants pass with preserved continuation evidence (root
+   `/tmp/aftershock-m_katkej`). The earlier hosted
+   `b564cfbc` compiler matrix passed all 16 jobs, but its match test used agent mode
+   and failed, so it is NOT merge acceptance. Do not waive that required job.
+3. After all gates and final self-review, recheck current main and PR head, update
+   #29/#25, merge PR181 with a merge commit, and verify integrated jobs/replay.
+   Continue #30 afterward. #24 retains its SDK dependency; Steam SDK/provider/live
+   work remains deferred to #180 with no setup input needed. The separately recorded
+   agent-step UDP defect is #182 and must never be mixed into #29/#30.
 
-Active #29 preparation is isolated in backend-tree, head 3e75541b. Go/native signed
-join contracts, server identity/configuration and real UDP admission pass their
-recorded tests. Controller allocation/readiness is the next failing-test-first
-step, followed by persistent services, native HTTPS/UI and kind acceptance.
-#24's existing console SDK dependency is recorded on comment 5780638857; desktop
-proxies are not console acceptance. Continue #29 then #30, without requesting
-Steam answers or treating pending CI as a reason to stop.
+Normal GCC/Clang client/service/admission probes and complete development builds,
+heartbeat retirement, private PostgreSQL/TLS/recovery, Go race/vet, authored UI and
+HTTPS variants pass. All 29 affected checks pass. No preview headers remain.
+Predecessors #19-#23 and historical #31 evidence remain accepted; do not repeat
+finished work, historical network controls or accepted fixtures.
 
-Private Python: /home/matt/.cache/aftershock-modernization/sketch-python/bin/python.
-Private Go: PATH=/home/matt/.cache/aftershock-match-tools/go/bin:$PATH.
+## #29 suite continuation after instruction update
+
+The instruction-update interruption stopped the local suite during runtime step
+16's weapons-network variant. Six completed job variants and runtime steps 0-15
+remain passed. Step 16's native pure/protocol/ordinary network commands passed
+(the last recorded result is 323/323 shots); only its unfinished weapons variant
+and subsequent steps are resumed. The original report/logs are preserved.
+Continuation: `/tmp/aftershock-resume/resume-suite.py`, log `suite-resumed.log`,
+report `suite-resumed-report.json`. It uses the workflow catalog and records both
+original and resumed heads; it never turns an interrupted result into a pass.
+The resumed weapons variant passes 301/301 shots and 1508/1508 prediction/animation
+comparisons. Runtime step 18 then found missing Shapely under system Python.
+The already-provisioned pinned environment at
+`~/.cache/aftershock-modernization/sketch-python` has all required versions;
+`runtime-continuation.log`/`runtime-continuation-report.json` continue only the
+unfinished portion with that interpreter. No system packages are installed.
+The separate continuation completes the remaining cross/match jobs; combine the
+reports only when every covered step has genuinely passed.
+All nine non-runtime local variants now pass, including both cross builds and the
+complete match-server job. Its default native kind report is again `full: true`,
+with exact -1/0/1 results, revoked logout and four HPA replicas. Only runtime's
+private-interpreter continuation remains; the earlier aggregate correctly stays
+`ok: false` until that work finishes.
+A second turn interruption stopped `sketch_build.py` in runtime step 18 after
+polygon, sketch parsing, asset/Blender and themed-level validation had passed.
+`resume-runtime2.py` continues from that unfinished command with a new sketch
+output directory. Its log/report are `runtime-continuation2.log` and
+`runtime-continuation2-report.json`; the first continuation logs stay intact.
+Final hosted gates at `084eeed2` continue unaffected. Keep this checkpoint update
+for the next commit; no source change invalidates those running gates.
+
+## #29 full native kind acceptance and self-review checkpoint
+
+`backend-kind-full5` passes end to end with the integrated native image/client.
+Match `3b95a999731558edf9fa9d48a0b9f23f`, account `18446744073709551615`, final
+checkpoint at 66 seconds: score -1, kills 0, deaths 1. The native menu shows that
+exact match/result, its screenshot is inspected, and logout clears presentation
+and revokes the actual database session. Backend counters cover auth/profile/
+queue/results. Real per-container CPU/memory samples are recorded; HPA scales
+two backend replicas to four at the unchanged 65% target. The owned cluster,
+credentials and kubeconfig are removed. No Steam/live acceptance is implied.
+
+Self-review to date: only #29 contracts, backend/native integration, heartbeat
+retirement and their tests/docs are changed. Shared JSON/curl code supplies the
+bounded production interfaces without duplicate loaders/parsers; OS calls remain
+in platform. Native core storage is fixed/trivial with no new per-frame allocation
+or altered simulation floating expressions. Signed ticket expiry/owner/match/replay
+and exact retry controls pass; results reads never write match data. Queue state
+and ambiguous allocation recovery are durable. #30 owns production ingest/storage,
+#180 owns Steam SDK/provider/live acceptance, and #182 records the unrelated agent
+UDP limitation. Final local/hosted acceptance and current-base recheck remain.
+
+## #29 native signed gameplay and results reached
+
+Full run 4 now signs in over verified HTTPS, loads the owned profile through real
+keyboard navigation, queues/allocates, enters native play with account
+`18446744073709551615`, records the self-kill, and reads the completed match back
+into the authored menu (`score=-1 kills=0 deaths=1`). Actual match-container metrics
+are captured. Its remaining failure was the test's screenshot invocation:
+`screenshot silent NAME` uses automatic naming; use `screenshot NAME` for an
+explicit artifact. Run 5 is pending with that correction; logout and the full
+success report are still unaccepted. Logs/evidence: `/tmp/aftershock-resume/backend-kind-full4`.
+
+Hosted checkpoint `b564cfbc` passes all 16 build jobs and the non-runtime checks
+completed so far; its match job independently reproduces the documented agent-mode
+UDP timeout. It cannot be merged. The final corrected harness needs fresh gates.
+The local full suite has passed both unit variants and sanitizer jobs and is now
+running runtime goldens; fixtures remain unchanged.
+
+## #29 native console fixture and lifetime acceptance
+
+Full run 3 reached ordinary client startup, then its first public-status command
+was not consumed: non-tty stdin is dedicated-server-only in the existing Unix
+console. The driver now uses the established runtime-test pseudo-terminal with
+`TERM=xterm` and waits for its ready marker. Full run 4 is pending. The local full
+suite has passed format, tidy and all 1420 lifetime compilation commands (159
+source paths, shipping/development, static/module, positive/negative controls).
+All 16 hosted compiler legs pass at `b564cfbc`; final harness revision gates are
+still required. Native acceptance is not yet complete.
+
+## #29 native real-time acceptance driver
+
+Full run 2 passes native verified HTTPS sign-in, authored profile and queue, then
+stalls at UDP admission. Inspection finds the existing agent-step receive-polling
+gap recorded in `docs/bugs.md`; it is outside #29 and needs a separate test-first
+fix. The #29 driver now uses an ordinary real-time native client plus the existing
+private Xvfb/XTest keyboard helper. Profile/queue/results/logout still use actual
+menu navigation, verified backend transport and signed admission. Full run 3 is
+pending; do not claim a native pass from the earlier partial runs. Hosted and full
+local checks started at `b564cfbc`; final gates must include this harness correction.
+
+## #29 full kind fixture reachability
+
+The first default kind run passed deployment/HPA but failed native login with an
+upstream auth timeout (backend 503, 5002 ms). An independent container-to-host
+bridge request also timed out. The owned provider now runs inside the private
+kind cluster as a standalone test-only Go binary, with exact ticket checks and
+verified HTTPS unchanged. No host firewall or production authentication change
+is needed. Full run 2 is pending (`/tmp/aftershock-resume/backend-kind-full2`).
+The second affected run passes all selected checks after the format fixture fix
+(`/tmp/aftershock-resume/affected2.log`). Full local/hosted gates remain pending.
+
+## #29 broad regression dependency check
+
+The first affected run stopped at the real `agent_formats` match decoder: its
+isolated copy of `spec.go` now imports the #29 contracts and references private
+join-file publication. The fixture now copies the production module/contracts
+source and supplies a fail-if-called publication stub; the actual decoder and
+schema comparisons remain unchanged. The focused format test passes after this
+fix (`/tmp/aftershock-resume/agent-formats-fixed2.log`). Rerun affected acceptance;
+its first report is failed, not a partial pass. Full native kind acceptance is
+running against the rebuilt integrated image; no full pass is yet claimed.
+
+## #29 normal integrated native builds and public diagnostics
+
+After merge-forward `8f98f5a1`, the ordinary client probe compiles with the real
+services header and fails at `publicInfo` as intended (`client-before.log`).
+`backend_info` now reports only the six existing public UI fields; it never prints
+session/ticket credentials. Both GCC and Clang/libc++ probes pass, including the
+credential-exclusion assertion, services/null-provider and full schema/native
+admission probes. Fresh normal development client+server builds pass with both
+compilers (`client-build.log`, `clang-build.log`) without preview headers.
+
+Format (605 files), fixed-width policy (457), boundaries (458), suite/affected
+catalog and isolation checks pass. Evidence is under `/tmp/aftershock-resume`.
+Next: rebuild the integrated match image and execute the default full native kind
+flow, then final scope/affected/full-suite/hosted gates. No full-kind pass is claimed.
+
+## #29 transport verification on the resumed machine
+
+GCC and Clang/libc++ native HTTPS probes pass linked, dynamically loaded and
+curl-unavailable configurations, including verified private trust, response bounds,
+redirect rejection, cancellation/reuse and shared-loader lifetime. Logs:
+`/tmp/aftershock-resume/http-{gcc,clang}.log`. The kind driver also requires logout
+to expire the actual server session, beyond clearing public client state. That
+native assertion remains pending with the rest of the full-client flow.
+#23 integrated runtime has passed levels, profiles/navigation and UI; audio and
+remaining module/replay checks are still running. No required failure is waived.
+
+## #29 native prerequisites prepared
+
+Normal GCC and Clang/libc++ development configurations succeed in the new private
+build directories, and their independent Jolt/Opus dependencies build. Authored
+backend UI cook/native checks pass with both compilers (`backend-ui-{gcc,clang}.log`
+in `/tmp/aftershock-resume`). Normal client compilation still awaits the accepted
+#23 merge forward; no preview API header is used. Review corrected the new kind
+metric assertion to use the existing `auth` service label and require positive
+native auth/profile/queue/results request counts. Full native acceptance is pending.
+
+## #29 generated HPA target verified
+
+Deployment-only acceptance also passes with the generated, unchanged 65% CPU
+utilization target (`/tmp/aftershock-resume/deployment3/report.json` and `hpa.json`).
+Both original replicas become HTTPS-ready, real resource metrics drive additional
+ready replicas under HTTPS load, health remains available, and owned cluster/secret
+cleanup succeeds. The report explicitly remains `full: false`. This closes the
+independent deployment/scaling slice, not the still-pending native sign-in/play/
+results assertions. Repeat the combined default command on the integrated branch
+for final acceptance after #23's runtime gate completes.
+
+## #29 deployment-only runtime evidence
+
+`/tmp/aftershock-resume/deployment2/report.json` records `full: false` and a passed
+private-cluster deployment slice: pinned node/Agones/PostgreSQL, both backend
+replicas ready over HTTPS, warm match pod, valid CPU resource metrics and actual
+HPA scale-out to more than two ready replicas (desired four). Its CPU observation
+was 195% of requests. The cluster and generated credentials were cleaned up.
+This run used a test target of 1%; the default full driver now retains the generated
+65% target, which still must pass in native acceptance. Do not claim this partial
+run proves native sign-in, signed gameplay, attribution or results UI.
+
+The node-CRI pull fixes the Docker multi-platform import failure without changing
+the pinned PostgreSQL digest. #23 integrated runtime still runs; remaining client
+API integration and new public-status failing assertion wait for that gate.
+
+## #29 independent deployment acceptance in progress
+
+Added an explicit deployment-only mode to the new kind driver while #23's long
+integrated runtime gate finishes. It records `full: false` and cannot substitute
+for native login-to-results acceptance. The first real run failed before deployment:
+kind's Docker image import requested missing multi-platform content from the local
+PostgreSQL index. Its owned cluster was deleted. Pull the same pinned PostgreSQL
+digest through the node's CRI runtime instead; do not loosen the pin. Evidence:
+`/tmp/aftershock-resume/deployment1/postgres-load.log`. Retry pending.
+
+## #29 rebuilt local service evidence
+
+Fresh Docker image `aftershock-match:resume29-test` builds successfully from the
+resumed branch; it will be rebuilt after the #23 merge forward. Go race/vet and
+real private PostgreSQL/HTTPS/allocator-recovery contracts pass on this machine
+(`/tmp/aftershock-resume/go-race.log`, `go-vet.log`, `backend-services`).
+Formatting (604 owned files), suite/affected catalog and isolation policy pass.
+Integrated #23 lifetime checks now pass; only runtime remains before merge forward.
+The kind contract also requires per-match container metrics from the actual
+resource-metrics API. Its native client and cluster assertions remain unrun.
+
+## #29 resumed acceptance preparation
+
+Added committed native public-status assertions (`d9ac2274`) and the actual kind
+acceptance driver (`8aad0e08`): owned verified TLS auth fixture, PostgreSQL and
+backend replicas, real Agones/native client/admission, account stats and authored
+results, plus real resource metrics/HPA scale-out. Neither new assertion nor kind
+acceptance is claimed passed. The client still awaits integrated #23; its new
+public-status assertion must fail before implementation. Rebuilding the match
+image from the resumed branch, with no preview services headers.
+
+Wired backend GCC/Clang probes, database/HTTPS contracts, signed admission and kind
+acceptance into existing required CI jobs; local suite uses the same catalog.
+Suite/affected/isolation catalog checks pass. Added command/prerequisite docs.
+Integrated #23 compiler/publication run 35931243625 passes; regression 35931243579
+still has runtime/lifetime/compiler-probe work running. Continue from that gate.
+
+## #29 heartbeat retirement after migration
+
+The committed negative control from `d7e575ab` now passes against a fresh dedicated
+build and controller from this branch. Removed periodic/startup/shutdown and
+connection-count heartbeat triggers, master DNS state and the heartbeat command.
+Kept shared `sv_master` cvars for legacy client browsing compatibility; the server
+no longer resolves or sends to them. Preserved DirectConnect's unrelated count use.
+The existing full UDP/controller check still passes missing/expired/wrong-match/
+unexpected-player/altered/replayed ticket rejection, retransmit/endpoint binding,
+fresh reconnect and readiness only after signed admission configuration.
+Evidence: `/tmp/aftershock-resume/heartbeat`, server-build.log and heartbeat policy
+logs. Format/types/boundaries pass. Client integration and kind acceptance remain
+unfinished; #23 integrated gates are still running. No accepted fixture changed.
+
+## #29 migration checkpoint and heartbeat retirement, test first
+
+All backend implementation through `71a119d9` is preserved in this branch. Durable
+ambiguous allocation recovery, authored UI/client action wiring, namespaced deployment
+manifests and exact owned result selection are implemented; the detailed entries
+below record their tests and limits. No real native login-to-match-to-profile or kind
+acceptance has passed yet; the frontend still needs accepted #23's services API.
+
+The final unfinished edit extends `tests/backend_join_runtime.py` to run our dedicated
+server with every master destination empty or an owned loopback receiver. It rejects
+any legacy heartbeat at startup and shutdown. Before implementation it failed as
+intended with `retired master heartbeat emitted to owned receiver` and payload
+`heartbeat QuakeArena-1`. No production heartbeat removal has been made yet.
+This failing test is intentionally committed for continuation, not marked passed.
+
+The migration audit found all other registered worktrees clean, no stashes, and all
+other local branch tips already reachable from origin. Only this active #29 branch
+needed publishing. Preserve source/history and the documented evidence; generated
+binaries, private package caches, test keys, local logs and game paks are not backups
+and must not be uploaded. Rebuild on the new machine using the handoff and tests docs.
+
+## #29 exact owned result selection
+
+The read API and HTTPS consumer now support an optional exact match ID, still scoped
+to the authenticated account. The client uses its selected match ID and applies stats
+only after the whole response validates; unrelated history never appears under that
+match label. Paginated history remains available separately. Go race, real DB/TLS and
+both compiler client-preview probes pass (backend-exact-results-{go,after}/logs and
+backend-client-preview*.log). Actual native integration still awaits accepted #23 main.
+
+## #29 exact match result selection, test first
+
+The result contract now requests an owned match by ID even when it is beyond the
+first 20-item history page. The native client must query its selected match rather
+than display another history row under the current match label. The test fails on
+the unsupported exact-match query before implementation (backend-exact-results-before.log).
+
+## #29 backend deployment manifests
+
+The generator now emits the namespaced service account/RBAC, two-replica deployment,
+ClusterIP service, HPA and disruption budget. Non-root/read-only containers consume
+separately provisioned TLS/publisher/reader/catalog/database secrets; no secret values
+or AppID are generated. Only namespaced GameServer get/list and allocation create
+permissions are granted. TLS health probes and resource requests/limits are explicit.
+The manifest contract passes (backend-deployment-after.log); actual kind deployment,
+metrics availability and end-to-end native acceptance still remain required.
+
+## #29 backend deployment contract, test first
+
+The manifest contract requires two replicas behind a ClusterIP service, bounded
+resources, TLS health probes, HPA/PDB, read-only non-root containers, namespaced
+Agones allocation permissions and references to separately provisioned secrets.
+It fails because the backend manifest generator is absent (backend-deployment-before.log).
+No credentials, AppID or externally published deployment is created by this test.
+Actual kind scheduling/health/scaling acceptance remains separate and mandatory.
+
+## #29 native client action wiring preview
+
+The authored menu now calls bounded client login/queue/profile/results/logout actions.
+Platform tickets are exchanged over HTTPS; sessions stay process-local. Queue replies
+bind a one-use ticket to the assigned numeric address, inject it only into the initial
+connect packet and retransmits, and clear it on accepted connection/disconnect.
+Neither credential enters a cvar, UI value or console command. Logout clears local
+profile/credentials even when its server request fails. Platform login has a timeout.
+The development-only test login reads a fixed private ticket file; it never supplies
+an account ID or bypasses backend verification. Live Steam remains #180.
+
+GCC/Clang UBSan seam probes pass for login, profile owner mismatch, queue/retry binding,
+results values, malformed version, timeout and logout (backend-client-preview*.log).
+These preview commands include only PR179's proposed public services header from the
+private services worktree; production services sources in this branch still await its
+merge. This is not an integrated/native-build acceptance claim. Merge green #23 main
+forward and rerun the ordinary commands/full native build without that preview flag.
+Then run actual HTTPS/native-client/kind acceptance and complete deployment/CI/docs.
+
+## #29 native backend client contract, test first
+
+The new native client probe specifies login through the platform ticket seam,
+server-authenticated account ownership, profile-owner mismatch rejection, queue
+polling, address-bound join-ticket retries and clearing the ticket on connection.
+Session/ticket data must not become cvars, UI values or console command arguments.
+Logout clears local credentials even when its network reply fails. The test fails
+on the absent cl_backend.cpp before implementation (backend-client-before.log).
+#23's required runtime job is still running; its accepted main must be merged
+forward before final native provider/client integration gates.
+
+## #29 authored backend menu validation
+
+The UI schema, cooker and native document validator now accept a fixed backend
+button action set and six public profile/status values. Action targets are a closed
+list, never arbitrary console commands. The new owned menu cooks and its native
+probe passes; altered bytecode with an injected target is rejected even with a valid
+content hash (backend-ui-after.log). Existing localized UI cook/native checks also
+pass (backend-existing-ui.log). Layouts and existing asset version/representation
+remain unchanged. The live client action binding still needs implementation.
+
+## #29 authored backend UI contract, test first
+
+A new owned menu source contains sign-in, queue, profile, results and sign-out
+buttons plus bounded public status/stat values. Its cook fails on the missing
+backend action enum before implementation (backend-ui-before.log). A native byte
+reader probe also rejects an injected command target independently of the cooker.
+Existing UI sources and accepted fixtures are untouched. These checks only define
+the menu contract; native HTTPS actions and actual client acceptance still follow.
+
+## #29 durable ambiguous allocation recovery
+
+Before issuing an allocation request, the backend durably marks the attempt as
+allocating. A lost/error response leaves it in recovery-only mode, including after
+replica restart; absence of a visible labelled server is not permission to POST again.
+Only a definite UnAllocated response reopens normal retry. The extended real DB/TLS
+contract passes both the no-capacity retry and delayed-visibility/restart cases
+(backend-ambiguous-after/contracts.log). A permanently unknown outcome remains queued
+for operator reconciliation; do not reset it by elapsed time and risk a duplicate pod.
+
+Accepted #21/#22 main aa96932a is merged forward at 6ae3fbfa. All production merges
+are automatic and the full combined client/server build passes (backend-main-build.log).
+Only the progress-file conflict needed reconciliation, retaining the current evidence.
+
+## #29 ambiguous allocation visibility, test first
+
+The allocation contract now hides the committed server temporarily after a lost
+response, then restarts the backend pool. It requires no second allocation while
+visibility is uncertain. The prior code retries POST and fails this new assertion
+(backend-ambiguous-before/contracts.log). A definite UnAllocated response may retry;
+an ambiguous response requires durable pending-attempt state and label recovery.
+Fail closed while the outcome is unknown rather than guessing a timeout and creating
+another match. An operator may reconcile a permanently unresolved attempt with Agones;
+there is no automatic time-based reset without an allocation outcome guarantee.
+
+## #29 terminal assignment cleanup
+
+The results read contract includes completion metadata for the caller's current
+assignment, selected by the backend from its database. A final acknowledged empty
+or aborted match releases queue ownership without inventing personal statistics.
+The previously failing empty-match test now passes alongside all DB/TLS/race checks
+(backend-terminal-after/contracts.log). Client query parameters cannot select this
+assignment. Read API storage remains with the existing development stub until #30.
+
+## #29 terminal assignment contract, test first
+
+An additional real-database test covers a match ending before its expected player
+enters. It fails because there is no personal score row to trigger queue cleanup
+(backend-terminal-before/contracts.log). Read-only completion metadata must identify
+the authenticated player's current assignment even when no result was earned.
+This is unfinished #29 behavior, not a production #31 bug or invented score record.
+
+## #29 native HTTPS transport
+
+The platform owns one bounded nonblocking curl-multi request with verified TLS 1.2+,
+explicit optional CA roots, fixed timeouts, allowed methods and bounded headers/body/
+response. Redirects are not followed. Completion/cancellation clears private buffers.
+The existing curl loader moves into platform code with shared reference ownership so
+a download shutdown cannot unload an outstanding HTTPS request. No new library is added.
+
+GCC and Clang UBSan probes pass with linked curl, dynamic curl and curl disabled;
+private trust, oversized responses, header rejection, cancellation/reuse and shared
+loader lifetime all pass (backend-http-{gcc,clang}.log). The full native client build,
+existing unchanged download golden and curl option probe pass. Targeted production
+transport tidy and format/type/boundary checks pass. The test HTTP endpoint needed
+explicit Content-Length framing for clean TLS completion; certificate checks stayed on.
+Next: client login/queue/profile state and authored UI, then real cluster acceptance.
+
+## #29 native HTTPS contract, test first
+
+A native transport probe now requires verified private-CA HTTPS, method/header/body
+validation, a bounded response, no redirect following, untrusted-CA rejection,
+cancellation and handle reuse. The local endpoint owns its ephemeral TLS key.
+It fails on the absent platform HTTP header/implementation (backend-http-before.log).
+Reuse the current curl loader with shared ownership instead of adding another loader
+or networking library. Curl/OS handles stay in platform code; core state remains POD.
+
+## #29 player-facing results consumer
+
+The HTTPS tier reads the acknowledged result API over verified TLS gRPC using a
+separate bounded reader credential. Its authenticated session supplies the account;
+client-selected account query parameters are rejected. Only queue ownership state
+changes when completed results release assignments; the tier never writes match data.
+Real PostgreSQL + HTTPS + TLS gRPC checks pass, including unauthorized ownership,
+reader failure and assignment release (backend-results-https/contracts.log). Full
+Go race/vet checks also pass. Development plaintext is explicit and limited to the
+existing #28 stub configuration; production defaults require TLS.
+
+## #29 HTTPS results consumer contract, test first
+
+The real-database integration gate now requires the player-facing service to read
+results through verified TLS gRPC with its separate reader credential, reject
+client-selected account IDs, expose only the session owner's history, and release
+completed assignments. Wrong reader credentials must report unavailable. It fails
+on absent backend reader wiring before implementation (backend-results-https-before.log).
+
+## #29 acknowledged results read API
+
+The existing development ingest owner now exposes an authenticated read-only gRPC
+method with a separate reader credential. Only final, completed and acknowledged
+checkpoints appear as results. History pages contain at most 20 matches with a stable
+match-ID cursor; score-ordered leaderboards contain at most 100 accounts. Private
+allocation credentials, slot ownership and raw events never leave this API.
+
+Go race tests pass for account isolation, unfinished exclusion, duplicate ACKs,
+restart recovery and complete traversal of 105 results through bounded pages
+(backend-results-after.log). The development stub intentionally reuses its existing
+in-memory/log storage; #30 owns replacing it with indexed transactional storage.
+Next: player-facing HTTPS consumer, native UI and kind acceptance.
+
+## #29 read-only results contract, test first
+
+The new read contract requires separate reader authorization, canonical account
+ownership, completed-and-acknowledged results only, bounded history/leaderboard
+responses, retry deduplication and durable-stub restart recovery. It fails before
+implementation on missing Read/response fields (backend-results-before.log).
+Reuse #28's development log owner for this acceptance read API; #30 will implement
+its production transactional storage. The player-facing tier never writes match data.
+
+A native attribution review also found that a departing player's final score must
+be logged before ClientDisconnect clears ownership. The new feature retains only a
+bounded log-ownership flag until that callback, since server identity is already
+closed by then; anonymous logs stay unchanged. Native/runtime checks remain required.
+
+## #29 verified result ownership
+
+The native game emits ClientIdentity only from the server's existing verified
+identity import at ClientBegin; no client name/userinfo claim is used. The sidecar
+keeps bounded account statistics separate from legacy slot statistics, clears
+ownership on disconnect/connect, accumulates reconnect score deltas, and preserves
+its baseline across checkpoint restart. Anonymous game logs are unchanged.
+Go race checks and the full native build pass (backend-owner-after.log,
+backend-owner-build.log). Actual authenticated-client log acceptance follows with
+the HTTPS/UI runtime gate; this is not yet end-to-end backend acceptance.
+
+## #29 verified result ownership, test first
+
+The checkpoint contract now requires server-verified account attribution through
+slot reuse, anonymous clients, suicide, team changes and checkpoint restart.
+It fails before implementation on missing account statistics (backend-owner-before.log).
+Existing slot-oriented development statistics remain compatible; authenticated
+results must never infer account IDs from names or client-supplied userinfo.
+
+## #29 durable queue and allocation recovery
+
+The database commits expected-player membership and a private per-match key before
+calling Agones. A per-match row lock serializes allocation attempts; the match label
+recovers an allocation after its response is lost. Party edits cannot change an active
+assignment. Tickets are issued only after the existing UDP probe confirms both the
+loaded map and configured match ID, with each authenticated member's own identity
+and a fresh nonce. Cluster HTTPS trust and service-account credentials are explicit;
+redirects and unbounded responses are refused.
+
+The real PostgreSQL/TLS/UDP recovery test passes, including a committed allocation
+whose first response is lost, delayed engine readiness, two member identities,
+replica restart and exactly one allocation POST (backend-queue/contracts.log).
+The full Go race suite and vet pass. Next: verified account attribution and read-only
+results, native HTTPS/UI, deployment and real kind acceptance. Queue cancellation
+and production ingestion are not implemented at this checkpoint; #30 owns ingestion.
+
+## #29 queue recovery contract, test first
+
+The new real-database/TLS/UDP gate requires leader-owned group admission, a durable
+assignment before allocation, recovery after a committed-but-lost Agones response,
+exact configured-match readiness before issuing tickets, separate signed identities
+for each member and fresh nonces on repeat polls. It requires one allocation across
+replica restart and rejects party changes while assigned. It fails on missing queue
+configuration/API fields before implementation (backend-queue-before.log).
+
+Initial matchmaking decision: one existing party (or solo caller) allocates one pod
+for the owned test mode. This satisfies the first-game login/queue/join loop without
+a speculative skill matcher or additional queue service. The shared database owns
+membership and assignment; a later game rule can pool distinct parties when needed.
+Do not hold the global membership lock across allocation HTTP; use the per-match
+row lock and recover by the match label. Results remain read-only in #29.
+
+## #29 persistent parties
+
+Explicit party create/join/leave now uses the shared database. Invite codes are
+random 128-bit values returned only on creation and stored as digests; party IDs
+are separate. Membership is unique per account, the leader leaving disbands the
+party, and old codes stop working. A short database advisory lock serializes
+membership mutations across replicas; it holds no HTTP/network allocation work.
+This deliberately simple ceiling is documented for measured future sharding.
+The engine's 64-player limit is enforced before adding a member.
+
+Real PostgreSQL/race checks pass for concurrent joins to different parties, identity
+ownership, capacity, disband/revoked code, explicit leave and fresh-pool persistence,
+alongside the full auth/profile/TLS contracts (backend-parties/contracts.log). The
+existing Go race suite and vet also pass. No invitations are sent to any account.
+Next: durable queue ownership and Agones allocation recovery, then results/client UI.
+
+## #29 party contract, test first
+
+The real-database gate now requires persistent explicit-code party create/join/leave,
+leader disbanding, revoked old codes and one-party-per-account membership across
+concurrent replica attempts. It fails with the absent party endpoint before its
+implementation (backend-parties-before/contracts.log). Codes are returned for an
+explicit user action; no invitations or messages are sent to other accounts.
+
+## #29 HTTPS service entry point
+
+The match binary now has a backend mode with explicit TLS certificate/key, canonical
+AppID, private publisher-key file, trusted weapon catalog and database configuration.
+Production defaults use the documented Steam HTTPS endpoint; the optional additional
+CA file supports the private acceptance PKI without disabling verification. Request
+and header sizes/deadlines are bounded. Health checks the database, and fixed service
+labels expose request/error totals and duration sums. JSON request logs include only
+service/status/duration, never paths, query strings, headers or bodies. Shutdown
+waits for bounded in-flight requests before closing the database pool.
+
+The real PostgreSQL/HTTPS lifecycle gate passes (backend-services-https/contracts.log):
+private trust setup, actual TLS login, expected metrics and graceful shutdown, together
+with all earlier persistent owner/replay/redirect/concurrency checks. Full Go race and
+vet checks pass. The server process is not yet a complete backend deployment: parties,
+queue/Agones, read-only results, native client HTTPS/UI and kind acceptance remain.
+
+## #29 HTTPS process contract, test first
+
+Extend the real-database gate to start the actual service entry point with private
+TLS material, a trusted local HTTPS identity endpoint and an explicit weapon catalog.
+Require database-backed health, a real HTTPS login, bounded service metrics without
+tokens, and graceful shutdown. The test fails on missing serveBackend before wiring
+(backend-https-before.log). Live Steam application/account setup remains deferred.
+
+## #29 persistent authentication and profiles
+
+The bounded HTTP handler verifies identity using Steam's documented publisher-side
+AuthenticateUserTicket GET API and the aftershock identity purpose. Its endpoint
+must use HTTPS; redirects are refused and upstream URLs/errors containing credentials
+are never returned/logged. The local integration fixture is HTTPS too. A caller
+cannot choose the authenticated account. Sessions use random 256-bit opaque bearer
+tokens, store only token/ticket digests, expire after one hour and retain exchanged-
+ticket fingerprints across logout/expiry. Retention is one row per exchanged ticket;
+provider-proven cleanup lifetime is deferred until #180 supplies that guarantee.
+PostgreSQL owns session/profile state and the unique exchange constraint. Startup
+schema installation is serialized across replicas; no ORM or custom DB protocol.
+Profile updates are atomic, bounded UTF-8 names plus catalog-validated weapon paths.
+
+The real private PostgreSQL gate passes, including restart persistence, account
+isolation, expiry/logout, oversized and unknown-field rejection, no followed auth
+redirects, and eight concurrent exchanges yielding exactly one accepted session.
+Full existing Go race tests also pass (backend-services-db/contracts.log and
+backend-go-service.log). The initial nil-loadout scan needed the standard []byte
+SQL destination before JSON encoding; the final gate passes. The service process/
+TLS entry point, parties/queue/Agones, read-only results and native client UI are
+still outstanding; this handler alone is not #29 completion or live Steam acceptance.
+Primary API reference: https://partner.steamgames.com/doc/webapi/ISteamUserAuth .
+
+## #29 persistent authentication/profile contract, test first
+
+A real PostgreSQL integration test requires upstream-verified account identity,
+bounded opaque sessions, ticket-exchange replay rejection, strict request/loadout
+validation, per-account profile ownership, persistence across pool/service restart,
+logout and expiry. The test fails on missing openBackendDB/backendService before
+implementation (backend-service-before.log). tests/backend_services.py owns a
+private randomly named loopback database container with temporary credentials;
+missing Docker/database is a failure, not skipped acceptance. No live Steam calls
+are made: its HTTPS exchange fixture is explicitly local and SDK acceptance remains #180.
+
+## #29 controller authenticated allocation
+
+The controller consumes the v1 MatchSpec inside a private allocation envelope,
+writes its join key/expected players through the existing atomic 0600 file writer,
+and loads join configuration before clearing the warm-server password. Its existing
+loaded-map UDP readiness probe now also checks the configured match ID; writing
+stdin alone never marks a backend allocation ready. Legacy #28 password specs and
+private persisted-spec revalidation remain supported. The match image now copies
+the new shared contracts package explicitly.
+Full Go race tests, including invalid private allocations and wrong/missing match
+readiness, pass. The real warm controller/dedicated server gate passes with a local
+SDK endpoint, followed by unsigned rejection/signed admission. Existing legacy
+controller -> engine -> shipper -> durable stub completion also passes. The complete
+match image builds as aftershock-match:issue29; production tidy and format/type/
+boundary checks pass. Evidence: backend-allocation-after.log, backend-controller.log,
+backend-legacy-controller.log, backend-container-build.log. No accepted fixtures changed.
+
+Next persistent-tier decision: reuse Go net/http and database/sql, with PostgreSQL
+for shared durable profile/session/party/queue state across HPA replicas. Use pgx's
+existing database/sql driver rather than an ORM or custom protocol. Primary references:
+https://github.com/jackc/pgx/wiki/Getting-started-with-pgx-through-database-sql and
+https://www.postgresql.org/docs/18/transaction-iso.html. Driver metadata resolves to
+v5.11.0; the reviewed postgres:18-bookworm manifest is
+sha256:3725f4e2499eef5134592b3b4ab79a543ed7f8e533b05b5b637af926630f6650 (18.6).
+No database service/driver implementation is added yet; write its failing integration
+contract next. #29 remains read-only for match results; durable match writes stay #30.
+
+## #29 controller allocation contract, test first
+
+The existing Go controller test now requires a private allocation envelope carrying
+the versioned MatchSpec, a per-match 32-byte key and separate ingest credential.
+It checks canonical full-width expected players, required mode/version validation,
+no key in process arguments, private 0600 join configuration and revalidation of
+the persisted spec. It fails before controller support (backend-allocation-before.log).
+Legacy password-based #28 specifications stay compatible. Authentication readiness
+will be checked through the existing loaded-map UDP probe, not inferred from stdin.
+
+## #29 signed UDP admission
+
+SV_DirectConnect now validates the configured ticket after protocol/challenge checks,
+rejects unavailable accounts/nonces before altering any existing slot, binds lost-
+response retries to the same endpoint/qport/challenge and connected identity, and
+applies the verified backend identity before sending connectResponse. The temporary
+ticket is removed from saved userinfo and subsequent userinfo changes. No simulation
+arithmetic or accepted golden changes. The probe uses the existing shared per-address
+rate limits and filters ordinary sequenced packets out of handshake responses.
+The actual loopback UDP gate passes with owned content, including endpoint rejection
+without disturbing the original session, disconnect/reload replay rejection and a
+fresh-ticket reconnect (backend-udp.log). A normal OpenArena pure-server/client join
+also passes (backend-anonymous.log). Both compiler UBSan owners, existing identity
+checks, production tidy and format/type/boundary checks pass. Next: connect the
+versioned allocation contract to controller configuration/readiness and real client
+HTTPS/UI; complete persistent services/kind acceptance before any #29 PR merge.
+
+## #29 live admission contract, test first
+
+The new backend_join_runtime.py launches our dedicated server on loopback with owned
+content and encodes connect packets with the production Huffman implementation.
+It requires fail-closed initial configuration, expected-player/time/signature checks,
+identical lost-response retries, peer binding, rejection after disconnect/reload and
+fresh-ticket reconnect. It also checks logs/userinfo do not retain credentials.
+Before connection wiring, the test fails because an anonymous connect receives
+connectResponse despite failed join configuration (backend-udp-before.log).
+
+## #29 private join configuration
+
+The server console command joinconfig reads bounded match-join.json through the
+existing filesystem owner. Invalid initial input closes admission; invalid reload
+preserves the last valid configuration; same-match reload preserves replay history.
+Configuration accepts exactly the v1 match/key/expected-player fields, with unique
+keys and full-width canonical account IDs. Secrets are never printed. The existing
+agent JSON grammar/string helpers now have a shared qcommon implementation, retaining
+the same validation behavior and 16-level nesting bound for development requests.
+Both GCC and Clang UBSan backend/config and existing agent-protocol checks pass.
+The full developer client/server build, production-flags tidy for all three affected
+owners and format/type/boundary gates pass (backend-config-* and backend-json-agent-*
+logs in the private modernization cache). Live UDP admission is the next test-first step.
+
+## #29 join configuration contract, test first
+
+Extend the existing backend server probe with private-file configuration checks:
+invalid initial input must require authenticated admission and accept nobody;
+valid v1 configuration installs atomically; unknown/duplicate fields are rejected;
+failed reload preserves prior configuration; successful same-match reload preserves
+used nonces. This is the next failing check before adding the console/file path.
+Reuse the existing agent JSON validation/string routines in qcommon for both owners.
+
+## #29 server identity owner
+
+The new server join owner validates and atomically installs bounded match/key/
+expected-player configuration. Reinstalling the same match/key preserves used
+nonces; invalid configuration preserves the previous valid state. Verified joins
+use SERVICE_BACKEND and retain the nonce for idempotent connection-response retries.
+The identity owner distinguishes SDK and backend sessions for callback polling,
+end-session cleanup and public identity reporting. It rejects a duplicate active
+account and keeps the existing SDK timeout/revocation behavior. All actual callers
+of SV_PlayerIdentity/GetPlayerIdentity are reviewed. Checkpoint serialization uses
+its existing named checkpointClient_t fields and rejects authenticated identities;
+no checkpoint file layout changes are introduced by the in-memory client fields.
+
+Both compiler backend/server UBSan probes and existing identity/discovery probes
+pass (backend-server-{gcc,clang}.log, backend-identity-{gcc,clang}.log). A full
+developer client/server build and production-flags tidy for join.cpp, sv_join.cpp
+and sv_identity.cpp pass. Format (580), types (441) and boundaries (443) pass.
+This owner is not wired to the live UDP connect path or match controller yet;
+actual configuration loading, handshake/retry behavior, client HTTPS/UI and kind
+acceptance remain next. No accepted fixture changes.
+
+## #29 server identity contract, test first
+
+A new probe includes the actual server identity and new join owner. It requires
+validated expected-player configuration, verified backend identity distinct from
+Steam, duplicate-account rejection, same-handshake retry eligibility only while
+connected, expiry and replay retention across disconnect and same-match config
+reload. An SDK callback matching a backend session must not revoke it, and closing
+a backend session must not invoke SDK EndAuth. Invalid configuration preserves
+the prior valid configuration. This fails on absent sv_join.cpp before integration
+(backend-server-before.log). Actual UDP handshake wiring remains a later gate;
+the caller must also bind a retry to the same peer address/qport/challenge.
+
+#24's existing console SDK gate is checkpointed on comment 5780638857: no console
+SDK/dev kit is supplied, desktop/proxy checks remain enforced, and actual console
+boot/replay stays outstanding. Continue #29/#30 as recorded; #180 separately owns
+the maintainer-deferred Steam SDK/provider/live acceptance.
+
+## #29 native ticket verification
+
+The new portable qcommon owner verifies the exact shared compact contract using
+the existing vendored SHA-256 implementation and bounded stack buffers. It checks
+canonical decimal/hex encodings, full-width identities, key width, match and time
+bounds, then compares every MAC byte before returning copied POD claims. Rejected
+outputs are cleared. A fixed 256-entry per-match nonce store rejects duplicates,
+fails closed when all entries are live and reuses only expired entries. It adds
+no allocation or platform call and is registered in the existing source list.
+GCC and Clang/libc++ UBSan probes pass against the independent Python signature,
+including correctly signed invalid versions, IDs/overflow, times/lifetimes,
+matches and nonce encodings (backend-native-{gcc,clang}.log). Targeted tidy is
+clean; format/type/boundary checks pass. The signer/native verifier/nonce store
+are not yet connected to actual client/server authentication. That integration
+must check expected players and handle handshake retransmission without allowing
+a new connection to reuse a consumed ticket.
+
+## #29 native join-ticket contract, test first
+
+Extend the same backend driver with a native UBSan probe using the independent
+Python HMAC signature already checked by Go. It requires exact uint64 identity,
+match/time/signature checks, cleared rejected outputs, trivial POD records and
+bounded nonce retention. The replay store must reject duplicates and fail closed
+when all 256 entries are live, then reuse expired entries without accepting the
+same new nonce twice. This fails on the absent join_public.h/join.cpp before any
+native implementation (backend-native-before.log). A server must preserve the
+replay store across restarts within the same match and handle retransmitted
+connect handshakes idempotently; those integration checks remain to be written.
+
+## Current predecessor gate update
+
+#21 PR177 is merged as main 7c24808f16f9a72d9ed21ba9af736cd54adba386 after
+all 26 final-head jobs passed. Its tree c14c33d3 equals the tested 2cefd7e3 tree;
+main build 35757322676/regression 35757322732 pass all 26 required jobs. #22 final head b23ef158
+includes that main and starts build 35757405874/regression 35757405820. Earlier
+#22 regression 35749778962 is cancelled as superseded. The initial #23 head's
+16 compiler builds and nine completed regression jobs passed; remaining runtime
+35752232064 is cancelled because the required final #22 main integration will
+need all fresh checks. Neither cancelled run is merge acceptance. #23 must still
+merge accepted #22 main and pass every final check before merging. No red/skipped
+required gate is waived.
+
+## #29 v1 contract implementation
+
+The three versioned contracts now validate schema shape and semantic limits.
+The Go ticket signer/verifier uses standard HMAC-SHA256 with a join-specific
+prefix, canonical integer/hex encodings, match binding and an exclusive expiry.
+An independently computed Python HMAC literal checks the actual bytes. A further
+test first catches missing mode/rule fields being silently decoded as zero;
+pointer presence checks distinguish required zero-valued fields from absence or
+null. Player IDs reject zero, leading zeros and uint64 overflow; loadouts require
+both bounded weapon paths and membership in the server-owned catalog. Expected
+players must be unique and fit the match slots. Semantic cross-field constraints
+are checked by Go in addition to JSON Schema shape checks.
+
+The existing match controller delegates its unchanged bounded/unknown-field/
+trailing-data JSON checks to the shared contracts package. Full Go race tests
+pass, as does tests/backend.py with the private Python and Go environments
+(backend-contract-after.log, backend-match-go.log). The missing-required-field
+negative result is backend-required-before.log. No engine, service deployment,
+account exchange or accepted replay fixture is changed by this slice.
+
+## #29 initial contracts, test first
+
+The public v1 contracts specify bounded match/rules/expected-player data, loadouts
+that reference a server-owned weapon catalog and short-lived signed join tickets.
+Player IDs are canonical decimal strings to preserve the full uint64 range in
+JSON clients. Join tickets use a fixed canonical field sequence, match-scoped
+HMAC-SHA256 with a 32-byte key, a 128-bit nonce and at most 120 seconds of lifetime.
+The native server will reject reuse separately; signature verification alone is
+not a replay guard. Session/backend and allocation secrets must remain separate.
+The first tests require strict version/field/bounds validation, signature/time/
+match/key rejection and weapon-catalog membership. Evidence:
+backend-contract-before.log (missing schema), backend-go-before.log (missing API).
+No accepted fixture changes or production service calls occur.
+
+References reviewed: Go crypto/hmac (https://pkg.go.dev/crypto/hmac), the Agones
+GameServerAllocation specification (https://agones.dev/site/docs/reference/gameserverallocation/)
+and Steam ISteamUserAuth (https://partner.steamgames.com/doc/webapi/ISteamUserAuth).
+Real Steam identity acceptance remains #180; CI identities must be explicitly
+isolated test-provider identities, never represented as live Steam verification.
 
 ## #23 deferral documentation and combined checks
 
@@ -130,6 +929,7 @@ and never reenters Com_Error. Real Steam acceptance still needs an authorized Ap
 running logged-in clients and a designated invite recipient; do not invent them.
 References: https://partner.steamgames.com/doc/sdk/api and the ISteamUser and
 ISteamMatchmaking API pages. No external repository writes were performed.
+
 ## #21 merge and #22 final-main integration
 
 PR177 is merged after all 26 exact-head required checks pass. Main 7c24808f has

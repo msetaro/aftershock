@@ -211,7 +211,7 @@ def ui_schema():
                    additionalProperties=dict(type='string',minLength=1,maxLength=256,pattern=r'^[^\x00-\x1f\x7f]+$'))
     item=obj(dict(id=identity,kind=enum('label','button','slider','binding','value'),text=identity,
                   rect=vector(-8192,8192,False,4),anchor=vector(0,1,False,2),color=vector(0,1,False,4),
-                  action=enum('none','page','resume','map','quit'),
+                  action=enum('none','page','resume','map','quit','backend'),
                   target=dict(type='string',maxLength=63,pattern=r'^[a-z0-9_+./-]*$'),
                   range=vector(0,30,False,3)),['id','kind','text','rect','anchor'])
     return obj(dict(version=dict(const=1),name=identity,font=qpath(),canvas=vector(320,8192,True,2),

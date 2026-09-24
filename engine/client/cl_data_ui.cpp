@@ -131,6 +131,10 @@ static void DrawPage( uint32_t pageIndex, const int values[5] ) {
 		}
 		re.SetColor( item.color );
 		if ( item.kind == UI_VALUE ) {
+			if ( !strncmp( item.target, "backend_", 8 ) ) {
+				Characters( CL_BackendValue( item.target ), rectangle );
+				continue;
+			}
 			if ( !values )
 				continue;
 			static const char *names[5] = { "health", "armor", "ammo", "ping", "fps" };
@@ -242,6 +246,9 @@ bool CL_DataUIKey( int key ) {
 	if ( item.kind != UI_BUTTON )
 		return true;
 	switch ( item.action ) {
+	case UI_ACTION_BACKEND:
+		CL_BackendAction( item.target );
+		break;
 	case UI_ACTION_PAGE:
 		UI_OpenDocument( document, &state, item.target );
 		break;

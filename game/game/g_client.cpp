@@ -21,8 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 //
 #include "g_local.h"
+#include <inttypes.h>
 
 // g_client.c -- client functions that don't happen every frame
+
+// Log ownership survives server identity teardown until ClientDisconnect.
+static bool clientIdentityLogged[MAX_CLIENTS];
 
 static vec3_t playerMins = { -15, -15, -24 };
 static vec3_t playerMaxs = { 15, 15, 32 };
@@ -896,6 +900,7 @@ restarts.
 ============
 */
 char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
+	clientIdentityLogged[clientNum] = false;
 	char *value;
 	//	char		*areabits;
 	gclient_t *client;
@@ -1028,6 +1033,10 @@ void ClientBegin( int clientNum ) {
 			trap_SendServerCommand( -1, va( (char *)"print \"%s" S_COLOR_WHITE " entered the game\n\"", client->pers.netname ) );
 		}
 	}
+	uint64_t identity;
+	clientIdentityLogged[clientNum] = GameImport_GetPlayerIdentity( clientNum, &identity ) != 0;
+	if ( clientIdentityLogged[clientNum] )
+		G_LogPrintf( "ClientIdentity: %i %" PRIu64 "\n", clientNum, identity );
 	G_LogPrintf( "ClientBegin: %i\n", clientNum );
 
 	// count current clients and rank for scoreboard
@@ -1306,6 +1315,10 @@ void ClientDisconnect( int clientNum ) {
 #endif
 	}
 
+	if ( clientIdentityLogged[clientNum] ) {
+		G_LogPrintf( "score: %i ping: %i client: %i\n", ent->client->ps.persistant[PERS_SCORE], ent->client->ps.ping, clientNum );
+		clientIdentityLogged[clientNum] = false;
+	}
 	G_LogPrintf( "ClientDisconnect: %i\n", clientNum );
 
 	// if we are playing in tourney mode and losing, give a win to the other player

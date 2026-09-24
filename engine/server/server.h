@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon_public.h"
 #include "../qcommon/voice_public.h"
+#include "../qcommon/join_public.h"
 #include "../public/g_public.h"
 #include "../public/bg_public.h"
 #include "../platform/services_public.h"
@@ -174,6 +175,8 @@ typedef struct client_s {
 	uint64_t identitySession, identityId;
 	uint32_t identityStart;
 	identityState_t identityState;
+	serviceIdentity_t identityProvider;
+	uint8_t joinNonce[16];
 	clientState_t state;
 	char userinfo[MAX_INFO_STRING]; // name, etc
 
@@ -268,10 +271,8 @@ typedef struct {
 	client_t *clients; // [sv_maxclients->integer];
 	int numSnapshotEntities; // PACKET_BACKUP*MAX_SNAPSHOT_ENTITIES
 	entityState_t *snapshotEntities; // [numSnapshotEntities]
-	int nextHeartbeatTime;
 
 	netadr_t authorizeAddress; // for rcon return messages
-	int masterResolveTime[MAX_MASTER_SERVERS]; // next svs.time that server should do dns lookup for master server
 
 	// common snapshot storage
 	int freeStorageEntities;
@@ -315,7 +316,6 @@ extern cvar_t *sv_clientTLD;
 
 extern cvar_t *sv_privateClients;
 extern cvar_t *sv_hostname;
-extern cvar_t *sv_master[MAX_MASTER_SERVERS];
 extern cvar_t *sv_reconnectlimit;
 extern cvar_t *sv_padPackets;
 extern cvar_t *sv_killserver;
@@ -370,7 +370,6 @@ bool SV_CheckpointFrame();
 void SV_AddOperatorCommands( void );
 void SV_RemoveOperatorCommands( void );
 
-void SV_MasterShutdown( void );
 int SV_RateMsec( const client_t *client );
 
 
@@ -415,7 +414,6 @@ void SV_PrintLocations_f( client_t *client );
 //
 // sv_ccmds.c
 //
-void SV_Heartbeat_f( void );
 client_t *SV_GetPlayerByHandle( void );
 
 //
@@ -542,3 +540,14 @@ void SV_ApplyReplicationPolicy( client_t *client, const clientSnapshot_t *oldfra
 void SV_OpenIdentity( client_t *client );
 void SV_CloseIdentity( client_t *client );
 void SV_PollIdentities();
+// Trusted match configuration; network clients supply only the signed token.
+bool SV_SetJoinConfig( const char *match, const char *key, const uint64_t *players, uint32_t count );
+bool SV_JoinRequired();
+const char *SV_JoinMatch();
+bool SV_LoadJoinConfig( const char *data, uint32_t size );
+void SV_JoinConfig_f();
+bool SV_ValidateJoin( const char *token, joinClaims_t *out );
+bool SV_JoinAvailable( const joinClaims_t &claims );
+bool SV_ApplyJoin( int clientNum, const joinClaims_t &claims );
+// Caller additionally verifies the same peer address and qport.
+bool SV_JoinRetry( int clientNum, const joinClaims_t &claims, int challenge );

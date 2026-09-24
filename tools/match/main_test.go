@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"net"
 	"os"
 	"path/filepath"
@@ -226,5 +227,127 @@ func TestFinalStream(t *testing.T) {
 	}
 	if err = s.accept(batch{Version: 1, Match: "local-1", End: 6, Events: []string{"event"}}, "allocation-secret"); err == nil {
 		t.Fatal("accepted data after final acknowledgement")
+	}
+}
+
+func TestBackendAllocation(t *testing.T) {
+	key := strings.Repeat("42", 32)
+	allocation := `{"match":{"version":1,"id":"backend-1","map":"two_lane","mode":0,"slots":2,"rules":{"frag_limit":1,"time_limit":1},"expected_players":["18446744073709551615"]},"join_key":"` + key + `","token":"allocation-secret"}`
+	s, err := decodeSpec([]byte(allocation))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.ID != "backend-1" || s.Password != "" || s.JoinKey != key || len(s.ExpectedPlayers) != 1 || s.ExpectedPlayers[0] != "18446744073709551615" {
+		t.Fatal("allocation did not retain its contract")
+	}
+	args, err := serverArgs(s, "/content", "/home", "aftershock", 27960, false)
+	if err != nil || strings.Contains(strings.Join(args, " "), key) || !strings.Contains(strings.Join(args, " "), "+joinconfig +map two_lane") {
+		t.Fatal("missing private configuration command or secret in argv", err)
+	}
+	home := t.TempDir()
+	if err := writeJoinConfig(home, s); err != nil {
+		t.Fatal(err)
+	}
+	var config struct {
+		Version int      `json:"version"`
+		Match   string   `json:"match_id"`
+		Key     string   `json:"join_key"`
+		Players []string `json:"expected_players"`
+	}
+	path := filepath.Join(home, "match-join.json")
+	if err := readJSON(path, &config); err != nil || config.Version != 1 || config.Match != s.ID || config.Key != key || len(config.Players) != 1 {
+		t.Fatal("incorrect private join configuration", err)
+	}
+	info, err := os.Stat(path)
+	if err != nil || info.Mode().Perm() != 0600 {
+		t.Fatal("join configuration must be private", err)
+	}
+	for _, bad := range []string{
+		strings.Replace(allocation, `"mode":0,`, "", 1),
+		strings.Replace(allocation, `"version":1`, `"version":2`, 1),
+		strings.Replace(allocation, key, "42", 1),
+		strings.Replace(allocation, `"18446744073709551615"`, `"18446744073709551616"`, 1),
+		strings.Replace(allocation, `"token":`, `"password":"bypass-secret","token":`, 1),
+	} {
+		if _, err := decodeSpec([]byte(bad)); err == nil {
+			t.Fatal("accepted invalid backend allocation")
+		}
+	}
+	data, _ := json.Marshal(s)
+	if _, err := decodeSpec(data); err != nil {
+		t.Fatal("private persisted spec cannot be revalidated", err)
+	}
+}
+
+func TestJoinReadiness(t *testing.T) {
+	for _, configured := range []string{"", "other", "backend-1"} {
+		socket, err := net.ListenPacket("udp", "127.0.0.1:0")
+		if err != nil {
+			t.Fatal(err)
+		}
+		done := make(chan error, 1)
+		go func() {
+			buffer := make([]byte, 4096)
+			socket.SetDeadline(time.Now().Add(2 * time.Second))
+			n, peer, err := socket.ReadFrom(buffer)
+			if err == nil {
+				fields := strings.Fields(string(buffer[:n]))
+				_, err = socket.WriteTo([]byte("\xff\xff\xff\xffinfoResponse\n\\challenge\\"+fields[1]+"\\mapname\\two_lane\\as_match\\"+configured), peer)
+			}
+			done <- err
+		}()
+		err = probeMatch(socket.LocalAddr().String(), "two_lane", "backend-1")
+		if e := <-done; e != nil {
+			t.Fatal(e)
+		}
+		socket.Close()
+		if (err == nil) != (configured == "backend-1") {
+			t.Fatal("readiness ignored match authentication", configured, err)
+		}
+	}
+}
+
+func TestVerifiedCheckpointOwners(t *testing.T) {
+	var fresh checkpoint
+	fresh.add("0:00 ClientIdentity: 1 123")
+	data, _ := json.Marshal(fresh)
+	var resumed checkpoint
+	if err := strictJSON(data, &resumed); err != nil {
+		t.Fatal(err)
+	}
+	resumed.add("0:01 score: 1 ping: 5 client: 1 a")
+	if resumed.Accounts["123"].Score != 1 {
+		t.Fatal("empty score map restart")
+	}
+	var c checkpoint
+	for _, line := range []string{
+		"0:00 ClientConnect: 1", "0:01 ClientIdentity: 1 18446744073709551615",
+		"0:01 ClientBegin: 1", "0:01 ClientIdentity: 2 123",
+		"0:02 Kill: 1 2 7: a killed b", "0:03 score: 4 ping: 5 client: 1 a",
+		// Team changes repeat identity; they must not clear earned statistics.
+		"0:04 ClientIdentity: 1 18446744073709551615",
+		"0:05 ClientDisconnect: 1", "0:06 ClientConnect: 1",
+		"0:07 Kill: 1 2 7: anonymous killed b", "0:08 score: 99 ping: 5 client: 1 anonymous",
+		"0:09 ClientIdentity: 1 456", "0:10 Kill: 1 2 7: c killed b",
+		"0:11 score: 2 ping: 5 client: 1 c",
+		"0:12 ClientDisconnect: 1", "0:13 ClientIdentity: 1 18446744073709551615",
+		"0:14 Kill: 1 1 7: suicide", "0:15 score: -1 ping: 5 client: 1 a",
+		"0:16 ClientIdentity: 64 789", "0:17 ClientIdentity: 3 0123",
+		"0:18 ClientIdentity: 4 18446744073709551616", "0:19 ClientIdentity: 5 0",
+		"0:20 Exit: Timelimit hit.",
+	} {
+		c.add(line)
+	}
+	if len(c.Accounts) != 3 || c.Accounts["18446744073709551615"].Kills != 1 || c.Accounts["18446744073709551615"].Deaths != 1 || c.Accounts["18446744073709551615"].Score != 3 || c.Accounts["123"].Deaths != 3 || c.Accounts["456"].Kills != 1 || c.Accounts["456"].Score != 2 {
+		t.Fatalf("slot reuse/anonymous/suicide attribution: %+v", c.Accounts)
+	}
+	encoded, _ := json.Marshal(c)
+	var restored checkpoint
+	if err := strictJSON(encoded, &restored); err != nil {
+		t.Fatal(err)
+	}
+	restored.add("0:21 score: 2 ping: 5 client: 1 a")
+	if restored.Accounts["18446744073709551615"].Score != 6 {
+		t.Fatal("checkpoint restart lost score baseline")
 	}
 }

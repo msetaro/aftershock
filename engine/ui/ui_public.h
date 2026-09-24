@@ -14,7 +14,8 @@ enum uiAction_t : uint32_t { UI_ACTION_NONE,
 	UI_ACTION_PAGE,
 	UI_ACTION_RESUME,
 	UI_ACTION_MAP,
-	UI_ACTION_QUIT };
+	UI_ACTION_QUIT,
+	UI_ACTION_BACKEND };
 struct uiDocumentHeader_t {
 	char name[32], atlas[64];
 	float canvas[2];

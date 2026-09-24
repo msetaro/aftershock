@@ -9,10 +9,11 @@ from weapon import text
 import texture
 
 KINDS = ('label','button','slider','binding','value')
-ACTIONS = ('none','page','resume','map','quit')
+ACTIONS = ('none','page','resume','map','quit','backend')
+BACKEND_ACTIONS = ('login','queue','profile','results','logout')
 BINDINGS = ('+attack','+forward','+back','+moveleft','+moveright','+moveup','+movedown','+speed','+voiprecord','weapnext','weapprev')
 CVARS = {'s_volume':(0,1),'s_musicvolume':(0,1),'s_hrtf':(0,1),'sensitivity':(.1,30),'cl_run':(0,1)}
-VALUES = ('health','armor','ammo','ping','fps')
+VALUES = ('health','armor','ammo','ping','fps','backend_status','backend_name','backend_match','backend_score','backend_kills','backend_deaths')
 
 
 def unique(rows, label):
@@ -56,6 +57,8 @@ def cook(source,name,read):
                 raise ValueError('UI button requires a valid action/page')
             if action=='map' and not re.fullmatch(r'[a-z0-9_-]+',target):
                 raise ValueError('UI map action requires a map basename')
+            if action=='backend' and target not in BACKEND_ACTIONS:
+                raise ValueError('UI backend action is unsupported')
             if action in ('resume','quit') and target:
                 raise ValueError('UI resume/quit action takes no target')
         elif action!='none':

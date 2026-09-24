@@ -604,3 +604,13 @@ void CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *hei
 // Cosmetic world storage follows the native cgame/map lifetime.
 void CL_InitPhysicsMap();
 void CL_ShutdownPhysics();
+
+// Authenticated backend UI; credentials are process-local, never cvars/userinfo.
+void CL_BackendInit();
+void CL_BackendShutdown();
+void CL_BackendFrame();
+void CL_BackendAction( const char *action );
+const char *CL_BackendValue( const char *name );
+bool CL_BackendConnectInfo( const netadr_t &address, char *info, int capacity );
+void CL_BackendConnected();
+void CL_BackendDisconnected();

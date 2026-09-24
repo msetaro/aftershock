@@ -18,6 +18,7 @@ set(COMMON_SOURCES
   engine/server/sv_filter.cpp
   engine/server/sv_game.cpp
   engine/server/sv_identity.cpp
+  engine/server/sv_join.cpp
   engine/server/sv_init.cpp
   engine/server/sv_main.cpp
   engine/server/sv_net_chan.cpp
@@ -45,6 +46,8 @@ set(COMMON_SOURCES
   engine/qcommon/md4.cpp
   engine/qcommon/md5.cpp
   engine/qcommon/msg.cpp
+  engine/qcommon/join.cpp
+  engine/qcommon/json.cpp
   engine/qcommon/state.cpp
   engine/qcommon/profile.cpp
   engine/qcommon/net_chan.cpp
@@ -86,6 +89,8 @@ set(COMMON_SOURCES
 )
 
 set(CLIENT_SOURCES
+  engine/client/cl_backend.cpp
+  engine/platform/sys_http.cpp
   engine/ui/ui.cpp
   engine/physics/physics.cpp
   engine/client/cl_physics.cpp

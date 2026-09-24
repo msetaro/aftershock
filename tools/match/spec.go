@@ -1,51 +1,90 @@
 package main
 
 import (
-	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
+	"path/filepath"
 	"regexp"
 	"strconv"
+
+	"github.com/msetaro/aftershock/tools/match/contracts"
 )
 
 type spec struct {
-	ID        string `json:"id"`
-	Map       string `json:"map"`
-	Mode      int    `json:"mode"`
-	FragLimit int    `json:"frag_limit"`
-	TimeLimit int    `json:"time_limit"`
-	Players   int    `json:"players"`
-	Password  string `json:"password"`
-	Token     string `json:"token"`
+	ID              string   `json:"id"`
+	Map             string   `json:"map"`
+	Mode            int      `json:"mode"`
+	FragLimit       int      `json:"frag_limit"`
+	TimeLimit       int      `json:"time_limit"`
+	Players         int      `json:"players"`
+	Password        string   `json:"password"`
+	Token           string   `json:"token"`
+	JoinKey         string   `json:"join_key,omitempty"`
+	ExpectedPlayers []string `json:"expected_players,omitempty"`
 }
 
 var identifier = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,64}$`)
 var secret = regexp.MustCompile(`^[a-zA-Z0-9_.-]{8,128}$`)
 
 func strictJSON(data []byte, out any) error {
-	if len(data) > 65536 {
-		return errors.New("JSON exceeds 64 KiB")
-	}
-	d := json.NewDecoder(bytes.NewReader(data))
-	d.DisallowUnknownFields()
-	if err := d.Decode(out); err != nil {
-		return err
-	}
-	if d.Decode(new(any)) != io.EOF {
-		return errors.New("trailing JSON data")
-	}
-	return nil
+	return contracts.Decode(data, out)
 }
+
 func decodeSpec(data []byte) (spec, error) {
+	// Backend allocations carry the public v1 contract plus private pod credentials.
+	var allocation struct {
+		Match   json.RawMessage `json:"match"`
+		JoinKey string          `json:"join_key"`
+		Token   string          `json:"token"`
+	}
+	if err := strictJSON(data, &allocation); err == nil && len(allocation.Match) != 0 {
+		m, err := contracts.DecodeMatchSpec(allocation.Match)
+		if err != nil {
+			return spec{}, err
+		}
+		s := spec{ID: m.ID, Map: m.Map, Mode: m.Mode, Players: m.Slots,
+			FragLimit: m.Rules.FragLimit, TimeLimit: m.Rules.TimeLimit,
+			JoinKey: allocation.JoinKey, ExpectedPlayers: m.ExpectedPlayers, Token: allocation.Token}
+		if s.JoinKey == "" {
+			return spec{}, errors.New("allocation requires a join key")
+		}
+		return s, s.validate()
+	}
+	// Retain the original #28 password format and the private persisted pod format.
 	var s spec
 	if err := strictJSON(data, &s); err != nil {
 		return s, err
 	}
 	return s, s.validate()
 }
+func writeJoinConfig(home string, s spec) error {
+	if err := s.validate(); err != nil {
+		return err
+	}
+	if s.JoinKey == "" {
+		return nil
+	}
+	return writeJSON(filepath.Join(home, "match-join.json"), struct {
+		Version int      `json:"version"`
+		Match   string   `json:"match_id"`
+		Key     string   `json:"join_key"`
+		Players []string `json:"expected_players"`
+	}{1, s.ID, s.JoinKey, s.ExpectedPlayers})
+}
 func (s spec) validate() error {
+	if s.JoinKey != "" {
+		key, err := hex.DecodeString(s.JoinKey)
+		if err != nil || len(key) != 32 || hex.EncodeToString(key) != s.JoinKey || s.Password != "" || !secret.MatchString(s.Token) {
+			return errors.New("invalid private allocation credentials")
+		}
+		return (contracts.MatchSpec{Version: 1, ID: s.ID, Map: s.Map, Mode: s.Mode, Slots: s.Players,
+			Rules: contracts.Rules{FragLimit: s.FragLimit, TimeLimit: s.TimeLimit}, ExpectedPlayers: s.ExpectedPlayers}).Validate()
+	}
+	if len(s.ExpectedPlayers) != 0 {
+		return errors.New("expected players require signed admission")
+	}
 	if !identifier.MatchString(s.ID) || !identifier.MatchString(s.Map) || len(s.Map) > 48 || !secret.MatchString(s.Password) || !secret.MatchString(s.Token) ||
 		s.Mode < 0 || s.Mode > 4 || s.Players < 1 || s.Players > 64 || s.FragLimit < 0 || s.FragLimit > 10000 || s.TimeLimit < 0 || s.TimeLimit > 1440 || s.FragLimit+s.TimeLimit == 0 {
 		return errors.New("invalid match identifier, password/token, mode, limits or player count")
@@ -84,6 +123,9 @@ func serverArgs(s spec, content, home, game string, port int, warm bool) ([]stri
 		set("timelimit", "0")
 	}
 	set("capturelimit", "0")
+	if s.JoinKey != "" {
+		args = append(args, "+joinconfig")
+	}
 	return append(args, "+map", s.Map), nil
 }
 
@@ -91,13 +133,21 @@ type playerStats struct {
 	Kills  int `json:"kills"`
 	Deaths int `json:"deaths"`
 }
+type accountStats struct {
+	Kills  int `json:"kills"`
+	Deaths int `json:"deaths"`
+	Score  int `json:"score"`
+}
 type checkpoint struct {
-	Seconds   int                    `json:"seconds"`
-	Players   map[string]playerStats `json:"players"`
-	Joins     int                    `json:"joins"`
-	Kills     int                    `json:"kills"`
-	Scores    map[string]int         `json:"scores"`
-	Completed bool                   `json:"completed"`
+	Accounts    map[string]accountStats `json:"accounts,omitempty"`
+	Owners      map[string]string       `json:"owners,omitempty"`
+	OwnerScores map[string]int          `json:"owner_scores,omitempty"`
+	Seconds     int                     `json:"seconds"`
+	Players     map[string]playerStats  `json:"players"`
+	Joins       int                     `json:"joins"`
+	Kills       int                     `json:"kills"`
+	Scores      map[string]int          `json:"scores"`
+	Completed   bool                    `json:"completed"`
 }
 
 func (c *checkpoint) add(line string) {
@@ -108,6 +158,38 @@ func (c *checkpoint) add(line string) {
 	}
 	c.Seconds = minutes*60 + seconds
 	switch event {
+	case "ClientConnect:", "ClientDisconnect:":
+		var slot int
+		if n, _ := fmt.Sscanf(line, "%d:%d %s %d", &minutes, &seconds, &event, &slot); n == 4 {
+			delete(c.Owners, strconv.Itoa(slot))
+			delete(c.OwnerScores, strconv.Itoa(slot))
+		}
+	case "ClientIdentity:":
+		var slot int
+		var player string
+		if n, _ := fmt.Sscanf(line, "%d:%d ClientIdentity: %d %s", &minutes, &seconds, &slot, &player); n != 4 || slot < 0 || slot >= 64 || !contracts.PlayerID(player) {
+			return
+		}
+		if c.Accounts == nil {
+			c.Accounts = map[string]accountStats{}
+		}
+		if c.Owners == nil {
+			c.Owners = map[string]string{}
+		}
+		if c.OwnerScores == nil {
+			c.OwnerScores = map[string]int{}
+		}
+		if _, exists := c.Accounts[player]; !exists {
+			if len(c.Accounts) >= 64 {
+				return
+			}
+			c.Accounts[player] = accountStats{}
+		}
+		key := strconv.Itoa(slot)
+		if c.Owners[key] != player {
+			delete(c.OwnerScores, key)
+		}
+		c.Owners[key] = player
 	case "ClientBegin:":
 		c.Joins++
 	case "Kill:":
@@ -122,12 +204,22 @@ func (c *checkpoint) add(line string) {
 				p := c.Players[key]
 				p.Kills++
 				c.Players[key] = p
+				if owner := c.Owners[key]; owner != "" {
+					a := c.Accounts[owner]
+					a.Kills++
+					c.Accounts[owner] = a
+				}
 			}
 			if victim >= 0 && victim < 64 {
 				key := strconv.Itoa(victim)
 				p := c.Players[key]
 				p.Deaths++
 				c.Players[key] = p
+				if owner := c.Owners[key]; owner != "" {
+					a := c.Accounts[owner]
+					a.Deaths++
+					c.Accounts[owner] = a
+				}
 			}
 		}
 	case "Exit:":
@@ -138,7 +230,17 @@ func (c *checkpoint) add(line string) {
 			if c.Scores == nil {
 				c.Scores = map[string]int{}
 			}
-			c.Scores[strconv.Itoa(client)] = score
+			key := strconv.Itoa(client)
+			c.Scores[key] = score
+			if owner := c.Owners[key]; owner != "" {
+				a := c.Accounts[owner]
+				a.Score += score - c.OwnerScores[key]
+				c.Accounts[owner] = a
+				if c.OwnerScores == nil {
+					c.OwnerScores = map[string]int{}
+				}
+				c.OwnerScores[key] = score
+			}
 		}
 	}
 }

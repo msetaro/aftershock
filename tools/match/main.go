@@ -16,9 +16,11 @@ func main() {
 	defer cancel()
 	var err error
 	if len(os.Args) != 2 {
-		err = errors.New("usage: match run|ship|stub|probe|records")
+		err = errors.New("usage: match run|ship|stub|probe|records|backend")
 	} else {
 		switch os.Args[1] {
+		case "backend":
+			err = serveBackend(ctx)
 		case "run":
 			err = runServer(ctx)
 		case "ship":

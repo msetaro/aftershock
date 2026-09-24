@@ -1,0 +1,191 @@
+#!/usr/bin/env python3
+"""Exercise backend ticket admission through our dedicated server's real UDP handshake."""
+import argparse
+import hashlib
+import hmac
+import http.server
+import json
+import os
+from pathlib import Path
+import socket
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+from run import ROOT, SCRATCH, run
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--server', type=Path, required=True)
+parser.add_argument('--controller', type=Path, help='also verify a warm allocation through the real controller')
+parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-backend-join')
+args = parser.parse_args()
+args.output = args.output.resolve()
+args.output.mkdir(parents=True, exist_ok=True)
+packet = args.output/'packet'
+run(['g++', '-std=c++20', '-O2', '-fno-exceptions', '-fno-rtti',
+     'tests/probes/join_packet.cpp', 'engine/qcommon/huffman.cpp', '-o', packet])
+key = bytes([0x42])*32
+issued = int(time.time())
+def ticket(player='18446744073709551615', match='match-1', start=issued, nonce='ab'*16):
+    payload = f'1.{player}.{match}.{start}.{start+120}.{nonce}'
+    return payload+'.'+hmac.new(key, ('aftershock/join/v1\n'+payload).encode(), hashlib.sha256).hexdigest()
+
+with tempfile.TemporaryDirectory(prefix='aftershock-backend-join-', dir=SCRATCH) as temporary, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as master:
+    master.bind(('127.0.0.1',0))
+    master.settimeout(.3)
+    def no_heartbeat():
+        try: packet,peer=master.recvfrom(4096)
+        except socket.timeout: return
+        raise AssertionError('retired master heartbeat emitted to owned receiver: '+repr(packet))
+    root = Path(temporary)
+    subprocess.run([sys.executable, str(ROOT/'tools/match/content.py'), str(root/'content')], check=True)
+    home = root/'home'
+    home.mkdir()
+    config = home/'match-join.json'
+    config.write_text('{}')
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reservation:
+        reservation.bind(('127.0.0.1', 0))
+        address = ('127.0.0.1', reservation.getsockname()[1])
+    log = args.output/'server.log'
+    with log.open('w') as out:
+        server = subprocess.Popen([str(args.server.resolve()), '+set', 'fs_basepath', str(root/'content'),
+            '+set', 'fs_homepath', str(home), '+set', 'fs_basegame', 'aftershock',
+            '+set', 'dedicated', '2', '+set', 'net_enabled', '1', '+set', 'net_ip', address[0],
+            '+set', 'sv_master1', '127.0.0.1:'+str(master.getsockname()[1]),
+            '+set', 'sv_master2', '', '+set', 'sv_master3', '', '+set', 'sv_master4', '', '+set', 'sv_master5', '',
+            '+set', 'net_port', str(address[1]), '+set', 'bot_enable', '0', '+set', 'sv_pure', '0',
+            '+set', 'sv_reconnectlimit', '0', '+set', 'sv_zombietime', '0', '+set', 'sv_maxclients', '4',
+            '+joinconfig', '+map', 'two_lane'], stdin=subprocess.PIPE, stdout=out, stderr=subprocess.STDOUT,
+            text=True, cwd=ROOT)
+        def wait_log(marker):
+            deadline = time.monotonic()+20
+            while marker not in log.read_text(errors='replace'):
+                assert server.poll() is None and time.monotonic() < deadline, f'missing {marker}; see {log}'
+                time.sleep(.05)
+        def command(text):
+            server.stdin.write(text+'\n')
+            server.stdin.flush()
+        def response(sock, prefixes):
+            deadline = time.monotonic()+5
+            while time.monotonic() < deadline:
+                sock.settimeout(max(.01, deadline-time.monotonic()))
+                data, peer = sock.recvfrom(4096)
+                if peer == address and data.startswith(b'\xff'*4):
+                    text = data[4:].decode()
+                    if text.startswith(prefixes):
+                        return text
+            raise TimeoutError('no matching handshake response')
+        def connect(sock, token='', qport=1234, handshake=None, delay=2.1):
+            time.sleep(delay)  # The shared leaky bucket drains one query per second; a connect uses two.
+            if handshake is None:
+                sock.sendto(b'\xff'*4+b'getchallenge 123', address)
+                handshake = response(sock, ('challengeResponse ',)).split()
+                assert handshake[0] == 'challengeResponse' and handshake[4] == 'aftershock'
+            info = dict(challenge=handshake[1], protocol=handshake[3], as_protocol=handshake[5],
+                        as_schema=handshake[6], qport=str(qport), client='aftershock', name='backend-test')
+            if token:
+                info['as_ticket'] = token
+            text = 'connect "'+''.join('\\'+k+'\\'+v for k,v in info.items())+'"'
+            encoded = subprocess.check_output([packet], input=b'\xff'*4+text.encode())
+            sock.sendto(encoded, address)
+            return response(sock, ('connectResponse ', 'print\n')), handshake
+        try:
+            wait_log('Static game loaded.')
+            wait_log('Join configuration rejected;')
+            no_heartbeat()
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as first, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as other:
+                first.settimeout(5)
+                other.settimeout(5)
+                first.bind(('127.0.0.1', 0)); other.bind(('127.0.0.1', 0))
+                reply, _ = connect(first)
+                assert 'Join ticket rejected' in reply, 'invalid initial config admitted an anonymous connection: '+reply
+                config.write_text(json.dumps(dict(version=1, match_id='match-1', join_key=key.hex(),
+                                                  expected_players=['18446744073709551615'])))
+                os.chmod(config, 0o600)
+                command('joinconfig')
+                wait_log('Join configuration ready: match-1')
+                for token in ('', ticket(player='123'), ticket(match='other'), ticket(start=issued-121), ticket()[:-1]+'!'):
+                    reply, _ = connect(first, token)
+                    assert 'Join ticket rejected' in reply, reply
+                valid = ticket()
+                reply, handshake = connect(first, valid)
+                assert reply.startswith('connectResponse '), reply
+                # Discard the first response, then retransmit the exact handshake.
+                retry, _ = connect(first, valid, handshake=handshake, delay=.15)
+                assert retry == reply, retry
+                # The same token from a different endpoint cannot replace the owner.
+                denied, _ = connect(other, valid, delay=.15)
+                assert 'Join ticket rejected' in denied, denied
+                retry, _ = connect(first, valid, handshake=handshake, delay=.15)
+                assert retry == reply, 'rejected alternate peer disturbed the admitted session'
+                command('dumpuser 0')
+                command('kickall')
+                wait_log('was kicked')
+                command('joinconfig')
+                time.sleep(.25)
+                denied, _ = connect(first, valid)
+                assert 'Join ticket rejected' in denied, 'disconnect/config reload reopened a used ticket'
+                fresh, _ = connect(first, ticket(nonce='ac'*16))
+                assert fresh.startswith('connectResponse '), fresh
+                output = log.read_text(errors='replace')
+                assert valid not in output and key.hex() not in output and 'as_ticket' not in output
+        finally:
+            if server.poll() is None:
+                command('quit')
+                try:
+                    server.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    server.kill(); server.wait(timeout=5)
+    no_heartbeat()
+    if args.controller:
+        # A local SDK endpoint delivers an owned allocation; the actual controller and
+        # dedicated server must load authentication before reporting allocation ready.
+        allocation = dict(match=dict(version=1, id='match-1', map='two_lane', mode=0, slots=4,
+                          rules=dict(frag_limit=20, time_limit=10), expected_players=['18446744073709551615']),
+                          join_key=key.hex(), token='local-ingest-secret')
+        class SDK(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):
+                self.rfile.read(int(self.headers.get('Content-Length', '0')))
+                self.send_response(200); self.end_headers(); self.wfile.write(b'{}')
+            def do_GET(self):
+                self.send_response(200); self.end_headers()
+                self.wfile.write(json.dumps(dict(object_meta=dict(annotations={'aftershock.dev/match':json.dumps(allocation)}),
+                                                 status=dict(state='Allocated'))).encode())
+            def log_message(self, *_):
+                pass
+        sdk = http.server.ThreadingHTTPServer(('127.0.0.1', 0), SDK)
+        worker = threading.Thread(target=sdk.serve_forever)
+        worker.start()
+        home = root/'controller-home'
+        log = args.output/'controller.log'
+        environment = dict(os.environ, MATCH_HOME=str(home), MATCH_CONTENT=str(root/'content'), MATCH_GAME='aftershock',
+                           MATCH_SERVER=str(args.server.resolve()), MATCH_PORT=str(address[1]), MATCH_MAP='two_lane',
+                           AGONES_SDK_HTTP_PORT=str(sdk.server_port))
+        try:
+            with log.open('w') as out:
+                server = subprocess.Popen([str(args.controller.resolve()), 'run'], env=environment,
+                                          stdout=out, stderr=subprocess.STDOUT)
+                try:
+                    wait_log('allocated match=match-1')
+                    output = log.read_text(errors='replace')
+                    assert output.index('Join configuration ready: match-1') < output.index('allocated match=match-1')
+                    assert (home/'match-join.json').stat().st_mode & 0o777 == 0o600
+                    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+                        client.bind(('127.0.0.1', 0))
+                        denied, _ = connect(client)
+                        assert 'Join ticket rejected' in denied
+                        signed = ticket(start=int(time.time()), nonce='ad'*16)
+                        reply, _ = connect(client, signed)
+                        assert reply.startswith('connectResponse '), reply
+                        assert key.hex() not in log.read_text() and signed not in log.read_text()
+                finally:
+                    if server.poll() is None:
+                        server.terminate()
+                        try: server.wait(timeout=10)
+                        except subprocess.TimeoutExpired:
+                            server.kill(); server.wait(timeout=5)
+        finally:
+            sdk.shutdown(); sdk.server_close(); worker.join(timeout=5)
+        print('PASS: real controller warm allocation waits for configured signed admission')
+print('PASS: actual UDP admission, expected players, lost-response retry, endpoint binding and replay rejection')

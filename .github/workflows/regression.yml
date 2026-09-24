@@ -85,6 +85,10 @@ jobs:
       - uses: actions/checkout@v7
       - name: Allocate isolated job scratch
         run: echo "AFTERSHOCK_SCRATCH=$(mktemp -d "$RUNNER_TEMP/aftershock.XXXXXX")" >> "$GITHUB_ENV"
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: tools/match/go.sum
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: regression-${{ github.job }}-${{ matrix.cc }}
@@ -135,6 +139,14 @@ jobs:
           python3 tests/services.py --cxx '${{ matrix.cxx }}'
           python3 tests/native_pure.py --cxx '${{ matrix.cxx }}'
           python3 tests/devtools_data.py --cxx '${{ matrix.cxx }}'
+      - name: Backend contracts, native HTTPS and authored actions
+        run: |
+          sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/backend.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          python3 tests/backend_http.py --cxx '${{ matrix.cxx }}'
+          python3 tests/backend_client.py --cxx '${{ matrix.cxx }}'
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/backend_ui.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
+          python3 tests/backend_deployment.py
       - name: Structured local developer command contract
         run: |
           python3 tests/agent_protocol.py --cxx '${{ matrix.cxx }}'
@@ -592,7 +604,13 @@ jobs:
         with:
           key: regression-match-server
       - name: Install native client and public test-content prerequisites
-        run: sudo apt-get update && sudo apt-get install -y python3-jsonschema ninja-build faketime xvfb xauth mesa-vulkan-drivers libsdl2-dev libasound2-dev mesa-common-dev openarena-data
+        run: sudo apt-get update && sudo apt-get install -y python3-jsonschema ninja-build faketime xvfb xauth mesa-vulkan-drivers libsdl2-dev libasound2-dev mesa-common-dev openarena-data libcurl4-openssl-dev python3-venv python3-yaml libxtst6 x11-utils
+      - name: Prepare authored backend UI tooling
+        run: |
+          python3 -m venv ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt -r tools/level/requirements.txt pyyaml
+      - name: Backend persistence and HTTPS integration on private PostgreSQL
+        run: python3 tests/backend_services.py
       - name: Match contracts and acknowledged result delivery
         run: |
           cd tools/match
@@ -603,13 +621,19 @@ jobs:
         run: |
           python3 tests/match_content.py
           python3 tests/openarena.py
-          cmake -S . -B ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DUSE_CURL=OFF
+          cmake -S . -B ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DAFTERSHOCK_DEVTOOLS=ON
           cmake --build ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci --parallel 4
           python3 tests/match_exit.py --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci/release-linux-x86_64/quake3e.ded.x64 --content openarena --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Signed native admission, controller readiness and heartbeat retirement
+        run: |
+          go -C tools/match build -o ${{ env.AFTERSHOCK_SCRATCH }}/match .
+          python3 tests/backend_join_runtime.py --server ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci/release-linux-x86_64/quake3e.ded.x64 --controller ${{ env.AFTERSHOCK_SCRATCH }}/match
       - name: Build non-root distroless match image
         run: docker build -f tools/match/Dockerfile -t aftershock-match:issue28 .
       - name: Private kind allocation, native player, final ingest and replacement
         run: python3 tests/match_kind.py --image aftershock-match:issue28 --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci/release-linux-x86_64/quake3e.x64 --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Backend native login, allocation, profile results and HPA in kind
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/backend_kind.py --image aftershock-match:issue28 --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci/release-linux-x86_64/quake3e.x64 --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Match lifecycle and measured resource evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -622,3 +646,12 @@ jobs:
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-kind/density.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-kind/density-samples.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-exit/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-join/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-services/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/report.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/events.jsonl
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/hpa.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/match-metrics.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/backend-metrics.txt
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/profile-results.png

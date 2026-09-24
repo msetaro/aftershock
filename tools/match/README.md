@@ -62,10 +62,13 @@ A failed final ingest does not claim successful persistence or invoke SDK Shutdo
 Unacknowledged bytes remain in the pod until the orchestrator removes it; the last
 acknowledged checkpoint is the durable outcome after node/pod loss.
 
-The #12 identity-provider seam exists, but reliable ticket transport/provider
-wiring belongs to #23. This deployment uses #28's approved per-match password
-fallback until that wiring exists. Password acceptance is not provider identity
-or executable attestation. Pure content validation stays enabled.
+The original #28 development generator uses its per-match password fallback.
+The #29 backend instead allocates a versioned MatchSpec with expected account IDs,
+a private join-signing key and an ingest token. The controller writes a private
+join configuration before readiness; native admission verifies short-lived,
+match-scoped tickets and retains used nonces across reconnect/config reload.
+Pure content validation stays enabled. Live Steam SDK/provider acceptance is #180;
+owned fixture authentication does not establish Steam support.
 
 ## Results are outside the frame loop
 
@@ -149,3 +152,46 @@ ports by default. Discover them with `docker compose -f PATH/compose.json port
 --protocol udp match-1 27960`; pass `--port` only when deliberately reserving a
 host range. Kubernetes generation likewise chooses a private namespace unless
 `--namespace` is supplied. Internal container ports are unchanged.
+
+## Player-facing backend (#29)
+
+`/app/match backend` owns HTTPS login, profiles/loadouts, parties, queue membership
+and read-only results. Provision `BACKEND_DATABASE`, `BACKEND_APP_ID`,
+`BACKEND_STEAM_KEY_FILE`, `BACKEND_CATALOG`, `BACKEND_TLS_CERT` and `BACKEND_TLS_KEY`
+outside the repository. The catalog is a bounded JSON array of cooked weapon paths.
+`BACKEND_CA_FILE` adds private trust roots without disabling system/TLS validation.
+No credentials belong in client cvars or command arguments. Live Steam setup is
+explicitly deferred to #180; no SDK/AppID/account setup is needed for fixture tests.
+
+Generate namespaced resources with `backend_kubernetes.py --namespace NAME --image
+IMAGE --output NEW_FILE`. It references a separately provisioned `backend-config`
+Secret, requests two replicas and supplies namespaced Agones RBAC, readiness,
+resource limits, HPA and PDB. Operators install the cluster resource-metrics API
+for the HPA. `/healthz` checks database availability; `/metrics` reports bounded
+service counters/errors/durations and request logs are structured JSON without
+credentials. `BACKEND_NAMESPACE` enables allocation using the pod service account;
+the projected token file is reopened for each Kubernetes request so rotations take
+effect without a restart. Missing, empty or oversized credentials fail closed.
+`BACKEND_MAP`/`BACKEND_FLEET` select a map-specific warm Fleet.
+
+The initial queue allocates one solo player or existing party per match. Membership
+and assignment state persist across replicas. A lost allocation response remains
+`allocating` until its labelled GameServer is recovered. Only a definite
+UnAllocated result permits another allocation. A permanently unresolved outcome
+requires operator reconciliation; do not reset it on a guessed timeout. Queue
+cancellation and skill matching are not part of this initial queue.
+
+The native authored shell uses `backend_url` and optional `backend_ca`, then fixed
+login/queue/profile/results/logout actions. Sessions stay process-local and signed
+join tickets are bound to the assigned numeric address and cleared after admission.
+The developer-only `backend_dev_login` reads `fs_homepath/backend-ticket.bin` and
+uses the same HTTPS verification endpoint; it cannot select a player identity.
+`backend_info` exposes only the same public values displayed by the authored UI.
+
+`BACKEND_RESULTS` configures the read-only gRPC endpoint and
+`BACKEND_READER_KEY_FILE` its separate reader credential. Only the authenticated
+session owner's completed results are returned, with exact-match selection and
+bounded history/leaderboards. This tier never writes match data. The #28 stub is
+used for development acceptance; #30 owns transactional production ingestion.
+See [backend verification](../../tests/README.md#backend-services-29) for the
+native and kind commands and their current acceptance status.

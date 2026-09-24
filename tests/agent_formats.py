@@ -124,11 +124,16 @@ with tempfile.TemporaryDirectory(prefix='aftershock-format-loaders-', dir=os.env
                                      'tests/assets/weapons/rifle.animation.json']}.items():
         for path in paths:
             validate(kind,json.loads((ROOT/path).read_text()),path)
-    # Compile only the real, stdlib-only match-spec source and a tiny JSON driver.
+    # Compile the real match-spec/contracts sources and a tiny JSON driver.
     # This checks Go's integer/range/unknown-field rules without a match server.
     shutil.copyfile(ROOT/'tools/match/spec.go',root/'spec.go')
+    shutil.copyfile(ROOT/'tools/match/go.mod',root/'go.mod')
+    (root/'contracts').mkdir()
+    shutil.copyfile(ROOT/'tools/match/contracts/contracts.go',root/'contracts/contracts.go')
     (root/'probe.go').write_text('''package main
 import ("encoding/json"; "os")
+// File publication is outside this decoder probe; fail if it is ever reached.
+func writeJSON(string, any) error { panic("unexpected match publication") }
 func main() {
  var inputs []json.RawMessage
  if err := json.NewDecoder(os.Stdin).Decode(&inputs); err != nil { panic(err) }

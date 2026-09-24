@@ -477,6 +477,8 @@ void SV_DirectConnect( const netadr_t *from ) {
 	const char *ip, *info, *v;
 	qboolean compat;
 	qboolean longstr;
+	joinClaims_t join = {};
+	const bool joinRequired = SV_JoinRequired();
 
 	Com_DPrintf( "SVC_DirectConnect()\n" );
 
@@ -598,6 +600,28 @@ void SV_DirectConnect( const netadr_t *from ) {
 			// enforce dm68-compatible stream for other clients
 			compat = qtrue;
 		}
+	}
+
+	if ( joinRequired ) {
+		if ( !SV_ValidateJoin( Info_ValueForKey( userinfo, "as_ticket" ), &join ) ) {
+			NET_OutOfBandPrint( NS_SERVER, from, "print\nJoin ticket rejected.\n" );
+			return;
+		}
+		// A lost connectResponse may retry the same handshake, never another peer.
+		for ( i = 0, cl = svs.clients; i < sv.maxclients; ++i, ++cl ) {
+			if ( NET_CompareAdr( from, &cl->netchan.remoteAddress ) && cl->netchan.qport == qport && SV_JoinRetry( i, join, challenge ) ) {
+				NET_OutOfBandPrint( NS_SERVER, from, "connectResponse %d %d aftershock %s %s",
+					challenge, sv_proto, XSTRING( AFTERSHOCK_NET_VERSION ), MSG_ReplicationSchema() );
+				return;
+			}
+		}
+		// Reject before an old slot or game connection can be changed.
+		if ( !SV_JoinAvailable( join ) ) {
+			NET_OutOfBandPrint( NS_SERVER, from, "print\nJoin ticket rejected.\n" );
+			return;
+		}
+	}
+	while ( Info_RemoveKey( userinfo, "as_ticket" ) ) {
 	}
 
 	// we don't need these keys after connection, release some space in userinfo
@@ -799,14 +823,18 @@ gotnewcl:
 		SV_InjectLocation( newcl->tld, newcl->country );
 	}
 
-	// Confirm the same agreement in the final response, including local connects.
+	SV_PrintClientStateChange( newcl, CS_CONNECTED );
+	newcl->state = CS_CONNECTED;
+	SV_OpenIdentity( newcl );
+	if ( joinRequired && !SV_ApplyJoin( clientNum, join ) ) {
+		SV_DropClient( newcl, nullptr );
+		NET_OutOfBandPrint( NS_SERVER, from, "print\nJoin ticket rejected.\n" );
+		return;
+	}
+	// Confirm only after admission succeeds, including local connects.
 	NET_OutOfBandPrint( NS_SERVER, from, "connectResponse %d %d aftershock %s %s",
 		challenge, sv_proto, XSTRING( AFTERSHOCK_NET_VERSION ), MSG_ReplicationSchema() );
 
-	SV_PrintClientStateChange( newcl, CS_CONNECTED );
-
-	newcl->state = CS_CONNECTED;
-	SV_OpenIdentity( newcl );
 	newcl->lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately
 	newcl->lastPacketTime = svs.time;
 	newcl->lastConnectTime = svs.time;
@@ -819,18 +847,6 @@ gotnewcl:
 	// notice that it is from a different serverid and that the
 	// gamestate message was not just sent, forcing a retransmit
 	newcl->gamestateMessageNum = newcl->messageAcknowledge - 1; // force gamestate retransmit
-
-	// if this was the first client on the server, or the last client
-	// the server can hold, send a heartbeat to the master.
-	count = 0;
-	for ( i = 0, cl = svs.clients; i < sv.maxclients; i++, cl++ ) {
-		if ( svs.clients[i].state >= CS_CONNECTED ) {
-			count++;
-		}
-	}
-	if ( count == 1 || count == sv.maxclients ) {
-		SV_Heartbeat_f();
-	}
 }
 
 
@@ -862,7 +878,6 @@ or crashing -- SV_FinalMessage() will handle that
 void SV_DropClient( client_t *drop, const char *reason ) {
 	char name[sizeof( drop->name )];
 	qboolean isBot;
-	int i;
 
 	if ( drop->state == CS_ZOMBIE ) {
 		return; // already dropped
@@ -907,22 +922,6 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 		Q_strncpyz( drop->name, name, sizeof( name ) );
 		SV_PrintClientStateChange( drop, CS_ZOMBIE );
 		drop->state = CS_ZOMBIE; // become free in a few seconds
-	}
-
-	if ( !reason ) {
-		return;
-	}
-
-	// if this was the last client on the server, send a heartbeat
-	// to the master so it is known the server is empty
-	// send a heartbeat now so the master will get up to date info
-	for ( i = 0; i < sv.maxclients; i++ ) {
-		if ( svs.clients[i].state >= CS_CONNECTED ) {
-			break;
-		}
-	}
-	if ( i == sv.maxclients ) {
-		SV_Heartbeat_f();
 	}
 }
 
@@ -1746,6 +1745,8 @@ into a more C friendly form.
 =================
 */
 void SV_UserinfoChanged( client_t *cl, qboolean updateUserinfo, qboolean runFilter ) {
+	while ( Info_RemoveKey( cl->userinfo, "as_ticket" ) ) {
+	}
 	const char *val;
 	const char *ip;
 	int i;

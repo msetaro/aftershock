@@ -4,10 +4,12 @@
 static uint64_t identitySerial;
 
 void SV_CloseIdentity( client_t *client ) {
-	if ( client->identityState == IDENTITY_PENDING || client->identityState == IDENTITY_VERIFIED )
+	if ( client->identityProvider == SERVICE_STEAM && ( client->identityState == IDENTITY_PENDING || client->identityState == IDENTITY_VERIFIED ) )
 		Sys_EndAuth( client->identitySession, client->identityId );
 	client->identitySession = client->identityId = 0;
 	client->identityState = IDENTITY_ANONYMOUS;
+	client->identityProvider = SERVICE_ANONYMOUS;
+	memset( client->joinNonce, 0, sizeof( client->joinNonce ) );
 }
 void SV_OpenIdentity( client_t *client ) {
 	SV_CloseIdentity( client );
@@ -27,7 +29,7 @@ int SV_PlayerIdentity( int clientNum, uint64_t *id ) {
 	*id = 0;
 	if ( SV_IdentitySession( clientNum ) && svs.clients[clientNum].identityState == IDENTITY_VERIFIED ) {
 		*id = svs.clients[clientNum].identityId;
-		return SERVICE_STEAM;
+		return svs.clients[clientNum].identityProvider;
 	}
 	return SERVICE_ANONYMOUS;
 }
@@ -50,6 +52,7 @@ bool SV_SubmitIdentityTicket( uint64_t session, uint64_t claimedId, const void *
 		return false;
 	client->identityId = claimedId;
 	client->identityState = IDENTITY_PENDING;
+	client->identityProvider = SERVICE_STEAM;
 	client->identityStart = (uint32_t)svs.time;
 	return true;
 }
@@ -59,7 +62,7 @@ void SV_PollIdentities() {
 	for ( int n = 0; n < MAX_CLIENTS * 2 && Sys_PollAuth( &event ); ++n ) {
 		for ( int i = 0; i < sv.maxclients; ++i ) {
 			client_t *client = &svs.clients[i];
-			if ( !SV_IdentitySession( i ) || client->identitySession != event.session || client->identityId != event.id )
+			if ( client->identityProvider != SERVICE_STEAM || !SV_IdentitySession( i ) || client->identitySession != event.session || client->identityId != event.id )
 				continue;
 			if ( event.result == SERVICE_AUTH_REJECTED )
 				SV_DropClient( client, "Platform identity rejected or revoked" );
