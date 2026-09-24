@@ -6,6 +6,7 @@ import concurrent.futures
 import hashlib
 import json
 import os
+import pty
 from pathlib import Path
 import re
 import secrets
@@ -60,6 +61,7 @@ ctl = [kubectl, '--kubeconfig', str(kubeconfig), '-n', namespace]
 processes, streams = [], []
 created = False
 client = inputs = None
+terminal = None
 
 def command(arguments, **kwargs):
     kwargs.setdefault('timeout', 30)
@@ -270,10 +272,11 @@ try:
             (base/pak.name).symlink_to(pak.resolve())
         icds = list(Path('/usr/share/vulkan/icd.d').glob('lvp*.json'))
         assert len(icds) == 1
-        environment = dict(os.environ, LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
+        environment = dict(os.environ, TERM='xterm', LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
         client_log = output/'client.log'
         stream = client_log.open('w')
         streams.append(stream)
+        terminal, slave = pty.openpty()
         client = subprocess.Popen([str(x) for x in [args.client.resolve(),
             '+set', 'fs_basepath', home, '+set', 'fs_homepath', home, '+set', 'fs_basegame', 'baseoa',
             '+set', 'net_enabled', '1', '+set', 'net_port', '0', '+set', 'backend_url', endpoint,
@@ -281,15 +284,15 @@ try:
             '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '0',
             '+set', 'com_maxfps', '20', '+set', 'com_maxfpsUnfocused', '20', '+set', 'cl_autoRecordDemo', '0',
             '+set', 'com_introplayed', '1', '+set', 'com_skipIdLogo', '1', '+set', 'con_notifytime', '0']],
-            stdin=subprocess.PIPE, stdout=stream, stderr=subprocess.STDOUT, text=True,
+            stdin=slave, stdout=stream, stderr=subprocess.STDOUT, text=True,
             env=environment, start_new_session=True)
+        os.close(slave)
         processes.append(client)
-        wait_for(lambda: 'Common Initialization Complete' in client_log.read_text(), 30, 'native client startup')
+        wait_for(lambda: 'Started tty console' in client_log.read_text(), 30, 'native client console startup')
         inputs = XInput()
         inputs.verify_window(client)
         def execute(text):
-            client.stdin.write(text+'\n')
-            client.stdin.flush()
+            os.write(terminal, (text+'\n').encode())
             time.sleep(.15)
         def info():
             execute('backend_info')
@@ -382,6 +385,8 @@ finally:
                 process.wait()
     for stream in streams:
         stream.close()
+    if terminal is not None:
+        os.close(terminal)
     if created:
         for name, arguments in (
             ('pods.log', [*ctl, 'get', 'pods', '-o', 'wide']),

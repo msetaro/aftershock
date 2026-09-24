@@ -59,6 +59,17 @@ and HTTPS probes on both compilers pass as recorded below. The full client/kind
 flow is still pending. Accepted predecessors #19-#22 and closed #31 remain complete;
 do not repeat finished work, historical network controls or accepted fixtures.
 
+## #29 native console fixture and lifetime acceptance
+
+Full run 3 reached ordinary client startup, then its first public-status command
+was not consumed: non-tty stdin is dedicated-server-only in the existing Unix
+console. The driver now uses the established runtime-test pseudo-terminal with
+`TERM=xterm` and waits for its ready marker. Full run 4 is pending. The local full
+suite has passed format, tidy and all 1420 lifetime compilation commands (159
+source paths, shipping/development, static/module, positive/negative controls).
+All 16 hosted compiler legs pass at `b564cfbc`; final harness revision gates are
+still required. Native acceptance is not yet complete.
+
 ## #29 native real-time acceptance driver
 
 Full run 2 passes native verified HTTPS sign-in, authored profile and queue, then
