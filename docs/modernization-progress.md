@@ -30,60 +30,100 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
-Current implementation work is complete through the separate UDP fix in PR184.
-On resume, inspect the acceptance receipts on #30/#182 and the checked state of
-#25 first: they record final and integrated gates after these implementation
-checkpoints. Do not restart a PR or rerun gates whose completion is recorded there.
-Finish only unresolved gate/base/merge/integration steps below; once those receipts
-are complete, only the explicit #24/#35/#180 exclusions remain.
+Implementation is complete through the separate UDP fix in PR184. On resume,
+inspect the acceptance receipts on #185/#30/#182 and the checked state of #25
+first; those record final and integrated gates after this checkpoint. Do not
+restart a PR or repeat a completed gate. Finish only unresolved gate/base/merge/
+integration steps. Once accepted, only the explicit #24/#35/#180 exclusions remain.
 
-#23 and #29 are fully integrated. #30 merged as PR183 at
-`0136a489ba4495e98c246a573be5a5a9160c6bda`, after final head `c3af24bf`
-passed all 16 compiler jobs (35955011447) and all 10 required regression jobs
-(35955011424) against then-current main `45d8dc46`. Self-review: #30 comment
-5807570574. Merge parents are the verified base/head; the tree is identical.
-Evidence: `/tmp/aftershock-resume/pr183-final-gates.json` and `pr183-merge.json`.
-Integrated build 35958556479 and regression 35958556482 must complete before
-final #30 acceptance is checked in #25. Final-head hosted ingest recovered all
-16 events/1,538 bytes and flushed pre-stop; all 100 ending ACKs arrived in 2.135
-seconds with exact totals, no errors and p95 1.540/5.289 ms under the declared
-6.540 ms allowance. Tail limits remain in the archived checkpoint below and reports.
+#23 and #29 are fully integrated. #30 merged as PR183 at `0136a489` after all 26
+required jobs passed on `c3af24bf` against main `45d8dc46`. Its integrated build
+35958556479 and publication passed, but regression 35958556482 failed only the
+ingest latency job; the other nine required regression jobs passed. Full failure
+receipt: `/tmp/aftershock-resume/issue30-integrated-failed-gates.json`. This failure
+was not replaced by an unchanged retry or a relaxed allowance.
 
-Current branch is `issue/182-agent-udp` in the main workspace. The isolated
-preparation worktree was cleanly removed after its commits were preserved; all
-logs/binaries remain under `/tmp/aftershock-resume`. This is the separate #31 bug
-fix requested by #182, not part of #29/#30.
+The separate #185 correction merged as PR186 at
+`c3d3d6b28343e9005561708f2c9ec5ffc3463be7`. Final head `1d25ff4e` passed
+all 16 compiler jobs (35961441457) and all 10 required regression jobs
+(35961441510), including full runtime/module replay, against then-current main
+`0136a489`. Self-review/current-base receipt: #185 comment 5809453410 and
+`/tmp/aftershock-resume/pr186-final-gates.json`; merge parents and tree match
+(`pr186-merge.json`). Integrated build 35967886988 and regression 35967886994
+are required before #30 is accepted in #25 or PR184 is merged. Check their live
+receipts rather than assuming they are still pending when resuming.
 
-Test-first `tests/agent_network_runtime.py` drives an actual native dedicated
-server and client through explicit fixed 20-ms steps over localhost UDP. On
-unchanged accepted engine binaries it fails external getinfo, native join and
-snapshot/chat progress; incoming bytes and snapshots remain zero after 400 client
-steps. Fixed-dt and idle-clock assertions pass. Evidence is
-`/tmp/aftershock-resume/agent-udp-before/{report.json,server.log,client.log}` and the
-adjacent outer log. Failing-test commit is `8ba56a42`. Explicit frames now call
-`NET_Sleep(0)` alongside queued sends; both content sets pass UDP queries, native
-join, 10 snapshots and chat in 26 client frames. Fixed-dt/idle clocks and the
-existing channel test pass. CI includes the real UDP regression and artifacts.
-Ordinary pure-server native join/chat and the seeded playthrough (identical
-snapshots, pixels, telemetry, hits/kills) pass. Formatting and all selected affected
-checks pass (`/tmp/aftershock-1g5366yw/affected-report.json`). Accepted #30 main is merged forward in `02822c58`; engine sources are identical
-to locally tested `ad33aed1`, so those runtime checks retain their provenance.
-The combined workflow catalog is checked after the forward merge. No accepted
-fixture, floating-point expression, regular/no-delay pacing or rollback tag changes.
+Current branch is `issue/182-agent-udp` in the main workspace. Main `c3d3d6b2`
+is merged forward to run fresh current-base checks concurrently with its integrated
+checks. This preparation does not authorize a merge while integration is pending.
+Require both #185 integrated acceptance/publication and all 26 jobs on the new
+PR184 head; recheck main immediately before a merge commit. After merging PR184,
+verify its integrated jobs/publication and record acceptance in #182 and #31.
+Steam SDK/provider/live acceptance stays deferred to #180; console SDK #24 and
+separate fuzz #35 are excluded. No SDK/account input is needed for this scope.
 
-Implementation self-review is complete: the only engine change is a nonblocking
-platform networking call inside explicit development frames; no new OS access,
-allocation, non-trivial destructor or wire/file layout change. The real failing-first
-regression covers the defect and existing ordinary/seeded behavior passes.
+## #182 UDP implementation and verification
 
-PR184 contains this separate fix. Require all 26 jobs against current main,
-check #30 integrated acceptance, then recheck the base immediately before a merge
-commit if the PR has not already merged.
-After merging, verify integrated jobs/publication and record acceptance in #182
-and #31. Do not repeat completed local tests unless source changes or a new failure
-requires it. The only remaining roadmap exclusions are #24's console SDK access,
-separate #35 work and explicitly deferred Steam #180; no SDK/account input is
-needed for these changes.
+Test-first `8ba56a42` drives a native dedicated server/client through fixed 20-ms
+steps over external localhost UDP. Unchanged accepted binaries fail external
+getinfo, native join and snapshot/chat progress, with zero incoming bytes and
+snapshots after 400 client steps; fixed-dt and idle-clock checks pass. Evidence:
+`/tmp/aftershock-resume/agent-udp-before/{report.json,server.log,client.log}` and
+the adjacent outer log. Do not repeat this completed negative control.
+
+Fix `ad33aed1` polls `NET_Sleep(0)` alongside queued sends during explicit frames.
+Both content sets pass query/join/chat with ten snapshots in 26 client frames.
+Fixed-dt/idle clocks, the channel test, ordinary pure-server join/chat and seeded
+playthrough comparisons (snapshots, pixels, telemetry, hits/kills) pass. Formatting
+and affected checks pass (`/tmp/aftershock-1g5366yw/affected-report.json`). Engine
+sources remain identical after main-forward merges, so this evidence retains its
+provenance; only fresh current-base hosted gates are needed. The former isolated
+worktree was removed cleanly; binaries/logs remain under the private resume root.
+
+Pre-forward head `be902db0` passed all 26 required jobs: build 35958809325 and
+regression 35958809383. The hosted UDP artifact also passes all three operations,
+ten snapshots and 2,622 incoming bytes in 26 fixed frames. Receipts:
+`pr184-pre-forward-gates.json`, `agent182-hosted-artifacts/report.json`, and #182
+comment 5809069276. These completed checks are preserved evidence; the new base
+still requires new hosted gates. The combined workflow catalog is checked after
+the forward merge. No accepted fixture or rollback tag changes.
+
+Self-review: the only engine change is a nonblocking platform networking call
+inside explicit development frames. No new OS access, allocation, non-trivial
+destructor, layout or floating-point change; regular/no-delay pacing is unchanged.
+The failing-first test covers the defect and existing ordinary/seeded behavior
+passes. Keep this fix separate from the ingest correction.
+
+## #185 ingest measurement correction and evidence
+
+Original main integration p95 was 1.923 ms baseline / 9.649 ms burst against a
+6.923-ms allowance; all 100 ACKs arrived in 2.321 s with zero errors and passing
+native outage/pre-stop. Preserve `ingest-integrated-failure-artifacts`. Four-CPU
+diagnostics (`ingest185-diagnostic-before`) found 51 terminated shipper containers
+inside the supposedly held interval. Test-first invariant `9b670812` passes the
+pre-release state and fails the post-ACK state (`ingest185-retirement-before.log`).
+Containerd used 2.593 CPU-seconds in a 2.377-s interval, versus all kubepods' 1.267.
+Local latency itself passed; this was evidence of unintended lifecycle work,
+not a local reproduction of the hosted latency failure.
+
+A fixture parent now runs the unchanged production shipper and waits at the
+retirement barrier only after successful completion. All 100 completed shippers
+and 100 running producer/shipper pairs without restarts are required. The full
+four-CPU `ingest185-held/report.json` passes native outage/pre-stop, exact 600
+events/totals, zero errors, ACKs in 2.035 s, nine-ms ending spread and p95
+0.506/0.494 ms (limit 5.506). No containers exit during measurement; containerd
+uses 0.339 CPU-seconds in the comparable 2.335-s snapshot interval.
+
+Final hosted acceptance (`ingest185-hosted-artifacts/aftershock-backend-kind`)
+passes native recovery/pre-stop, all 100 completed shippers held, no exits/restarts,
+exact events/totals and zero errors. ACKs arrive in 2.262 s, endings span 49 ms,
+and p95 is 1.573/3.731 ms against 6.573 ms (1,805/762 samples). Burst p99 is
+8.888 ms and max 23.203 ms; shared-host/control-plane work still exists. This is
+the declared p95 criterion, not identical tails or a production capacity claim.
+Production binaries, resources/HPA, workload, threshold and accepted fixtures are
+unchanged. Formatting, affected checks and workflow catalog pass. CPU collection
+handles disappearing cgroups; sanitized status/counter artifacts accompany samples.
+
 
 ## #29/#30 implementation checkpoint (historical)
 
