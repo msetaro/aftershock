@@ -22,7 +22,7 @@ def retirement_held(pods):
     return len(producers) == 100 and all(
         {row['name'] for row in pod['containers']} == {'server', 'results'} and
         all('running' in row['state'] and row['restartCount'] == 0
-                                           for row in pod['containers']) for pod in producers)
+            for row in pod['containers']) for pod in producers)
 
 
 class IngestAcceptance:
@@ -41,9 +41,12 @@ class IngestAcceptance:
         # Outside measured windows: retain CPU pressure/throttling and container
         # completion evidence without serializing pod specifications or secrets.
         c = self.c
+        # Cgroups can disappear during collection; skip removed files.
         c['log_run']('ingest-resources-'+name+'.log', ['docker', 'exec', c['node'], 'sh', '-c',
             'cat /proc/pressure/cpu; find /sys/fs/cgroup -name cpu.stat '
-            + "-exec awk 'FNR == 1 { print FILENAME } { print }' {} +"])
+            + "-exec awk 'BEGIN { for (i=1; i<ARGC; i++) { file=ARGV[i]; "
+            + "if ((getline value < file)>0) { print file; do { print value } "
+            + "while ((getline value < file)>0) } close(file) } exit }' {} +"])
         pods = c['document']([*c['ctl'], 'get', 'pods', '-o', 'json'])['items']
         safe = [dict(name=p['metadata']['name'], uid=p['metadata']['uid'],
                      containers=p.get('status', {}).get('containerStatuses', [])) for p in pods]
@@ -258,6 +261,9 @@ class IngestAcceptance:
                         resources=dict(requests=dict(cpu='5m', memory='8Mi'), limits=dict(cpu='100m', memory='32Mi')))
         producer['volumeMounts'] = [row for row in producer['volumeMounts'] if row['name'] != 'test-content']
         shipper = containers['results']
+        shipper.update(command=['/fixture/fixture'], args=[])
+        shipper['volumeMounts'].append(dict(name='ingest-fixture', mountPath='/fixture', readOnly=True))
+        shipper['env'].append(dict(name='FIXTURE_MODE', value='shipper'))
         shipper['resources'] = dict(requests=dict(cpu='5m', memory='16Mi'), limits=dict(cpu='250m', memory='64Mi'))
         shipper['env'] = [row for row in shipper['env'] if row['name'] != 'MATCH_GAME']
         shipper['env'].append(dict(name='MATCH_GAME', value='aftershock'))
@@ -335,7 +341,7 @@ class IngestAcceptance:
                     burst_start = time.monotonic()
                     control('/release', True)
                     deadline = time.monotonic()+60
-                    while len((status := control('/status'))['acked']) != 100:
+                    while len((status := control('/status'))['acked']) != 100 or status['shippers_held'] != 100:
                         assert time.monotonic() < deadline, '100 ending acknowledgements timed out'
                         time.sleep(.1)
                     burst_end = time.monotonic()
@@ -354,7 +360,7 @@ class IngestAcceptance:
             report = dict(producers=100, actual_agones_allocations=True, simulated_endings=True,
                 baseline_ms=baseline, burst_ms=during, p95_limit_ms=limit, errors=failures,
                 ending_spread_ms=max(status['ended'].values())-min(status['ended'].values()),
-                final_acknowledgements=len(status['acked']), burst_seconds=burst_end-burst_start,
+                final_acknowledgements=len(status['acked']), completed_shippers_held=status['shippers_held'], burst_seconds=burst_end-burst_start,
                 retirement_held_during_measurement=held, transport='verified HTTPS through private NodePort')
             (c['output']/'ingest-burst.json').write_text(json.dumps(report, indent=2)+'\n')
             (c['output']/'ingest-latency-samples.json').write_text(json.dumps(samples)+'\n')

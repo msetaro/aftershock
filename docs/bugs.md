@@ -1084,6 +1084,12 @@ Main `0136a489` integrated regression 35958556482 fails the existing 100-ending
 profile p95 gate (1.923 ms baseline, 9.649 ms burst, 6.923 ms limit), despite all
 100 durable ACKs and no profile errors. Native outage/pre-stop scenarios pass.
 The preceding final PR gates passed; integrated #30 acceptance remains open.
-Investigate shared-resource and fixture lifecycle contention in a separate PR;
-retain the original failure, 100-ending workload and latency allowance. Cause
-is not yet established. Draft UDP fix PR184 stays separate and unmerged.
+The fixture held only the producer; shippers exited during the measurement.
+Four-CPU diagnostics found 51 reported exits and 2.593 CPU-seconds of containerd
+work in a 2.377-second interval. The fixture now holds both containers until all
+100 real production shippers succeed and measurement ends, and asserts their
+running state. The corrected full run preserves exact events/totals and passes
+p95 0.506/0.494 ms, with zero exits and 0.339 containerd CPU-seconds. The original
+latency failure and failing retirement invariant remain archived; hosted/current-base
+and integrated gates are still required. No threshold or production behavior changes.
+Draft UDP fix PR184 stays separate and unmerged pending #185 acceptance.

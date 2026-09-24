@@ -36,10 +36,34 @@ latency criterion: baseline p95 1.923 ms, burst 9.649 ms, limit 6.923 ms.
 All 100 ACKs arrived in 2.321 seconds; native outage recovery and pre-stop passed.
 Integrated build 35958556479 passed including publication. Preserve the failed
 artifact at `/tmp/aftershock-resume/ingest-integrated-failure-artifacts`.
-Investigate and fix #185 on `issue/185-ingest-latency`, with its own tested PR;
-do not retry until lucky or change the accepted latency allowance. Shared-node
-contention and shipper container exit during the nominal retirement hold are
-unproven hypotheses. Record diagnostic evidence before choosing a fix.
+#185 on `issue/185-ingest-latency` corrects the incomplete fixture retirement hold.
+The original four-CPU diagnostic (`ingest185-diagnostic-before`) found 51 results
+containers already terminated at the end snapshot. The runtime invariant passes
+before release and fails after ACK (`ingest185-retirement-before.log`, corrected
+test-first commit `9b670812`). Containerd consumed 2.593 CPU-seconds in the 2.377-s
+snapshot interval, versus all kubepods' 1.267. Local latency itself still passed;
+this is evidence of unintended lifecycle work, not a local latency reproduction.
+
+A fixture parent now runs the unchanged production shipper and waits at the
+retirement barrier only after successful completion. All 100 shipper completions
+and all 100 running server/results pairs without restarts are required. Four-CPU
+full run `/tmp/aftershock-resume/ingest185-held/report.json` passes native recovery,
+pre-stop, all 100 ACKs in 2.035 s, nine-ms ending spread, exact 600 events/totals,
+zero request errors, and p95 0.506/0.494 ms before/during (limit 5.506 ms).
+Containerd uses 0.339 CPU-seconds in the 2.335-s snapshot interval; zero fixture
+containers terminate. Production binaries, resource/HPA settings, measurement
+threshold and accepted fixtures are unchanged. The final diagnostic collector
+also tolerates disappearing cgroups; that variant passed a separate owned-node
+read, and hosted CI covers its full use. Formatting, workflow catalog and affected
+checks pass (`/tmp/aftershock-20st_7fu/affected-report.json`). CI retains sanitized
+container status and cgroup CPU evidence alongside latency samples.
+
+Self-review: only the benchmark fixture, diagnostics, artifact list and documentation
+change. No engine code, OS-boundary, allocation, destructor, layout or floating-point
+change. Native pre-stop remains independently required. Require all 26 hosted jobs
+against current main, verify the base immediately before a merge commit, then
+require integrated jobs/publication. Inspect #185/#30 acceptance receipts on resume;
+do not repeat completed gates. Only then check #30 in #25 and resume PR184.
 
 Separate explicit-step UDP fix #182 is ready in draft PR184, head `be902db0`.
 Its branch is preserved; local failing-first and both-content passing evidence
@@ -47,6 +71,7 @@ is recorded on #182 and in that branch's checkpoint. Hold its merge until #185
 establishes accepted main, then merge main forward and run current-base gates.
 Do not repeat its completed local tests without a relevant source change.
 
+## #29/#30 implementation checkpoint (historical)
 
 #29 merged as PR181 at `45d8dc461a32f6e825421937bd7f37cb7d444f1c`.
 Final head `918860e7` included current main `2c5bf00a`; build 35942975170
