@@ -68,10 +68,22 @@ no HPA/workload/latency allowance or production implementation changes.
 
 Affected checks pass, including workflow catalog, native unit, boundaries, ingest
 contracts, TLS transport and Go race tests (`/tmp/aftershock-46q1m__4/affected-report.json`).
-The full four-CPU production kind run is in progress under
-`/tmp/aftershock-resume/ingest187-local`; do not repeat the completed negative or
-#185 diagnostics. Final local validation, self-review, current-base hosted 26 and
-integrated acceptance remain before #187 acceptance and PR184's next main-forward.
+The full four-CPU production kind run passes under
+`/tmp/aftershock-resume/ingest187-local`: native recovery restores 16 events/1,538
+bytes exactly after a 70.111-s post-engine outage, pre-stop commits the aborted
+stream without scores, and all 100 endings ACK in 2.034 s (five-ms spread).
+All 600 events/totals match, all completed shippers stay held, and zero request
+errors occur. Baseline/burst p95 is 0.473/0.468 ms against the unchanged 5.473-ms
+limit (1,924/784 samples). This run has zero reconnects; the real-TLS regression
+separately proves retirement recovery and its measured delay. Format passes all
+605 owned files. Do not repeat completed local tests or #185 diagnostics.
+
+Self-review confirms benchmark/evidence/test wiring only: no engine/production
+change, OS-boundary violation, destructor, allocation, layout or FP change.
+Draft PR188 requires all 26 hosted jobs on the final checkpoint/current main,
+immediate base verification, then integrated acceptance/publication. Read #187's
+receipts for live gate state; PR184's next main-forward will retain those receipts.
+No failed or superseded job is an acceptance result.
 
 ## #185 correction checkpoint (historical)
 
