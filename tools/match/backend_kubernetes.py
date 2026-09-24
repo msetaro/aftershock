@@ -34,9 +34,12 @@ if args.development_results:environment.append(dict(name='BACKEND_RESULTS_DEV_IN
 security=dict(runAsNonRoot=True,runAsUser=65532,runAsGroup=65532,readOnlyRootFilesystem=True,
               allowPrivilegeEscalation=False,capabilities=dict(drop=['ALL']),seccompProfile=dict(type='RuntimeDefault'))
 probe=dict(httpGet=dict(path='/healthz',port='https',scheme='HTTPS'),periodSeconds=5,timeoutSeconds=2,failureThreshold=6)
+# Keep TLS available while terminating endpoints propagate; reserve another
+# five seconds for backend.go's HTTP shutdown inside the total grace budget.
 container=dict(name='backend',image=args.image,imagePullPolicy='IfNotPresent',args=['backend'],env=environment,
                securityContext=security,ports=[dict(name='https',containerPort=8443)],
                resources=dict(requests=dict(cpu='100m',memory='64Mi'),limits=dict(cpu='500m',memory='256Mi')),
+               lifecycle=dict(preStop=dict(sleep=dict(seconds=10))),
                readinessProbe=probe,volumeMounts=[dict(name='config',mountPath='/config',readOnly=True)])
 objects=[
  resource('v1','ServiceAccount'),
@@ -48,7 +51,7 @@ objects=[
  resource('apps/v1','Deployment',spec=dict(replicas=2,selector=dict(matchLabels=labels),
      strategy=dict(type='RollingUpdate',rollingUpdate=dict(maxUnavailable=0,maxSurge=1)),
      template=dict(metadata=dict(labels=labels),spec=dict(serviceAccountName='backend',securityContext=dict(fsGroup=65532),
-         terminationGracePeriodSeconds=15,containers=[container],volumes=[dict(name='config',secret=dict(secretName=args.secret,defaultMode=0o440))])))),
+         terminationGracePeriodSeconds=20,containers=[container],volumes=[dict(name='config',secret=dict(secretName=args.secret,defaultMode=0o440))])))),
  resource('v1','Service',spec=dict(type='ClusterIP',selector=labels,ports=[dict(name='https',port=8443,targetPort='https')])),
  resource('autoscaling/v2','HorizontalPodAutoscaler',spec=dict(scaleTargetRef=dict(apiVersion='apps/v1',kind='Deployment',name='backend'),
      minReplicas=2,maxReplicas=10,metrics=[dict(type='Resource',resource=dict(name='cpu',target=dict(type='Utilization',averageUtilization=65)))])),

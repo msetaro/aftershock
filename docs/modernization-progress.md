@@ -53,13 +53,37 @@ full production-ingest acceptance. HPA/resources/workload/latency allowance and
 fresh-connection/TLS failure behavior stay unchanged. Keep PR184 isolated/unmerged
 and #30 unchecked until this separate correction is integrated. Preserve #182's
 completed UDP evidence; do not repeat prior negative controls or accepted fixtures.
-The new deployment contract fails on the absent hook
-(`/tmp/aftershock-resume/backend189-deployment-before.log`). The real-kind old-manifest test also fails with fresh-handshake `SSLEOFError`
-after verified EndpointSlice withdrawal, before any retirement sample succeeds
-(`backend189-retirement-before/backend-retirement.json` and adjacent log). This
-reproduces the hosted failure on the unchanged manifest. Commit the tests before
-implementation; preserve the completed negative and never repeat it.
-Only #24/#35/#180 are explicit exclusions; no SDK/account input is needed.
+Test-first `ff8330a9` requires the missing hook/grace and real-kind retirement.
+The old manifest fails with fresh-handshake `SSLEOFError` after EndpointSlice
+withdrawal and 19 successful TLS samples (`backend189-retirement-before` plus its
+outer log). Preserve this completed negative; never repeat it.
+
+The production fix adds native pre-stop sleep=10 seconds and total grace=20
+seconds, covering endpoint propagation, existing five-second HTTP shutdown and
+margin. No binary, HPA, resource, workload, latency allowance or retry change.
+Full four-CPU `backend189-retirement-after/report.json` passes: endpoint withdrawn,
+49 fresh verified TLS requests through 5.100 s after deletion, pod gone in 14.401 s,
+and replacement ready. Native recovery restores 16 events/1,538 bytes exactly after
+a 70.112-s post-engine outage, with no restarts; pre-stop commits the aborted stream
+without scores. All 100 endings ACK in 2.039 s (five-ms spread), all shippers stay
+held, 600 events/totals match, and zero request errors/reconnects occur. Baseline/
+burst p95 is 0.516/0.487 ms against unchanged 5.516-ms allowance (1,923/788 samples).
+
+Affected checks pass (`/tmp/aftershock-fznb1chy/affected-report.json`), including
+workflow catalog, native unit/boundaries, deployment, Go race and match content;
+format passes all 605 owned files. Self-review: production manifest retirement
+only, with test/evidence wiring and docs; no engine/Go binary change, OS-boundary,
+non-trivial destructor, allocation, layout or FP change. No accepted fixture/tag
+change. A bounded propagation interval is not a universal availability guarantee
+under unbounded control-plane delay or forced deletion.
+
+Final #189 PR requires all 26 jobs against current main, immediate base check,
+merge commit and integrated 26/publication. #187 integration has 25 of 26 passes,
+with runtime pending at this checkpoint. Read #187/#189 issue receipts for live
+acceptance on resume; do not repeat completed local work. After this correction
+is fully integrated, accept #30 in #25, merge main forward into PR184 and require
+its fresh current-base 26 and post-merge integration. Only #24/#35/#180 remain
+explicit exclusions; no SDK/account input is needed.
 
 ## #187 implementation checkpoint
 

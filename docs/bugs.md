@@ -1123,3 +1123,12 @@ listener while Kubernetes endpoint removal proceeds concurrently. #189 will test
 and correct bounded production retirement, with native pre-stop sleep/grace and
 real-kind endpoint withdrawal/fresh TLS/bounded exit acceptance. No benchmark retry,
 HPA/workload/latency allowance or engine change belongs in this correction.
+
+#189 test-first `ff8330a9` reproduces the fresh-handshake `SSLEOFError` locally on
+the old manifest after EndpointSlice withdrawal and 19 successful fresh TLS
+samples. The deployment contract also fails on the missing hook. The proposed
+fix adds only native pre-stop sleep (ten seconds) and twenty seconds total grace;
+full four-CPU corrected acceptance passes: 49 fresh TLS requests after endpoint
+withdrawal, bounded 14.401-s termination, native recovery/pre-stop and all 100
+endings with unchanged latency allowance. Hosted/current-base and integrated
+acceptance remain required.

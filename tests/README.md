@@ -1260,7 +1260,7 @@ checks native login, account ownership, exact-match results and ephemeral ticket
 bound to the assigned address. Each accepts the compiler options in `--help`;
 GCC and Clang/libc++ run in CI. `tests/backend_ui.py` cooks the owned menu and rejects
 injected action targets. `tests/backend_deployment.py` validates namespaced RBAC,
-secret references, resource limits and HPA/PDB configuration.
+secret references, resource limits, HPA/PDB and backend retirement hook/grace configuration.
 
 `python3 tests/backend_services.py` owns a pinned private PostgreSQL container and
 runs the real database/HTTPS/Agones-recovery contracts; Docker is required, and
@@ -1280,6 +1280,17 @@ Its development ticket file lives only in the private client home; credentials
 never enter cvars, UI values or console commands. The existing #28 ingest stub
 receives the actual backend-generated allocation token; production ingest is #30.
 
+Before load/native acceptance, the cluster test deletes a ready backend pod,
+confirms its EndpointSlice entry is withdrawn, and opens fresh verified TLS health
+connections directly to that retiring pod through five seconds after deletion,
+without retries. It
+then requires bounded pod termination and a ready replacement. This models stale
+routing during endpoint propagation and fails against the old immediate listener
+shutdown. `backend-retirement.json` retains endpoint withdrawal, successful sample
+count, bounded exit and failure class; it contains no credentials. The production
+Deployment supplies a ten-second native pre-stop sleep within twenty seconds of
+grace, reserving the existing five-second HTTP shutdown plus margin.
+
 The cluster test installs SHA-256-pinned metrics-server 0.8.1, requires real CPU
 metrics to drive HPA scale-out at the generated 65% CPU target, and checks HTTPS
 health and backend counters. Only its private kind kubelet metrics transport
@@ -1288,7 +1299,7 @@ It needs Docker, Go, OpenSSL, Python YAML and cooker dependencies, Xvfb/lavapipe
 libXtst/X11 utilities and public OpenArena data. An ordinary real-time client uses
 an owned pseudo-terminal and real XTest keyboard input for menu navigation. It deletes only its owned cluster and removes generated
 secrets/kubeconfig. CI uploads an explicit list of public reports/logs/screenshots.
-`--deployment-only` checks the independent deployment/health/metrics/HPA slice
+`--deployment-only` checks the independent deployment/retirement/health/metrics/HPA slice
 and writes `full: false`; it never substitutes for the default native acceptance.
 Full native local acceptance is recorded in the progress checkpoint; hosted gates
 run the production-ingest variant described below.
