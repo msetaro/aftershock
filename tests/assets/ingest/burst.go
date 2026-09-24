@@ -16,7 +16,29 @@ import (
 
 func main() {
 	var err error
-	if os.Getenv("FIXTURE_MODE") == "coordinator" {
+	if len(os.Args) == 2 && os.Args[1] == "inspect" {
+		files := map[string][]byte{}
+		for _, name := range []string{"baseoa/games.log", "engine.done", "pending.json", "ack.json", "results.done"} {
+			file, openErr := os.Open(filepath.Join("/home/match", name))
+			if os.IsNotExist(openErr) {
+				continue
+			}
+			if openErr != nil {
+				err = openErr
+				break
+			}
+			data, readErr := io.ReadAll(io.LimitReader(file, 131073))
+			file.Close()
+			if readErr != nil || len(data) > 131072 {
+				err = errors.New("fixture inspection exceeds bound")
+				break
+			}
+			files[name] = data
+		}
+		if err == nil {
+			err = json.NewEncoder(os.Stdout).Encode(files)
+		}
+	} else if os.Getenv("FIXTURE_MODE") == "coordinator" {
 		err = coordinate()
 	} else {
 		err = produce()

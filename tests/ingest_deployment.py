@@ -43,4 +43,21 @@ with tempfile.TemporaryDirectory(prefix='aftershock-ingest-deployment-', dir=SCR
     assert hpa['metrics'][0]['resource']['target']['averageUtilization'] == 65
     assert kinds['PodDisruptionBudget']['spec']['minAvailable'] == 1
     assert not any(item['kind'] in ('Secret', 'PersistentVolumeClaim', 'ClusterRole') for item in objects)
+    fleet_output = Path(temporary)/'fleet'
+    subprocess.run([sys.executable, ROOT/'tools/match/kubernetes.py', '--namespace', 'ingest-test',
+                    '--image', 'aftershock-match:issue30', '--output', fleet_output,
+                    '--production-ingest', '--ingest-ca-secret', 'ingest-trust'], check=True)
+    fleet_objects = json.loads((fleet_output/'resources.json').read_text())['items']
+    assert {row['kind'] for row in fleet_objects} == {'Namespace', 'Fleet'}
+    fleet = next(row for row in fleet_objects if row['kind'] == 'Fleet')
+    pod = fleet['spec']['template']['spec']['template']['spec']
+    containers = {row['name']: row for row in pod['containers']}
+    for name in ('server', 'results'):
+        assert containers[name]['lifecycle']['preStop']['exec']['command'] == ['/app/match', 'drain']
+    env = {row['name']: row for row in containers['results']['env']}
+    assert 'MATCH_DEV_INSECURE' not in env
+    assert env['MATCH_INGEST_CA_FILE']['value'] == '/ingest-trust/ca.crt'
+    trust = next(row for row in pod['volumes'] if row['name'] == 'ingest-trust')
+    assert trust['secret']['secretName'] == 'ingest-trust'
+    assert trust['secret']['items'] == [dict(key='ca.crt', path='ca.crt')]
 print('PASS: isolated stateless ingest deployment, TLS, read-only Agones RBAC and HPA')
