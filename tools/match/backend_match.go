@@ -1,19 +1,15 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"io"
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/msetaro/aftershock/tools/match/contracts"
@@ -169,55 +165,9 @@ type backendGameStatus struct {
 	}
 }
 
-func backendKubeCredential(path string) (string, error) {
-	credential, err := os.Open(path)
-	if err != nil {
-		return "", errors.New("cluster credential unavailable")
-	}
-	defer credential.Close()
-	data, err := io.ReadAll(io.LimitReader(credential, 16385))
-	if err != nil || len(data) > 16384 || strings.TrimSpace(string(data)) == "" {
-		return "", errors.New("invalid cluster credential")
-	}
-	return strings.TrimSpace(string(data)), nil
-}
-
 func (b *backendService) kube(ctx context.Context, method, path string, body, out any) error {
-	// Projected service-account tokens rotate through an atomic file replacement.
-	// Reopen for every request and fail closed rather than retaining expired bytes.
-	token, err := backendKubeCredential(b.kubeTokenFile)
-	if err != nil {
-		return err
-	}
-	var reader io.Reader
-	if body != nil {
-		data, err := json.Marshal(body)
-		if err != nil {
-			return err
-		}
-		reader = bytes.NewReader(data)
-	}
-	request, err := http.NewRequestWithContext(ctx, method, strings.TrimSuffix(b.kubeURL, "/")+path, reader)
-	if err != nil {
-		return errors.New("cluster request unavailable")
-	}
-	request.Header.Set("Authorization", "Bearer "+token)
-	request.Header.Set("Content-Type", "application/json")
-	client := *b.client
-	client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
-	response, err := client.Do(request)
-	if err != nil {
-		return errors.New("cluster request unavailable")
-	}
-	defer response.Body.Close()
-	if response.StatusCode != 200 && response.StatusCode != 201 {
-		return errors.New("cluster request rejected")
-	}
-	data, err := io.ReadAll(io.LimitReader(response.Body, 65537))
-	if err != nil || len(data) > 65536 {
-		return errors.New("invalid cluster response")
-	}
-	return json.Unmarshal(data, out)
+	cluster := kubernetesClient{url: b.kubeURL, tokenFile: b.kubeTokenFile, namespace: b.namespace, client: b.client}
+	return cluster.request(ctx, method, path, body, out)
 }
 func (b *backendService) allocate(ctx context.Context, id string) (backendAssignment, error) {
 	var result backendAssignment

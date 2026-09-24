@@ -2,10 +2,14 @@ syntax = "proto3";
 package aftershock.match.v1;
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
-// Versioned, bounded batch fields are specified by batch in ingest.go.
+// Versioned, bounded SubmitBatch fields are specified by MatchBatch in
+// contracts/ingest.go and contracts/v1.schema.json. Payload preserves raw bytes.
 // Match allocation token travels in authorization metadata, never in event data.
 service Ingest {
+	// Production: authenticate allocated pod, validate and commit before ACK.
+	rpc SubmitBatch(google.protobuf.Struct) returns (google.protobuf.Empty);
   // Reader-only credential; version/player_id/before/active_match -> bounded results and leaderboard.
   rpc Read(google.protobuf.Struct) returns (google.protobuf.Struct);
+  // Legacy #28 development stub only; production returns Unimplemented.
   rpc Append(google.protobuf.Struct) returns (google.protobuf.Empty);
 }

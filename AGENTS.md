@@ -139,6 +139,10 @@ playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructi
   actual signed admission and heartbeat retirement. `tests/backend_kind.py --image
   IMAGE --client CLIENT --data OA_DATA` covers native HTTPS-to-match-to-results and
   HPA in an owned kind cluster (devtools client with curl; rebuilt image).
+- Durable ingest: `python3 tests/ingest.py`, `tests/ingest_deployment.py` and
+  `tests/ingest_services.py` (private Docker PostgreSQL). The full backend kind command
+  with `--production-ingest` checks native outage recovery, pre-stop and 100 simultaneous
+  endings with authenticated backend latency.
 - Platform service contracts: `python3 tests/services.py` (null and installed
   test provider; live Steam acceptance is separate).
 - Fast feedback: `python3 tests/affected.py BASE_REF` (600-second default budget;

@@ -30,6 +30,114 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
+#29 merged as PR181 at `45d8dc461a32f6e825421937bd7f37cb7d444f1c`.
+Final head `918860e7` included current main `2c5bf00a`; build 35942975170
+passed all 16 compiler jobs and regression 35942975177 all 10 required jobs.
+Self-review/current-base evidence: #29 comment 5806599450. Merge parents match
+the checked base/head and the tree is identical. Integrated build 35949141712
+passes including publication. Integrated regression 35949141778 now passes all
+ten required jobs including full runtime/module replay: #29 is fully integrated,
+accepted in comment 5807360468, and checked in #25. Machine-readable evidence is
+`/tmp/aftershock-resume/issue29-integrated-gates.json`. Optional #35 fuzz remains
+excluded by existing policy.
+
+Continue #30 on `issue/30-match-ingest`, draft PR183, directly from the accepted
+#29 merge. Initial reviewed head `fe36c525` passed build 35952568775; its regression
+35952568860 failed burst latency and was canceled after the newer candidate
+was pushed. Candidate `4d7509ed` passes build 35953905085; regression
+35953905061 passes eight required jobs, including corrected production kind
+acceptance; runtime and lifetime analysis were still running at this checkpoint. Issue checkpoint: comment 5807166976.
+Test-first commit `0e962fd1` initially failed schema/Go compilation; evidence is
+`/tmp/aftershock-resume/ingest-contract-before.log` and `ingest-go-before.log`.
+Core commit `01d6a345` implements bounded versioned event/checkpoint envelopes,
+byte-preserving pending recovery, Agones allocation authentication, transactional
+PostgreSQL events/checkpoints/results with retry digests and exactly-once totals,
+a separate reader API, TLS gRPC/health/metrics and namespaced Deployment/HPA.
+Schema, Go race/vet, real PostgreSQL rollback/retry/restart/reader isolation,
+deployment contracts and existing backend PostgreSQL/TLS/recovery tests pass
+(`ingest-database-first.log`, `backend-shared-cluster.log` in the same scratch root).
+
+Native outage/Fleet contracts were committed as `9e4bcf54`; pre-stop contract
+`364fc1b4` initially failed compilation (`ingest-drain-before.log`). The real
+production-TLS/native failing control `ingest-kind-before` committed initial events
+then exposed the old one-minute final-wait exit. Its server log records final
+results unacknowledged; inspector could no longer exec the controller. Owned
+cluster cleanup completed. Do not repeat that negative control.
+Lifecycle implementation `e807e487` keeps allocated-pod health alive until final
+ACK. Both pre-stop hooks request engine quit and wait within termination grace;
+Go race/vet/drain checks pass. Fixed image `aftershock-match:issue30-durable` ran
+`ingest-kind-full1`: exact native event recovery and actual pod-deletion flush
+passed, then benchmark login received 503 immediately after fixture restart.
+This incomplete run is not full acceptance. The harness now waits through only
+pre-authentication `authentication_unavailable` responses during fixture setup;
+all measured profile requests still must succeed without retries. Full rerun
+`/tmp/aftershock-resume/ingest-kind-full2/report.json` now passes: all 16 native
+events/1,538 bytes recovered exactly after 70.112 seconds beyond engine completion,
+zero controller restarts, actual pod-deletion final flush, and 100 barrier endings
+within 1 ms. All 100 final ACKs arrived in 2.033 seconds; 600 stored events and
+per-player totals were exact. Authenticated profile p95 was 0.704 ms before and
+0.936 ms during the burst (1,902/764 samples, zero errors), within the declared
+noise allowance. This local image predates only the stricter malformed nested-field
+decoder below; exact reviewed-head native acceptance is mandatory in hosted CI.
+
+Final review added test-first `03bf7c10` for omitted/null nested checkpoint
+statistics that the JSON schema already rejects (`ingest-nested-before.log`).
+The decoder now enforces those fields; full Go race checks pass in
+`ingest-nested-after.log`. Reviewed PostgreSQL checks pass in `ingest-database-reviewed.log`; formatting,
+suite catalog and reviewed affected checks pass (report
+`/tmp/aftershock-o6qrwlet/affected-report.json`). All 16 hosted compiler jobs pass
+at `fe36c525`; regression 35952568860 failed its required match-server latency gate: native
+outage/pre-stop and all 100 ACKs passed, but port-forward profile p95 rose from
+2.089 ms to 34.582 ms (limit 7.089 ms). This run is not merge acceptance. Logs and
+artifacts are in `ingest-hosted-first*` under the private resume root. The benchmark
+had routed service traffic through the API server/kubelet; it now uses verified
+HTTPS through a localhost-only kind NodePort, preserving the same limits and
+recording all backend replica request timings. This is a measurement-path
+correction, not yet proof that shared-host contention is resolved. Local reviewed
+image run `ingest-kind-direct1/report.json` passes all scenarios: exact native
+outage/pre-stop recovery, 100 endings within 6 ms, final ACKs in 1.929 seconds,
+600 events/exact totals, zero request errors, and profile p95 0.444/0.663 ms
+before/during (1,928/740 samples). All backend replica logs show profile handler
+p95 below 1 ms and max 1 ms. Hosted direct-ingress acceptance also passes at `4d7509ed` (run 35953905061):
+16 native events/1,538 bytes recovered exactly, pre-stop final flush, 100 endings
+within 21 ms and all ACKs in 2.349 seconds with 600 events/exact totals. Profile
+p95 is 1.126/3.896 ms before/during (1,836/718 samples, zero errors), below the
+6.126 ms declared limit. Shared-runner tail spikes remain visible: burst p99
+43.820 ms and max 186.397 ms; backend handler logs across the measurement have
+p95 0 ms, p99 2 ms and max 15 ms. This establishes the declared p95 acceptance,
+not identical latency at every percentile or production capacity. Public artifacts
+are preserved in `ingest-hosted-direct-artifacts/aftershock-backend-kind` locally. The post-apply service-readiness wait was added after that local
+process started; hosted CI will cover it.
+
+Final self-review: issue scope matches transactional v1/no queue; backend storage
+is separate and only reads results by RPC; production identity/TLS/limits remain
+active; no native engine allocation, OS boundary, layout, simulation expression or
+accepted fixture changes. Failing-first tests cover retention, drain and schema
+validation. Local/hosted exact-event and concurrency evidence is recorded above.
+This checkpoint commit must receive all 26 required hosted jobs against current
+main before PR183 can leave draft and merge. Then verify the merge parents/tree,
+all integrated jobs/publication, update #30/#25 and the next checkpoint. Recheck
+main immediately before merge; merge it forward and rerun if it advances.
+
+Require all 26 hosted gates on
+current main before merge, then integrated checks. CI now includes schema,
+deployment, private PostgreSQL and full production-ingest kind acceptance.
+The private 100-producer node allows 160 pods with small fixture/SDK requests;
+production service limits and 65% HPA targets remain unchanged. Measure backend
+profile p95 against the declared max(1.25×baseline, baseline+5ms) allowance.
+Local full kind acceptance above is complete. Distinguish the
+native outage from simulated ending producers using actual Agones allocations
+and the production shipper.
+
+No queue or optional demo/object-storage feature is required for v1. No fixture
+regeneration, unrelated engine fixes or Steam SDK/provider/live work. #180 is
+explicitly deferred; #24 retains its SDK dependency, #35 its existing exclusion,
+and #182 stays a separate tested bug-fix PR. No SDK/account input is needed.
+#23/PR179 remains fully integrated at `2c5bf00a`. Private design notes and earlier
+reports are under `/tmp/aftershock-resume`; preserve completed evidence.
+
+## #29 pre-merge checkpoint (historical; superseded by Next action)
+
 Final #29 review found startup-cached Kubernetes credentials, which expire after
 projected token rotation. Test-first commit `1d73819e` covers atomic replacement,
 empty/oversized/missing files and no stale-token fallback (initial compile failure:
@@ -44,6 +152,17 @@ Hosted `35942749157` passed PostgreSQL integration but stopped at the gofmt gate
 the longer token-file field required realignment in `backend.go`. That formatting
 is corrected; exact local gofmt/race/vet checks pass. The replacement hosted head
 must pass every required job before merge; do not reuse the failed run as acceptance.
+Current final head is `918860e766a0c69bdf24b16a8b85681ffa996d27`. Build
+`35942975170` passes all 16 jobs. Regression `35942975177` passes nine required
+jobs, including full backend native kind/HPA and lifetime analysis; runtime has
+passed authored level/bot-path checks and is finishing its remaining checks.
+Private #30 regression drafts and design notes
+are under `/tmp/aftershock-resume/issue30-tests` and `issue30-design-notes.md`;
+they are not repository changes or accepted execution evidence. Start #30's
+test-first branch after this PR's merge gates; no #30 production code exists yet.
+Superseded `5e41900f` workflows were canceled after its formatter failure; none of
+their incomplete results count toward acceptance. Self-review checkpoint:
+https://github.com/msetaro/aftershock/issues/29#issuecomment-5805792490.
 
 Resumed on Ironforge from migration checkpoint `b199539c`. PR179 (#23) is now
 fully accepted at main `2c5bf00a5753f13ff0bd698898d245f9388b9fb3`: its reviewed

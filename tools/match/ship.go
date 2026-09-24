@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -98,7 +99,17 @@ func ship(ctx context.Context, home, game, address string, dev bool) error {
 	if _, err := decodeSpec(data); err != nil {
 		return err
 	}
-	transport := credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})
+	trust, err := x509.SystemCertPool()
+	if err != nil || trust == nil {
+		trust = x509.NewCertPool()
+	}
+	if path := os.Getenv("MATCH_INGEST_CA_FILE"); path != "" {
+		data, err := os.ReadFile(path)
+		if err != nil || len(data) > 65536 || !trust.AppendCertsFromPEM(data) {
+			return errors.New("invalid ingest trust roots")
+		}
+	}
+	transport := credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12, RootCAs: trust})
 	if dev {
 		transport = insecure.NewCredentials()
 	}
@@ -179,7 +190,11 @@ func ship(ctx context.Context, home, game, address string, dev bool) error {
 				return err
 			}
 		}
-		payload, err := json.Marshal(b)
+		wire, err := matchBatch(b)
+		if err != nil {
+			return err
+		}
+		payload, err := json.Marshal(wire)
 		if err != nil {
 			return err
 		}
@@ -188,7 +203,7 @@ func ship(ctx context.Context, home, game, address string, dev bool) error {
 			return err
 		}
 		call, cancel := context.WithTimeout(metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+s.Token), 3*time.Second)
-		err = connection.Invoke(call, "/aftershock.match.v1.Ingest/Append", request, &emptypb.Empty{})
+		err = connection.Invoke(call, "/aftershock.match.v1.Ingest/SubmitBatch", request, &emptypb.Empty{})
 		cancel()
 		if err != nil {
 			fmt.Println("ingest unavailable; retaining pending batch")

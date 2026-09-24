@@ -40,6 +40,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--image', required=True)
 parser.add_argument('--inside-xvfb', action='store_true', help=argparse.SUPPRESS)
 parser.add_argument('--deployment-only', action='store_true', help='check deployment/metrics/HPA only; never full native acceptance')
+parser.add_argument('--production-ingest', action='store_true', help='also require transactional ingest outage recovery and 100-ending isolation')
 parser.add_argument('--client', type=Path)
 parser.add_argument('--data', type=Path, required=True)
 parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-backend-kind')
@@ -62,6 +63,7 @@ processes, streams = [], []
 created = False
 client = inputs = None
 terminal = None
+production = None
 
 def command(arguments, **kwargs):
     kwargs.setdefault('timeout', 30)
@@ -111,8 +113,22 @@ def sql(query):
 
 try:
     created = True
+    kind_options = []
+    if args.production_ingest:
+        # 100 simultaneous producer pods plus the owned services/control plane.
+        # This is a private load-test capacity setting, not a production default.
+        with socket.socket() as reservation:
+            reservation.bind(('127.0.0.1', 0))
+            benchmark_port = reservation.getsockname()[1]
+        benchmark_endpoint = f'https://127.0.0.1:{benchmark_port}'
+        config = output/'kind-config.json'
+        config.write_text(json.dumps(dict(kind='Cluster', apiVersion='kind.x-k8s.io/v1alpha4',
+            nodes=[dict(role='control-plane', kubeadmConfigPatches=['kind: KubeletConfiguration\nmaxPods: 160\n'],
+                extraPortMappings=[dict(containerPort=30443, hostPort=benchmark_port,
+                                        listenAddress='127.0.0.1', protocol='TCP')])])))
+        kind_options = ['--config', config]
     log_run('create.log', [kind, 'create', 'cluster', '--name', cluster, '--image', NODE,
-                          '--kubeconfig', kubeconfig, '--wait', '60s'], timeout=240)
+                          '--kubeconfig', kubeconfig, '--wait', '60s', *kind_options], timeout=240)
     log_run('image.log', [kind, 'load', 'docker-image', args.image, '--name', cluster], timeout=180)
     node = cluster+'-control-plane'
     # Pull the pinned manifest through the node runtime. Importing a Docker
@@ -121,11 +137,14 @@ try:
     log_run('namespace.log', [*ctl, 'create', 'namespace', namespace])
     manifests = output/'match-resources'
     command([sys.executable, ROOT/'tools/match/kubernetes.py', '--namespace', namespace, '--image', args.image,
-             '--output', manifests, '--ci-content', '/aftershock-ci'])
+             '--output', manifests, '--ci-content', '/aftershock-ci',
+             *(['--production-ingest', '--ingest-ca-secret', 'ingest-trust'] if args.production_ingest else [])])
     log_run('agones.log', [helm, 'install', 'agones', chart, '--namespace', 'agones-system', '--create-namespace',
         '--kubeconfig', kubeconfig, '--server-side=false', '--set', 'agones.allocator.install=false',
         '--set', 'agones.ping.install=false', '--set', 'agones.controller.replicas=1', '--set', 'agones.controller.numWorkers=2',
-        '--set', 'agones.image.sdk.memoryRequest=32Mi', '--set', 'agones.image.sdk.memoryLimit=128Mi',
+        '--set', 'agones.image.sdk.memoryRequest='+('16Mi' if args.production_ingest else '32Mi'),
+        *(['--set', 'agones.image.sdk.cpuRequest=5m'] if args.production_ingest else []),
+        '--set', 'agones.image.sdk.memoryLimit=128Mi',
         '--set', 'gameservers.namespaces[0]='+namespace, '--set', 'gameservers.minPort=7000',
         '--set', 'gameservers.maxPort=7003', '--wait', '--timeout', '180s'], timeout=240)
     metrics = urllib.request.urlopen(METRICS_URL, timeout=60).read()
@@ -154,7 +173,7 @@ try:
         cert, key = root/'tls.crt', root/'tls.key'
         log_run('certificate.log', ['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1',
             '-keyout', key, '-out', cert, '-subj', '/CN=aftershock-owned-fixture', '-addext',
-            f'subjectAltName=IP:127.0.0.1,DNS:auth-fixture,DNS:backend,DNS:backend.{namespace}.svc'])
+            f'subjectAltName=IP:127.0.0.1,DNS:auth-fixture,DNS:backend,DNS:backend.{namespace}.svc,DNS:ingest,DNS:ingest.{namespace}.svc'])
         trust = ssl.create_default_context(cafile=str(cert))
         ticket = secrets.token_bytes(32)
         publisher, reader, password = [secrets.token_hex(32) for _ in range(3)]
@@ -197,13 +216,19 @@ try:
             'tls.crt': cert.read_bytes(), 'tls.key': key.read_bytes(), 'ca.crt': cert.read_bytes(),
             'publisher.key': publisher, 'reader.key': reader, 'catalog.json': '["weapons/range_rifle.asweapon"]'}))
         resources = json.loads((manifests/'resources.json').read_text())
-        for obj in resources['items']:
-            if obj['kind'] == 'Deployment':
-                obj['spec']['template']['spec']['containers'][0]['env'].append(dict(name='MATCH_READ_TOKEN',
-                    valueFrom=dict(secretKeyRef=dict(name='backend-config', key='reader.key'))))
+        if args.production_ingest:
+            from ingest_acceptance import IngestAcceptance
+            production = IngestAcceptance(globals())
+            resources = production.prepare(resources)
+        else:
+            for obj in resources['items']:
+                if obj['kind'] == 'Deployment':
+                    obj['spec']['template']['spec']['containers'][0]['env'].append(dict(name='MATCH_READ_TOKEN',
+                        valueFrom=dict(secretKeyRef=dict(name='backend-config', key='reader.key'))))
         apply('match.json', resources)
         command([sys.executable, ROOT/'tools/match/backend_kubernetes.py', '--namespace', namespace, '--image', args.image,
-                 '--output', output/'backend-generated.json', '--extra-ca', '--development-results'])
+                 '--output', output/'backend-generated.json', '--extra-ca',
+                 *([] if args.production_ingest else ['--development-results'])])
         resources = json.loads((output/'backend-generated.json').read_text())
         for obj in resources['items']:
             if obj['kind'] == 'Deployment':
@@ -318,9 +343,10 @@ try:
         match, ingest_token = assignment.split(':')
         # #28's development ingest has static allocation-token configuration.
         # Supply the real generated token before match end; never bypass validation.
-        apply('ingest-token.json', secret('ingest-tokens', dict(tokens=json.dumps({match: ingest_token}))))
-        log_run('ingest-restart.log', [*ctl, 'rollout', 'restart', 'deployment/ingest'])
-        log_run('ingest-ready.log', [*ctl, 'rollout', 'status', 'deployment/ingest', '--timeout=60s'], timeout=70)
+        if not production:
+            apply('ingest-token.json', secret('ingest-tokens', dict(tokens=json.dumps({match: ingest_token}))))
+            log_run('ingest-restart.log', [*ctl, 'rollout', 'restart', 'deployment/ingest'])
+            log_run('ingest-ready.log', [*ctl, 'rollout', 'status', 'deployment/ingest', '--timeout=60s'], timeout=70)
         wait_for(lambda: 'ClientBegin: 0' in (output/'server.log').read_text(), 30, 'native signed join', True)
         assert player in (output/'server.log').read_text(), 'server must log verified account attribution'
         wait_for(lambda: 'CL_InitCGame:' in client_log.read_text(), 20, 'native game initialization')
@@ -340,7 +366,11 @@ try:
             return data
         pod_metrics = wait_for(match_metrics, 45, 'real per-match container resource metrics', True)
         (output/'match-metrics.json').write_text(json.dumps(pod_metrics, indent=2))
+        if production:
+            production.outage(match, original)
         def final_record():
+            if production:
+                return production.final_record(match)
             data = command([*ctl, 'exec', 'deployment/ingest', '--', '/app/match', 'records'], stdout=subprocess.PIPE, text=True).stdout
             rows = [json.loads(line) for line in data.splitlines()]
             final = next((row for row in rows if row['match'] == match and row['final']), None)
@@ -368,11 +398,15 @@ try:
                  10, 'server session revocation', True)
         report = dict(full=True, match=match, account=player, gameserver=original, profile_values=values,
                       checkpoint=final['checkpoint'], scaled_replicas=hpa['status']['desiredReplicas'])
+        if production:
+            report['ingest'] = production.finish()
         (output/'report.json').write_text(json.dumps(report, indent=2)+'\n')
         text = client_log.read_text(errors='replace')
         assert ticket.hex() not in text and ingest_token not in text and publisher not in text
         print('PASS: native HTTPS login -> kind backend/Agones -> signed match -> verified stats -> profile results; health/metrics/HPA')
 finally:
+    if production:
+        production.cleanup()
     if inputs:
         inputs.close()
     for process in reversed(processes):

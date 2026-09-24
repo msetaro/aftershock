@@ -15,6 +15,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/msetaro/aftershock/tools/match/contracts"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -148,8 +150,28 @@ func (s *ingest) accept(b batch, token string) error {
 }
 
 type ingestService interface {
+	SubmitBatch(context.Context, *structpb.Struct) (*emptypb.Empty, error)
 	Append(context.Context, *structpb.Struct) (*emptypb.Empty, error)
 	Read(context.Context, *structpb.Struct) (*structpb.Struct, error)
+}
+
+func (s *ingest) SubmitBatch(ctx context.Context, input *structpb.Struct) (*emptypb.Empty, error) {
+	data, err := input.MarshalJSON()
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid batch")
+	}
+	wire, err := contracts.DecodeMatchBatch(data)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid batch schema")
+	}
+	b, err := legacyBatch(wire)
+	if err == nil {
+		err = s.accept(b, rpcCredential(ctx))
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
 }
 
 func (s *ingest) Append(ctx context.Context, input *structpb.Struct) (*emptypb.Empty, error) {
@@ -205,6 +227,18 @@ func registerIngest(server *grpc.Server, s ingestService) {
 			return call(ctx, in)
 		}
 		return interceptor(ctx, in, &grpc.UnaryServerInfo{Server: srv, FullMethod: "/aftershock.match.v1.Ingest/Append"}, call)
+	}}, {MethodName: "SubmitBatch", Handler: func(srv any, ctx context.Context, decode func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
+		in := new(structpb.Struct)
+		if err := decode(in); err != nil {
+			return nil, err
+		}
+		call := func(ctx context.Context, request any) (any, error) {
+			return srv.(ingestService).SubmitBatch(ctx, request.(*structpb.Struct))
+		}
+		if interceptor == nil {
+			return call(ctx, in)
+		}
+		return interceptor(ctx, in, &grpc.UnaryServerInfo{Server: srv, FullMethod: "/aftershock.match.v1.Ingest/SubmitBatch"}, call)
 	}}, {MethodName: "Read", Handler: func(srv any, ctx context.Context, decode func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 		in := new(structpb.Struct)
 		if err := decode(in); err != nil {
