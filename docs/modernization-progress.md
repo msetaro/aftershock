@@ -42,8 +42,11 @@ accepted in comment 5807360468, and checked in #25. Machine-readable evidence is
 excluded by existing policy.
 
 Continue #30 on `issue/30-match-ingest`, draft PR183, directly from the accepted
-#29 merge. Reviewed head `fe36c525` is pushed; hosted build 35952568775 and
-regression 35952568860 are running. Issue checkpoint: comment 5807166976.
+#29 merge. Initial reviewed head `fe36c525` passed build 35952568775; its regression
+35952568860 failed burst latency and was canceled after the newer candidate
+was pushed. Candidate `4d7509ed` passes build 35953905085; regression
+35953905061 passes eight required jobs, including corrected production kind
+acceptance; runtime and lifetime analysis were still running at this checkpoint. Issue checkpoint: comment 5807166976.
 Test-first commit `0e962fd1` initially failed schema/Go compilation; evidence is
 `/tmp/aftershock-resume/ingest-contract-before.log` and `ingest-go-before.log`.
 Core commit `01d6a345` implements bounded versioned event/checkpoint envelopes,
@@ -91,12 +94,32 @@ had routed service traffic through the API server/kubelet; it now uses verified
 HTTPS through a localhost-only kind NodePort, preserving the same limits and
 recording all backend replica request timings. This is a measurement-path
 correction, not yet proof that shared-host contention is resolved. Local reviewed
-image run `ingest-kind-direct1` is active; hosted acceptance must pass the corrected
-path before merge. The post-apply service-readiness wait was added after that local
+image run `ingest-kind-direct1/report.json` passes all scenarios: exact native
+outage/pre-stop recovery, 100 endings within 6 ms, final ACKs in 1.929 seconds,
+600 events/exact totals, zero request errors, and profile p95 0.444/0.663 ms
+before/during (1,928/740 samples). All backend replica logs show profile handler
+p95 below 1 ms and max 1 ms. Hosted direct-ingress acceptance also passes at `4d7509ed` (run 35953905061):
+16 native events/1,538 bytes recovered exactly, pre-stop final flush, 100 endings
+within 21 ms and all ACKs in 2.349 seconds with 600 events/exact totals. Profile
+p95 is 1.126/3.896 ms before/during (1,836/718 samples, zero errors), below the
+6.126 ms declared limit. Shared-runner tail spikes remain visible: burst p99
+43.820 ms and max 186.397 ms; backend handler logs across the measurement have
+p95 0 ms, p99 2 ms and max 15 ms. This establishes the declared p95 acceptance,
+not identical latency at every percentile or production capacity. Public artifacts
+are preserved in `ingest-hosted-direct-artifacts/aftershock-backend-kind` locally. The post-apply service-readiness wait was added after that local
 process started; hosted CI will cover it.
 
-Next: finish corrected hosted burst acceptance and final #30 checkpoint/self-review;
-require all 26 hosted gates on
+Final self-review: issue scope matches transactional v1/no queue; backend storage
+is separate and only reads results by RPC; production identity/TLS/limits remain
+active; no native engine allocation, OS boundary, layout, simulation expression or
+accepted fixture changes. Failing-first tests cover retention, drain and schema
+validation. Local/hosted exact-event and concurrency evidence is recorded above.
+This checkpoint commit must receive all 26 required hosted jobs against current
+main before PR183 can leave draft and merge. Then verify the merge parents/tree,
+all integrated jobs/publication, update #30/#25 and the next checkpoint. Recheck
+main immediately before merge; merge it forward and rerun if it advances.
+
+Require all 26 hosted gates on
 current main before merge, then integrated checks. CI now includes schema,
 deployment, private PostgreSQL and full production-ingest kind acceptance.
 The private 100-producer node allows 160 pods with small fixture/SDK requests;
