@@ -95,16 +95,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS backend_match_members_active ON backend_match_
 }
 
 type backendService struct {
-	results                                       *grpc.ClientConn
-	reader                                        string
+	results                                           *grpc.ClientConn
+	reader                                            string
 	kubeURL, kubeTokenFile, namespace, fleet, mapName string
-	matchMinutes                                  int
-	db                                            *sql.DB
-	steamURL, steamKey, appID                     string
-	client                                        *http.Client
-	catalog                                       map[string]bool
-	logger                                        *slog.Logger
-	metrics                                       [6]struct{ requests, errors, nanos atomic.Uint64 }
+	matchMinutes                                      int
+	db                                                *sql.DB
+	steamURL, steamKey, appID                         string
+	client                                            *http.Client
+	catalog                                           map[string]bool
+	logger                                            *slog.Logger
+	metrics                                           [6]struct{ requests, errors, nanos atomic.Uint64 }
 }
 
 func backendJSON(w http.ResponseWriter, status int, value any) {

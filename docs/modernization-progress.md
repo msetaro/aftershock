@@ -40,6 +40,10 @@ gates must include this fix; earlier exact-head CI is predecessor evidence.
 All ten local variants have completed coverage, assembled with original logs and
 interruption provenance in `/tmp/aftershock-resume/suite-combined-report.json`.
 No finished engine/runtime checks need repeating for this Go-only fix.
+Hosted `35942749157` passed PostgreSQL integration but stopped at the gofmt gate:
+the longer token-file field required realignment in `backend.go`. That formatting
+is corrected; exact local gofmt/race/vet checks pass. The replacement hosted head
+must pass every required job before merge; do not reuse the failed run as acceptance.
 
 Resumed on Ironforge from migration checkpoint `b199539c`. PR179 (#23) is now
 fully accepted at main `2c5bf00a5753f13ff0bd698898d245f9388b9fb3`: its reviewed
