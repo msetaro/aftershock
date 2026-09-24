@@ -20,7 +20,8 @@ import urllib.request
 def retirement_held(pods):
     producers = [pod for pod in pods if pod['name'].startswith('ingest-burst-')]
     return len(producers) == 100 and all(
-        len(pod['containers']) == 3 and all('running' in row['state'] and row['restartCount'] == 0
+        {row['name'] for row in pod['containers']} == {'server', 'results'} and
+        all('running' in row['state'] and row['restartCount'] == 0
                                            for row in pod['containers']) for pod in producers)
 
 
