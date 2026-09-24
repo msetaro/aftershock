@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -26,7 +27,7 @@ func (b *backendService) queue(w http.ResponseWriter, r *http.Request, player st
 		backendError(w, 405, "unsupported_method")
 		return
 	}
-	if b.kubeURL == "" || b.kubeToken == "" || b.namespace == "" {
+	if b.kubeURL == "" || b.kubeTokenFile == "" || b.namespace == "" {
 		backendError(w, 503, "matchmaking_unavailable")
 		return
 	}
@@ -168,7 +169,26 @@ type backendGameStatus struct {
 	}
 }
 
+func backendKubeCredential(path string) (string, error) {
+	credential, err := os.Open(path)
+	if err != nil {
+		return "", errors.New("cluster credential unavailable")
+	}
+	defer credential.Close()
+	data, err := io.ReadAll(io.LimitReader(credential, 16385))
+	if err != nil || len(data) > 16384 || strings.TrimSpace(string(data)) == "" {
+		return "", errors.New("invalid cluster credential")
+	}
+	return strings.TrimSpace(string(data)), nil
+}
+
 func (b *backendService) kube(ctx context.Context, method, path string, body, out any) error {
+	// Projected service-account tokens rotate through an atomic file replacement.
+	// Reopen for every request and fail closed rather than retaining expired bytes.
+	token, err := backendKubeCredential(b.kubeTokenFile)
+	if err != nil {
+		return err
+	}
 	var reader io.Reader
 	if body != nil {
 		data, err := json.Marshal(body)
@@ -181,7 +201,7 @@ func (b *backendService) kube(ctx context.Context, method, path string, body, ou
 	if err != nil {
 		return errors.New("cluster request unavailable")
 	}
-	request.Header.Set("Authorization", "Bearer "+b.kubeToken)
+	request.Header.Set("Authorization", "Bearer "+token)
 	request.Header.Set("Content-Type", "application/json")
 	client := *b.client
 	client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }

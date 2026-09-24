@@ -455,8 +455,12 @@ func TestBackendQueueRecovery(t *testing.T) {
 		http.NotFound(w, r)
 	}))
 	defer api.Close()
+	kubeTokenFile := filepath.Join(t.TempDir(), "kube-token")
+	if err := os.WriteFile(kubeTokenFile, []byte("private-kube-token"), 0600); err != nil {
+		t.Fatal(err)
+	}
 	service := &backendService{db: db, steamURL: api.URL + "/steam", steamKey: "private-test-key", appID: "12345", client: api.Client(),
-		kubeURL: api.URL, kubeToken: "private-kube-token", namespace: "backend-test", fleet: "aftershock", mapName: "two_lane", matchMinutes: 1}
+		kubeURL: api.URL, kubeTokenFile: kubeTokenFile, namespace: "backend-test", fleet: "aftershock", mapName: "two_lane", matchMinutes: 1}
 	call := func(method, path, token, body string, want int) map[string]any {
 		t.Helper()
 		r := httptest.NewRequest(method, "https://backend.test"+path, strings.NewReader(body))

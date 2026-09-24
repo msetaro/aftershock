@@ -31,12 +31,15 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 ## Next action
 
 Final #29 review found startup-cached Kubernetes credentials, which expire after
-projected token rotation. The new `TestBackendProjectedCredentialRotation` is
-committed before implementation (fails on absent `kubeTokenFile`, evidence
-`/tmp/aftershock-resume/kube-rotation-before.log`). Finish bounded per-request
-credential loading and rerun backend gates before final acceptance; prior exact-head
-CI is predecessor evidence. All remaining local runtime steps now pass in
-`runtime-continuation2-report.json`; preserve the interrupted-run provenance below.
+projected token rotation. Test-first commit `1d73819e` covers atomic replacement,
+empty/oversized/missing files and no stale-token fallback (initial compile failure:
+`/tmp/aftershock-resume/kube-rotation-before.log`). Bounded per-request reopening
+now passes Go race/vet, real PostgreSQL/TLS/allocation recovery and deployment
+contracts (`kube-rotation-after.log`, `backend-services-rotation.log`). Fresh hosted
+gates must include this fix; earlier exact-head CI is predecessor evidence.
+All ten local variants have completed coverage, assembled with original logs and
+interruption provenance in `/tmp/aftershock-resume/suite-combined-report.json`.
+No finished engine/runtime checks need repeating for this Go-only fix.
 
 Resumed on Ironforge from migration checkpoint `b199539c`. PR179 (#23) is now
 fully accepted at main `2c5bf00a5753f13ff0bd698898d245f9388b9fb3`: its reviewed
@@ -56,9 +59,9 @@ production services integration merged automatically. No preview headers are use
    authored results screenshot -> logout and database session revocation all pass.
    Actual metrics drive HPA from two replicas to four at the generated 65% target.
    Report: `/tmp/aftershock-resume/backend-kind-full5/report.json` (`full: true`).
-2. Complete the resumed full local suite (root `/tmp/aftershock-m_katkej`) and fresh
-   hosted gates on the final corrected harness revision. Local format/tidy/lifetimes,
-   both unit variants and sanitizers pass; runtime is ongoing. The earlier hosted
+2. Complete fresh hosted gates on the token-rotation fix revision. All ten local
+   variants pass with preserved continuation evidence (root
+   `/tmp/aftershock-m_katkej`). The earlier hosted
    `b564cfbc` compiler matrix passed all 16 jobs, but its match test used agent mode
    and failed, so it is NOT merge acceptance. Do not waive that required job.
 3. After all gates and final self-review, recheck current main and PR head, update

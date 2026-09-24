@@ -170,6 +170,8 @@ resource limits, HPA and PDB. Operators install the cluster resource-metrics API
 for the HPA. `/healthz` checks database availability; `/metrics` reports bounded
 service counters/errors/durations and request logs are structured JSON without
 credentials. `BACKEND_NAMESPACE` enables allocation using the pod service account;
+the projected token file is reopened for each Kubernetes request so rotations take
+effect without a restart. Missing, empty or oversized credentials fail closed.
 `BACKEND_MAP`/`BACKEND_FLEET` select a map-specific warm Fleet.
 
 The initial queue allocates one solo player or existing party per match. Membership

@@ -97,7 +97,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS backend_match_members_active ON backend_match_
 type backendService struct {
 	results                                       *grpc.ClientConn
 	reader                                        string
-	kubeURL, kubeToken, namespace, fleet, mapName string
+	kubeURL, kubeTokenFile, namespace, fleet, mapName string
 	matchMinutes                                  int
 	db                                            *sql.DB
 	steamURL, steamKey, appID                     string
@@ -408,7 +408,7 @@ func serveBackend(ctx context.Context) error {
 			return errors.New("invalid BACKEND_CA_FILE")
 		}
 	}
-	namespace, kubeURL, kubeToken := os.Getenv("BACKEND_NAMESPACE"), "", ""
+	namespace, kubeURL, kubeTokenFile := os.Getenv("BACKEND_NAMESPACE"), "", ""
 	fleet, mapName := env("BACKEND_FLEET", "aftershock"), env("BACKEND_MAP", "two_lane")
 	minutes, err := strconv.Atoi(env("BACKEND_MATCH_MINUTES", "10"))
 	if err != nil || minutes < 1 || minutes > 1440 || !identifier.MatchString(mapName) || len(mapName) > 48 {
@@ -424,17 +424,11 @@ func serveBackend(ctx context.Context) error {
 		if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
 			return errors.New("invalid HTTPS cluster endpoint")
 		}
-		credential, err := os.Open(env("BACKEND_KUBE_TOKEN_FILE", "/var/run/secrets/kubernetes.io/serviceaccount/token"))
-		if err != nil {
-			return errors.New("cluster credential unavailable")
+		kubeTokenFile = env("BACKEND_KUBE_TOKEN_FILE", "/var/run/secrets/kubernetes.io/serviceaccount/token")
+		if _, err := backendKubeCredential(kubeTokenFile); err != nil {
+			return err
 		}
-		data, err := io.ReadAll(io.LimitReader(credential, 16385))
-		credential.Close()
-		if err != nil || len(data) > 16384 || strings.TrimSpace(string(data)) == "" {
-			return errors.New("invalid cluster credential")
-		}
-		kubeToken = strings.TrimSpace(string(data))
-		data, err = os.ReadFile(env("BACKEND_KUBE_CA_FILE", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"))
+		data, err := os.ReadFile(env("BACKEND_KUBE_CA_FILE", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"))
 		if err != nil || !roots.AppendCertsFromPEM(data) {
 			return errors.New("cluster trust roots unavailable")
 		}
@@ -454,7 +448,7 @@ func serveBackend(ctx context.Context) error {
 		return errors.New("backend database initialization failed")
 	}
 	defer db.Close()
-	service := &backendService{kubeURL: kubeURL, kubeToken: kubeToken, namespace: namespace, fleet: fleet, mapName: mapName, matchMinutes: minutes,
+	service := &backendService{kubeURL: kubeURL, kubeTokenFile: kubeTokenFile, namespace: namespace, fleet: fleet, mapName: mapName, matchMinutes: minutes,
 		db: db, steamURL: endpoint, steamKey: strings.TrimSpace(string(key)), appID: appID, catalog: catalog,
 		client: &http.Client{Transport: transport, Timeout: 5 * time.Second}, logger: slog.New(slog.NewJSONHandler(os.Stdout, nil))}
 	if address := os.Getenv("BACKEND_RESULTS"); address != "" {
