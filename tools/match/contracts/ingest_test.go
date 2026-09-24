@@ -130,3 +130,24 @@ func TestMatchEventBounds(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckpointRequiredNestedFields(t *testing.T) {
+	base := `{"version":1,"match_id":"empty","sequence":0,"end":0,"events":[],"final":true,"checkpoint":{"version":1,"match_id":"empty","sequence":0,"state":{"seconds":0,"joins":0,"kills":0,"completed":false,"players":null,"scores":null}}}`
+	for _, extra := range []string{
+		`"accounts":null,`, `"owners":null,`, `"owner_scores":null,`,
+		`"accounts":{"1":{}},`, `"accounts":{"1":{"kills":null,"deaths":0,"score":0}},`,
+		`"owners":{"0":null},`, `"owner_scores":{"0":null},`,
+	} {
+		if _, err := DecodeMatchBatch([]byte(strings.Replace(base, `"seconds":0`, extra+`"seconds":0`, 1))); err == nil {
+			t.Errorf("accepted invalid state fields: %s", extra)
+		}
+	}
+	for _, value := range []string{`{"0":{}}`, `{"0":{"kills":0,"deaths":null}}`, `{"0":null}`} {
+		if _, err := DecodeMatchBatch([]byte(strings.Replace(base, `"players":null`, `"players":`+value, 1))); err == nil {
+			t.Errorf("accepted invalid player stats: %s", value)
+		}
+	}
+	if _, err := DecodeMatchBatch([]byte(strings.Replace(base, `"scores":null`, `"scores":{"0":null}`, 1))); err == nil {
+		t.Error("accepted null score")
+	}
+}
