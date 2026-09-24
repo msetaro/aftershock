@@ -1117,3 +1117,24 @@ all elapsed time and reconnect counts remain visible. Twelve TLS cases pass,
 including status/body/header, certificate/protocol, timeout, new-connection and
 repeated-close failures. Hosted/current-base and integrated acceptance are still
 required. No engine or production backend behavior changes.
+
+## Backend TLS listener closes before endpoint withdrawal propagates (#189)
+
+PR184 regression 35980235416 at `34f4cd93` fails a fresh TLS handshake during
+backend HPA scale-down. Three stale-idle reconnects succeed; the separate new
+connection fails with `SSLEOFError` and is correctly not retried. Failure samples
+and original logs are preserved under `agent184-second-forward-failure-artifacts`.
+The deployment has no pre-stop interval; SIGTERM immediately closes the HTTPS
+listener while Kubernetes endpoint removal proceeds concurrently. #189 will test
+and correct bounded production retirement, with native pre-stop sleep/grace and
+real-kind endpoint withdrawal/fresh TLS/bounded exit acceptance. No benchmark retry,
+HPA/workload/latency allowance or engine change belongs in this correction.
+
+#189 test-first `ff8330a9` reproduces the fresh-handshake `SSLEOFError` locally on
+the old manifest after EndpointSlice withdrawal and 19 successful fresh TLS
+samples. The deployment contract also fails on the missing hook. The proposed
+fix adds only native pre-stop sleep (ten seconds) and twenty seconds total grace;
+full four-CPU corrected acceptance passes: 49 fresh TLS requests after endpoint
+withdrawal, bounded 14.401-s termination, native recovery/pre-stop and all 100
+endings with unchanged latency allowance. Hosted/current-base and integrated
+acceptance remain required.

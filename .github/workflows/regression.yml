@@ -665,6 +665,7 @@ jobs:
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-ingest-services/*.log
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/*.log
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/report.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/backend-retirement.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/ingest-native.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/ingest-events.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/ingest-burst.json

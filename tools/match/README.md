@@ -181,6 +181,15 @@ UnAllocated result permits another allocation. A permanently unresolved outcome
 requires operator reconciliation; do not reset it on a guessed timeout. Queue
 cancellation and skill matching are not part of this initial queue.
 
+The backend Deployment uses a ten-second native Kubernetes pre-stop sleep before
+SIGTERM, allowing terminating Service endpoints to withdraw while the HTTPS
+listener still serves stale routes. The twenty-second termination grace includes
+that interval, the existing five-second HTTP shutdown and scheduling margin.
+The kubelet runs the sleep handler; the distroless image needs no shell. This
+bounded propagation allowance is checked on the pinned Kubernetes version; it is
+not a guarantee for unbounded control-plane delays or forced deletion. HPA policy
+and request/resource limits are unchanged.
+
 The native authored shell uses `backend_url` and optional `backend_ca`, then fixed
 login/queue/profile/results/logout actions. Sessions stay process-local and signed
 join tickets are bound to the assigned numeric address and cleared after admission.
