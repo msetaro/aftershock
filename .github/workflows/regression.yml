@@ -149,6 +149,7 @@ jobs:
           python3 tests/backend_deployment.py
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/ingest.py
           python3 tests/ingest_deployment.py
+          python3 tests/ingest_transport.py
       - name: Structured local developer command contract
         run: |
           python3 tests/agent_protocol.py --cxx '${{ matrix.cxx }}'

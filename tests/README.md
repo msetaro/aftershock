@@ -1308,6 +1308,16 @@ byte transport, allocation identity, pending recovery and bounded drain behavior
 transaction rollback, concurrent retries, restart, final aggregates and reader
 isolation. Docker is required; unavailable infrastructure is a failure.
 
+`python3 tests/ingest_transport.py` uses a private TLS server to verify one
+reconnect for an authenticated bodyless profile GET on a previously successful
+connection closed before receiving any response bytes. Both attempts count toward
+latency. New-connection failures, repeated closes, HTTP errors, partial responses,
+timeouts and TLS verification/protocol errors fail; only transport EOF/reset is
+eligible. No mutation is retried. Negative controls exercise those boundaries.
+The kind workload records reconnect counts and saves failed-worker samples before
+raising; a successful reconnect is explicitly reported, not counted as an HTTP
+application error. HPA behavior and the p95 allowance remain unchanged.
+
 `python3 tests/backend_kind.py --production-ingest --image IMAGE --client CLIENT
 --data OA_DATA` adds production TLS ingestion and a separate results database to
 the full backend/native test above. It removes ingest during a real signed native

@@ -31,36 +31,42 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 ## Next action
 
 Implementation is complete through the separate UDP fix in PR184. On resume,
-inspect the acceptance receipts on #185/#30/#182 and the checked state of #25
-first; those record final and integrated gates after this checkpoint. Do not
-restart a PR or repeat a completed gate. Finish only unresolved gate/base/merge/
-integration steps. Once accepted, only the explicit #24/#35/#180 exclusions remain.
+read the final/integrated acceptance receipts on #187/#182/#30 and tracker #25
+first. Those receipts record gates completed after this checkpoint. Finish only
+unresolved current-base, merge and integrated checks; do not restart completed
+work. Once accepted, only explicit console SDK #24, separate fuzz #35 and Steam
+SDK/provider/live #180 remain excluded. No SDK/account input is needed here.
 
-#23 and #29 are fully integrated. #30 merged as PR183 at `0136a489` after all 26
-required jobs passed on `c3af24bf` against main `45d8dc46`. Its integrated build
-35958556479 and publication passed, but regression 35958556482 failed only the
-ingest latency job; the other nine required regression jobs passed. Full failure
-receipt: `/tmp/aftershock-resume/issue30-integrated-failed-gates.json`. This failure
-was not replaced by an unchanged retry or a relaxed allowance.
+#23 and #29 are fully accepted. #30 merged as PR183 at `0136a489` after all 26
+required jobs passed, but integrated regression 35958556482 failed ingest latency
+(all other nine required regression jobs passed; build/publication passed).
+Preserve `issue30-integrated-failed-gates.json` and the original artifacts.
+Separate #185 / PR186 fixes the incomplete fixture retirement hold. Merge
+`c3d3d6b2` passed all 26 final jobs on current main and all 26 integrated jobs
+(build 35967886988, regression 35967886994) plus publication. Exact parents/tree
+and unchanged rollback tag are verified in `pr186-integrated-gates.json`;
+#185 acceptance is comment 5810648361. This fix is fully accepted.
 
-The separate #185 correction merged as PR186 at
-`c3d3d6b28343e9005561708f2c9ec5ffc3463be7`. Final head `1d25ff4e` passed
-all 16 compiler jobs (35961441457) and all 10 required regression jobs
-(35961441510), including full runtime/module replay, against then-current main
-`0136a489`. Self-review/current-base receipt: #185 comment 5809453410 and
-`/tmp/aftershock-resume/pr186-final-gates.json`; merge parents and tree match
-(`pr186-merge.json`). Integrated build 35967886988 and regression 35967886994
-are required before #30 is accepted in #25 or PR184 is merged. Check their live
-receipts rather than assuming they are still pending when resuming.
+PR184's former forward head `fa9522e5` passed build 35968040472 and nine required
+regression jobs, but regression 35968040503 failed a separate reused HTTPS
+connection during backend HPA scale-down. Preserve `pr184-forward-failed-gates.json`
+and `ingest184-forward-failure-artifacts`; do not retry that unchanged failure.
+#187 / PR188 fixes that transport case separately. Final `b812b7bd` passed all 26
+required jobs (build 35972021669, regression 35972021659) on current main `c3d3d6b2`.
+Self-review/base receipt: #187 comment 5811315029 and `pr188-final-gates.json`.
+Merge `997e5f487c80bd7abdb451b77a71e6a44a7a82f2` has those exact parents and
+identical tested tree. Integrated build 35980087766 and regression 35980087835
+are required, including publication; inspect #187's receipts for their live result.
+#30 stays unchecked until that correction is integrated and accepted.
 
-Current branch is `issue/182-agent-udp` in the main workspace. Main `c3d3d6b2`
-is merged forward to run fresh current-base checks concurrently with its integrated
-checks. This preparation does not authorize a merge while integration is pending.
-Require both #185 integrated acceptance/publication and all 26 jobs on the new
-PR184 head; recheck main immediately before a merge commit. After merging PR184,
-verify its integrated jobs/publication and record acceptance in #182 and #31.
-Steam SDK/provider/live acceptance stays deferred to #180; console SDK #24 and
-separate fuzz #35 are excluded. No SDK/account input is needed for this scope.
+Current branch is `issue/182-agent-udp`. Main `997e5f48` is merged forward to run
+fresh PR184 gates concurrently with #187 integration. Preparation is not merge
+acceptance: both #187 integrated acceptance and all 26 fresh PR184 jobs must pass.
+Recheck main immediately before a merge commit; if it advances, merge forward and
+rerun gates. After PR184 merges, require integrated 26/publication and record #182,
+#31 and #25 acceptance. Engine bytes and completed UDP local evidence are unchanged.
+The combined workflow catalog is checked after the merge; no local test repeats
+are needed for unchanged engine/transport implementations.
 
 ## #182 UDP implementation and verification
 
@@ -93,6 +99,45 @@ inside explicit development frames. No new OS access, allocation, non-trivial
 destructor, layout or floating-point change; regular/no-delay pacing is unchanged.
 The failing-first test covers the defect and existing ordinary/seeded behavior
 passes. Keep this fix separate from the ingest correction.
+
+## #187 transport implementation and verification
+
+Test-first `5192f931` extracts the existing profile probe unchanged and reproduces
+`RemoteDisconnected` over a real private TLS server (`ingest187-transport-before.log`).
+The correction permits one reconnect only for a previously successful bodyless
+GET when transport EOF/reset occurs before any response bytes. A buffered-reader
+counter distinguishes partial status/header failures from idle close, including
+TLS EOF reported while reading. Certificate/protocol failures still fail.
+All 12 real-TLS cases pass: retirement, idle close, fresh/repeated close, status,
+partial body/status/headers, ownership, timeout, untrusted certificate and invalid
+TLS records. Both attempt delays contribute to the measured time; each sample and
+window exposes reconnect counts. Worker failures retain samples/reports before
+raising. This intentionally corrects the previous no-reconnect client model;
+no HPA/workload/latency allowance or production implementation changes.
+
+Affected checks pass, including workflow catalog, native unit, boundaries, ingest
+contracts, TLS transport and Go race tests (`/tmp/aftershock-46q1m__4/affected-report.json`).
+The full four-CPU production kind run passes under
+`/tmp/aftershock-resume/ingest187-local`: native recovery restores 16 events/1,538
+bytes exactly after a 70.111-s post-engine outage, pre-stop commits the aborted
+stream without scores, and all 100 endings ACK in 2.034 s (five-ms spread).
+All 600 events/totals match, all completed shippers stay held, and zero request
+errors occur. Baseline/burst p95 is 0.473/0.468 ms against the unchanged 5.473-ms
+limit (1,924/784 samples). This run has zero reconnects; the real-TLS regression
+separately proves retirement recovery and its measured delay. Format passes all
+605 owned files. Do not repeat completed local tests or #185 diagnostics.
+
+Self-review confirms benchmark/evidence/test wiring only: no engine/production
+change, OS-boundary violation, destructor, allocation, layout or FP change.
+PR188 passed all 26 required jobs and merged as recorded above. Final hosted
+acceptance (`ingest187-hosted-artifacts/aftershock-backend-kind`) passes native
+recovery/pre-stop and all 100 ACKs in 2.163 s, with 45-ms ending spread, exact 600
+events/totals and zero errors. Baseline/burst p95 is 3.136/6.626 ms against the
+unchanged 8.136-ms allowance (1,699/692 samples); burst p99/max is 12.677/29.175 ms.
+This hosted run also has zero reconnects; both unit variants pass the real-TLS
+fault regression. #187 comments 5810097947 and 5810333553 retain local/hosted
+receipts. No failed or superseded job is an acceptance result. Integrated gates
+and publication remain mandatory; inspect the issue receipt before resuming.
 
 ## #185 ingest measurement correction and evidence
 
