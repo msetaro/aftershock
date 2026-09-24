@@ -177,6 +177,26 @@ func runServer(ctx context.Context) error {
 			return ctx.Err()
 		case <-time.After(time.Second):
 		}
+		if exists(filepath.Join(home, "drain.request")) {
+			// Both preStop hooks keep the controller and shipper alive while the
+			// engine closes its log. Only the shipper publishes results.done.
+			if _, err = io.WriteString(stdin, "quit\n"); err != nil {
+				_ = command.Process.Signal(syscall.SIGTERM)
+			}
+			select {
+			case processError = <-done:
+			case <-time.After(5 * time.Second):
+				_ = command.Process.Signal(syscall.SIGTERM)
+				select {
+				case processError = <-done:
+				case <-time.After(5 * time.Second):
+					_ = command.Process.Kill()
+					processError = <-done
+				}
+			}
+			stopped = true
+			goto ended
+		}
 		matchID := ""
 		if configured && s.JoinKey != "" {
 			matchID = s.ID
@@ -257,11 +277,7 @@ ended:
 		return errors.New("warm server exited before allocation")
 	}
 	fmt.Println("engine stopped; waiting for final ingest acknowledgement")
-	deadline = time.Now().Add(time.Minute)
 	for !exists(filepath.Join(home, "results.done")) {
-		if time.Now().After(deadline) {
-			return errors.New("final results unacknowledged; retaining pod data, no SDK Shutdown")
-		}
 		if agones {
 			_ = sdk(ctx, "POST", "/health", nil)
 		}
@@ -270,6 +286,7 @@ ended:
 		}
 	}
 	if agones {
+		deadline = time.Now().Add(time.Minute)
 		for {
 			err = sdk(ctx, "POST", "/shutdown", nil)
 			if err == nil {

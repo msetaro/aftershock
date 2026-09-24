@@ -147,6 +147,8 @@ jobs:
           python3 tests/backend_client.py --cxx '${{ matrix.cxx }}'
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/backend_ui.py --cc '${{ matrix.cc }}' --cxx '${{ matrix.cxx }}'
           python3 tests/backend_deployment.py
+          ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/ingest.py
+          python3 tests/ingest_deployment.py
       - name: Structured local developer command contract
         run: |
           python3 tests/agent_protocol.py --cxx '${{ matrix.cxx }}'
@@ -619,7 +621,9 @@ jobs:
           python3 -m venv ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python
           ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/pip install --disable-pip-version-check -r tools/cook/requirements.txt -r tools/level/requirements.txt pyyaml
       - name: Backend persistence and HTTPS integration on private PostgreSQL
-        run: python3 tests/backend_services.py
+        run: |
+          python3 tests/backend_services.py
+          python3 tests/ingest_services.py
       - name: Match contracts and acknowledged result delivery
         run: |
           cd tools/match
@@ -641,8 +645,8 @@ jobs:
         run: docker build -f tools/match/Dockerfile -t aftershock-match:issue28 .
       - name: Private kind allocation, native player, final ingest and replacement
         run: python3 tests/match_kind.py --image aftershock-match:issue28 --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci/release-linux-x86_64/quake3e.x64 --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
-      - name: Backend native login, allocation, profile results and HPA in kind
-        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/backend_kind.py --image aftershock-match:issue28 --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci/release-linux-x86_64/quake3e.x64 --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
+      - name: Native ingest recovery, pre-stop, 100 endings and backend latency in kind
+        run: ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python/bin/python tests/backend_kind.py --production-ingest --image aftershock-match:issue28 --client ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-ci/release-linux-x86_64/quake3e.x64 --data ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-openarena-baseoa
       - name: Match lifecycle and measured resource evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -657,8 +661,13 @@ jobs:
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-match-exit/*.log
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-join/*.log
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-services/*.log
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-ingest-services/*.log
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/*.log
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/report.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/ingest-native.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/ingest-events.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/ingest-burst.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/ingest-latency-samples.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/events.jsonl
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/hpa.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/match-metrics.json
