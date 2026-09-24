@@ -42,22 +42,49 @@ Accepted main is merged forward into this branch, retaining `SERVICE_BACKEND = 2
 all #29 work and predecessor evidence. Conflicts were documentation/affected rules;
 production services integration merged automatically. No preview headers are used.
 
-1. Normal client/service/admission probes and full development client+server builds
-   now pass with GCC and Clang/libc++. The public-status assertion failed before
-   implementation and now passes; no credential is printed. Preserve that evidence.
-2. The integrated image `aftershock-match:resume29` is rebuilt. Run default `backend_kind.py`
-   for native HTTPS login -> queue -> signed Agones match -> verified account stats
-   -> authored profile/results and actual session revocation. Deployment-only health/
-   metrics/HPA already passed at the generated 65% target; it is not full acceptance.
-3. Finish #29 scope/self-review, affected/full-suite and all current-main hosted
-   gates, update #29/#25, then merge PR181 and verify integrated runs. Keep it draft
-   until complete. Continue #30 afterward. #24 retains its SDK dependency;
-   Steam SDK/provider/live work remains deferred to #180 with no setup input needed.
+1. Full native kind acceptance now PASSES with the ordinary real-time client and
+   actual XTest menu navigation. Verified HTTPS sign-in/profile/queue -> Agones
+   allocation -> signed native admission -> account-attributed match completion ->
+   authored results screenshot -> logout and database session revocation all pass.
+   Actual metrics drive HPA from two replicas to four at the generated 65% target.
+   Report: `/tmp/aftershock-resume/backend-kind-full5/report.json` (`full: true`).
+2. Complete the running full local suite (root `/tmp/aftershock-m_katkej`) and fresh
+   hosted gates on the final corrected harness revision. Local format/tidy/lifetimes,
+   both unit variants and sanitizers pass; runtime is ongoing. The earlier hosted
+   `b564cfbc` compiler matrix passed all 16 jobs, but its match test used agent mode
+   and failed, so it is NOT merge acceptance. Do not waive that required job.
+3. After all gates and final self-review, recheck current main and PR head, update
+   #29/#25, merge PR181 with a merge commit, and verify integrated jobs/replay.
+   Continue #30 afterward. #24 retains its SDK dependency; Steam SDK/provider/live
+   work remains deferred to #180 with no setup input needed. The separately recorded
+   agent-step UDP defect is #182 and must never be mixed into #29/#30.
 
-Heartbeat retirement, fresh Go race/vet/private PostgreSQL/TLS checks, authored UI
-and HTTPS probes on both compilers pass as recorded below. The full client/kind
-flow is still pending. Accepted predecessors #19-#22 and closed #31 remain complete;
-do not repeat finished work, historical network controls or accepted fixtures.
+Normal GCC/Clang client/service/admission probes and complete development builds,
+heartbeat retirement, private PostgreSQL/TLS/recovery, Go race/vet, authored UI and
+HTTPS variants pass. All 29 affected checks pass. No preview headers remain.
+Predecessors #19-#23 and historical #31 evidence remain accepted; do not repeat
+finished work, historical network controls or accepted fixtures.
+
+## #29 full native kind acceptance and self-review checkpoint
+
+`backend-kind-full5` passes end to end with the integrated native image/client.
+Match `3b95a999731558edf9fa9d48a0b9f23f`, account `18446744073709551615`, final
+checkpoint at 66 seconds: score -1, kills 0, deaths 1. The native menu shows that
+exact match/result, its screenshot is inspected, and logout clears presentation
+and revokes the actual database session. Backend counters cover auth/profile/
+queue/results. Real per-container CPU/memory samples are recorded; HPA scales
+two backend replicas to four at the unchanged 65% target. The owned cluster,
+credentials and kubeconfig are removed. No Steam/live acceptance is implied.
+
+Self-review to date: only #29 contracts, backend/native integration, heartbeat
+retirement and their tests/docs are changed. Shared JSON/curl code supplies the
+bounded production interfaces without duplicate loaders/parsers; OS calls remain
+in platform. Native core storage is fixed/trivial with no new per-frame allocation
+or altered simulation floating expressions. Signed ticket expiry/owner/match/replay
+and exact retry controls pass; results reads never write match data. Queue state
+and ambiguous allocation recovery are durable. #30 owns production ingest/storage,
+#180 owns Steam SDK/provider/live acceptance, and #182 records the unrelated agent
+UDP limitation. Final local/hosted acceptance and current-base recheck remain.
 
 ## #29 native signed gameplay and results reached
 

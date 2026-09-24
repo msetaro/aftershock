@@ -1290,7 +1290,8 @@ an owned pseudo-terminal and real XTest keyboard input for menu navigation. It d
 secrets/kubeconfig. CI uploads an explicit list of public reports/logs/screenshots.
 `--deployment-only` checks the independent deployment/health/metrics/HPA slice
 and writes `full: false`; it never substitutes for the default native acceptance.
-The new end-to-end gate remains pending until recorded in the progress checkpoint.
+Full native local acceptance is recorded in the progress checkpoint; hosted gates
+run the same default command.
 No fixture or accepted golden is regenerated.
 
 Steam SDK/provider/live acceptance remains deferred to #180. Deterministic fixture
