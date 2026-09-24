@@ -2,6 +2,19 @@
 
 The strict port made no engine bug fixes. Modernization #31 dispositions are recorded below.
 
+## Explicit agent steps do not receive external UDP (#31, separate fix pending)
+
+Found during #29 kind acceptance after HTTPS login and allocation succeeded.
+An `--agent` client with `net_enabled=1` sends connection traffic but never
+receives the handshake. `Com_Frame` skips its pacing loop for explicit steps;
+that loop contains the only `NET_Sleep` call, which dispatches `NET_Event` and
+external UDP packets. `Com_EventLoop` only drains local loopback packets.
+Evidence: `/tmp/aftershock-resume/backend-kind-full2/client.log` and the matching
+server log (no ClientBegin). This path exists on accepted main before #29.
+A separate test-first #31 PR should require remote UDP progress during explicit
+steps and preserve ordinary frame timing. #29 uses the ordinary real-time client
+with real Xvfb keyboard input for native acceptance; it does not alter this code.
+
 ## Vulkan descriptor restoration uses the device limit (#31, fix awaiting hosted gates)
 
 SSAO restoration sets the dirty range to maxBoundDescriptorSets - 1, although

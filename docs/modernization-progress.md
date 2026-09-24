@@ -59,6 +59,17 @@ and HTTPS probes on both compilers pass as recorded below. The full client/kind
 flow is still pending. Accepted predecessors #19-#22 and closed #31 remain complete;
 do not repeat finished work, historical network controls or accepted fixtures.
 
+## #29 native real-time acceptance driver
+
+Full run 2 passes native verified HTTPS sign-in, authored profile and queue, then
+stalls at UDP admission. Inspection finds the existing agent-step receive-polling
+gap recorded in `docs/bugs.md`; it is outside #29 and needs a separate test-first
+fix. The #29 driver now uses an ordinary real-time native client plus the existing
+private Xvfb/XTest keyboard helper. Profile/queue/results/logout still use actual
+menu navigation, verified backend transport and signed admission. Full run 3 is
+pending; do not claim a native pass from the earlier partial runs. Hosted and full
+local checks started at `b564cfbc`; final gates must include this harness correction.
+
 ## #29 full kind fixture reachability
 
 The first default kind run passed deployment/HPA but failed native login with an

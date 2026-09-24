@@ -28,7 +28,8 @@ from run import ROOT, SCRATCH
 
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT/'tools/match'))
-from tools.agent import Engine
+from window import XInput
+from PIL import Image
 from toolchain import NODE, tool
 
 POSTGRES = 'postgres:18-bookworm@sha256:3725f4e2499eef5134592b3b4ab79a543ed7f8e533b05b5b637af926630f6650'
@@ -36,6 +37,7 @@ METRICS_URL = 'https://github.com/kubernetes-sigs/metrics-server/releases/downlo
 METRICS_SHA = '4a672c4891902573a3ff753cece5de1bf1f55dd053403dfec39df9d1636b7ff1'
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--image', required=True)
+parser.add_argument('--inside-xvfb', action='store_true', help=argparse.SUPPRESS)
 parser.add_argument('--deployment-only', action='store_true', help='check deployment/metrics/HPA only; never full native acceptance')
 parser.add_argument('--client', type=Path)
 parser.add_argument('--data', type=Path, required=True)
@@ -43,6 +45,9 @@ parser.add_argument('--output', type=Path, default=SCRATCH/'aftershock-backend-k
 args = parser.parse_args()
 if not args.deployment_only and args.client is None:
     parser.error('--client is required for full native acceptance')
+if not args.deployment_only and not args.inside_xvfb:
+    subprocess.run(['xvfb-run', '-a', sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], '--inside-xvfb'], check=True)
+    sys.exit(0)
 if args.output.exists():
     parser.error('choose a new output directory')
 args.output.mkdir(parents=True, mode=0o700)
@@ -54,7 +59,7 @@ kubeconfig = output/'kubeconfig'
 ctl = [kubectl, '--kubeconfig', str(kubeconfig), '-n', namespace]
 processes, streams = [], []
 created = False
-engine = None
+client = inputs = None
 
 def command(arguments, **kwargs):
     kwargs.setdefault('timeout', 30)
@@ -77,8 +82,8 @@ def follow(name, arguments):
 def wait_for(check, seconds, label, pump=False):
     deadline = time.monotonic()+seconds
     while time.monotonic() < deadline:
-        if pump:
-            engine.step(2)
+        if client is not None:
+            assert client.poll() is None, "native client exited; see client.log"
         value = check()
         if value:
             return value
@@ -261,33 +266,45 @@ try:
         project = source/'assets.json'
         project.write_text(json.dumps(dict(version=1, assets=[dict(name='ui/backend', kind='ui', source='shell.json')])))
         cook(project, base)
-        engine = Engine(args.client, args.data, 'openarena', home=home, arguments=[
+        for pak in paks:
+            (base/pak.name).symlink_to(pak.resolve())
+        icds = list(Path('/usr/share/vulkan/icd.d').glob('lvp*.json'))
+        assert len(icds) == 1
+        environment = dict(os.environ, LP_NUM_THREADS='1', VK_DRIVER_FILES=str(icds[0]), VK_ICD_FILENAMES=str(icds[0]))
+        client_log = output/'client.log'
+        stream = client_log.open('w')
+        streams.append(stream)
+        client = subprocess.Popen([str(x) for x in [args.client.resolve(),
+            '+set', 'fs_basepath', home, '+set', 'fs_homepath', home, '+set', 'fs_basegame', 'baseoa',
             '+set', 'net_enabled', '1', '+set', 'net_port', '0', '+set', 'backend_url', endpoint,
-            '+set', 'backend_ca', cert, '+set', 'ui_document', 'ui/backend.asui', '+set', 'cl_allowDownload', '0'])
-        engine.request('session', dt=50, seed=17)
-        engine.step(4)
+            '+set', 'backend_ca', cert, '+set', 'ui_document', 'ui/backend.asui', '+set', 'cl_allowDownload', '0',
+            '+set', 'r_mode', '3', '+set', 'r_fullscreen', '0', '+set', 's_initsound', '0',
+            '+set', 'com_maxfps', '20', '+set', 'com_maxfpsUnfocused', '20', '+set', 'cl_autoRecordDemo', '0',
+            '+set', 'com_introplayed', '1', '+set', 'com_skipIdLogo', '1', '+set', 'con_notifytime', '0']],
+            stdin=subprocess.PIPE, stdout=stream, stderr=subprocess.STDOUT, text=True,
+            env=environment, start_new_session=True)
+        processes.append(client)
+        wait_for(lambda: 'Common Initialization Complete' in client_log.read_text(), 30, 'native client startup')
+        inputs = XInput()
+        inputs.verify_window(client)
         def execute(text):
-            engine.request('exec', command=text)
-            engine.step(2)
+            client.stdin.write(text+'\n')
+            client.stdin.flush()
+            time.sleep(.15)
         def info():
             execute('backend_info')
-            rows = re.findall(r'Backend: status=(.*?) name=(.*?) match=(\S*) score=(\S*) kills=(\S*) deaths=(\S*)', engine.log_path.read_text(errors='replace'))
+            rows = re.findall(r'Backend: status=(.*?) name=(.*?) match=(\S*) score=(\S*) kills=(\S*) deaths=(\S*)', client_log.read_text(errors='replace'))
             assert rows, 'native public backend status must be inspectable without credentials'
             return rows[-1]
-        def keypress(name):
-            engine.request('key', name=name, down=True)
-            engine.step()
-            engine.request('key', name=name, down=False)
-            engine.step()
         def activate(name):
             for _ in range(6):
                 execute('ui_info')
-                focus = re.findall(r'UI document: loaded=1 page=main focus=(\w+)', engine.log_path.read_text())
+                focus = re.findall(r'UI document: loaded=1 page=main focus=(\w+)', client_log.read_text())
                 assert focus, 'authored main menu must be visible'
                 if focus[-1] == name:
-                    keypress('PAD0_A')
+                    inputs.key('Return')
                     return
-                keypress('PAD0_DPAD_DOWN')
+                inputs.key('Down')
             raise AssertionError('cannot focus '+name)
         execute('backend_dev_login')
         wait_for(lambda: info()[0] == 'Signed in', 20, 'verified fixture login', True)
@@ -303,7 +320,7 @@ try:
         log_run('ingest-ready.log', [*ctl, 'rollout', 'status', 'deployment/ingest', '--timeout=60s'], timeout=70)
         wait_for(lambda: 'ClientBegin: 0' in (output/'server.log').read_text(), 30, 'native signed join', True)
         assert player in (output/'server.log').read_text(), 'server must log verified account attribution'
-        wait_for(lambda: bool(engine.request('state')['player']), 20, 'active native player', True)
+        wait_for(lambda: 'CL_InitCGame:' in client_log.read_text(), 20, 'native game initialization')
         execute('kill')
         def match_metrics():
             reply = subprocess.run([*ctl, 'get', '--raw',
@@ -332,9 +349,10 @@ try:
         activate('results')
         values = wait_for(lambda: (row if (row := info())[0] == 'Results loaded' else None), 20, 'native results UI', True)
         assert values[2] == match and values[3:] == ('-1', '0', '1'), values
-        capture = engine.request('capture', name='backend-results')
-        engine.step(2)
-        shutil.copyfile(base/capture['path'], output/'profile-results.png')
+        execute('screenshot silent backend-results')
+        capture = base/'screenshots/backend-results.tga'
+        wait_for(capture.exists, 10, 'authored results screenshot')
+        Image.open(capture).convert('RGB').save(output/'profile-results.png')
         metrics = get('/metrics')
         for service in ('auth', 'profile', 'queue', 'results'):
             counter = re.search(r'aftershock_backend_requests_total\{service="'+service+r'"\} ([0-9]+)', metrics)
@@ -348,13 +366,12 @@ try:
         report = dict(full=True, match=match, account=player, gameserver=original, profile_values=values,
                       checkpoint=final['checkpoint'], scaled_replicas=hpa['status']['desiredReplicas'])
         (output/'report.json').write_text(json.dumps(report, indent=2)+'\n')
-        text = engine.log_path.read_text(errors='replace')
+        text = client_log.read_text(errors='replace')
         assert ticket.hex() not in text and ingest_token not in text and publisher not in text
         print('PASS: native HTTPS login -> kind backend/Agones -> signed match -> verified stats -> profile results; health/metrics/HPA')
 finally:
-    if engine:
-        shutil.copyfile(engine.log_path, output/'client.log')
-        engine.close()
+    if inputs:
+        inputs.close()
     for process in reversed(processes):
         if process.poll() is None:
             os.killpg(process.pid, signal.SIGTERM)

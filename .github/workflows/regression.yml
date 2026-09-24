@@ -604,7 +604,7 @@ jobs:
         with:
           key: regression-match-server
       - name: Install native client and public test-content prerequisites
-        run: sudo apt-get update && sudo apt-get install -y python3-jsonschema ninja-build faketime xvfb xauth mesa-vulkan-drivers libsdl2-dev libasound2-dev mesa-common-dev openarena-data libcurl4-openssl-dev python3-venv python3-yaml
+        run: sudo apt-get update && sudo apt-get install -y python3-jsonschema ninja-build faketime xvfb xauth mesa-vulkan-drivers libsdl2-dev libasound2-dev mesa-common-dev openarena-data libcurl4-openssl-dev python3-venv python3-yaml libxtst6 x11-utils
       - name: Prepare authored backend UI tooling
         run: |
           python3 -m venv ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-cook-python
