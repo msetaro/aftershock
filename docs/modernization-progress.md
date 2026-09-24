@@ -45,7 +45,7 @@ production services integration merged automatically. No preview headers are use
 1. Normal client/service/admission probes and full development client+server builds
    now pass with GCC and Clang/libc++. The public-status assertion failed before
    implementation and now passes; no credential is printed. Preserve that evidence.
-2. Rebuild the image from this integrated branch and run default `backend_kind.py`
+2. The integrated image `aftershock-match:resume29` is rebuilt. Run default `backend_kind.py`
    for native HTTPS login -> queue -> signed Agones match -> verified account stats
    -> authored profile/results and actual session revocation. Deployment-only health/
    metrics/HPA already passed at the generated 65% target; it is not full acceptance.
@@ -58,6 +58,17 @@ Heartbeat retirement, fresh Go race/vet/private PostgreSQL/TLS checks, authored 
 and HTTPS probes on both compilers pass as recorded below. The full client/kind
 flow is still pending. Accepted predecessors #19-#22 and closed #31 remain complete;
 do not repeat finished work, historical network controls or accepted fixtures.
+
+## #29 broad regression dependency check
+
+The first affected run stopped at the real `agent_formats` match decoder: its
+isolated copy of `spec.go` now imports the #29 contracts and references private
+join-file publication. The fixture now copies the production module/contracts
+source and supplies a fail-if-called publication stub; the actual decoder and
+schema comparisons remain unchanged. The focused format test passes after this
+fix (`/tmp/aftershock-resume/agent-formats-fixed2.log`). Rerun affected acceptance;
+its first report is failed, not a partial pass. Full native kind acceptance is
+running against the rebuilt integrated image; no full pass is yet claimed.
 
 ## #29 normal integrated native builds and public diagnostics
 
