@@ -2,7 +2,7 @@
 
 The strict port made no engine bug fixes. Modernization #31 dispositions are recorded below.
 
-## Explicit agent steps do not receive external UDP (#31, separate fix pending)
+## Explicit agent steps do not receive external UDP (#182, separate #31 fix pending)
 
 Found during #29 kind acceptance after HTTPS login and allocation succeeded.
 An `--agent` client with `net_enabled=1` sends connection traffic but never
