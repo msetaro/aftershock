@@ -17,6 +17,13 @@ import urllib.parse
 import urllib.request
 
 
+def retirement_held(pods):
+    producers = [pod for pod in pods if pod['name'].startswith('ingest-burst-')]
+    return len(producers) == 100 and all(
+        len(pod['containers']) == 3 and all('running' in row['state'] and row['restartCount'] == 0
+                                           for row in pod['containers']) for pod in producers)
+
+
 class IngestAcceptance:
     """Shares the driver's owned cluster, cleanup scope and native client only."""
     def __init__(self, context):
@@ -28,6 +35,19 @@ class IngestAcceptance:
         c = self.c
         return c['command']([*c['ctl'], 'exec', 'deployment/ingest-db', '--', 'psql', '-U', 'postgres',
                              '-d', 'results', '-Atc', query], stdout=subprocess.PIPE, text=True).stdout.strip()
+
+    def snapshot(self, name):
+        # Outside measured windows: retain CPU pressure/throttling and container
+        # completion evidence without serializing pod specifications or secrets.
+        c = self.c
+        c['log_run']('ingest-resources-'+name+'.log', ['docker', 'exec', c['node'], 'sh', '-c',
+            'cat /proc/pressure/cpu; find /sys/fs/cgroup -name cpu.stat '
+            + "-exec awk 'FNR == 1 { print FILENAME } { print }' {} +"])
+        pods = c['document']([*c['ctl'], 'get', 'pods', '-o', 'json'])['items']
+        safe = [dict(name=p['metadata']['name'], uid=p['metadata']['uid'],
+                     containers=p.get('status', {}).get('containerStatuses', [])) for p in pods]
+        (c['output']/('ingest-containers-'+name+'.json')).write_text(json.dumps(safe, indent=2)+'\n')
+        return safe
 
     def prepare(self, resources):
         c = self.c
@@ -306,9 +326,11 @@ class IngestAcceptance:
                 workers = [pool.submit(sample) for _ in range(4)]
                 try:
                     time.sleep(1)
+                    self.snapshot('baseline-start')
                     baseline_start = time.monotonic()
                     time.sleep(5)
                     baseline_end = time.monotonic()
+                    assert retirement_held(self.snapshot('burst-start')), 'producer fleet was not running before release'
                     burst_start = time.monotonic()
                     control('/release', True)
                     deadline = time.monotonic()+60
@@ -316,6 +338,7 @@ class IngestAcceptance:
                         assert time.monotonic() < deadline, '100 ending acknowledgements timed out'
                         time.sleep(.1)
                     burst_end = time.monotonic()
+                    held = retirement_held(self.snapshot('burst-end'))
                 finally:
                     stop.set()
                 for worker in workers:
@@ -331,9 +354,10 @@ class IngestAcceptance:
                 baseline_ms=baseline, burst_ms=during, p95_limit_ms=limit, errors=failures,
                 ending_spread_ms=max(status['ended'].values())-min(status['ended'].values()),
                 final_acknowledgements=len(status['acked']), burst_seconds=burst_end-burst_start,
-                retirement_held_during_measurement=True, transport='verified HTTPS through private NodePort')
+                retirement_held_during_measurement=held, transport='verified HTTPS through private NodePort')
             (c['output']/'ingest-burst.json').write_text(json.dumps(report, indent=2)+'\n')
             (c['output']/'ingest-latency-samples.json').write_text(json.dumps(samples)+'\n')
+            assert held, 'fixture containers retired during the ingest measurement'
             assert len(status['ended']) == 100 and report['ending_spread_ms'] <= 5000
             assert not failures and during['p95'] <= limit, 'player-facing profile latency regressed beyond declared noise allowance'
             assert self.sql("SELECT count(*) FROM results.matches WHERE match_id LIKE 'burst-%' AND final") == '100'

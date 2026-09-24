@@ -38,6 +38,7 @@ METRICS_URL = 'https://github.com/kubernetes-sigs/metrics-server/releases/downlo
 METRICS_SHA = '4a672c4891902573a3ff753cece5de1bf1f55dd053403dfec39df9d1636b7ff1'
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--image', required=True)
+parser.add_argument('--node-cpuset', help='pin only the owned kind node to these host CPUs for constrained diagnostics')
 parser.add_argument('--inside-xvfb', action='store_true', help=argparse.SUPPRESS)
 parser.add_argument('--deployment-only', action='store_true', help='check deployment/metrics/HPA only; never full native acceptance')
 parser.add_argument('--production-ingest', action='store_true', help='also require transactional ingest outage recovery and 100-ending isolation')
@@ -131,6 +132,8 @@ try:
                           '--kubeconfig', kubeconfig, '--wait', '60s', *kind_options], timeout=240)
     log_run('image.log', [kind, 'load', 'docker-image', args.image, '--name', cluster], timeout=180)
     node = cluster+'-control-plane'
+    if args.node_cpuset:
+        log_run('node-cpuset.log', ['docker', 'update', '--cpuset-cpus', args.node_cpuset, node])
     # Pull the pinned manifest through the node runtime. Importing a Docker
     # multi-platform index can reference platforms absent from its local store.
     log_run('postgres-pull.log', ['docker', 'exec', node, 'crictl', 'pull', POSTGRES], timeout=240)
