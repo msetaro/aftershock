@@ -1,5 +1,10 @@
 # Ironforge migration handoff — 2026-09-22
 
+This migration has been resumed. Use [the current progress checkpoint](modernization-progress.md)
+and [tracking issue #25](https://github.com/msetaro/aftershock/issues/25) for the
+remaining action and acceptance receipts. The original restart instructions below
+are preserved as historical migration evidence.
+
 This is the restart record for the lost worktree/thread. The maintainer requested
 syncing unfinished work, not merging incomplete code. Read current `origin/main:AGENTS.md`,
 then this file and `docs/modernization-progress.md`. Check live GitHub state before acting.

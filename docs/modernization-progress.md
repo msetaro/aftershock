@@ -30,29 +30,86 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
-Current follow-up is #189 on `issue/189-backend-retirement`, based on main
-`997e5f48` (PR188). #185 is fully integrated/accepted: all 26 jobs/publication,
-receipt #185 comment 5810648361. #187 passed all 26 final jobs and merged with
-verified parents/tree; integrated build 35980087766/publication pass and regression
-35980087835 has passed the target ingest test, with lifetime/runtime still pending.
-Read the issue acceptance receipts for live state before resuming.
+Implementation is complete through the separate UDP fix in PR184. On resume,
+read the final/integrated acceptance receipts on #189/#182/#30 and tracker #25
+first. These record gates completed after this checkpoint. Finish only unresolved
+current-base, merge and integrated checks; do not restart completed work. Once
+accepted, only console SDK #24, separate fuzz #35 and Steam SDK/provider/live #180
+remain explicitly excluded. No SDK/account input is needed for this scope.
 
-PR184 forward head `34f4cd93` passes all compiler jobs but regression 35980235416
-failed match-server job 107570112711 during backend HPA scale-down. Three #187
-used-connection recoveries succeeded and retained their full latency. A separate
-fresh TLS handshake failed with `SSLEOFError` and zero reconnects, as required by
-the retry boundary. The report is preserved in
-`/tmp/aftershock-resume/agent184-second-forward-failure-artifacts`; p95 itself passes
-3.589/6.672 ms versus 8.589 ms. Do not broaden retries or rerun the failure unchanged.
+#23 and #29 are fully accepted. #30 merged as PR183 at 0136a489 after all 26
+required jobs passed, but integrated regression 35958556482 failed ingest latency;
+all other nine required regression jobs and build/publication passed. Preserve
+issue30-integrated-failed-gates.json. Separate #185 / PR186 fixes incomplete
+fixture retirement holding. Merge c3d3d6b2 passed all 26 final and integrated jobs
+(build 35967886988, regression 35967886994) plus publication; exact parents/tree
+and unchanged rollback tag are verified in pr186-integrated-gates.json.
+#185 is fully accepted in comment 5810648361.
 
-#189 owns a production backend pre-stop endpoint-withdrawal interval before its
-existing bounded HTTP shutdown, with sufficient termination grace. First require
-a failing deployment contract and real-kind deletion test against the old manifest;
-then verify withdrawn endpoint/fresh TLS availability/bounded exit and unchanged
-full production-ingest acceptance. HPA/resources/workload/latency allowance and
-fresh-connection/TLS failure behavior stay unchanged. Keep PR184 isolated/unmerged
-and #30 unchecked until this separate correction is integrated. Preserve #182's
-completed UDP evidence; do not repeat prior negative controls or accepted fixtures.
+PR184 head fa9522e5 passed all compiler jobs and nine required regression jobs
+but failed a reused HTTPS connection during backend scale-down. Preserve
+pr184-forward-failed-gates.json and ingest184-forward-failure-artifacts. #187 /
+PR188 fixes that case separately; merge 997e5f48 passed all 26 final jobs and
+all 26 integrated jobs (35980087766 / 35980087835) plus publication. Exact
+parents/tree and rollback tag are verified in pr188-integrated-gates.json.
+#187 is fully accepted in comment 5812454480.
+
+PR184 head 34f4cd93 then passed all compiler jobs and nine required regression
+jobs but failed a fresh TLS handshake during HPA scale-down. Three idle recoveries
+succeeded; the fresh failure correctly remained fatal. Preserve
+pr184-second-forward-failed-gates.json and agent184-second-forward-failure-artifacts.
+The separate production retirement correction #189 / PR190 passed all 26 jobs
+on final 17f0e01d (build 35983288966, regression 35983288981) against current main
+997e5f48. Self-review/base receipt: #189 comment 5812706152 and
+pr190-final-gates.json. Merge d05c5a130e1c87bac6056567712e1ef924855c4b has those
+exact parents and the identical tested tree. Integrated build 35989895415 and
+regression 35989895421, including publication, are required; read #189's receipts
+for their live result. #30 stays unchecked until this correction is fully accepted.
+
+Current branch is issue/182-agent-udp. Main d05c5a13 is merged forward to run
+fresh PR184 gates concurrently with #189 integration. Preparation is not merge
+acceptance: BOTH #189 integrated acceptance/publication and all 26 fresh PR184
+jobs must pass. Recheck main immediately before a merge commit; if it advances,
+merge forward and rerun gates. Then require PR184 integrated 26/publication,
+record #182/#31 acceptance and finish the #25 checkpoint. Engine bytes and
+completed UDP local evidence are unchanged; backend/ingest files match main.
+The combined workflow catalog is checked after the forward merge. No accepted
+fixture, rollback tag or completed negative control is changed/repeated.
+
+## #182 UDP implementation and verification
+
+Test-first `8ba56a42` drives a native dedicated server/client through fixed 20-ms
+steps over external localhost UDP. Unchanged accepted binaries fail external
+getinfo, native join and snapshot/chat progress, with zero incoming bytes and
+snapshots after 400 client steps; fixed-dt and idle-clock checks pass. Evidence:
+`/tmp/aftershock-resume/agent-udp-before/{report.json,server.log,client.log}` and
+the adjacent outer log. Do not repeat this completed negative control.
+
+Fix `ad33aed1` polls `NET_Sleep(0)` alongside queued sends during explicit frames.
+Both content sets pass query/join/chat with ten snapshots in 26 client frames.
+Fixed-dt/idle clocks, the channel test, ordinary pure-server join/chat and seeded
+playthrough comparisons (snapshots, pixels, telemetry, hits/kills) pass. Formatting
+and affected checks pass (`/tmp/aftershock-1g5366yw/affected-report.json`). Engine
+sources remain identical after main-forward merges, so this evidence retains its
+provenance; only fresh current-base hosted gates are needed. The former isolated
+worktree was removed cleanly; binaries/logs remain under the private resume root.
+
+Pre-forward head `be902db0` passed all 26 required jobs: build 35958809325 and
+regression 35958809383. The hosted UDP artifact also passes all three operations,
+ten snapshots and 2,622 incoming bytes in 26 fixed frames. Receipts:
+`pr184-pre-forward-gates.json`, `agent182-hosted-artifacts/report.json`, and #182
+comment 5809069276. These completed checks are preserved evidence; the new base
+still requires new hosted gates. The combined workflow catalog is checked after
+the forward merge. No accepted fixture or rollback tag changes.
+
+Self-review: the only engine change is a nonblocking platform networking call
+inside explicit development frames. No new OS access, allocation, non-trivial
+destructor, layout or floating-point change; regular/no-delay pacing is unchanged.
+The failing-first test covers the defect and existing ordinary/seeded behavior
+passes. Keep this fix separate from the ingest correction.
+
+## #189 backend retirement implementation and verification
+
 Test-first `ff8330a9` requires the missing hook/grace and real-kind retirement.
 The old manifest fails with fresh-handshake `SSLEOFError` after EndpointSlice
 withdrawal and 19 successful TLS samples (`backend189-retirement-before` plus its
@@ -77,15 +134,18 @@ non-trivial destructor, allocation, layout or FP change. No accepted fixture/tag
 change. A bounded propagation interval is not a universal availability guarantee
 under unbounded control-plane delay or forced deletion.
 
-Final #189 PR requires all 26 jobs against current main, immediate base check,
-merge commit and integrated 26/publication. #187 integration has 25 of 26 passes,
-with runtime pending at this checkpoint. Read #187/#189 issue receipts for live
-acceptance on resume; do not repeat completed local work. After this correction
-is fully integrated, accept #30 in #25, merge main forward into PR184 and require
-its fresh current-base 26 and post-merge integration. Only #24/#35/#180 remain
-explicit exclusions; no SDK/account input is needed.
+Final hosted acceptance (backend189-hosted-artifacts/aftershock-backend-kind)
+passes endpoint withdrawal, 47 fresh TLS requests through 5.097 s after deletion,
+15.718-s bounded termination and replacement. Native recovery restores 16 events/
+1,538 bytes exactly after 70.171 s without restart; pre-stop commits the aborted
+stream without scores. All 100 endings ACK in 2.252 s, 34-ms spread, with all
+completed shippers held, exact 600 events/totals and zero errors/reconnects.
+Baseline/burst p95 is 1.399/2.375 ms versus unchanged 6.399 ms (1,840/807 samples);
+burst p99/max is 6.843/11.728 ms. #189 comments 5811781137 and 5812015605 preserve
+local and hosted receipts. All 26 final jobs pass; integrated acceptance remains
+mandatory. No failed or superseded run is treated as acceptance.
 
-## #187 implementation checkpoint
+## #187 transport implementation and verification
 
 Test-first `5192f931` extracts the existing profile probe unchanged and reproduces
 `RemoteDisconnected` over a real private TLS server (`ingest187-transport-before.log`).
@@ -114,53 +174,46 @@ separately proves retirement recovery and its measured delay. Format passes all
 
 Self-review confirms benchmark/evidence/test wiring only: no engine/production
 change, OS-boundary violation, destructor, allocation, layout or FP change.
-Draft PR188 requires all 26 hosted jobs on the final checkpoint/current main,
-immediate base verification, then integrated acceptance/publication. Read #187's
-receipts for live gate state; PR184's next main-forward will retain those receipts.
-No failed or superseded job is an acceptance result.
+PR188 passed all 26 required jobs and merged as recorded above. Final hosted
+acceptance (`ingest187-hosted-artifacts/aftershock-backend-kind`) passes native
+recovery/pre-stop and all 100 ACKs in 2.163 s, with 45-ms ending spread, exact 600
+events/totals and zero errors. Baseline/burst p95 is 3.136/6.626 ms against the
+unchanged 8.136-ms allowance (1,699/692 samples); burst p99/max is 12.677/29.175 ms.
+This hosted run also has zero reconnects; both unit variants pass the real-TLS
+fault regression. #187 comments 5810097947 and 5810333553 retain local/hosted
+receipts. No failed or superseded job is an acceptance result. All 26 integrated jobs and publication pass; #187 is fully accepted in
+comment 5812454480. The distinct #189 production retirement issue is tracked above.
 
-## #185 correction checkpoint (historical)
+## #185 ingest measurement correction and evidence
 
-#30 integrated acceptance is blocked by #185. Main `0136a489` passed its final
-PR gates, but integrated regression 35958556482 failed the unchanged profile
-latency criterion: baseline p95 1.923 ms, burst 9.649 ms, limit 6.923 ms.
-All 100 ACKs arrived in 2.321 seconds; native outage recovery and pre-stop passed.
-Integrated build 35958556479 passed including publication. Preserve the failed
-artifact at `/tmp/aftershock-resume/ingest-integrated-failure-artifacts`.
-#185 on `issue/185-ingest-latency` corrects the incomplete fixture retirement hold.
-The original four-CPU diagnostic (`ingest185-diagnostic-before`) found 51 results
-containers already terminated at the end snapshot. The runtime invariant passes
-before release and fails after ACK (`ingest185-retirement-before.log`, corrected
-test-first commit `9b670812`). Containerd consumed 2.593 CPU-seconds in the 2.377-s
-snapshot interval, versus all kubepods' 1.267. Local latency itself still passed;
-this is evidence of unintended lifecycle work, not a local latency reproduction.
+Original main integration p95 was 1.923 ms baseline / 9.649 ms burst against a
+6.923-ms allowance; all 100 ACKs arrived in 2.321 s with zero errors and passing
+native outage/pre-stop. Preserve `ingest-integrated-failure-artifacts`. Four-CPU
+diagnostics (`ingest185-diagnostic-before`) found 51 terminated shipper containers
+inside the supposedly held interval. Test-first invariant `9b670812` passes the
+pre-release state and fails the post-ACK state (`ingest185-retirement-before.log`).
+Containerd used 2.593 CPU-seconds in a 2.377-s interval, versus all kubepods' 1.267.
+Local latency itself passed; this was evidence of unintended lifecycle work,
+not a local reproduction of the hosted latency failure.
 
 A fixture parent now runs the unchanged production shipper and waits at the
-retirement barrier only after successful completion. All 100 shipper completions
-and all 100 running server/results pairs without restarts are required. Four-CPU
-full run `/tmp/aftershock-resume/ingest185-held/report.json` passes native recovery,
-pre-stop, all 100 ACKs in 2.035 s, nine-ms ending spread, exact 600 events/totals,
-zero request errors, and p95 0.506/0.494 ms before/during (limit 5.506 ms).
-Containerd uses 0.339 CPU-seconds in the 2.335-s snapshot interval; zero fixture
-containers terminate. Production binaries, resource/HPA settings, measurement
-threshold and accepted fixtures are unchanged. The final diagnostic collector
-also tolerates disappearing cgroups; that variant passed a separate owned-node
-read, and hosted CI covers its full use. Formatting, workflow catalog and affected
-checks pass (`/tmp/aftershock-20st_7fu/affected-report.json`). CI retains sanitized
-container status and cgroup CPU evidence alongside latency samples.
+retirement barrier only after successful completion. All 100 completed shippers
+and 100 running producer/shipper pairs without restarts are required. The full
+four-CPU `ingest185-held/report.json` passes native outage/pre-stop, exact 600
+events/totals, zero errors, ACKs in 2.035 s, nine-ms ending spread and p95
+0.506/0.494 ms (limit 5.506). No containers exit during measurement; containerd
+uses 0.339 CPU-seconds in the comparable 2.335-s snapshot interval.
 
-Self-review: only the benchmark fixture, diagnostics, artifact list and documentation
-change. No engine code, OS-boundary, allocation, destructor, layout or floating-point
-change. Native pre-stop remains independently required. Require all 26 hosted jobs
-against current main, verify the base immediately before a merge commit, then
-require integrated jobs/publication. Inspect #185/#30 acceptance receipts on resume;
-do not repeat completed gates. Only then check #30 in #25 and resume PR184.
+Final hosted acceptance (`ingest185-hosted-artifacts/aftershock-backend-kind`)
+passes native recovery/pre-stop, all 100 completed shippers held, no exits/restarts,
+exact events/totals and zero errors. ACKs arrive in 2.262 s, endings span 49 ms,
+and p95 is 1.573/3.731 ms against 6.573 ms (1,805/762 samples). Burst p99 is
+8.888 ms and max 23.203 ms; shared-host/control-plane work still exists. This is
+the declared p95 criterion, not identical tails or a production capacity claim.
+Production binaries, resources/HPA, workload, threshold and accepted fixtures are
+unchanged. Formatting, affected checks and workflow catalog pass. CPU collection
+handles disappearing cgroups; sanitized status/counter artifacts accompany samples.
 
-Separate explicit-step UDP fix #182 is ready in draft PR184, head `be902db0`.
-Its branch is preserved; local failing-first and both-content passing evidence
-is recorded on #182 and in that branch's checkpoint. Hold its merge until #185
-establishes accepted main, then merge main forward and run current-base gates.
-Do not repeat its completed local tests without a relevant source change.
 
 ## #29/#30 implementation checkpoint (historical)
 

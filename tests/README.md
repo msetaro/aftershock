@@ -1391,7 +1391,13 @@ handles and memory, sub-second texture-to-frame latency and renderer restart.
 It samples the reported preview rectangle and preserves the prior image thresholds.
 Pass `--output DIR` to retain PNGs/logs or `--modules` to build the optional module
 configuration. Source assets are copied into private scratch; installed paks are
-only symlinked. `tests/agent_channel.py --binary DEDICATED` checks pipe stepping,
+only symlinked. `tests/agent_network_runtime.py --client CLIENT --server DEDICATED`
+uses development binaries and actual localhost UDP to verify external queries,
+native join/snapshot/chat progress during explicit steps, fixed 20-ms frame time
+and idle clocks. Both content sets are supported; hosted CI supplies OpenArena.
+It retains per-peer logs and a report in its private output directory. The new
+regression fails on the pre-fix engine; accepted replay fixtures are unchanged.
+`tests/agent_channel.py --binary DEDICATED` checks pipe stepping,
 idle clock and EOF; `tests/agent_play.py --binary CLIENT` checks seeded gameplay.
 
 ### Scripted agent acceptance (#163)
