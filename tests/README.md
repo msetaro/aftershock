@@ -1320,7 +1320,9 @@ the production shipper, releases one barrier and requires exactly 600 events and
 five seconds. This burst exercises delivery/storage, not 100 native game clients.
 
 Four persistent HTTPS workers measure authenticated backend profile requests
-before and during that burst. All requests must succeed, both windows need at
+before and during that burst through a private NodePort mapped only to localhost.
+This uses the service data path rather than kubectl port-forward through the API
+server/kubelet; backend request logs are retained alongside end-to-end samples. All requests must succeed, both windows need at
 least 100 samples, and burst p95 must stay within the greater of baseline p95 ×
 1.25 or baseline p95 + 5 ms. Reports retain p50/p95/p99/max and individual samples.
 The private kind node allows 160 pods with small fixture/SDK requests; production

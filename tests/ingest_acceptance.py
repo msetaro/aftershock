@@ -179,7 +179,20 @@ class IngestAcceptance:
         c['command'](['docker', 'exec', c['node'], 'chown', '65532:65532', '/aftershock-provider/config.json'])
         c['log_run']('benchmark-provider-restart.log', [*c['ctl'], 'rollout', 'restart', 'deployment/auth-fixture'])
         c['log_run']('benchmark-provider-ready.log', [*c['ctl'], 'rollout', 'status', 'deployment/auth-fixture', '--timeout=60s'], timeout=70)
-        request = urllib.request.Request(c['endpoint']+'/v1/login', data=json.dumps(dict(ticket=ticket.hex())).encode(),
+        # Measure ordinary HTTPS service traffic. kubectl port-forward traverses
+        # the API server/kubelet and would mix control-plane load into this latency.
+        c['apply']('burst-backend-service.json', c['resource']('Service', 'backend-benchmark',
+            spec=dict(type='NodePort', selector=dict(app='backend'),
+                      ports=[dict(port=8443, targetPort='https', nodePort=30443)])))
+        benchmark_endpoint = c['benchmark_endpoint']
+        def service_ready():
+            try:
+                with urllib.request.urlopen(benchmark_endpoint+'/healthz', context=c['trust'], timeout=5) as response:
+                    return json.load(response).get('ready') is True
+            except (urllib.error.URLError, OSError):
+                return False
+        c['wait_for'](service_ready, 30, 'private HTTPS benchmark service')
+        request = urllib.request.Request(benchmark_endpoint+'/v1/login', data=json.dumps(dict(ticket=ticket.hex())).encode(),
                                          headers={'Content-Type': 'application/json'}, method='POST')
         def login_ready():
             try:
@@ -267,7 +280,7 @@ class IngestAcceptance:
         stop = threading.Event()
         lock = threading.Lock()
         samples, failures = [], []
-        endpoint = urllib.parse.urlsplit(c['endpoint'])
+        endpoint = urllib.parse.urlsplit(benchmark_endpoint)
         def sample():
             connection = http.client.HTTPSConnection(endpoint.hostname, endpoint.port, context=c['trust'], timeout=5)
             try:
@@ -318,7 +331,7 @@ class IngestAcceptance:
                 baseline_ms=baseline, burst_ms=during, p95_limit_ms=limit, errors=failures,
                 ending_spread_ms=max(status['ended'].values())-min(status['ended'].values()),
                 final_acknowledgements=len(status['acked']), burst_seconds=burst_end-burst_start,
-                retirement_held_during_measurement=True)
+                retirement_held_during_measurement=True, transport='verified HTTPS through private NodePort')
             (c['output']/'ingest-burst.json').write_text(json.dumps(report, indent=2)+'\n')
             (c['output']/'ingest-latency-samples.json').write_text(json.dumps(samples)+'\n')
             assert len(status['ended']) == 100 and report['ending_spread_ms'] <= 5000
@@ -332,7 +345,9 @@ class IngestAcceptance:
             self.evidence['burst'] = report
             control('/retire', True)
         finally:
-            request = urllib.request.Request(c['endpoint']+'/v1/logout', data=b'{}',
+            c['log_run']('ingest-benchmark-backend.log', [*c['ctl'], 'logs', 'deployment/backend',
+                '--all-pods=true', '--prefix', '--since=2m'])
+            request = urllib.request.Request(benchmark_endpoint+'/v1/logout', data=b'{}',
                 headers={'Authorization': 'Bearer '+token, 'Content-Type': 'application/json'}, method='POST')
             with urllib.request.urlopen(request, context=c['trust'], timeout=5) as response:
                 assert response.status == 200

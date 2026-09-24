@@ -35,11 +35,15 @@ Final head `918860e7` included current main `2c5bf00a`; build 35942975170
 passed all 16 compiler jobs and regression 35942975177 all 10 required jobs.
 Self-review/current-base evidence: #29 comment 5806599450. Merge parents match
 the checked base/head and the tree is identical. Integrated build 35949141712
-passes including publication. Integrated regression 35949141778 has nine required
-jobs passed; runtime remains. Finish that verification before marking #29 fully
-integrated in #25. Optional #35 fuzz remains excluded by existing policy.
+passes including publication. Integrated regression 35949141778 now passes all
+ten required jobs including full runtime/module replay: #29 is fully integrated,
+accepted in comment 5807360468, and checked in #25. Machine-readable evidence is
+`/tmp/aftershock-resume/issue29-integrated-gates.json`. Optional #35 fuzz remains
+excluded by existing policy.
 
-Continue #30 on `issue/30-match-ingest`, directly from the accepted #29 merge.
+Continue #30 on `issue/30-match-ingest`, draft PR183, directly from the accepted
+#29 merge. Reviewed head `fe36c525` is pushed; hosted build 35952568775 and
+regression 35952568860 are running. Issue checkpoint: comment 5807166976.
 Test-first commit `0e962fd1` initially failed schema/Go compilation; evidence is
 `/tmp/aftershock-resume/ingest-contract-before.log` and `ingest-go-before.log`.
 Core commit `01d6a345` implements bounded versioned event/checkpoint envelopes,
@@ -63,23 +67,42 @@ Go race/vet/drain checks pass. Fixed image `aftershock-match:issue30-durable` ra
 passed, then benchmark login received 503 immediately after fixture restart.
 This incomplete run is not full acceptance. The harness now waits through only
 pre-authentication `authentication_unavailable` responses during fixture setup;
-all measured profile requests still must succeed without retries. Current full
-run: `/tmp/aftershock-resume/ingest-kind-full2`.
+all measured profile requests still must succeed without retries. Full rerun
+`/tmp/aftershock-resume/ingest-kind-full2/report.json` now passes: all 16 native
+events/1,538 bytes recovered exactly after 70.112 seconds beyond engine completion,
+zero controller restarts, actual pod-deletion final flush, and 100 barrier endings
+within 1 ms. All 100 final ACKs arrived in 2.033 seconds; 600 stored events and
+per-player totals were exact. Authenticated profile p95 was 0.704 ms before and
+0.936 ms during the burst (1,902/764 samples, zero errors), within the declared
+noise allowance. This local image predates only the stricter malformed nested-field
+decoder below; exact reviewed-head native acceptance is mandatory in hosted CI.
 
 Final review added test-first `03bf7c10` for omitted/null nested checkpoint
 statistics that the JSON schema already rejects (`ingest-nested-before.log`).
 The decoder now enforces those fields; full Go race checks pass in
-`ingest-nested-after.log`. Earlier affected feedback passed all selected checks
-(`/tmp/aftershock-5fruju8q/affected-report.json`); rerun after final edits.
+`ingest-nested-after.log`. Reviewed PostgreSQL checks pass in `ingest-database-reviewed.log`; formatting,
+suite catalog and reviewed affected checks pass (report
+`/tmp/aftershock-o6qrwlet/affected-report.json`). All 16 hosted compiler jobs pass
+at `fe36c525`; regression 35952568860 failed its required match-server latency gate: native
+outage/pre-stop and all 100 ACKs passed, but port-forward profile p95 rose from
+2.089 ms to 34.582 ms (limit 7.089 ms). This run is not merge acceptance. Logs and
+artifacts are in `ingest-hosted-first*` under the private resume root. The benchmark
+had routed service traffic through the API server/kubelet; it now uses verified
+HTTPS through a localhost-only kind NodePort, preserving the same limits and
+recording all backend replica request timings. This is a measurement-path
+correction, not yet proof that shared-host contention is resolved. Local reviewed
+image run `ingest-kind-direct1` is active; hosted acceptance must pass the corrected
+path before merge. The post-apply service-readiness wait was added after that local
+process started; hosted CI will cover it.
 
-Next: finish native/100-ending acceptance, self-review production code/contracts,
-run final affected/local checks, open #30 PR and require all 26 hosted gates on
+Next: finish corrected hosted burst acceptance and final #30 checkpoint/self-review;
+require all 26 hosted gates on
 current main before merge, then integrated checks. CI now includes schema,
 deployment, private PostgreSQL and full production-ingest kind acceptance.
 The private 100-producer node allows 160 pods with small fixture/SDK requests;
 production service limits and 65% HPA targets remain unchanged. Measure backend
 profile p95 against the declared max(1.25×baseline, baseline+5ms) allowance.
-No full kind acceptance is claimed until every scenario passes. Distinguish the
+Local full kind acceptance above is complete. Distinguish the
 native outage from simulated ending producers using actual Agones allocations
 and the production shipper.
 

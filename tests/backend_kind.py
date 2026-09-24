@@ -117,9 +117,15 @@ try:
     if args.production_ingest:
         # 100 simultaneous producer pods plus the owned services/control plane.
         # This is a private load-test capacity setting, not a production default.
+        with socket.socket() as reservation:
+            reservation.bind(('127.0.0.1', 0))
+            benchmark_port = reservation.getsockname()[1]
+        benchmark_endpoint = f'https://127.0.0.1:{benchmark_port}'
         config = output/'kind-config.json'
         config.write_text(json.dumps(dict(kind='Cluster', apiVersion='kind.x-k8s.io/v1alpha4',
-            nodes=[dict(role='control-plane', kubeadmConfigPatches=['kind: KubeletConfiguration\nmaxPods: 160\n'])])))
+            nodes=[dict(role='control-plane', kubeadmConfigPatches=['kind: KubeletConfiguration\nmaxPods: 160\n'],
+                extraPortMappings=[dict(containerPort=30443, hostPort=benchmark_port,
+                                        listenAddress='127.0.0.1', protocol='TCP')])])))
         kind_options = ['--config', config]
     log_run('create.log', [kind, 'create', 'cluster', '--name', cluster, '--image', NODE,
                           '--kubeconfig', kubeconfig, '--wait', '60s', *kind_options], timeout=240)
