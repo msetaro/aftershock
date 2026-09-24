@@ -28,12 +28,24 @@ from those tests. This dependency no longer blocks modernization; continue #24's
 existing SDK dependency checkpoint, then #29 and #30. No SDK/account answer is
 needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
-## Active separate #31 bug fix — #182
+## Next action
 
-The #29/#30 continuation is owned by `issue/30-match-ingest` / PR183 in the main
-worktree. #29 is fully integrated at `45d8dc46`; #30 final head `c3af24bf` is awaiting
-required hosted checks. This isolated worktree prepares only #182 and must merge
-accepted #30 main forward before its final gates/PR merge.
+#23 and #29 are fully integrated. #30 merged as PR183 at
+`0136a489ba4495e98c246a573be5a5a9160c6bda`, after final head `c3af24bf`
+passed all 16 compiler jobs (35955011447) and all 10 required regression jobs
+(35955011424) against then-current main `45d8dc46`. Self-review: #30 comment
+5807570574. Merge parents are the verified base/head; the tree is identical.
+Evidence: `/tmp/aftershock-resume/pr183-final-gates.json` and `pr183-merge.json`.
+Integrated build 35958556479 and regression 35958556482 must complete before
+final #30 acceptance is checked in #25. Final-head hosted ingest recovered all
+16 events/1,538 bytes and flushed pre-stop; all 100 ending ACKs arrived in 2.135
+seconds with exact totals, no errors and p95 1.540/5.289 ms under the declared
+6.540 ms allowance. Tail limits remain in the archived checkpoint below and reports.
+
+Current branch is `issue/182-agent-udp` in the main workspace. The isolated
+preparation worktree was cleanly removed after its commits were preserved; all
+logs/binaries remain under `/tmp/aftershock-resume`. This is the separate #31 bug
+fix requested by #182, not part of #29/#30.
 
 Test-first `tests/agent_network_runtime.py` drives an actual native dedicated
 server and client through explicit fixed 20-ms steps over localhost UDP. On
@@ -47,14 +59,25 @@ join, 10 snapshots and chat in 26 client frames. Fixed-dt/idle clocks and the
 existing channel test pass. CI includes the real UDP regression and artifacts.
 Ordinary pure-server native join/chat and the seeded playthrough (identical
 snapshots, pixels, telemetry, hits/kills) pass. Formatting and all selected affected
-checks pass (`/tmp/aftershock-1g5366yw/affected-report.json`). Next: merge accepted
-#30 main forward, resolve only checkpoint documentation, open this separate PR,
-and require every hosted check on the current base before merge and integrated
-acceptance. No additional local test reruns are needed unless source changes or
-new failures require them. Preserve regular/no-delay frame paths, floating-point expressions,
-accepted fixtures and the completed network-driver negative control.
+checks pass (`/tmp/aftershock-1g5366yw/affected-report.json`). Accepted #30 main is merged forward in `02822c58`; engine sources are identical
+to locally tested `ad33aed1`, so those runtime checks retain their provenance.
+The combined workflow catalog is checked after the forward merge. No accepted
+fixture, floating-point expression, regular/no-delay pacing or rollback tag changes.
 
-## Next action (historical #29 checkpoint below)
+Implementation self-review is complete: the only engine change is a nonblocking
+platform networking call inside explicit development frames; no new OS access,
+allocation, non-trivial destructor or wire/file layout change. The real failing-first
+regression covers the defect and existing ordinary/seeded behavior passes.
+
+Next: open the separate #182 PR, require all 26 jobs against current main, check
+#30 integrated acceptance, then recheck the base immediately before a merge commit.
+After merging, verify integrated jobs/publication and record acceptance in #182
+and #31. Do not repeat completed local tests unless source changes or a new failure
+requires it. The only remaining roadmap exclusions are #24's console SDK access,
+separate #35 work and explicitly deferred Steam #180; no SDK/account input is
+needed for these changes.
+
+## #29/#30 implementation checkpoint (historical)
 
 #29 merged as PR181 at `45d8dc461a32f6e825421937bd7f37cb7d444f1c`.
 Final head `918860e7` included current main `2c5bf00a`; build 35942975170
