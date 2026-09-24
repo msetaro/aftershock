@@ -139,6 +139,8 @@ playtest, prediction, bisect and rollback-tag recipes, plus full-suite instructi
   actual signed admission and heartbeat retirement. `tests/backend_kind.py --image
   IMAGE --client CLIENT --data OA_DATA` covers native HTTPS-to-match-to-results and
   HPA in an owned kind cluster (devtools client with curl; rebuilt image).
+- Platform service contracts: `python3 tests/services.py` (null and installed
+  test provider; live Steam acceptance is separate).
 - Fast feedback: `python3 tests/affected.py BASE_REF` (600-second default budget;
   timeout/incomplete is a nonzero result, never merge acceptance).
 - Full local regression: `python3 tests/suite.py --glslang PATH --openarena-data PATH`.

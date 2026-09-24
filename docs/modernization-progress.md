@@ -30,29 +30,34 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
-Resumed on Ironforge, 2026-09-23, from migration checkpoint `b199539c`.
-Read current main instructions, migration handoff and issues #25/#23/#24/#29/#30/#180.
-Completed PR179 final self-review and fresh base/head/tag verification without
-repeating passed checks. Its exact head `1f395716` contains main `aa96932a`;
-all 16 compiler and ten active required regression jobs passed. The five fuzz
-jobs remain explicitly nonblocking under separate-scope #35; PR-only publication
-skips are conditional. Merge commit `2c5bf00a5753f13ff0bd698898d245f9388b9fb3`
-has the identical tested tree. Integrated build 35931243625 and regression
-35931243579 are pending. #23 self-review evidence is on the issue.
+Resumed on Ironforge from migration checkpoint `b199539c`. PR179 (#23) is now
+fully accepted at main `2c5bf00a5753f13ff0bd698898d245f9388b9fb3`: its reviewed
+head `1f395716` included current main `aa96932a`, all 26 final jobs passed,
+and the merge tree equals that tested tree. Integrated build 35931243625 and
+regression 35931243579 pass all 26 required jobs, including full native/runtime/
+module replay and actual build publication. Optional #35 fuzz remains excluded
+by its existing continue-on-error policy. Self-review evidence is on #23.
 
-1. Verify those integrated jobs before accepting #23 and merging main forward
-   into this branch. Preserve `SERVICE_BACKEND = 2` and this checkpoint.
-2. Continue #29's committed failing heartbeat test, normal client/compiler builds,
-   actual native HTTPS-to-kind-match-to-profile acceptance, deployment metrics/
-   scaling, CI/catalog wiring and documentation. Keep PR181 draft until complete.
-3. Run current-main final gates and self-review, merge #29, verify integration,
-   then continue #30 per #25. Steam SDK/provider/live work remains deferred to
-   #180; #24 retains its SDK dependency. No SDK/account input is required now.
+Accepted main is merged forward into this branch, retaining `SERVICE_BACKEND = 2`,
+all #29 work and predecessor evidence. Conflicts were documentation/affected rules;
+production services integration merged automatically. No preview headers are used.
 
-Accepted predecessors #21 PR177 (`7c24808f`) and #22 PR178 (`aa96932a`) passed
-all 26 integrated required jobs. #22 build 35767363858/regression 35767363841
-and prior #19/#20 acceptance remain valid. #31 is closed after PR174.
-Do not repeat completed issues or the historical network negative control.
+1. Run the normal native client probe. Its newly committed public-status assertion
+   must fail before implementing that bounded diagnostic; then run GCC/Clang client
+   and service/admission probes and full normal native builds.
+2. Rebuild the image from this integrated branch and run default `backend_kind.py`
+   for native HTTPS login -> queue -> signed Agones match -> verified account stats
+   -> authored profile/results and actual session revocation. Deployment-only health/
+   metrics/HPA already passed at the generated 65% target; it is not full acceptance.
+3. Finish #29 scope/self-review, affected/full-suite and all current-main hosted
+   gates, update #29/#25, then merge PR181 and verify integrated runs. Keep it draft
+   until complete. Continue #30 afterward. #24 retains its SDK dependency;
+   Steam SDK/provider/live work remains deferred to #180 with no setup input needed.
+
+Heartbeat retirement, fresh Go race/vet/private PostgreSQL/TLS checks, authored UI
+and HTTPS probes on both compilers pass as recorded below. The full client/kind
+flow is still pending. Accepted predecessors #19-#22 and closed #31 remain complete;
+do not repeat finished work, historical network controls or accepted fixtures.
 
 ## #29 transport verification on the resumed machine
 
@@ -713,6 +718,19 @@ GameServerAllocation specification (https://agones.dev/site/docs/reference/games
 and Steam ISteamUserAuth (https://partner.steamgames.com/doc/webapi/ISteamUserAuth).
 Real Steam identity acceptance remains #180; CI identities must be explicitly
 isolated test-provider identities, never represented as live Steam verification.
+
+## #23 deferral documentation and combined checks
+
+Follow-up #180 now owns SDK setup, Steam provider implementation, authenticated
+SDK ticket transport and live presence/invite acceptance. Public interface and
+test-reference comments point to that issue. The current interface/null-backend
+scope remains subject to all final gates. The locally combined AI/profiling tree
+passes service GCC/Clang probes, existing identity/discovery checks, affected/suite
+catalog checks, formatting and workflow lint. The original draft's 16 compiler
+builds and nine regression jobs pass; its remaining runtime is cancelled as
+superseded by the required final #22 main integration, not accepted or waived.
+Main #21 is 7c24808f; #22 final head b23ef158 has all 16 compiler legs green and
+regression is running. Preserve merge order and rerun #23 on accepted #22 main.
 
 ## #23 bounded service implementation
 

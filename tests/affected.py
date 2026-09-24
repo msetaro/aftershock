@@ -13,7 +13,7 @@ from run import ROOT, SCRATCH
 # These are asset-independent entry points with no required binary arguments.
 FAST = ('backend', 'backend_http', 'backend_client', 'backend_ui', 'backend_deployment', 'packages', 'bot_chat_shutdown', 'agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
         'state', 'navigation', 'animation', 'entities', 'physics', 'ui_framework', 'audio_spatial', 'audio_events', 'audio_streams', 'audio_voice', 'capture', 'weapons', 'effects', 'effects_reference', 'post', 'temporal', 'lod', 'streaming', 'native_math', 'native_shared', 'replication',
-        'protocol', 'rewind', 'replication_policy', 'identity', 'rhi', 'render_graph',
+        'protocol', 'rewind', 'replication_policy', 'identity', 'services', 'rhi', 'render_graph',
         'shadow_views', 'probes', 'materials', 'cook', 'level', 'lighting',
         'devtools_data', 'check_boundaries', 'check_types', 'check_format',
         'check_isolation', 'isolation', 'suite_contract', 'publish_build', 'match_content')
@@ -29,6 +29,7 @@ RULES = (
     (('engine/ui/', 'engine/client/cl_data_ui', 'tools/cook/ui', 'tests/assets/backend/', 'tests/backend_ui', 'tests/probes/backend_ui'), ('backend_ui',)),
     (('tools/match/backend', 'tests/backend_deployment', 'tests/backend_kind'), ('backend_deployment', 'match_go')),
 
+    (('engine/platform/services_public.h', 'engine/platform/sys_services.cpp', 'tests/services.py', 'tests/probes/services.cpp'), ('identity', 'services')),
     (('engine/qcommon/package', 'engine/platform/sys_content_file.cpp', 'tools/package.py', 'tests/packages'), ('packages',)),
     (('engine/navigation/', 'game/game/g_navigation.cpp', 'tools/cook/navigation', 'tools/cook/behavior', 'third_party/recast/', 'tests/navigation', 'tests/probes/navigation', 'tests/probes/behavior', 'tests/probes/perception'), ('navigation',)),
     (('engine/qcommon/state.cpp', 'engine/qcommon/cvar.cpp', 'engine/qcommon/profile.cpp', 'engine/platform/sys_save.cpp', 'engine/platform/save_public.h', 'engine/client/cl_checkpoint.cpp', 'engine/server/sv_checkpoint.cpp', 'engine/server/sv_world.cpp', 'engine/public/state_public.h', 'engine/public/state_replication_public.h', 'tools/replication.py', 'engine/qcommon/q_shared.h', 'game/bg/q_shared.h', 'game/game/', 'engine/botlib/', 'tests/state.py', 'tests/probes/state'), ('state',)),
