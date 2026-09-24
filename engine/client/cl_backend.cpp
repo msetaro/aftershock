@@ -332,6 +332,10 @@ static void BackendResults() {
 static void BackendLogout() {
 	CL_BackendAction( "logout" );
 }
+static void BackendInfo() {
+	Com_Printf( "Backend: status=%s name=%s match=%s score=%s kills=%s deaths=%s\n",
+		backend.status, backend.name, backend.match, backend.score, backend.kills, backend.deaths );
+}
 #ifdef AFTERSHOCK_DEVTOOLS
 static void BackendDevLogin() {
 	Sys_HTTPCancel();
@@ -363,6 +367,7 @@ void CL_BackendInit() {
 	Cmd_AddCommand( "backend_profile", BackendProfile );
 	Cmd_AddCommand( "backend_results", BackendResults );
 	Cmd_AddCommand( "backend_logout", BackendLogout );
+	Cmd_AddCommand( "backend_info", BackendInfo );
 #ifdef AFTERSHOCK_DEVTOOLS
 	Cmd_AddCommand( "backend_dev_login", BackendDevLogin );
 #endif
@@ -376,6 +381,7 @@ void CL_BackendShutdown() {
 	Cmd_RemoveCommand( "backend_profile" );
 	Cmd_RemoveCommand( "backend_results" );
 	Cmd_RemoveCommand( "backend_logout" );
+	Cmd_RemoveCommand( "backend_info" );
 #ifdef AFTERSHOCK_DEVTOOLS
 	Cmd_RemoveCommand( "backend_dev_login" );
 #endif

@@ -42,9 +42,9 @@ Accepted main is merged forward into this branch, retaining `SERVICE_BACKEND = 2
 all #29 work and predecessor evidence. Conflicts were documentation/affected rules;
 production services integration merged automatically. No preview headers are used.
 
-1. Run the normal native client probe. Its newly committed public-status assertion
-   must fail before implementing that bounded diagnostic; then run GCC/Clang client
-   and service/admission probes and full normal native builds.
+1. Normal client/service/admission probes and full development client+server builds
+   now pass with GCC and Clang/libc++. The public-status assertion failed before
+   implementation and now passes; no credential is printed. Preserve that evidence.
 2. Rebuild the image from this integrated branch and run default `backend_kind.py`
    for native HTTPS login -> queue -> signed Agones match -> verified account stats
    -> authored profile/results and actual session revocation. Deployment-only health/
@@ -58,6 +58,21 @@ Heartbeat retirement, fresh Go race/vet/private PostgreSQL/TLS checks, authored 
 and HTTPS probes on both compilers pass as recorded below. The full client/kind
 flow is still pending. Accepted predecessors #19-#22 and closed #31 remain complete;
 do not repeat finished work, historical network controls or accepted fixtures.
+
+## #29 normal integrated native builds and public diagnostics
+
+After merge-forward `8f98f5a1`, the ordinary client probe compiles with the real
+services header and fails at `publicInfo` as intended (`client-before.log`).
+`backend_info` now reports only the six existing public UI fields; it never prints
+session/ticket credentials. Both GCC and Clang/libc++ probes pass, including the
+credential-exclusion assertion, services/null-provider and full schema/native
+admission probes. Fresh normal development client+server builds pass with both
+compilers (`client-build.log`, `clang-build.log`) without preview headers.
+
+Format (605 files), fixed-width policy (457), boundaries (458), suite/affected
+catalog and isolation checks pass. Evidence is under `/tmp/aftershock-resume`.
+Next: rebuild the integrated match image and execute the default full native kind
+flow, then final scope/affected/full-suite/hosted gates. No full-kind pass is claimed.
 
 ## #29 transport verification on the resumed machine
 
