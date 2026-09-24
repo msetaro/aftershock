@@ -16,9 +16,11 @@ func main() {
 	defer cancel()
 	var err error
 	if len(os.Args) != 2 {
-		err = errors.New("usage: match run|ship|stub|probe|records|backend|ingest")
+		err = errors.New("usage: match run|ship|drain|stub|probe|records|backend|ingest")
 	} else {
 		switch os.Args[1] {
+		case "drain":
+			err = drain(ctx)
 		case "ingest":
 			err = serveDurableIngest(ctx)
 		case "backend":

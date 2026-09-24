@@ -113,8 +113,16 @@ def sql(query):
 
 try:
     created = True
+    kind_options = []
+    if args.production_ingest:
+        # 100 simultaneous producer pods plus the owned services/control plane.
+        # This is a private load-test capacity setting, not a production default.
+        config = output/'kind-config.json'
+        config.write_text(json.dumps(dict(kind='Cluster', apiVersion='kind.x-k8s.io/v1alpha4',
+            nodes=[dict(role='control-plane', kubeadmConfigPatches=['kind: KubeletConfiguration\nmaxPods: 160\n'])])))
+        kind_options = ['--config', config]
     log_run('create.log', [kind, 'create', 'cluster', '--name', cluster, '--image', NODE,
-                          '--kubeconfig', kubeconfig, '--wait', '60s'], timeout=240)
+                          '--kubeconfig', kubeconfig, '--wait', '60s', *kind_options], timeout=240)
     log_run('image.log', [kind, 'load', 'docker-image', args.image, '--name', cluster], timeout=180)
     node = cluster+'-control-plane'
     # Pull the pinned manifest through the node runtime. Importing a Docker
@@ -128,7 +136,9 @@ try:
     log_run('agones.log', [helm, 'install', 'agones', chart, '--namespace', 'agones-system', '--create-namespace',
         '--kubeconfig', kubeconfig, '--server-side=false', '--set', 'agones.allocator.install=false',
         '--set', 'agones.ping.install=false', '--set', 'agones.controller.replicas=1', '--set', 'agones.controller.numWorkers=2',
-        '--set', 'agones.image.sdk.memoryRequest=32Mi', '--set', 'agones.image.sdk.memoryLimit=128Mi',
+        '--set', 'agones.image.sdk.memoryRequest='+('16Mi' if args.production_ingest else '32Mi'),
+        *(['--set', 'agones.image.sdk.cpuRequest=5m'] if args.production_ingest else []),
+        '--set', 'agones.image.sdk.memoryLimit=128Mi',
         '--set', 'gameservers.namespaces[0]='+namespace, '--set', 'gameservers.minPort=7000',
         '--set', 'gameservers.maxPort=7003', '--wait', '--timeout', '180s'], timeout=240)
     metrics = urllib.request.urlopen(METRICS_URL, timeout=60).read()

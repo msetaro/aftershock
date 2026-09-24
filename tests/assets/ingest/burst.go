@@ -52,13 +52,53 @@ func main() {
 func coordinate() error {
 	var mu sync.Mutex
 	ready := map[string]bool{}
+	ended := map[string]int64{}
+	acked := map[string]int64{}
 	gate := make(chan struct{})
+	retire := make(chan struct{})
 	released := false
+	retired := false
 	mux := http.NewServeMux()
 	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		defer mu.Unlock()
-		_ = json.NewEncoder(w).Encode(map[string]any{"ready": len(ready), "released": released})
+		_ = json.NewEncoder(w).Encode(map[string]any{"ready": len(ready), "released": released, "ended": ended, "acked": acked})
+	})
+	mux.HandleFunc("/ended", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		id := r.URL.Query().Get("match")
+		if !released || !ready[id] {
+			w.WriteHeader(http.StatusConflict)
+			return
+		}
+		ended[id] = time.Now().UnixMilli()
+	})
+	mux.HandleFunc("/ack", func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("match")
+		mu.Lock()
+		if !released || !ready[id] {
+			mu.Unlock()
+			w.WriteHeader(http.StatusConflict)
+			return
+		}
+		acked[id] = time.Now().UnixMilli()
+		mu.Unlock()
+		select {
+		case <-retire:
+			_, _ = w.Write([]byte("retire"))
+		case <-r.Context().Done():
+		}
+	})
+	mux.HandleFunc("/retire", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		if r.Method != http.MethodPost || len(acked) != 100 || retired {
+			w.WriteHeader(http.StatusConflict)
+			return
+		}
+		retired = true
+		close(retire)
 	})
 	mux.HandleFunc("/release", func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
@@ -198,9 +238,27 @@ func produce() error {
 	if err = os.WriteFile(filepath.Join(home, "engine.done"), []byte("{}"), 0600); err != nil {
 		return err
 	}
+	response, err = client.Get("http://burst-coordinator:8080/ended?match=" + allocation.ID)
+	if err != nil {
+		return err
+	}
+	response.Body.Close()
+	if response.StatusCode != 200 {
+		return errors.New("fixture completion not recorded")
+	}
 	for {
 		if _, err = os.Stat(filepath.Join(home, "results.done")); err == nil {
 			fmt.Printf("fixture acknowledged %s\n", allocation.ID)
+			// Hold retirement until the write-burst latency window is measured,
+			// so replacement-pod startup is not confused with ingest pressure.
+			response, err := waiter.Get("http://burst-coordinator:8080/ack?match=" + allocation.ID)
+			if err != nil {
+				return err
+			}
+			response.Body.Close()
+			if response.StatusCode != 200 {
+				return errors.New("fixture retirement not released")
+			}
 			return sdk("POST", "/shutdown", nil)
 		}
 		if time.Now().After(deadline) {

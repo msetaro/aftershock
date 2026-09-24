@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a private kind acceptance namespace: warm Fleet, ingest stub and allocation."""
+"""Generate a namespace and warm Fleet, with an optional local-development ingest stub."""
 import argparse
 import base64
 import json
@@ -12,9 +12,13 @@ parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--image',default='aftershock-match:issue28')
 parser.add_argument('--namespace',default='aftershock-'+secrets.token_hex(6))
 parser.add_argument('--ci-content',help='optional node-local OpenArena test root (never added to the image)')
+parser.add_argument('--production-ingest', action='store_true', help='use TLS ingest; omit the development stub and static tokens')
+parser.add_argument('--ingest-ca-secret', help='CA-only secret containing ca.crt for private ingest trust')
 args=parser.parse_args()
 namespace=args.namespace
 if not re.fullmatch(r'[a-z][a-z0-9-]{0,61}[a-z0-9]',namespace):parser.error('namespace must be a DNS label of 2..63 characters')
+if args.ingest_ca_secret and (not args.production_ingest or not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?', args.ingest_ca_secret)):
+    parser.error('--ingest-ca-secret requires production ingest and a DNS label')
 if args.output.exists():parser.error('choose a new output directory')
 args.output.mkdir(parents=True,mode=0o700)
 spec=dict(id='kind-'+secrets.token_hex(8),map='two_lane',mode=0,frag_limit=0,time_limit=1,players=2,
@@ -33,6 +37,15 @@ shared=[dict(name='home',mountPath='/home/match')]
 server.update(ports=[dict(name='game',containerPort=27960,protocol='UDP')],volumeMounts=shared)
 shipper.update(volumeMounts=shared,env=[dict(name='MATCH_DEV_INSECURE',value='1'),dict(name='MATCH_INGEST',value='ingest:50051')])
 volumes=[dict(name='home',emptyDir=dict(sizeLimit='256Mi'))]
+if args.production_ingest:
+    shipper['env'] = [row for row in shipper['env'] if row['name'] != 'MATCH_DEV_INSECURE']
+    for workload in (server, shipper):
+        workload['lifecycle'] = dict(preStop=dict(exec=dict(command=['/app/match', 'drain'])))
+    if args.ingest_ca_secret:
+        volumes.append(dict(name='ingest-trust', secret=dict(secretName=args.ingest_ca_secret,
+            items=[dict(key='ca.crt', path='ca.crt')], defaultMode=0o444)))
+        shipper['volumeMounts'] = shared+[dict(name='ingest-trust', mountPath='/ingest-trust', readOnly=True)]
+        shipper['env'].append(dict(name='MATCH_INGEST_CA_FILE', value='/ingest-trust/ca.crt'))
 if args.ci_content:
     path=Path(args.ci_content)
     if not path.is_absolute() or '..' in path.parts:parser.error('--ci-content must be an absolute node path')
@@ -55,6 +68,8 @@ objects=[
 allocation=dict(apiVersion='allocation.agones.dev/v1',kind='GameServerAllocation',metadata=dict(namespace=namespace),
                 spec=dict(selectors=[dict(matchLabels={'agones.dev/fleet':'aftershock'})],
                           metadata=dict(annotations={'aftershock.dev/match':json.dumps(spec)})))
+if args.production_ingest:
+    objects = [obj for obj in objects if obj['kind'] in ('Namespace', 'Fleet')]
 for name,value in [('resources.json',dict(apiVersion='v1',kind='List',items=objects)),('allocation.json',allocation),('match.json',spec)]:
     (args.output/name).write_text(json.dumps(value,indent=2)+'\n')
 print(args.output/'resources.json')

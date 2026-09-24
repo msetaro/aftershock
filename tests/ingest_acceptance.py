@@ -1,12 +1,19 @@
 """Production ingest scenarios used by the owned backend kind acceptance driver."""
 import base64
+import concurrent.futures
+import copy
+import http.client
 import json
+import math
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
+import threading
 import time
+import urllib.parse
+import urllib.request
 
 
 class IngestAcceptance:
@@ -58,6 +65,7 @@ class IngestAcceptance:
                 pod['volumes'].append(dict(name='ingest-fixture', hostPath=dict(path='/aftershock-ingest-fixture', type='Directory')))
                 next(container for container in pod['containers'] if container['name'] == 'server')['volumeMounts'].append(
                     dict(name='ingest-fixture', mountPath='/fixture', readOnly=True))
+                self.fleet = copy.deepcopy(row)
         return resources
 
     def inspect(self, server):
@@ -82,10 +90,10 @@ class IngestAcceptance:
         stopped_at = time.monotonic()
         while time.monotonic()-stopped_at < 70:
             time.sleep(1)
-        retained = self.inspect(server)
         pod = c['document']([*c['ctl'], 'get', 'pod', server, '-o', 'json'])
         assert all(row['restartCount'] == 0 for row in pod['status']['containerStatuses']), \
             'controller exited while final data was unacknowledged; old one-minute timeout must not retire the pod'
+        retained = self.inspect(server)
         gs = c['document']([*c['ctl'], 'get', 'gameserver', server, '-o', 'json'])
         assert gs['status']['state'] == 'Allocated', 'unacknowledged match was retired'
         assert retained.get('ack.json') == original_ack and 'results.done' not in retained
@@ -120,9 +128,203 @@ class IngestAcceptance:
         (self.c['output']/'ingest-events.json').write_text(json.dumps(rows, indent=2)+'\n')
         return final
 
+    def drain_match(self):
+        c = self.c
+        c['wait_for'](c['ready'], 120, 'replacement native server before preStop check')
+        match = 'drain-'+c['secrets'].token_hex(12)
+        spec = dict(id=match, map='two_lane', mode=0, frag_limit=0, time_limit=1, players=1,
+                    password=c['secrets'].token_hex(16), token=c['secrets'].token_hex(32))
+        allocation = dict(apiVersion='allocation.agones.dev/v1', kind='GameServerAllocation',
+            metadata=dict(namespace=c['namespace']), spec=dict(selectors=[dict(matchLabels={'agones.dev/fleet': 'aftershock'})],
+                metadata=dict(labels={'aftershock.dev/match': match}, annotations={'aftershock.dev/match': json.dumps(spec)})))
+        path = c['root']/'drain-allocation.json'
+        path.write_text(json.dumps(allocation))
+        path.chmod(0o600)
+        response = c['document']([*c['ctl'], 'create', '-f', path, '-o', 'json'])
+        assert response['status']['state'] == 'Allocated'
+        server = response['status']['gameServerName']
+        c['follow']('drain-server.log', [*c['ctl'], 'logs', '-f', server, '-c', 'server'])
+        first = c['wait_for'](lambda: self.sql(f"SELECT offset_bytes FROM results.matches WHERE match_id='{match}' AND offset_bytes>0"),
+                             30, 'initial native drain stream')
+        c['log_run']('drain-delete.log', [*c['ctl'], 'delete', 'pod', server, '--grace-period=75', '--wait=false'])
+        deadline = time.monotonic()+60
+        while self.sql(f"SELECT final FROM results.matches WHERE match_id='{match}'") != 't':
+            pod = subprocess.run([*c['ctl'], 'get', 'pod', server, '-o', 'name'], stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL, timeout=10)
+            assert pod.returncode == 0, 'pod disappeared before final durable acknowledgement'
+            assert time.monotonic() < deadline, 'native preStop flush timed out'
+            time.sleep(.2)
+        assert self.sql(f"SELECT checkpoint->>'completed' FROM results.matches WHERE match_id='{match}'") == 'false'
+        assert self.sql(f"SELECT count(*) FROM results.player_results WHERE match_id='{match}'") == '0'
+        assert int(self.sql(f"SELECT count(*) FROM results.events WHERE match_id='{match}' AND sequence>={int(first)} AND type='ShutdownGame'")) >= 1
+        self.evidence['prestop'] = dict(native_engine=True, kubernetes_pod_deletion=True,
+                                       final_committed=True, aborted_scores_not_published=True)
+
     def finish(self):
-        # Filled by the separately measured 100-producer burst acceptance.
-        raise AssertionError('100 simultaneous endings and backend latency acceptance still required')
+        c = self.c
+        self.drain_match()
+        # Native UI acceptance is complete; remove rendering work from both
+        # latency windows equally. The real backend request path remains active.
+        c['execute']('quit')
+        assert c['client'].wait(timeout=10) == 0
+        c['client'] = None
+        ticket = c['secrets'].token_bytes(32)
+        config = c['root']/'provider/config.json'
+        identity = json.loads(config.read_text())
+        identity['ticket'] = ticket.hex()
+        config.write_text(json.dumps(identity))
+        c['command'](['docker', 'cp', config, c['node']+':/aftershock-provider/config.json'])
+        c['command'](['docker', 'exec', c['node'], 'chown', '65532:65532', '/aftershock-provider/config.json'])
+        c['log_run']('benchmark-provider-restart.log', [*c['ctl'], 'rollout', 'restart', 'deployment/auth-fixture'])
+        c['log_run']('benchmark-provider-ready.log', [*c['ctl'], 'rollout', 'status', 'deployment/auth-fixture', '--timeout=60s'], timeout=70)
+        request = urllib.request.Request(c['endpoint']+'/v1/login', data=json.dumps(dict(ticket=ticket.hex())).encode(),
+                                         headers={'Content-Type': 'application/json'}, method='POST')
+        with urllib.request.urlopen(request, context=c['trust'], timeout=10) as response:
+            session = json.load(response)
+        assert session['player_id'] == c['player']
+        token = session['token']
+        coordinator = dict(name='coordinator', image=c['args'].image, command=['/fixture/fixture'],
+            env=[dict(name='FIXTURE_MODE', value='coordinator')],
+            resources=dict(requests=dict(cpu='10m', memory='16Mi'), limits=dict(cpu='250m', memory='64Mi')),
+            volumeMounts=[dict(name='fixture', mountPath='/fixture', readOnly=True)],
+            readinessProbe=dict(httpGet=dict(path='/status', port=8080), periodSeconds=1))
+        c['apply']('burst-coordinator.json', dict(apiVersion='apps/v1', kind='Deployment',
+            metadata=dict(name='burst-coordinator', namespace=c['namespace']), spec=dict(replicas=1,
+                selector=dict(matchLabels=dict(app='burst-coordinator')),
+                template=dict(metadata=dict(labels=dict(app='burst-coordinator')), spec=dict(containers=[coordinator],
+                    volumes=[dict(name='fixture', hostPath=dict(path='/aftershock-ingest-fixture', type='Directory'))])))))
+        c['apply']('burst-service.json', c['resource']('Service', 'burst-coordinator',
+            spec=dict(selector=dict(app='burst-coordinator'), ports=[dict(port=8080)])))
+        c['log_run']('burst-coordinator-ready.log', [*c['ctl'], 'rollout', 'status', 'deployment/burst-coordinator', '--timeout=60s'], timeout=70)
+        fleet = copy.deepcopy(self.fleet)
+        fleet['metadata']['name'] = 'ingest-burst'
+        fleet['spec']['replicas'] = 100
+        game = fleet['spec']['template']['spec']
+        game['ports'] = []
+        pod = game['template']['spec']
+        pod['volumes'] = [row for row in pod['volumes'] if row['name'] != 'test-content']
+        for row in pod['volumes']:
+            if row['name'] == 'home':
+                row['emptyDir']['sizeLimit'] = '8Mi'
+        containers = {row['name']: row for row in pod['containers']}
+        producer = containers['server']
+        producer.update(command=['/fixture/fixture'], args=[], env=[], ports=[],
+                        resources=dict(requests=dict(cpu='5m', memory='8Mi'), limits=dict(cpu='100m', memory='32Mi')))
+        producer['volumeMounts'] = [row for row in producer['volumeMounts'] if row['name'] != 'test-content']
+        shipper = containers['results']
+        shipper['resources'] = dict(requests=dict(cpu='5m', memory='16Mi'), limits=dict(cpu='250m', memory='64Mi'))
+        shipper['env'] = [row for row in shipper['env'] if row['name'] != 'MATCH_GAME']
+        shipper['env'].append(dict(name='MATCH_GAME', value='aftershock'))
+        c['apply']('burst-fleet.json', fleet)
+        c['wait_for'](lambda: sum(g.get('status', {}).get('state') == 'Ready' for g in
+            c['document']([*c['ctl'], 'get', 'gameservers', '-l', 'agones.dev/fleet=ingest-burst', '-o', 'json'])['items']) == 100,
+            240, '100 actual Agones Ready producers')
+        allocation_dir = c['root']/'burst-allocations'
+        allocation_dir.mkdir(mode=0o700)
+        def allocate(index):
+            match = 'burst-'+c['secrets'].token_hex(8)+'-'+str(index)
+            spec = dict(id=match, map='two_lane', mode=0, frag_limit=0, time_limit=1, players=1,
+                        password='', token=c['secrets'].token_hex(32), join_key=c['secrets'].token_hex(32),
+                        expected_players=[str(1000000+index)])
+            allocation = dict(apiVersion='allocation.agones.dev/v1', kind='GameServerAllocation',
+                metadata=dict(namespace=c['namespace']), spec=dict(selectors=[dict(matchLabels={'agones.dev/fleet': 'ingest-burst'})],
+                    metadata=dict(labels={'aftershock.dev/match': match}, annotations={'aftershock.dev/match': json.dumps(spec)})))
+            path = allocation_dir/(str(index)+'.json')
+            path.write_text(json.dumps(allocation))
+            path.chmod(0o600)
+            response = c['document']([*c['ctl'], 'create', '-f', path, '-o', 'json'])
+            assert response['status']['state'] == 'Allocated'
+            return match
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            matches = list(pool.map(allocate, range(100)))
+        assert len(set(matches)) == 100
+        with c['socket'].socket() as reservation:
+            reservation.bind(('127.0.0.1', 0))
+            port = reservation.getsockname()[1]
+        c['follow']('burst-forward.log', [*c['ctl'], 'port-forward', 'service/burst-coordinator', f'{port}:8080'])
+        c['wait_for'](lambda: 'Forwarding from' in (c['output']/'burst-forward.log').read_text(), 20, 'burst coordinator forward')
+        coordinator_url = f'http://127.0.0.1:{port}'
+        def control(path, post=False):
+            request = urllib.request.Request(coordinator_url+path, method='POST' if post else 'GET')
+            with urllib.request.urlopen(request, timeout=5) as response:
+                data = response.read()
+            return json.loads(data) if path == '/status' else None
+        c['wait_for'](lambda: control('/status')['ready'] == 100, 60, '100 producers at the same ending barrier')
+        c['wait_for'](lambda: self.sql("SELECT count(*) FROM results.matches WHERE match_id LIKE 'burst-%' AND NOT final") == '100',
+                      60, '100 authenticated initial streams committed')
+        stop = threading.Event()
+        lock = threading.Lock()
+        samples, failures = [], []
+        endpoint = urllib.parse.urlsplit(c['endpoint'])
+        def sample():
+            connection = http.client.HTTPSConnection(endpoint.hostname, endpoint.port, context=c['trust'], timeout=5)
+            try:
+                while not stop.is_set():
+                    started = time.monotonic()
+                    connection.request('GET', '/v1/profile', headers={'Authorization': 'Bearer '+token})
+                    response = connection.getresponse()
+                    body = response.read(65537)
+                    elapsed = (time.monotonic()-started)*1000
+                    assert response.status == 200 and len(body) <= 65536
+                    assert json.loads(body)['player_id'] == c['player']
+                    with lock:
+                        samples.append(dict(start=started, milliseconds=elapsed))
+                    time.sleep(.01)
+            except Exception as error:
+                with lock:
+                    failures.append(type(error).__name__)
+                raise
+            finally:
+                connection.close()
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+                workers = [pool.submit(sample) for _ in range(4)]
+                try:
+                    time.sleep(1)
+                    baseline_start = time.monotonic()
+                    time.sleep(5)
+                    baseline_end = time.monotonic()
+                    burst_start = time.monotonic()
+                    control('/release', True)
+                    deadline = time.monotonic()+60
+                    while len((status := control('/status'))['acked']) != 100:
+                        assert time.monotonic() < deadline, '100 ending acknowledgements timed out'
+                        time.sleep(.1)
+                    burst_end = time.monotonic()
+                finally:
+                    stop.set()
+                for worker in workers:
+                    worker.result()
+            def distribution(start, end):
+                values = sorted(row['milliseconds'] for row in samples if start <= row['start'] < end)
+                assert len(values) >= 100, 'insufficient authenticated profile samples'
+                return dict(samples=len(values), p50=values[math.ceil(len(values)*.50)-1],
+                            p95=values[math.ceil(len(values)*.95)-1], p99=values[math.ceil(len(values)*.99)-1], maximum=max(values))
+            baseline, during = distribution(baseline_start, baseline_end), distribution(burst_start, burst_end)
+            limit = max(baseline['p95']*1.25, baseline['p95']+5.0)
+            report = dict(producers=100, actual_agones_allocations=True, simulated_endings=True,
+                baseline_ms=baseline, burst_ms=during, p95_limit_ms=limit, errors=failures,
+                ending_spread_ms=max(status['ended'].values())-min(status['ended'].values()),
+                final_acknowledgements=len(status['acked']), burst_seconds=burst_end-burst_start,
+                retirement_held_during_measurement=True)
+            (c['output']/'ingest-burst.json').write_text(json.dumps(report, indent=2)+'\n')
+            (c['output']/'ingest-latency-samples.json').write_text(json.dumps(samples)+'\n')
+            assert len(status['ended']) == 100 and report['ending_spread_ms'] <= 5000
+            assert not failures and during['p95'] <= limit, 'player-facing profile latency regressed beyond declared noise allowance'
+            assert self.sql("SELECT count(*) FROM results.matches WHERE match_id LIKE 'burst-%' AND final") == '100'
+            assert self.sql("SELECT count(*) FROM results.events WHERE match_id LIKE 'burst-%'") == '600'
+            assert self.sql("SELECT count(*)||':'||sum(score)||':'||sum(kills)||':'||sum(deaths) FROM results.player_results WHERE match_id LIKE 'burst-%'") == '100:100:0:0'
+            assert self.sql("SELECT count(*) FROM results.matches m WHERE match_id LIKE 'burst-%' AND offset_bytes<>(SELECT COALESCE(sum(octet_length(raw)+1),0) FROM results.events e WHERE e.match_id=m.match_id)") == '0'
+            report['exact_events_and_totals'] = True
+            self.evidence['burst'] = report
+            control('/retire', True)
+        finally:
+            request = urllib.request.Request(c['endpoint']+'/v1/logout', data=b'{}',
+                headers={'Authorization': 'Bearer '+token, 'Content-Type': 'application/json'}, method='POST')
+            with urllib.request.urlopen(request, context=c['trust'], timeout=5) as response:
+                assert response.status == 200
+            shutil.rmtree(allocation_dir, ignore_errors=True)
+        return self.evidence
 
     def cleanup(self):
         for name in ('ingest-db-secret.json', 'ingest-config-secret.json', 'ingest-trust-secret.json'):

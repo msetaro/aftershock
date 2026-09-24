@@ -64,6 +64,25 @@ those checks before changing lifecycle. Do not treat unit/database checks as the
 kind acceptance. #29 integrated build passes (including publication); integrated
 regression currently has eight required jobs passed and no required failure.
 
+Core implementation checkpoint: `01d6a345`. Native outage/Fleet tests were
+committed as `9e4bcf54`; the preStop unit contract as `364fc1b4` (initial compile
+failure in `ingest-drain-before.log`). The real production-TLS/native outage run
+`ingest-kind-before` reached signed play and committed events, then failed after
+the old controller's one-minute final wait: server.log records "final results
+unacknowledged" and the inspector cannot exec the exited container. The owned
+cluster was cleaned. This is the failing control for the #30 retention change,
+not accepted outage coverage; do not repeat it.
+The controller now keeps allocated-pod health alive until final ACK and both
+production preStop hooks request graceful engine quit and wait for results.done
+with a bounded termination grace. Go race/vet and the drain contract pass.
+The full fixed-image run is `/tmp/aftershock-resume/ingest-kind-full1` (image
+`aftershock-match:issue30-durable`); actual pod deletion and a barrier-released
+100-allocation/real-shipper burst with authenticated profile latency are also
+required. Private load-test capacity is 160 pods, with small fixture/SDK requests;
+production service limits and the 65% HPA targets are unchanged. No full kind
+acceptance is claimed until that run's report passes all scenarios.
+#29 integrated regression now has nine required jobs passed; runtime remains.
+
 No queue or optional demo/object-storage feature is needed for v1. No accepted
 fixture regeneration, unrelated engine fixes, or Steam SDK/provider/live work;
 #180 remains explicitly deferred, #24 retains its SDK dependency, #35 its existing
