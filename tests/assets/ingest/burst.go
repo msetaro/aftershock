@@ -3,12 +3,14 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sync"
 	"time"
@@ -38,6 +40,8 @@ func main() {
 		if err == nil {
 			err = json.NewEncoder(os.Stdout).Encode(files)
 		}
+	} else if os.Getenv("FIXTURE_MODE") == "shipper" {
+		err = holdShipper()
 	} else if os.Getenv("FIXTURE_MODE") == "coordinator" {
 		err = coordinate()
 	} else {
@@ -49,11 +53,48 @@ func main() {
 	}
 }
 
+// The actual production shipper must finish successfully before this fixture
+// waits. Keep PID 1 alive so containerd/kubelet retirement work starts only after
+// the ingest measurement; production images and native pre-stop tests are unchanged.
+func holdShipper() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	defer cancel()
+	child := exec.CommandContext(ctx, "/app/match", "ship")
+	child.Stdout, child.Stderr = os.Stdout, os.Stderr
+	if err := child.Run(); err != nil {
+		return err
+	}
+	data, err := os.ReadFile("/home/match/match.json")
+	if err != nil {
+		return err
+	}
+	var allocation struct {
+		ID string `json:"id"`
+	}
+	if json.Unmarshal(data, &allocation) != nil || allocation.ID == "" {
+		return errors.New("fixture shipper allocation missing")
+	}
+	request, err := http.NewRequestWithContext(ctx, "GET", "http://burst-coordinator:8080/shipper-held?match="+allocation.ID, nil)
+	if err != nil {
+		return err
+	}
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	if response.StatusCode != 200 {
+		return errors.New("fixture shipper retirement not released")
+	}
+	return nil
+}
+
 func coordinate() error {
 	var mu sync.Mutex
 	ready := map[string]bool{}
 	ended := map[string]int64{}
 	acked := map[string]int64{}
+	held := map[string]bool{}
 	gate := make(chan struct{})
 	retire := make(chan struct{})
 	released := false
@@ -62,7 +103,7 @@ func coordinate() error {
 	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		defer mu.Unlock()
-		_ = json.NewEncoder(w).Encode(map[string]any{"ready": len(ready), "released": released, "ended": ended, "acked": acked})
+		_ = json.NewEncoder(w).Encode(map[string]any{"ready": len(ready), "released": released, "ended": ended, "acked": acked, "shippers_held": len(held)})
 	})
 	mux.HandleFunc("/ended", func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
@@ -90,10 +131,26 @@ func coordinate() error {
 		case <-r.Context().Done():
 		}
 	})
+	mux.HandleFunc("/shipper-held", func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("match")
+		mu.Lock()
+		if !released || !ready[id] {
+			mu.Unlock()
+			w.WriteHeader(http.StatusConflict)
+			return
+		}
+		held[id] = true
+		mu.Unlock()
+		select {
+		case <-retire:
+			_, _ = w.Write([]byte("retire"))
+		case <-r.Context().Done():
+		}
+	})
 	mux.HandleFunc("/retire", func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		defer mu.Unlock()
-		if r.Method != http.MethodPost || len(acked) != 100 || retired {
+		if r.Method != http.MethodPost || len(acked) != 100 || len(held) != 100 || retired {
 			w.WriteHeader(http.StatusConflict)
 			return
 		}

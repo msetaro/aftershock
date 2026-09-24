@@ -1317,7 +1317,13 @@ An actual pod deletion separately checks pre-stop flushing of an aborted stream.
 It then allocates 100 real Agones GameServers with simulated ending producers and
 the production shipper, releases one barrier and requires exactly 600 events and
 100 final results with no duplicates. The simultaneous endings must span at most
-five seconds. This burst exercises delivery/storage, not 100 native game clients.
+five seconds. A fixture parent runs the unchanged production shipper and holds its
+container alive after successful completion; the producer separately holds Agones
+shutdown. Both containers must remain running, without restarts, until all 100
+shippers have finished and measurement ends. This excludes container retirement
+and replacement startup from the ingest window. Native termination/pre-stop remains
+a separate required scenario. This burst exercises delivery/storage, not 100 native
+game clients.
 
 Four persistent HTTPS workers measure authenticated backend profile requests
 before and during that burst through a private NodePort mapped only to localhost.
@@ -1327,7 +1333,10 @@ least 100 samples, and burst p95 must stay within the greater of baseline p95 ×
 1.25 or baseline p95 + 5 ms. Reports retain p50/p95/p99/max and individual samples.
 The private kind node allows 160 pods with small fixture/SDK requests; production
 service limits and 65% HPA targets are unchanged. Public artifacts are report.json,
-ingest-events.json, ingest-burst.json, ingest-latency-samples.json and logs; never
+ingest-events.json, ingest-burst.json, ingest-latency-samples.json,
+ingest-containers-*.json and logs (including cgroup CPU snapshots collected outside
+measurement windows). `--node-cpuset 0-3` pins only the owned node for constrained
+local diagnostics; select CPUs available on your host. Never
 upload generated Secrets, allocation specs or kubeconfig. A complete passing
 report is required; deployment-only and unit checks do not establish acceptance.
 

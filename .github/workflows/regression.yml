@@ -659,6 +659,7 @@ jobs:
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/ingest-events.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/ingest-burst.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/ingest-latency-samples.json
+            ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/ingest-containers-*.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/events.jsonl
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/hpa.json
             ${{ env.AFTERSHOCK_SCRATCH }}/aftershock-backend-kind/match-metrics.json
