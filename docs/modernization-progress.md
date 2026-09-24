@@ -30,6 +30,63 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
+Current follow-up is #187 on `issue/187-ingest-http`. PR186 merged at `c3d3d6b2`
+after all 26 required jobs passed on `1d25ff4e`; integrated build/publication
+35967886988 pass and regression 35967886994 has passed the corrected ingest test
+(p95 1.792/5.877 ms against 6.792 ms), with only runtime still pending at this
+checkpoint. Preserve the original #185 failure and its corrected evidence below.
+
+PR184's forward head `fa9522e5` includes this main and passes build 35968040472,
+but regression 35968040503 failed a different benchmark transport case: HPA scaled
+backend from eight replicas to two during measurement, and a reused HTTPS GET
+received `RemoteDisconnected`. The worker raised before saving latency samples.
+Evidence: `/tmp/aftershock-resume/ingest184-forward-failure-artifacts` and its
+adjacent log. #187 owns a deterministic TLS regression and bounded stale-idle GET
+recovery, with full reconnect time/counts retained; HTTP errors, new-connection
+failures, timeouts, TLS verification/protocol errors and partial responses stay failures. Do not change
+HPA, workload or latency allowance, retry mutations, or retry the failed job unchanged.
+
+Keep PR184 separate/unmerged and #30 unchecked in #25 until #187 is resolved and
+integrated. Its engine code and completed local evidence remain unchanged. Inspect
+live #185/#187/#182 receipts before resuming; do not repeat completed work. The
+explicit #24/#35/#180 exclusions remain; no SDK/account input is needed.
+
+## #187 implementation checkpoint
+
+Test-first `5192f931` extracts the existing profile probe unchanged and reproduces
+`RemoteDisconnected` over a real private TLS server (`ingest187-transport-before.log`).
+The correction permits one reconnect only for a previously successful bodyless
+GET when transport EOF/reset occurs before any response bytes. A buffered-reader
+counter distinguishes partial status/header failures from idle close, including
+TLS EOF reported while reading. Certificate/protocol failures still fail.
+All 12 real-TLS cases pass: retirement, idle close, fresh/repeated close, status,
+partial body/status/headers, ownership, timeout, untrusted certificate and invalid
+TLS records. Both attempt delays contribute to the measured time; each sample and
+window exposes reconnect counts. Worker failures retain samples/reports before
+raising. This intentionally corrects the previous no-reconnect client model;
+no HPA/workload/latency allowance or production implementation changes.
+
+Affected checks pass, including workflow catalog, native unit, boundaries, ingest
+contracts, TLS transport and Go race tests (`/tmp/aftershock-46q1m__4/affected-report.json`).
+The full four-CPU production kind run passes under
+`/tmp/aftershock-resume/ingest187-local`: native recovery restores 16 events/1,538
+bytes exactly after a 70.111-s post-engine outage, pre-stop commits the aborted
+stream without scores, and all 100 endings ACK in 2.034 s (five-ms spread).
+All 600 events/totals match, all completed shippers stay held, and zero request
+errors occur. Baseline/burst p95 is 0.473/0.468 ms against the unchanged 5.473-ms
+limit (1,924/784 samples). This run has zero reconnects; the real-TLS regression
+separately proves retirement recovery and its measured delay. Format passes all
+605 owned files. Do not repeat completed local tests or #185 diagnostics.
+
+Self-review confirms benchmark/evidence/test wiring only: no engine/production
+change, OS-boundary violation, destructor, allocation, layout or FP change.
+Draft PR188 requires all 26 hosted jobs on the final checkpoint/current main,
+immediate base verification, then integrated acceptance/publication. Read #187's
+receipts for live gate state; PR184's next main-forward will retain those receipts.
+No failed or superseded job is an acceptance result.
+
+## #185 correction checkpoint (historical)
+
 #30 integrated acceptance is blocked by #185. Main `0136a489` passed its final
 PR gates, but integrated regression 35958556482 failed the unchanged profile
 latency criterion: baseline p95 1.923 ms, burst 9.649 ms, limit 6.923 ms.

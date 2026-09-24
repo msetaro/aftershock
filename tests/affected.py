@@ -11,7 +11,7 @@ import time
 from run import ROOT, SCRATCH
 
 # These are asset-independent entry points with no required binary arguments.
-FAST = ('ingest', 'ingest_deployment', 'backend', 'backend_http', 'backend_client', 'backend_ui', 'backend_deployment', 'packages', 'bot_chat_shutdown', 'agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
+FAST = ('ingest', 'ingest_deployment', 'ingest_transport', 'backend', 'backend_http', 'backend_client', 'backend_ui', 'backend_deployment', 'packages', 'bot_chat_shutdown', 'agent_protocol', 'agent_client', 'agent_formats', 'affected_contract',
         'state', 'navigation', 'animation', 'entities', 'physics', 'ui_framework', 'audio_spatial', 'audio_events', 'audio_streams', 'audio_voice', 'capture', 'weapons', 'effects', 'effects_reference', 'post', 'temporal', 'lod', 'streaming', 'native_math', 'native_shared', 'replication',
         'protocol', 'rewind', 'replication_policy', 'identity', 'services', 'rhi', 'render_graph',
         'shadow_views', 'probes', 'materials', 'cook', 'level', 'lighting',
@@ -23,7 +23,7 @@ COMMANDS['unit'] = [sys.executable, 'tests/run.py', 'unit', '--negative-control'
 COMMANDS['match_go'] = ['go', '-C', 'tools/match', 'test', '-race', './...']
 # Prefix matches compose: a cooker animation edit needs both cooker and animation checks.
 RULES = (
-    (('tools/match/ingest', 'tools/match/contracts/', 'tools/match/drain', 'tools/match/kubernetes', 'tests/ingest', 'tests/assets/ingest/'), ('ingest', 'ingest_deployment', 'match_go')),
+    (('tools/match/ingest', 'tools/match/contracts/', 'tools/match/drain', 'tools/match/kubernetes', 'tests/ingest', 'tests/assets/ingest/'), ('ingest', 'ingest_deployment', 'ingest_transport', 'match_go')),
     (('engine/qcommon/join', 'engine/server/sv_join', 'engine/server/sv_identity', 'tools/match/contracts/', 'tests/backend.py', 'tests/probes/join_'), ('backend',)),
     (('engine/platform/sys_http', 'engine/platform/http_public', 'engine/platform/sys_curl', 'engine/platform/curl_public', 'tests/backend_http', 'tests/probes/backend_http'), ('backend_http',)),
     (('engine/client/cl_backend', 'tests/backend_client', 'tests/probes/backend_client'), ('backend_client',)),
