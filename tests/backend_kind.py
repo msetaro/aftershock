@@ -240,6 +240,8 @@ try:
                     dict(name='BACKEND_MATCH_MINUTES', value='1')]
         apply('backend.json', resources)
         log_run('backend-ready.log', [*ctl, 'rollout', 'status', 'deployment/backend', '--timeout=120s'], timeout=130)
+        from backend_retirement import check_retirement
+        retirement = check_retirement(globals())
         def ready():
             return next((g['metadata']['name'] for g in document([*ctl, 'get', 'gameservers', '-o', 'json'])['items']
                          if g.get('status', {}).get('state') == 'Ready'), None)
@@ -279,7 +281,7 @@ try:
             return hpa
         hpa = check_scaling()
         if args.deployment_only:
-            (output/'report.json').write_text(json.dumps(dict(full=False, deployment=True,
+            (output/'report.json').write_text(json.dumps(dict(full=False, deployment=True, backend_retirement=retirement,
                 scaled_replicas=hpa['status']['desiredReplicas']), indent=2)+'\n')
             print('PASS: deployment-only health, real resource metrics and HPA; native acceptance NOT run')
             sys.exit(0)
@@ -399,7 +401,7 @@ try:
         wait_for(lambda: info()[0] == 'Signed out', 20, 'native logout', True)
         wait_for(lambda: sql('SELECT count(*) FROM backend_sessions WHERE expires_at > CURRENT_TIMESTAMP') == '0',
                  10, 'server session revocation', True)
-        report = dict(full=True, match=match, account=player, gameserver=original, profile_values=values,
+        report = dict(full=True, backend_retirement=retirement, match=match, account=player, gameserver=original, profile_values=values,
                       checkpoint=final['checkpoint'], scaled_replicas=hpa['status']['desiredReplicas'])
         if production:
             report['ingest'] = production.finish()

@@ -28,7 +28,7 @@ RULES = (
     (('engine/platform/sys_http', 'engine/platform/http_public', 'engine/platform/sys_curl', 'engine/platform/curl_public', 'tests/backend_http', 'tests/probes/backend_http'), ('backend_http',)),
     (('engine/client/cl_backend', 'tests/backend_client', 'tests/probes/backend_client'), ('backend_client',)),
     (('engine/ui/', 'engine/client/cl_data_ui', 'tools/cook/ui', 'tests/assets/backend/', 'tests/backend_ui', 'tests/probes/backend_ui'), ('backend_ui',)),
-    (('tools/match/backend', 'tests/backend_deployment', 'tests/backend_kind'), ('backend_deployment', 'match_go')),
+    (('tools/match/backend', 'tests/backend_deployment', 'tests/backend_kind', 'tests/backend_retirement'), ('backend_deployment', 'match_go')),
 
     (('engine/platform/services_public.h', 'engine/platform/sys_services.cpp', 'tests/services.py', 'tests/probes/services.cpp'), ('identity', 'services')),
     (('engine/qcommon/package', 'engine/platform/sys_content_file.cpp', 'tools/package.py', 'tests/packages'), ('packages',)),

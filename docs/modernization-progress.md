@@ -30,26 +30,60 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
-Current follow-up is #187 on `issue/187-ingest-http`. PR186 merged at `c3d3d6b2`
-after all 26 required jobs passed on `1d25ff4e`; integrated build/publication
-35967886988 pass and regression 35967886994 has passed the corrected ingest test
-(p95 1.792/5.877 ms against 6.792 ms), with only runtime still pending at this
-checkpoint. Preserve the original #185 failure and its corrected evidence below.
+Current follow-up is #189 on `issue/189-backend-retirement`, based on main
+`997e5f48` (PR188). #185 is fully integrated/accepted: all 26 jobs/publication,
+receipt #185 comment 5810648361. #187 passed all 26 final jobs and merged with
+verified parents/tree; integrated build 35980087766/publication pass and regression
+35980087835 has passed the target ingest test, with lifetime/runtime still pending.
+Read the issue acceptance receipts for live state before resuming.
 
-PR184's forward head `fa9522e5` includes this main and passes build 35968040472,
-but regression 35968040503 failed a different benchmark transport case: HPA scaled
-backend from eight replicas to two during measurement, and a reused HTTPS GET
-received `RemoteDisconnected`. The worker raised before saving latency samples.
-Evidence: `/tmp/aftershock-resume/ingest184-forward-failure-artifacts` and its
-adjacent log. #187 owns a deterministic TLS regression and bounded stale-idle GET
-recovery, with full reconnect time/counts retained; HTTP errors, new-connection
-failures, timeouts, TLS verification/protocol errors and partial responses stay failures. Do not change
-HPA, workload or latency allowance, retry mutations, or retry the failed job unchanged.
+PR184 forward head `34f4cd93` passes all compiler jobs but regression 35980235416
+failed match-server job 107570112711 during backend HPA scale-down. Three #187
+used-connection recoveries succeeded and retained their full latency. A separate
+fresh TLS handshake failed with `SSLEOFError` and zero reconnects, as required by
+the retry boundary. The report is preserved in
+`/tmp/aftershock-resume/agent184-second-forward-failure-artifacts`; p95 itself passes
+3.589/6.672 ms versus 8.589 ms. Do not broaden retries or rerun the failure unchanged.
 
-Keep PR184 separate/unmerged and #30 unchecked in #25 until #187 is resolved and
-integrated. Its engine code and completed local evidence remain unchanged. Inspect
-live #185/#187/#182 receipts before resuming; do not repeat completed work. The
-explicit #24/#35/#180 exclusions remain; no SDK/account input is needed.
+#189 owns a production backend pre-stop endpoint-withdrawal interval before its
+existing bounded HTTP shutdown, with sufficient termination grace. First require
+a failing deployment contract and real-kind deletion test against the old manifest;
+then verify withdrawn endpoint/fresh TLS availability/bounded exit and unchanged
+full production-ingest acceptance. HPA/resources/workload/latency allowance and
+fresh-connection/TLS failure behavior stay unchanged. Keep PR184 isolated/unmerged
+and #30 unchecked until this separate correction is integrated. Preserve #182's
+completed UDP evidence; do not repeat prior negative controls or accepted fixtures.
+Test-first `ff8330a9` requires the missing hook/grace and real-kind retirement.
+The old manifest fails with fresh-handshake `SSLEOFError` after EndpointSlice
+withdrawal and 19 successful TLS samples (`backend189-retirement-before` plus its
+outer log). Preserve this completed negative; never repeat it.
+
+The production fix adds native pre-stop sleep=10 seconds and total grace=20
+seconds, covering endpoint propagation, existing five-second HTTP shutdown and
+margin. No binary, HPA, resource, workload, latency allowance or retry change.
+Full four-CPU `backend189-retirement-after/report.json` passes: endpoint withdrawn,
+49 fresh verified TLS requests through 5.100 s after deletion, pod gone in 14.401 s,
+and replacement ready. Native recovery restores 16 events/1,538 bytes exactly after
+a 70.112-s post-engine outage, with no restarts; pre-stop commits the aborted stream
+without scores. All 100 endings ACK in 2.039 s (five-ms spread), all shippers stay
+held, 600 events/totals match, and zero request errors/reconnects occur. Baseline/
+burst p95 is 0.516/0.487 ms against unchanged 5.516-ms allowance (1,923/788 samples).
+
+Affected checks pass (`/tmp/aftershock-fznb1chy/affected-report.json`), including
+workflow catalog, native unit/boundaries, deployment, Go race and match content;
+format passes all 605 owned files. Self-review: production manifest retirement
+only, with test/evidence wiring and docs; no engine/Go binary change, OS-boundary,
+non-trivial destructor, allocation, layout or FP change. No accepted fixture/tag
+change. A bounded propagation interval is not a universal availability guarantee
+under unbounded control-plane delay or forced deletion.
+
+Final #189 PR requires all 26 jobs against current main, immediate base check,
+merge commit and integrated 26/publication. #187 integration has 25 of 26 passes,
+with runtime pending at this checkpoint. Read #187/#189 issue receipts for live
+acceptance on resume; do not repeat completed local work. After this correction
+is fully integrated, accept #30 in #25, merge main forward into PR184 and require
+its fresh current-base 26 and post-merge integration. Only #24/#35/#180 remain
+explicit exclusions; no SDK/account input is needed.
 
 ## #187 implementation checkpoint
 
