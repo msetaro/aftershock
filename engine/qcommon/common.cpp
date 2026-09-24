@@ -3840,9 +3840,12 @@ void Com_Frame( qboolean noDelay ) {
 	}
 
 #ifdef AFTERSHOCK_DEVTOOLS
-	// Explicit steps still service the queued-message work normally done while waiting.
-	if ( DevTools_AgentActive() && com_sv_running->integer )
-		SV_SendQueuedPackets();
+	// Explicit steps service queued sends and UDP receives without frame pacing.
+	if ( explicitStep ) {
+		if ( com_sv_running->integer )
+			SV_SendQueuedPackets();
+		NET_Sleep( 0 );
+	}
 #endif
 
 

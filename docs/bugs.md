@@ -2,7 +2,7 @@
 
 The strict port made no engine bug fixes. Modernization #31 dispositions are recorded below.
 
-## Explicit agent steps do not receive external UDP (#182, separate #31 fix pending)
+## Explicit agent steps do not receive external UDP (#182, fix awaiting gates)
 
 Found during #29 kind acceptance after HTTPS login and allocation succeeded.
 An `--agent` client with `net_enabled=1` sends connection traffic but never
@@ -11,9 +11,15 @@ that loop contains the only `NET_Sleep` call, which dispatches `NET_Event` and
 external UDP packets. `Com_EventLoop` only drains local loopback packets.
 Evidence: `/tmp/aftershock-resume/backend-kind-full2/client.log` and the matching
 server log (no ClientBegin). This path exists on accepted main before #29.
-A separate test-first #31 PR should require remote UDP progress during explicit
-steps and preserve ordinary frame timing. #29 uses the ordinary real-time client
-with real Xvfb keyboard input for native acceptance; it does not alter this code.
+Separate test-first commit `8ba56a42` adds actual native server/client explicit-step
+UDP query/join/snapshot/chat coverage. Before the fix, 400 client steps send 120
+bytes but receive zero bytes/snapshots and cannot join; fixed-dt/idle clocks pass.
+Explicit frames now dispatch `NET_Sleep(0)` alongside queued sends. Both Quake 3
+and OpenArena pass with 10 received snapshots and chat, while 20-ms stepping and
+idle clocks remain exact. Evidence is `agent-udp-before` and `agent-udp-after-*`
+under `/tmp/aftershock-resume`. Required hosted/current-main and integrated gates
+must pass before this separate #31 fix is accepted. #29/#30 use the ordinary
+real-time client and do not contain this engine change.
 
 ## Vulkan descriptor restoration uses the device limit (#31, fix awaiting hosted gates)
 

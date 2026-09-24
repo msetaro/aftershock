@@ -41,9 +41,17 @@ unchanged accepted engine binaries it fails external getinfo, native join and
 snapshot/chat progress; incoming bytes and snapshots remain zero after 400 client
 steps. Fixed-dt and idle-clock assertions pass. Evidence is
 `/tmp/aftershock-resume/agent-udp-before/{report.json,server.log,client.log}` and the
-adjacent outer log. Next: commit the failing test, add nonblocking UDP dispatch
-only for explicit frames, then run both content sets and ordinary native/timing
-regressions. Preserve regular/no-delay frame paths, floating-point expressions,
+adjacent outer log. Failing-test commit is `8ba56a42`. Explicit frames now call
+`NET_Sleep(0)` alongside queued sends; both content sets pass UDP queries, native
+join, 10 snapshots and chat in 26 client frames. Fixed-dt/idle clocks and the
+existing channel test pass. CI includes the real UDP regression and artifacts.
+Ordinary pure-server native join/chat and the seeded playthrough (identical
+snapshots, pixels, telemetry, hits/kills) pass. Formatting and all selected affected
+checks pass (`/tmp/aftershock-1g5366yw/affected-report.json`). Next: merge accepted
+#30 main forward, resolve only checkpoint documentation, open this separate PR,
+and require every hosted check on the current base before merge and integrated
+acceptance. No additional local test reruns are needed unless source changes or
+new failures require them. Preserve regular/no-delay frame paths, floating-point expressions,
 accepted fixtures and the completed network-driver negative control.
 
 ## Next action (historical #29 checkpoint below)
