@@ -1291,11 +1291,43 @@ secrets/kubeconfig. CI uploads an explicit list of public reports/logs/screensho
 `--deployment-only` checks the independent deployment/health/metrics/HPA slice
 and writes `full: false`; it never substitutes for the default native acceptance.
 Full native local acceptance is recorded in the progress checkpoint; hosted gates
-run the same default command.
+run the production-ingest variant described below.
 No fixture or accepted golden is regenerated.
 
 Steam SDK/provider/live acceptance remains deferred to #180. Deterministic fixture
 login does not establish Steam support. #24 retains its console SDK dependency.
+
+## Durable ingest (#30)
+
+`python3 tests/ingest.py` checks versioned event/checkpoint schemas and malformed
+payloads. `python3 tests/ingest_deployment.py` verifies separate stateless ingest,
+namespaced read-only Agones access, TLS secret references, limits/HPA/PDB and
+production Fleet pre-stop hooks. `go -C tools/match test -race ./...` covers exact
+byte transport, allocation identity, pending recovery and bounded drain behavior.
+`python3 tests/ingest_services.py` owns a private PostgreSQL container and checks
+transaction rollback, concurrent retries, restart, final aggregates and reader
+isolation. Docker is required; unavailable infrastructure is a failure.
+
+`python3 tests/backend_kind.py --production-ingest --image IMAGE --client CLIENT
+--data OA_DATA` adds production TLS ingestion and a separate results database to
+the full backend/native test above. It removes ingest during a real signed native
+match, holds the outage beyond the old one-minute controller timeout, restores
+service and compares every committed event byte/offset with the closed native log.
+An actual pod deletion separately checks pre-stop flushing of an aborted stream.
+It then allocates 100 real Agones GameServers with simulated ending producers and
+the production shipper, releases one barrier and requires exactly 600 events and
+100 final results with no duplicates. The simultaneous endings must span at most
+five seconds. This burst exercises delivery/storage, not 100 native game clients.
+
+Four persistent HTTPS workers measure authenticated backend profile requests
+before and during that burst. All requests must succeed, both windows need at
+least 100 samples, and burst p95 must stay within the greater of baseline p95 ×
+1.25 or baseline p95 + 5 ms. Reports retain p50/p95/p99/max and individual samples.
+The private kind node allows 160 pods with small fixture/SDK requests; production
+service limits and 65% HPA targets are unchanged. Public artifacts are report.json,
+ingest-events.json, ingest-burst.json, ingest-latency-samples.json and logs; never
+upload generated Secrets, allocation specs or kubeconfig. A complete passing
+report is required; deployment-only and unit checks do not establish acceptance.
 
 Native pure-server regression (#31): `python3 tests/native_pure.py` exercises the
 real filesystem pure list with statically linked modules and retained content-pak

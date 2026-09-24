@@ -30,65 +30,65 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
-#29 merged as PR181, merge `45d8dc461a32f6e825421937bd7f37cb7d444f1c`.
+#29 merged as PR181 at `45d8dc461a32f6e825421937bd7f37cb7d444f1c`.
 Final head `918860e7` included current main `2c5bf00a`; build 35942975170
-passed all 16 jobs and regression 35942975177 passed all 10 required jobs.
-Final self-review/current-base evidence is on #29, comment 5806599450. The merge
-parents are exactly the checked base/head and its tree is identical to the tested
-head. Integrated build `35949141712` and regression `35949141778` are running;
-finish verifying them and publication before marking #29 fully integrated in #25.
+passed all 16 compiler jobs and regression 35942975177 all 10 required jobs.
+Self-review/current-base evidence: #29 comment 5806599450. Merge parents match
+the checked base/head and the tree is identical. Integrated build 35949141712
+passes including publication. Integrated regression 35949141778 has nine required
+jobs passed; runtime remains. Finish that verification before marking #29 fully
+integrated in #25. Optional #35 fuzz remains excluded by existing policy.
 
-Continue #30 on `issue/30-match-ingest`, based directly on that main merge.
-Issue #30/#25 were read; the initial regression contracts were drafted while #29
-CI ran and are now written before production implementation. Python schema
-validation fails because MatchEvent/MatchCheckpoint/SubmitBatch are absent;
-Go compilation fails on the missing ingest DTO/store APIs. Evidence:
+Continue #30 on `issue/30-match-ingest`, directly from the accepted #29 merge.
+Test-first commit `0e962fd1` initially failed schema/Go compilation; evidence is
 `/tmp/aftershock-resume/ingest-contract-before.log` and `ingest-go-before.log`.
-Commit those tests, then implement transactional authenticated gRPC ingestion,
-separate results storage/read API, namespaced deployment/HPA, and durable sidecar
-retry/flush. Prove actual native outage recovery and a simultaneous 100-ending
-load test in an owned kind cluster, measuring authenticated backend latency.
-Keep native gameplay evidence distinct from simulated ending producers.
+Core commit `01d6a345` implements bounded versioned event/checkpoint envelopes,
+byte-preserving pending recovery, Agones allocation authentication, transactional
+PostgreSQL events/checkpoints/results with retry digests and exactly-once totals,
+a separate reader API, TLS gRPC/health/metrics and namespaced Deployment/HPA.
+Schema, Go race/vet, real PostgreSQL rollback/retry/restart/reader isolation,
+deployment contracts and existing backend PostgreSQL/TLS/recovery tests pass
+(`ingest-database-first.log`, `backend-shared-cluster.log` in the same scratch root).
 
-Test-first commit is `0e962fd1`. The core now implements versioned bounded
-base64 event envelopes, byte-preserving pending recovery with unchanged ASCII
-records, per-request projected-token loading shared with backend, Agones identity
-verification, transactional PostgreSQL event/checkpoint/result storage with retry
-digests and exactly-once aggregates, a separate reader API, TLS gRPC/health/metrics,
-and namespaced stateless deployment/HPA. Schema tests, Go race/vet, real PostgreSQL
-rollback/retry/restart/reader tests, deployment contracts and the existing backend
-PostgreSQL/TLS/recovery suite pass. Evidence: `ingest-database-first.log` and
-`backend-shared-cluster.log` under `/tmp/aftershock-resume`.
-Native outage/burst acceptance and lifecycle flush remain unfinished; write/run
-those checks before changing lifecycle. Do not treat unit/database checks as the
-kind acceptance. #29 integrated build passes (including publication); integrated
-regression currently has eight required jobs passed and no required failure.
+Native outage/Fleet contracts were committed as `9e4bcf54`; pre-stop contract
+`364fc1b4` initially failed compilation (`ingest-drain-before.log`). The real
+production-TLS/native failing control `ingest-kind-before` committed initial events
+then exposed the old one-minute final-wait exit. Its server log records final
+results unacknowledged; inspector could no longer exec the controller. Owned
+cluster cleanup completed. Do not repeat that negative control.
+Lifecycle implementation `e807e487` keeps allocated-pod health alive until final
+ACK. Both pre-stop hooks request engine quit and wait within termination grace;
+Go race/vet/drain checks pass. Fixed image `aftershock-match:issue30-durable` ran
+`ingest-kind-full1`: exact native event recovery and actual pod-deletion flush
+passed, then benchmark login received 503 immediately after fixture restart.
+This incomplete run is not full acceptance. The harness now waits through only
+pre-authentication `authentication_unavailable` responses during fixture setup;
+all measured profile requests still must succeed without retries. Current full
+run: `/tmp/aftershock-resume/ingest-kind-full2`.
 
-Core implementation checkpoint: `01d6a345`. Native outage/Fleet tests were
-committed as `9e4bcf54`; the preStop unit contract as `364fc1b4` (initial compile
-failure in `ingest-drain-before.log`). The real production-TLS/native outage run
-`ingest-kind-before` reached signed play and committed events, then failed after
-the old controller's one-minute final wait: server.log records "final results
-unacknowledged" and the inspector cannot exec the exited container. The owned
-cluster was cleaned. This is the failing control for the #30 retention change,
-not accepted outage coverage; do not repeat it.
-The controller now keeps allocated-pod health alive until final ACK and both
-production preStop hooks request graceful engine quit and wait for results.done
-with a bounded termination grace. Go race/vet and the drain contract pass.
-The full fixed-image run is `/tmp/aftershock-resume/ingest-kind-full1` (image
-`aftershock-match:issue30-durable`); actual pod deletion and a barrier-released
-100-allocation/real-shipper burst with authenticated profile latency are also
-required. Private load-test capacity is 160 pods, with small fixture/SDK requests;
-production service limits and the 65% HPA targets are unchanged. No full kind
-acceptance is claimed until that run's report passes all scenarios.
-#29 integrated regression now has nine required jobs passed; runtime remains.
+Final review added test-first `03bf7c10` for omitted/null nested checkpoint
+statistics that the JSON schema already rejects (`ingest-nested-before.log`).
+The decoder now enforces those fields; full Go race checks pass in
+`ingest-nested-after.log`. Earlier affected feedback passed all selected checks
+(`/tmp/aftershock-5fruju8q/affected-report.json`); rerun after final edits.
 
-No queue or optional demo/object-storage feature is needed for v1. No accepted
-fixture regeneration, unrelated engine fixes, or Steam SDK/provider/live work;
-#180 remains explicitly deferred, #24 retains its SDK dependency, #35 its existing
-exclusion, and #182 remains a separate tested bug-fix PR. No SDK/account input is
-needed. Private design notes and test drafts remain under `/tmp/aftershock-resume`.
-#23/PR179's full integrated acceptance remains complete at `2c5bf00a`.
+Next: finish native/100-ending acceptance, self-review production code/contracts,
+run final affected/local checks, open #30 PR and require all 26 hosted gates on
+current main before merge, then integrated checks. CI now includes schema,
+deployment, private PostgreSQL and full production-ingest kind acceptance.
+The private 100-producer node allows 160 pods with small fixture/SDK requests;
+production service limits and 65% HPA targets remain unchanged. Measure backend
+profile p95 against the declared max(1.25×baseline, baseline+5ms) allowance.
+No full kind acceptance is claimed until every scenario passes. Distinguish the
+native outage from simulated ending producers using actual Agones allocations
+and the production shipper.
+
+No queue or optional demo/object-storage feature is required for v1. No fixture
+regeneration, unrelated engine fixes or Steam SDK/provider/live work. #180 is
+explicitly deferred; #24 retains its SDK dependency, #35 its existing exclusion,
+and #182 stays a separate tested bug-fix PR. No SDK/account input is needed.
+#23/PR179 remains fully integrated at `2c5bf00a`. Private design notes and earlier
+reports are under `/tmp/aftershock-resume`; preserve completed evidence.
 
 ## #29 pre-merge checkpoint (historical; superseded by Next action)
 

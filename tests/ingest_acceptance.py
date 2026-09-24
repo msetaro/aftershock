@@ -12,6 +12,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -163,6 +164,7 @@ class IngestAcceptance:
     def finish(self):
         c = self.c
         self.drain_match()
+        (c['output']/'ingest-native.json').write_text(json.dumps(self.evidence, indent=2)+'\n')
         # Native UI acceptance is complete; remove rendering work from both
         # latency windows equally. The real backend request path remains active.
         c['execute']('quit')
@@ -179,8 +181,18 @@ class IngestAcceptance:
         c['log_run']('benchmark-provider-ready.log', [*c['ctl'], 'rollout', 'status', 'deployment/auth-fixture', '--timeout=60s'], timeout=70)
         request = urllib.request.Request(c['endpoint']+'/v1/login', data=json.dumps(dict(ticket=ticket.hex())).encode(),
                                          headers={'Content-Type': 'application/json'}, method='POST')
-        with urllib.request.urlopen(request, context=c['trust'], timeout=10) as response:
-            session = json.load(response)
+        def login_ready():
+            try:
+                with urllib.request.urlopen(request, context=c['trust'], timeout=10) as response:
+                    return json.load(response)
+            except urllib.error.HTTPError as error:
+                # A restarted fixture's Service endpoints can lag rollout readiness.
+                # Only a pre-authentication provider-unavailable response is retryable;
+                # benchmark requests below must all succeed without retries.
+                if error.code != 503 or json.load(error).get('error') != 'authentication_unavailable':
+                    raise
+                return None
+        session = c['wait_for'](login_ready, 30, 'restarted authentication fixture through backend')
         assert session['player_id'] == c['player']
         token = session['token']
         coordinator = dict(name='coordinator', image=c['args'].image, command=['/fixture/fixture'],
@@ -316,6 +328,7 @@ class IngestAcceptance:
             assert self.sql("SELECT count(*)||':'||sum(score)||':'||sum(kills)||':'||sum(deaths) FROM results.player_results WHERE match_id LIKE 'burst-%'") == '100:100:0:0'
             assert self.sql("SELECT count(*) FROM results.matches m WHERE match_id LIKE 'burst-%' AND offset_bytes<>(SELECT COALESCE(sum(octet_length(raw)+1),0) FROM results.events e WHERE e.match_id=m.match_id)") == '0'
             report['exact_events_and_totals'] = True
+            (c['output']/'ingest-burst.json').write_text(json.dumps(report, indent=2)+'\n')
             self.evidence['burst'] = report
             control('/retire', True)
         finally:

@@ -232,5 +232,34 @@ func DecodeMatchBatch(data []byte) (MatchBatch, error) {
 	if err != nil || len(state["players"]) == 0 || len(state["scores"]) == 0 {
 		return b, errors.New("missing required checkpoint field")
 	}
+	for _, name := range []string{"accounts", "owners", "owner_scores", "players", "scores"} {
+		raw, present := state[name]
+		if !present {
+			continue
+		}
+		if string(raw) == "null" {
+			if name == "players" || name == "scores" {
+				continue // Legacy empty checkpoint representation is part of v1.
+			}
+			return b, errors.New("null checkpoint map")
+		}
+		values, err := object(raw)
+		if err != nil {
+			return b, err
+		}
+		for _, value := range values {
+			if string(value) == "null" {
+				return b, errors.New("null checkpoint value")
+			}
+			if name == "accounts" {
+				_, err = object(value, "kills", "deaths", "score")
+			} else if name == "players" {
+				_, err = object(value, "kills", "deaths")
+			}
+			if err != nil {
+				return b, err
+			}
+		}
+	}
 	return b, b.Validate()
 }

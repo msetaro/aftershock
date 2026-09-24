@@ -90,7 +90,7 @@ its event stream without claiming a completed match.
 TLS is the default for `MATCH_INGEST` (default `ingest:50051`). Only isolated local
 Compose/kind examples set `MATCH_DEV_INSECURE=1`; the stub requires it. Its
 `MATCH_TOKENS` JSON map is supplied by local generation or a Kubernetes Secret.
-Production #30 must supply authenticated TLS ingest and durable storage. No database
+Production uses the authenticated TLS ingest and durable storage described below. No database
 driver, credentials or blocking persistence call is added to the game process.
 The stub keeps a digest per batch in memory: this is intentionally a development
 store, with #30 owning retention and scalable persistence. Full memory-image
@@ -191,7 +191,49 @@ uses the same HTTPS verification endpoint; it cannot select a player identity.
 `BACKEND_RESULTS` configures the read-only gRPC endpoint and
 `BACKEND_READER_KEY_FILE` its separate reader credential. Only the authenticated
 session owner's completed results are returned, with exact-match selection and
-bounded history/leaderboards. This tier never writes match data. The #28 stub is
-used for development acceptance; #30 owns transactional production ingestion.
+bounded history/leaderboards. This tier never writes match data. The #28 stub remains available for development; production uses transactional
+ingestion described below.
 See [backend verification](../../tests/README.md#backend-services-29) for the
 native and kind commands and their current acceptance status.
+
+## Durable match ingestion (#30)
+
+`/app/match ingest` serves authenticated TLS `SubmitBatch` and read-only `Read`
+RPCs. Version-1 MatchEvent and MatchCheckpoint definitions live beside MatchSpec
+in `contracts/v1.schema.json`; event payloads preserve exact log bytes as canonical
+base64. New streams authenticate their allocation token against one Allocated
+Agones GameServer. The stored token hash authorizes durable retries after that
+GameServer disappears. The reader uses a different credential.
+
+Each batch transaction locks its match, checks contiguous offsets and the derived
+checkpoint, inserts events and its retry digest, and updates final player results
+and leaderboard aggregates. ACK follows database commit. Exact retries succeed;
+changed retries, gaps, unexpected players and post-final writes fail. There is no
+queue in this version. Deploy a separate PostgreSQL database with credentials
+unavailable to the backend; backend reads only through the ingest RPC. Operators
+own database durability, backups, migration privileges and retention policy.
+
+Generate resources using `ingest_kubernetes.py --namespace NAME --image IMAGE
+--output NEW_FILE`. Provision its `ingest-config` Secret with `database`, `tls.crt`,
+`tls.key` and `reader.key` (32–128 bytes). It supplies two replicas, namespaced
+read-only Agones access, a CPU HPA at 65%, resource limits and a PDB. The TLS
+certificate must cover the service name used by clients. HTTPS port 8444 exposes
+`/healthz` and bounded `/metrics`; gRPC uses port 50051. Projected Kubernetes
+credentials are reopened for each request. Secret changes to database, TLS or
+reader configuration require a Deployment rollout.
+
+Generate the Fleet with `kubernetes.py --production-ingest`; for a private CA add
+`--ingest-ca-secret NAME`, whose `ca.crt` is mounted only in the shipper. Configure
+`BACKEND_RESULTS`, `BACKEND_READER_KEY_FILE` and private trust roots through
+`BACKEND_CA_FILE`. The development stub and its plaintext flag remain for isolated
+fixtures only. No database credentials or persistence calls enter native gameplay.
+
+Both match containers have a pre-stop hook that requests engine shutdown and
+waits for the shipper's durable final ACK. A naturally ended allocated match keeps
+SDK health alive through an ingest outage, retaining fsynced pending bytes and its
+cursor in emptyDir until recovery; only results.done permits SDK Shutdown.
+Pre-stop is bounded by Kubernetes termination grace. Forced deletion or node loss
+can lose unacknowledged emptyDir bytes; the last committed checkpoint remains the
+durable result. This is event/checkpoint persistence, not full process resumption.
+See [ingest verification](../../tests/README.md#durable-ingest-30) for native outage,
+pod-deletion and concurrent-ending checks.
