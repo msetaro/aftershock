@@ -59,6 +59,23 @@ and HTTPS probes on both compilers pass as recorded below. The full client/kind
 flow is still pending. Accepted predecessors #19-#22 and closed #31 remain complete;
 do not repeat finished work, historical network controls or accepted fixtures.
 
+## #29 native signed gameplay and results reached
+
+Full run 4 now signs in over verified HTTPS, loads the owned profile through real
+keyboard navigation, queues/allocates, enters native play with account
+`18446744073709551615`, records the self-kill, and reads the completed match back
+into the authored menu (`score=-1 kills=0 deaths=1`). Actual match-container metrics
+are captured. Its remaining failure was the test's screenshot invocation:
+`screenshot silent NAME` uses automatic naming; use `screenshot NAME` for an
+explicit artifact. Run 5 is pending with that correction; logout and the full
+success report are still unaccepted. Logs/evidence: `/tmp/aftershock-resume/backend-kind-full4`.
+
+Hosted checkpoint `b564cfbc` passes all 16 build jobs and the non-runtime checks
+completed so far; its match job independently reproduces the documented agent-mode
+UDP timeout. It cannot be merged. The final corrected harness needs fresh gates.
+The local full suite has passed both unit variants and sanitizer jobs and is now
+running runtime goldens; fixtures remain unchanged.
+
 ## #29 native console fixture and lifetime acceptance
 
 Full run 3 reached ordinary client startup, then its first public-status command

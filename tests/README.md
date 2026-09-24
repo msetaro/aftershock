@@ -1274,7 +1274,7 @@ publish heartbeat messages or resolve master addresses.
 `python3 tests/backend_kind.py --image IMAGE --client CLIENT --data OA_DATA` owns
 an isolated kind cluster. Rebuild IMAGE from `tools/match/Dockerfile` and CLIENT
 with `AFTERSHOCK_DEVTOOLS=ON` and curl enabled. It uses an owned TLS authentication
-fixture, actual PostgreSQL and two backend replicas, Agones allocation, native
+fixture inside kind, actual PostgreSQL and two backend replicas, Agones allocation, native
 signed play with verified account statistics, and the authored results menu.
 Its development ticket file lives only in the private client home; credentials
 never enter cvars, UI values or console commands. The existing #28 ingest stub
@@ -1284,8 +1284,9 @@ The cluster test installs SHA-256-pinned metrics-server 0.8.1, requires real CPU
 metrics to drive HPA scale-out at the generated 65% CPU target, and checks HTTPS
 health and backend counters. Only its private kind kubelet metrics transport
 accepts self-signed serving certificates; backend and fixture TLS remain verified.
-It needs Docker, OpenSSL, Python YAML and cooker dependencies, Xvfb/lavapipe and
-public OpenArena data. It deletes only its owned cluster and removes generated
+It needs Docker, Go, OpenSSL, Python YAML and cooker dependencies, Xvfb/lavapipe,
+libXtst/X11 utilities and public OpenArena data. An ordinary real-time client uses
+an owned pseudo-terminal and real XTest keyboard input for menu navigation. It deletes only its owned cluster and removes generated
 secrets/kubeconfig. CI uploads an explicit list of public reports/logs/screenshots.
 `--deployment-only` checks the independent deployment/health/metrics/HPA slice
 and writes `full: false`; it never substitutes for the default native acceptance.

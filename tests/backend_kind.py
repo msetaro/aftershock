@@ -352,7 +352,7 @@ try:
         activate('results')
         values = wait_for(lambda: (row if (row := info())[0] == 'Results loaded' else None), 20, 'native results UI', True)
         assert values[2] == match and values[3:] == ('-1', '0', '1'), values
-        execute('screenshot silent backend-results')
+        execute('screenshot backend-results')
         capture = base/'screenshots/backend-results.tga'
         wait_for(capture.exists, 10, 'authored results screenshot')
         Image.open(capture).convert('RGB').save(output/'profile-results.png')
