@@ -30,6 +30,14 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
+Final #29 review found startup-cached Kubernetes credentials, which expire after
+projected token rotation. The new `TestBackendProjectedCredentialRotation` is
+committed before implementation (fails on absent `kubeTokenFile`, evidence
+`/tmp/aftershock-resume/kube-rotation-before.log`). Finish bounded per-request
+credential loading and rerun backend gates before final acceptance; prior exact-head
+CI is predecessor evidence. All remaining local runtime steps now pass in
+`runtime-continuation2-report.json`; preserve the interrupted-run provenance below.
+
 Resumed on Ironforge from migration checkpoint `b199539c`. PR179 (#23) is now
 fully accepted at main `2c5bf00a5753f13ff0bd698898d245f9388b9fb3`: its reviewed
 head `1f395716` included current main `aa96932a`, all 26 final jobs passed,
@@ -48,7 +56,7 @@ production services integration merged automatically. No preview headers are use
    authored results screenshot -> logout and database session revocation all pass.
    Actual metrics drive HPA from two replicas to four at the generated 65% target.
    Report: `/tmp/aftershock-resume/backend-kind-full5/report.json` (`full: true`).
-2. Complete the running full local suite (root `/tmp/aftershock-m_katkej`) and fresh
+2. Complete the resumed full local suite (root `/tmp/aftershock-m_katkej`) and fresh
    hosted gates on the final corrected harness revision. Local format/tidy/lifetimes,
    both unit variants and sanitizers pass; runtime is ongoing. The earlier hosted
    `b564cfbc` compiler matrix passed all 16 jobs, but its match test used agent mode
@@ -64,6 +72,37 @@ heartbeat retirement, private PostgreSQL/TLS/recovery, Go race/vet, authored UI 
 HTTPS variants pass. All 29 affected checks pass. No preview headers remain.
 Predecessors #19-#23 and historical #31 evidence remain accepted; do not repeat
 finished work, historical network controls or accepted fixtures.
+
+## #29 suite continuation after instruction update
+
+The instruction-update interruption stopped the local suite during runtime step
+16's weapons-network variant. Six completed job variants and runtime steps 0-15
+remain passed. Step 16's native pure/protocol/ordinary network commands passed
+(the last recorded result is 323/323 shots); only its unfinished weapons variant
+and subsequent steps are resumed. The original report/logs are preserved.
+Continuation: `/tmp/aftershock-resume/resume-suite.py`, log `suite-resumed.log`,
+report `suite-resumed-report.json`. It uses the workflow catalog and records both
+original and resumed heads; it never turns an interrupted result into a pass.
+The resumed weapons variant passes 301/301 shots and 1508/1508 prediction/animation
+comparisons. Runtime step 18 then found missing Shapely under system Python.
+The already-provisioned pinned environment at
+`~/.cache/aftershock-modernization/sketch-python` has all required versions;
+`runtime-continuation.log`/`runtime-continuation-report.json` continue only the
+unfinished portion with that interpreter. No system packages are installed.
+The separate continuation completes the remaining cross/match jobs; combine the
+reports only when every covered step has genuinely passed.
+All nine non-runtime local variants now pass, including both cross builds and the
+complete match-server job. Its default native kind report is again `full: true`,
+with exact -1/0/1 results, revoked logout and four HPA replicas. Only runtime's
+private-interpreter continuation remains; the earlier aggregate correctly stays
+`ok: false` until that work finishes.
+A second turn interruption stopped `sketch_build.py` in runtime step 18 after
+polygon, sketch parsing, asset/Blender and themed-level validation had passed.
+`resume-runtime2.py` continues from that unfinished command with a new sketch
+output directory. Its log/report are `runtime-continuation2.log` and
+`runtime-continuation2-report.json`; the first continuation logs stay intact.
+Final hosted gates at `084eeed2` continue unaffected. Keep this checkpoint update
+for the next commit; no source change invalidates those running gates.
 
 ## #29 full native kind acceptance and self-review checkpoint
 
