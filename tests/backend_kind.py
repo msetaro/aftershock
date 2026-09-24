@@ -4,7 +4,6 @@ import argparse
 import base64
 import concurrent.futures
 import hashlib
-import http.server
 import json
 import os
 from pathlib import Path
@@ -55,7 +54,7 @@ kubeconfig = output/'kubeconfig'
 ctl = [kubectl, '--kubeconfig', str(kubeconfig), '-n', namespace]
 processes, streams = [], []
 created = False
-provider = worker = engine = None
+engine = None
 
 def command(arguments, **kwargs):
     kwargs.setdefault('timeout', 30)
@@ -112,8 +111,6 @@ try:
     # Pull the pinned manifest through the node runtime. Importing a Docker
     # multi-platform index can reference platforms absent from its local store.
     log_run('postgres-pull.log', ['docker', 'exec', node, 'crictl', 'pull', POSTGRES], timeout=240)
-    network = document(['docker', 'inspect', node])[0]['NetworkSettings']['Networks']['kind']
-    gateway = network['Gateway']
     log_run('namespace.log', [*ctl, 'create', 'namespace', namespace])
     manifests = output/'match-resources'
     command([sys.executable, ROOT/'tools/match/kubernetes.py', '--namespace', namespace, '--image', args.image,
@@ -150,28 +147,34 @@ try:
         cert, key = root/'tls.crt', root/'tls.key'
         log_run('certificate.log', ['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1',
             '-keyout', key, '-out', cert, '-subj', '/CN=aftershock-owned-fixture', '-addext',
-            f'subjectAltName=IP:127.0.0.1,IP:{gateway},DNS:backend,DNS:backend.{namespace}.svc'])
+            f'subjectAltName=IP:127.0.0.1,DNS:auth-fixture,DNS:backend,DNS:backend.{namespace}.svc'])
         trust = ssl.create_default_context(cafile=str(cert))
         ticket = secrets.token_bytes(32)
         publisher, reader, password = [secrets.token_hex(32) for _ in range(3)]
         player = '18446744073709551615'
-        class Provider(http.server.BaseHTTPRequestHandler):
-            def do_GET(self):
-                query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
-                valid = query == dict(key=[publisher], appid=['12345'], ticket=[ticket.hex()], identity=['aftershock'])
-                body = json.dumps(dict(response=dict(params=dict(result='OK', steamid=player, publisherbanned=False)))).encode()
-                self.send_response(200 if valid else 401)
-                self.send_header('Content-Length', str(len(body)))
-                self.end_headers()
-                self.wfile.write(body)
-            def log_message(self, *_):
-                pass
-        provider = http.server.ThreadingHTTPServer((gateway, 0), Provider)
-        server_tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        server_tls.load_cert_chain(cert, key)
-        provider.socket = server_tls.wrap_socket(provider.socket, server_side=True)
-        worker = threading.Thread(target=provider.serve_forever)
-        worker.start()
+        # Keep the owned provider inside kind: host bridge INPUT policy must not
+        # determine authentication acceptance. It uses the same verified TLS path.
+        fixture = root/'provider'
+        fixture.mkdir(mode=0o700)
+        command(['go', 'build', '-o', fixture/'provider', ROOT/'tests/assets/backend/provider.go'],
+                env=dict(os.environ, CGO_ENABLED='0'), timeout=60)
+        shutil.copyfile(cert, fixture/'tls.crt')
+        shutil.copyfile(key, fixture/'tls.key')
+        (fixture/'config.json').write_text(json.dumps(dict(key=publisher, appid='12345',
+            ticket=ticket.hex(), identity='aftershock', player=player)))
+        # Node-owned files are removed with the private cluster. The fixture runs
+        # as the same non-root UID as the match image and mounts them read-only.
+        command(['docker', 'cp', str(fixture), node+':/aftershock-provider'])
+        command(['docker', 'exec', node, 'chown', '-R', '65532:65532', '/aftershock-provider'])
+        fixture_container = dict(name='provider', image=args.image, imagePullPolicy='IfNotPresent',
+            command=['/fixture/provider'], volumeMounts=[dict(name='fixture', mountPath='/fixture', readOnly=True)],
+            readinessProbe=dict(tcpSocket=dict(port=8443), periodSeconds=1))
+        apply('provider.json', dict(apiVersion='apps/v1', kind='Deployment', metadata=dict(name='auth-fixture', namespace=namespace),
+            spec=dict(replicas=1, selector=dict(matchLabels=dict(app='auth-fixture')),
+                template=dict(metadata=dict(labels=dict(app='auth-fixture')), spec=dict(containers=[fixture_container],
+                    volumes=[dict(name='fixture', hostPath=dict(path='/aftershock-provider', type='Directory'))])))))
+        apply('provider-service.json', resource('Service', 'auth-fixture', spec=dict(selector=dict(app='auth-fixture'), ports=[dict(port=8443)])))
+        log_run('provider-ready.log', [*ctl, 'rollout', 'status', 'deployment/auth-fixture', '--timeout=60s'], timeout=70)
         apply('db-secret.json', secret('backend-db', dict(password=password)))
         db_container = dict(name='postgres', image=POSTGRES, env=[dict(name='POSTGRES_DB', value='backend'),
             dict(name='POSTGRES_PASSWORD', valueFrom=dict(secretKeyRef=dict(name='backend-db', key='password')))],
@@ -198,7 +201,7 @@ try:
         for obj in resources['items']:
             if obj['kind'] == 'Deployment':
                 obj['spec']['template']['spec']['containers'][0]['env'] += [
-                    dict(name='BACKEND_STEAM_URL', value=f'https://{gateway}:{provider.server_port}/authenticate'),
+                    dict(name='BACKEND_STEAM_URL', value='https://auth-fixture:8443/authenticate'),
                     dict(name='BACKEND_MATCH_MINUTES', value='1')]
         apply('backend.json', resources)
         log_run('backend-ready.log', [*ctl, 'rollout', 'status', 'deployment/backend', '--timeout=120s'], timeout=130)
@@ -352,10 +355,6 @@ finally:
     if engine:
         shutil.copyfile(engine.log_path, output/'client.log')
         engine.close()
-    if provider:
-        provider.shutdown()
-        provider.server_close()
-        worker.join(timeout=5)
     for process in reversed(processes):
         if process.poll() is None:
             os.killpg(process.pid, signal.SIGTERM)

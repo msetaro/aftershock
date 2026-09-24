@@ -59,6 +59,17 @@ and HTTPS probes on both compilers pass as recorded below. The full client/kind
 flow is still pending. Accepted predecessors #19-#22 and closed #31 remain complete;
 do not repeat finished work, historical network controls or accepted fixtures.
 
+## #29 full kind fixture reachability
+
+The first default kind run passed deployment/HPA but failed native login with an
+upstream auth timeout (backend 503, 5002 ms). An independent container-to-host
+bridge request also timed out. The owned provider now runs inside the private
+kind cluster as a standalone test-only Go binary, with exact ticket checks and
+verified HTTPS unchanged. No host firewall or production authentication change
+is needed. Full run 2 is pending (`/tmp/aftershock-resume/backend-kind-full2`).
+The second affected run passes all selected checks after the format fixture fix
+(`/tmp/aftershock-resume/affected2.log`). Full local/hosted gates remain pending.
+
 ## #29 broad regression dependency check
 
 The first affected run stopped at the real `agent_formats` match decoder: its
