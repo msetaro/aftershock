@@ -30,6 +30,35 @@ needed for the current scope. #23 and tracking issue #25 record the same ruling.
 
 ## Next action
 
+#29 merged as PR181, merge `45d8dc461a32f6e825421937bd7f37cb7d444f1c`.
+Final head `918860e7` included current main `2c5bf00a`; build 35942975170
+passed all 16 jobs and regression 35942975177 passed all 10 required jobs.
+Final self-review/current-base evidence is on #29, comment 5806599450. The merge
+parents are exactly the checked base/head and its tree is identical to the tested
+head. Integrated build `35949141712` and regression `35949141778` are running;
+finish verifying them and publication before marking #29 fully integrated in #25.
+
+Continue #30 on `issue/30-match-ingest`, based directly on that main merge.
+Issue #30/#25 were read; the initial regression contracts were drafted while #29
+CI ran and are now written before production implementation. Python schema
+validation fails because MatchEvent/MatchCheckpoint/SubmitBatch are absent;
+Go compilation fails on the missing ingest DTO/store APIs. Evidence:
+`/tmp/aftershock-resume/ingest-contract-before.log` and `ingest-go-before.log`.
+Commit those tests, then implement transactional authenticated gRPC ingestion,
+separate results storage/read API, namespaced deployment/HPA, and durable sidecar
+retry/flush. Prove actual native outage recovery and a simultaneous 100-ending
+load test in an owned kind cluster, measuring authenticated backend latency.
+Keep native gameplay evidence distinct from simulated ending producers.
+
+No queue or optional demo/object-storage feature is needed for v1. No accepted
+fixture regeneration, unrelated engine fixes, or Steam SDK/provider/live work;
+#180 remains explicitly deferred, #24 retains its SDK dependency, #35 its existing
+exclusion, and #182 remains a separate tested bug-fix PR. No SDK/account input is
+needed. Private design notes and test drafts remain under `/tmp/aftershock-resume`.
+#23/PR179's full integrated acceptance remains complete at `2c5bf00a`.
+
+## #29 pre-merge checkpoint (historical; superseded by Next action)
+
 Final #29 review found startup-cached Kubernetes credentials, which expire after
 projected token rotation. Test-first commit `1d73819e` covers atomic replacement,
 empty/oversized/missing files and no stale-token fallback (initial compile failure:
@@ -44,6 +73,17 @@ Hosted `35942749157` passed PostgreSQL integration but stopped at the gofmt gate
 the longer token-file field required realignment in `backend.go`. That formatting
 is corrected; exact local gofmt/race/vet checks pass. The replacement hosted head
 must pass every required job before merge; do not reuse the failed run as acceptance.
+Current final head is `918860e766a0c69bdf24b16a8b85681ffa996d27`. Build
+`35942975170` passes all 16 jobs. Regression `35942975177` passes nine required
+jobs, including full backend native kind/HPA and lifetime analysis; runtime has
+passed authored level/bot-path checks and is finishing its remaining checks.
+Private #30 regression drafts and design notes
+are under `/tmp/aftershock-resume/issue30-tests` and `issue30-design-notes.md`;
+they are not repository changes or accepted execution evidence. Start #30's
+test-first branch after this PR's merge gates; no #30 production code exists yet.
+Superseded `5e41900f` workflows were canceled after its formatter failure; none of
+their incomplete results count toward acceptance. Self-review checkpoint:
+https://github.com/msetaro/aftershock/issues/29#issuecomment-5805792490.
 
 Resumed on Ironforge from migration checkpoint `b199539c`. PR179 (#23) is now
 fully accepted at main `2c5bf00a5753f13ff0bd698898d245f9388b9fb3`: its reviewed
