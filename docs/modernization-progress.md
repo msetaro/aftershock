@@ -53,6 +53,12 @@ full production-ingest acceptance. HPA/resources/workload/latency allowance and
 fresh-connection/TLS failure behavior stay unchanged. Keep PR184 isolated/unmerged
 and #30 unchecked until this separate correction is integrated. Preserve #182's
 completed UDP evidence; do not repeat prior negative controls or accepted fixtures.
+The new deployment contract fails on the absent hook
+(`/tmp/aftershock-resume/backend189-deployment-before.log`). The real-kind old-manifest test also fails with fresh-handshake `SSLEOFError`
+after verified EndpointSlice withdrawal, before any retirement sample succeeds
+(`backend189-retirement-before/backend-retirement.json` and adjacent log). This
+reproduces the hosted failure on the unchanged manifest. Commit the tests before
+implementation; preserve the completed negative and never repeat it.
 Only #24/#35/#180 are explicit exclusions; no SDK/account input is needed.
 
 ## #187 implementation checkpoint

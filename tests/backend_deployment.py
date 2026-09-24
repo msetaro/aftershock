@@ -20,6 +20,8 @@ with tempfile.TemporaryDirectory(prefix='aftershock-backend-deployment-',dir=SCR
     pod=deployment['template']['spec']
     assert pod['serviceAccountName']=='backend' and pod['securityContext']['fsGroup']==65532
     container,=pod['containers']
+    assert container.get('lifecycle',{}).get('preStop') == dict(sleep=dict(seconds=10)), 'missing endpoint withdrawal interval'
+    assert pod['terminationGracePeriodSeconds'] >= 20, 'grace must cover withdrawal and HTTP shutdown'
     assert container['args']==['backend'] and container['securityContext']['runAsNonRoot']
     assert container['securityContext']['readOnlyRootFilesystem'] and not container['securityContext']['allowPrivilegeEscalation']
     env={row['name']:row for row in container['env']}
